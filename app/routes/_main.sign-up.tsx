@@ -121,7 +121,7 @@ export default function SignUpPage({ }: Props) {
                         Đăng ký
                     </h1>
                     <p className="mt-3 text-xl text-black/80">
-                        Tham gia <strong>Photon Piano</strong> ngay để trải nghiệm dịch vụ thi bằng lái tốt nhất
+                        Tham gia <strong>Photon Piano</strong> ngay để đắm mình vào những giai điệu piano du dương
                     </p>
 
                     <Form onSubmit={submitSignUpForm} method='POST' className='mt-8' action='/sign-up'>
