@@ -1,3 +1,5 @@
+import { useState } from "react";
+import RichTextEditor from "~/components/text-editor";
 import { columns, Transaction } from "~/components/transactions/transaction-table/columns";
 import { DataTable } from "~/components/ui/data-table";
 
@@ -72,7 +74,22 @@ export default function TransactionHistoryPage({ }: Props) {
     return (
         <article className="px-10 py-4">
             <DataTable columns={columns} data={data} />
+            <DescriptionEditor />
         </article>
     )
+}
+
+function DescriptionEditor() {
+
+    const [description, setDescription] = useState('');
+
+    console.log({ description });
+
+    return <>
+
+        <RichTextEditor placeholder="Nhập mô tả..." value={description} onChange={setDescription} />
+
+        <textarea name="description" defaultValue={description} hidden />
+    </>
 }
 
