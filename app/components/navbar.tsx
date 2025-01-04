@@ -161,7 +161,7 @@ export default function NavBar() {
                             </NavigationMenuContent>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <Link to="/" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
+                            <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
                                 Thi xếp lớp đầu vào
                             </Link>
                         </NavigationMenuItem>
@@ -173,8 +173,8 @@ export default function NavBar() {
                             </Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <Link to="/" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
-                                Tài liệu
+                            <Link to="/instructors" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
+                                Giảng viên
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>

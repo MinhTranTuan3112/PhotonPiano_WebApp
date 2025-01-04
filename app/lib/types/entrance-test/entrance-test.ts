@@ -1,0 +1,94 @@
+export type EntranceTest = {
+    id : string,
+    name : string,
+    roomName? : string,
+    roomId? : string,
+    roomCapacity? : number,
+    instructorId? : string,
+    instructorName? : string,
+    shift : number,
+    date : string,
+    status : number,
+    registerStudents : number
+}
+
+export const sampleEntranceTests : EntranceTest[] = [
+    {
+        id : "a",
+        name : "Kiểm tra đầu vào 1",
+        roomName : "Phòng KTĐV 1",
+        roomId : "abc",
+        roomCapacity : 20,
+        shift : 1,
+        date : "2025-02-01",
+        status : 0,
+        instructorName : "HungDepTrai",
+        registerStudents : 20
+    },
+    {
+        id : "b",
+        name : "Kiểm tra đầu vào 2",
+        roomName : "Phòng KTĐV 2",
+        roomId : "def",
+        roomCapacity : 25,
+        shift : 1,
+        date : "2025-01-01",
+        status : 2,
+        instructorName : "HungDepTrai",
+        registerStudents : 10
+    },
+    {
+        id : "c",
+        name : "Kiểm tra đầu vào 3",
+        roomName : "Phòng KTĐV 1",
+        roomCapacity : 20,
+        roomId : "abc",
+        shift : 2,
+        date : "2025-02-01",
+        status : 0,
+        registerStudents : 15
+    },
+    {
+        id : "d",
+        name : "Kiểm tra đầu vào 4",
+        roomName : "Phòng KTĐV 2",
+        roomCapacity : 25,
+        roomId : "def",
+        shift : 2,
+        date : "2025-02-01",
+        status : 0,
+        instructorName : "Thien An",
+        registerStudents : 5
+    },
+    {
+        id : "e",
+        name : "Kiểm tra đầu vào 5",
+        roomName : "Phòng KTĐV 3",
+        roomCapacity : 20,
+        roomId : "ghi",
+        shift : 3,
+        date : "2025-02-02",
+        status : 0,
+        instructorName : "Thien An",
+        registerStudents : 7
+    },
+    {
+        id : "f",
+        name : "Kiểm tra đầu vào 6",
+        roomName : "Phòng KTĐV 3",
+        roomCapacity : 20,
+        roomId : "ghi",
+        shift : 4,
+        date : "2025-02-02",
+        status : 0,
+        registerStudents : 8
+    },
+    {
+        id : "g",
+        name : "Kiểm tra đầu vào 7",
+        shift : 3,
+        date : "2025-02-02",
+        status : 0,
+        registerStudents : 5
+    }
+]
