@@ -1,10 +1,17 @@
+import { useNavigate } from '@remix-run/react';
+import { ArrowDownAZ, ArrowDownZA, ClockArrowDown, ClockArrowUp, SortAscIcon, SortDescIcon } from 'lucide-react';
 import React from 'react'
 import { Button } from '~/components/ui/button'
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test'
 
 type Props = {}
 
+const sortItems = [
+    { value: 'registerNumber', label: 'Số lượng đăng ký' },
+    { value: 'time', label: 'Thứ tự thời gian' },
+];
 
 export default function EntranceTests({ }: Props) {
     const shiftTime = ["7:00 - 8:30", "8:45 - 10:15", "10:30 - 12:00", "12:30 - 14:00", "14:15 - 15:45", "16:00 - 17:30", "18:00 - 19:30", "19:45 - 21:45"];
@@ -20,6 +27,8 @@ export default function EntranceTests({ }: Props) {
         }
     };
 
+    const navigate = useNavigate()
+
     return (
         <div className="bg-gradient-to-br from-gray-100 via-slate-200 to-gray-300 px-6 md:px-12 lg:px-20 py-10">
             <div className="rounded-xl bg-white p-10 shadow-lg">
@@ -29,12 +38,30 @@ export default function EntranceTests({ }: Props) {
                 <p className="mt-4 text-lg text-center text-gray-600">
                     Các ca thi hiện đang mở
                 </p>
+                <div className='flex justify-end'>
+                    <Select>
+                        <SelectTrigger className='w-64'>
+                            <SortDescIcon />
+                            <SelectValue placeholder="Sắp xếp theo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                {
+                                    sortItems.map((item) => (
+                                        <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                                    ))
+                                }
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {
                         sampleEntranceTests.map((entranceTest) => (
                             <div
                                 key={entranceTest.id}
                                 className="transform hover:scale-105 transition-all duration-300 cursor-pointer rounded-lg shadow-md bg-gradient-to-r from-gray-100 to-white"
+                                onClick={() => navigate(`/entrance-tests/${entranceTest.id}`)}
                             >
                                 <div className="rounded-t-lg bg-gradient-to-r from-black to-gray-800 text-white font-bold p-4 text-center text-lg">
                                     {entranceTest.name}
@@ -75,24 +102,24 @@ export default function EntranceTests({ }: Props) {
                     <Pagination>
                         <PaginationContent>
                             <PaginationItem>
-                                <PaginationPrevious href="/" />
+                                <PaginationPrevious href="/entrance-tests" />
                             </PaginationItem>
                             <PaginationItem>
-                                <PaginationLink href="/">1</PaginationLink>
+                                <PaginationLink href="/entrance-tests">1</PaginationLink>
                             </PaginationItem>
                             <PaginationItem>
-                                <PaginationLink href="/" isActive>
+                                <PaginationLink href="/entrance-tests" isActive>
                                     2
                                 </PaginationLink>
                             </PaginationItem>
                             <PaginationItem>
-                                <PaginationLink href="/">3</PaginationLink>
+                                <PaginationLink href="/entrance-tests">3</PaginationLink>
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationEllipsis />
                             </PaginationItem>
                             <PaginationItem>
-                                <PaginationNext href="/" />
+                                <PaginationNext href="/entrance-tests" />
                             </PaginationItem>
                         </PaginationContent>
                     </Pagination>
