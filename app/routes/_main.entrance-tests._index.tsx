@@ -1,10 +1,9 @@
 import { useNavigate } from '@remix-run/react';
-import { ArrowDownAZ, ArrowDownZA, ClockArrowDown, ClockArrowUp, SortAscIcon, SortDescIcon } from 'lucide-react';
-import React from 'react'
-import { Button } from '~/components/ui/button'
+import { SortDescIcon } from 'lucide-react';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '~/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test'
+import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants';
 
 type Props = {}
 
@@ -13,19 +12,18 @@ const sortItems = [
     { value: 'time', label: 'Thứ tự thời gian' },
 ];
 
-export default function EntranceTests({ }: Props) {
-    const shiftTime = ["7:00 - 8:30", "8:45 - 10:15", "10:30 - 12:00", "12:30 - 14:00", "14:15 - 15:45", "16:00 - 17:30", "18:00 - 19:30", "19:45 - 21:45"];
-    const entranceTestStatus = ["Sắp bắt đầu", "Đang diễn ra", "Đã kết thúc", "Vô hiệu hóa"];
+const getStatusStyle = (status: number) => {
+    switch (status) {
+        case 0: return "text-green-500 font-semibold";
+        case 1: return "text-blue-500 font-semibold";
+        case 2: return "text-gray-400 font-semibold";
+        case 3: return "text-gray-400 font-semibold";
+        default: return "text-black font-semibold";
+    }
+};
 
-    const getStatusStyle = (status: number) => {
-        switch (status) {
-            case 0: return "text-green-500 font-semibold";
-            case 1: return "text-blue-500 font-semibold";
-            case 2: return "text-gray-400 font-semibold";
-            case 3: return "text-gray-400 font-semibold";
-            default: return "text-black font-semibold";
-        }
-    };
+export default function EntranceTests({ }: Props) {
+
 
     const navigate = useNavigate()
 
@@ -72,7 +70,7 @@ export default function EntranceTests({ }: Props) {
                                             <span className="font-semibold">Địa điểm:</span> {entranceTest.roomName}
                                         </li>
                                         <li>
-                                            <span className="font-semibold">Ca thi:</span> {entranceTest.shift} ({shiftTime[entranceTest.shift - 1]})
+                                            <span className="font-semibold">Ca thi:</span> {entranceTest.shift} ({SHIFT_TIME[entranceTest.shift - 1]})
                                         </li>
                                         <li>
                                             <span className="font-semibold">Ngày thi:</span> {entranceTest.date}
@@ -89,7 +87,7 @@ export default function EntranceTests({ }: Props) {
                                         <li>
                                             <span className="font-semibold">Trạng thái:</span>
                                             <span className={`ml-2 ${getStatusStyle(entranceTest.status)}`}>
-                                                {entranceTestStatus[entranceTest.status]}
+                                                {ENTRANCE_TEST_STATUSES[entranceTest.status]}
                                             </span>
                                         </li>
                                     </ul>

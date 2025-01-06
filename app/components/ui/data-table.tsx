@@ -21,21 +21,33 @@ import {
 } from "./table"
 import { Button } from "./button"
 import { useEffect, useState } from "react"
-import { Input } from "./input"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "./dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
-import { ChevronLeft, ChevronRight, Settings2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Settings2, Trash2 } from 'lucide-react'
+
+type TableOptions = Partial<{
+    enableColumnDisplayOptions: boolean;
+    defaultPageSize: number;
+    pageSizeOptions: number[];
+}>;
 
 type DataTableProps<TData, TValue> = {
     columns: ColumnDef<TData, TValue>[]
     data: TData[],
     onRowSelectionChange?: (selectedRows: Row<TData>[]) => void;
-}
+    emptyContentText?: string;
+    extraHeaderContent?: React.ReactNode;
+} & TableOptions;
 
 export function DataTable<TData, TValue>({
     columns,
     data,
     onRowSelectionChange,
+    extraHeaderContent,
+    emptyContentText = "Không có kết quả.",
+    enableColumnDisplayOptions = true,
+    defaultPageSize = 5,
+    pageSizeOptions = [5, 10, 20, 30, 40, 50]
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
@@ -56,7 +68,7 @@ export function DataTable<TData, TValue>({
         onRowSelectionChange: setRowSelection,
         initialState: {
             pagination: {
-                pageSize: 5
+                pageSize: defaultPageSize
             }
         },
         state: {
@@ -65,17 +77,18 @@ export function DataTable<TData, TValue>({
             columnVisibility,
             rowSelection
         },
-    })
+    });
 
     useEffect(() => {
         if (onRowSelectionChange) {
             onRowSelectionChange(table.getFilteredSelectedRowModel().rows);
         }
-    },[rowSelection])
+    }, [rowSelection])
 
     return (
         <>
-            <div className="flex items-center py-4">
+            <div className="flex flex-col items-end gap-5 py-4">
+                {extraHeaderContent}
                 {/* <Input
                     placeholder="Nhập email..."
                     value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
@@ -84,35 +97,37 @@ export function DataTable<TData, TValue>({
                     }
                     className="max-w-sm"
                 /> */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto"
-                            Icon={Settings2} iconPlacement="left">
-                            Cột hiển thị
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter(
-                                (column) => column.getCanHide()
-                            )
-                            .map((column) => {
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.id}
-                                    </DropdownMenuCheckboxItem>
+                {enableColumnDisplayOptions && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline"
+                                Icon={Settings2} iconPlacement="left">
+                                Cột hiển thị
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                                .getAllColumns()
+                                .filter(
+                                    (column) => column.getCanHide()
                                 )
-                            })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                                .map((column) => {
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) =>
+                                                column.toggleVisibility(!!value)
+                                            }
+                                        >
+                                            {column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    )
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
             </div>
             <div className="rounded-md border">
                 <Table>
@@ -151,7 +166,7 @@ export function DataTable<TData, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    Không có kết quả.
+                                    {emptyContentText}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -179,7 +194,7 @@ export function DataTable<TData, TValue>({
                             <SelectValue placeholder={table.getState().pagination.pageSize} />
                         </SelectTrigger>
                         <SelectContent side="top">
-                            {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+                            {pageSizeOptions.map((pageSize) => (
                                 <SelectItem key={pageSize} value={`${pageSize}`}>
                                     {pageSize}
                                 </SelectItem>

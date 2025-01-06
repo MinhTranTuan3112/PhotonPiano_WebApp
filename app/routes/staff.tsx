@@ -20,8 +20,11 @@ function getBreadcrumbPageName(pathname: string) {
     let pageName = 'Quản lý thông tin';
 
     switch (pathname) {
-        case '/account/profile':
+        case '/staff/profile':
             pageName = 'Cá nhân';
+            break;
+        case '/staff/entrance-tests':
+            pageName = 'Quản lý thi đầu vào';
             break;
         default:
             break;
