@@ -3,6 +3,7 @@ import { Await, useLoaderData } from "@remix-run/react";
 import { Suspense } from "react";
 import { Button } from "~/components/ui/button";
 import Image from "~/components/ui/image";
+import { Skeleton } from "~/components/ui/skeleton";
 import { sampleEntranceTests } from "~/lib/types/entrance-test/entrance-test";
 import { EntranceTestDetail } from "~/lib/types/entrance-test/entrance-test-detail";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
@@ -68,7 +69,7 @@ export default function EntranceTestDetailPage({ }: Props) {
                 <h1 className="font-extrabold text-3xl text-center text-gray-800 px-10">
                     Chi tiết ca thi
                 </h1>
-                <Suspense fallback={<div>loading..</div>}>
+                <Suspense fallback={<LoadingSkeleton />}>
                     <Await resolve={loaderData?.promise}>
                         {(entranceTest) => (
                             <div className="relative">
@@ -125,7 +126,7 @@ export default function EntranceTestDetailPage({ }: Props) {
                                         <img className="relative z-10" src="/images/grand_piano_1.png"></img>
                                     </div>
                                 </div>
-                                
+
                             </div>
                         )}
                     </Await>
@@ -137,4 +138,11 @@ export default function EntranceTestDetailPage({ }: Props) {
             </div>
         </div>
     );
+}
+
+
+function LoadingSkeleton() {
+    return <div className="flex justify-center items-center my-4">
+        <Skeleton className="w-[90%] h-[300px] rounded-md" />
+    </div>
 }
