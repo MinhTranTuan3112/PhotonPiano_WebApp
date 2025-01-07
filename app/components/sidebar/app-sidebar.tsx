@@ -4,7 +4,8 @@ import * as React from "react"
 import {
     BookOpen,
     CircleUserRound,
-    History
+    History,
+    Music
 } from "lucide-react"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "../ui/sidebar"
 import TopNav from "./top-nav"
@@ -29,6 +30,22 @@ const data = {
                 {
                     title: "Thông tin cá nhân",
                     url: "/account/profile",
+                }
+            ],
+        },
+        {
+            title: "Học tập",
+            url: "",
+            icon: Music,
+            isActive: true,
+            items: [
+                {
+                    title: "Lớp của tôi",
+                    url: "/account/class",
+                },
+                {
+                    title: "Bài thi của tôi",
+                    url: "/account/my-exams",
                 }
             ],
         },

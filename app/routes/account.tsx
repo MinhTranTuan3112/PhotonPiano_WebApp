@@ -26,6 +26,12 @@ function getBreadcrumbPageName(pathname: string) {
         case '/account/transactions':
             pageName = 'Lịch sử giao dịch';
             break;
+        case '/account/class':
+            pageName = 'Lớp của tôi';
+            break;
+        case '/account/my-exams':
+            pageName = 'Bài thi của tôi';
+            break;
         default:
             break;
     }
