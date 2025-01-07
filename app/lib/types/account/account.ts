@@ -5,4 +5,5 @@ export type Account = {
     phone: string;
     address: string;
     avatarUrl? : string;
+    status : number;
 };
