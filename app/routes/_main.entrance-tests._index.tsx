@@ -31,7 +31,7 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
         email: "nguynan001@gmail.com",
         phone: "0987654321",
         username: "Ng Ân",
-        status: 1,
+        status: 0,
         avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
     }
 }
@@ -188,7 +188,7 @@ export default function EntranceTests({ }: Props) {
                                 </div>
                                 <Button className='mt-2 flex gap-4 relative z-10' size={'lg'}>
                                     Xem lịch thi của tôi <ArrowRightCircle />
-                                    </Button>
+                                </Button>
                                 <img className="my-2 w-64 relative z-10" src="/images/grand_piano_1.png"></img>
                                 <div className='mt-8 italic relative z-10'>
                                     Hi vọng sớm gặp lại bạn ở PhotonPiano
@@ -209,10 +209,10 @@ function LoadingSkeleton() {
             <Skeleton className="w-[90%] h-[30px] rounded-md mt-4" />
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-4 w-full px-10'>
                 {
-                    Array.from({ length: 9 }).map((v,i) => (
+                    Array.from({ length: 9 }).map((v, i) => (
                         <Skeleton key={i} className="w-full h-[120px] rounded-md" />
                     ))
-                }   
+                }
             </div>
         </div>
     )
