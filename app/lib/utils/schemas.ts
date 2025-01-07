@@ -29,3 +29,8 @@ export const createEntranceTestSchema = z.object({
     roomCapacity: z.number({ message: 'Sức chứa không được để trống.' }).min(1, { message: 'Sức chứa không được để trống.' }),
     instructorId: z.string({ message: 'Người coi thi không được để trống.' }).min(1, { message: 'Người coi thi không được để trống.' }),
 });
+
+export const enrollSchema = z.object({
+    email: z.string().email({ message: 'Email không hợp lệ' }).min(1, { message: 'Email không được để trống' }),
+    phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }).max(12, { message: 'Số điện thoại không hợp lệ.' }),
+});

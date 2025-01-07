@@ -2,6 +2,7 @@ import { LoaderFunctionArgs } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate } from '@remix-run/react';
 import { ArrowRightCircle, SortDescIcon } from 'lucide-react';
 import { Suspense } from 'react';
+import Paginator from '~/components/paginator';
 import { Button } from '~/components/ui/button';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
@@ -31,7 +32,7 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
         email: "nguynan001@gmail.com",
         phone: "0987654321",
         username: "Ng Ân",
-        status: 1,
+        status: 0,
         avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
     }
 }
@@ -68,7 +69,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function EntranceTests({ }: Props) {
-
     const loaderData = useLoaderData<typeof loader>();
 
     const navigate = useNavigate()
@@ -147,30 +147,7 @@ export default function EntranceTests({ }: Props) {
                                     }
                                 </div>
                                 <div className='flex justify-center mt-4'>
-                                    <Pagination>
-                                        <PaginationContent>
-                                            <PaginationItem>
-                                                <PaginationPrevious href="/entrance-tests" />
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="/entrance-tests">1</PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="/entrance-tests" isActive>
-                                                    2
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationLink href="/entrance-tests">3</PaginationLink>
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationEllipsis />
-                                            </PaginationItem>
-                                            <PaginationItem>
-                                                <PaginationNext href="/entrance-tests" />
-                                            </PaginationItem>
-                                        </PaginationContent>
-                                    </Pagination>
+                                    <Paginator totalPage={10} page={3}/>
                                 </div>
                             </>
                         ) : (
@@ -186,9 +163,9 @@ export default function EntranceTests({ }: Props) {
                                 <div className='mt-8 text-sm italic relative z-10'>
                                     Thông tin chi tiết phía dưới đây
                                 </div>
-                                <Button className='mt-2 flex gap-4 relative z-10' size={'lg'}>
+                                <Button className='mt-2 flex gap-4 relative z-10' size={'lg'} onClick={() => navigate('/account/my-exams')}>
                                     Xem lịch thi của tôi <ArrowRightCircle />
-                                    </Button>
+                                </Button>
                                 <img className="my-2 w-64 relative z-10" src="/images/grand_piano_1.png"></img>
                                 <div className='mt-8 italic relative z-10'>
                                     Hi vọng sớm gặp lại bạn ở PhotonPiano

@@ -1,6 +1,9 @@
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { Await, useLoaderData } from "@remix-run/react";
 import { Suspense, useState } from "react";
+import { getValidatedFormData } from "remix-hook-form";
+import { z } from "zod";
 import EnrollDialog from "~/components/entrance-tests/enroll-dialog";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "~/components/ui/breadcrumb";
 import { Button } from "~/components/ui/button";
@@ -11,6 +14,7 @@ import { sampleEntranceTests } from "~/lib/types/entrance-test/entrance-test";
 import { EntranceTestDetail } from "~/lib/types/entrance-test/entrance-test-detail";
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
+import { enrollSchema } from "~/lib/utils/schemas";
 
 type Props = {}
 
@@ -43,13 +47,33 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
     }
 }
 
+type EnrollFormData = z.infer<typeof enrollSchema>;
+
+const resolver = zodResolver(enrollSchema);
+
+export async function action({ request }: ActionFunctionArgs) {
+
+    const { errors, data, receivedValues: defaultValues } =
+        await getValidatedFormData<EnrollFormData>(request, resolver);
+
+    if (errors) {
+        return { success: false, errors, defaultValues };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return {
+        success: true
+    }
+}
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
 
     try {
 
         const promise = getSampleEntranceTest(params.id!)
         const accountPromise = getSampleAccount()
-        return { promise, accountPromise };
+        return { promise, accountPromise, id : params.id! };
 
     } catch (error) {
 
@@ -195,7 +219,7 @@ export default function EntranceTestDetailPage({ }: Props) {
                                                 className="text-xl" size={"lg"}>Đăng ký thi & bắt đầu học</Button>
                                         )}
                                     </Await>
-                                    <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} />
+                                    <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} entranceTestId={loaderData.id} />
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center  mt-8">
