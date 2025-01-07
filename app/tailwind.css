@@ -41,7 +41,7 @@ body {
       outline: 3px solid var(--purple);
     }
   }
-  
+
   ul,
   ol {
     padding: 0 1rem;
@@ -124,6 +124,12 @@ body {
     border: none;
     border-top: 1px solid var(--gray-2);
     margin: 2rem 0;
+  }
+}
+
+@layer utilities {
+  .popover-content-width-full {
+    @apply w-[var(--radix-popover-trigger-width)];
   }
 }
 
