@@ -4,6 +4,7 @@ import { Button } from '../ui/button'
 import { CircleArrowRight } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
 import { Separator } from '../ui/separator'
+import { useNavigate } from '@remix-run/react'
 
 type Props = {
     entranceTest: EntranceTest
@@ -17,7 +18,9 @@ const getStatusStyle = (status: number) => {
         default: return "text-black font-bold";
     }
 };
-export default function MyTestCard({ entranceTest }: Props) {
+export default function MyTestCard({ entranceTest }: Props) {1
+    const navigate = useNavigate()
+
     return (
         <div className={'rounded-lg shadow-md p-4 border-r-4 border-b-4 border-gray-200 transition-all relative '
             + (entranceTest.status === 0 ? 'hover:bg-gray-100' : 'bg-gray-200 hover:bg-gray-300 border-gray-400')
@@ -50,7 +53,7 @@ export default function MyTestCard({ entranceTest }: Props) {
                     </div>
                 </div>
                 <div>
-                    <Button variant={'ghost'}><CircleArrowRight size={40} /></Button>
+                    <Button variant={'ghost'}><CircleArrowRight size={40} onClick={() => navigate(`/account/my-exams/${entranceTest.id}`)}/></Button>
                 </div>
             </div>
         </div>
