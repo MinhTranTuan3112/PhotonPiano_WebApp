@@ -4,9 +4,5 @@ import { EntranceTestResult } from "./entrance-test-result"
 
 export type EntranceTestDetail = {
     students : Account[],
-    instructor? : Account,
-    entranceTestResult : EntranceTestResult[],
-    bandScore? : number,
-    rank? : number,
-    instructorComment? : string
+    instructor? : Account,    
 } & EntranceTest

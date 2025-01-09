@@ -31,7 +31,6 @@ const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> =>
             phone: "0987654321",
             avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
         },
-        entranceTestResult : [],
     }
 }
 

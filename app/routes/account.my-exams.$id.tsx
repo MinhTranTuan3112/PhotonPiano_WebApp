@@ -6,7 +6,7 @@ import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
 import { Skeleton } from '~/components/ui/skeleton';
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test';
-import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail';
+import { EntranceTestStudentDetail } from '~/lib/types/entrance-test/entrance-test-student-detail';
 import { ENTRANCE_TEST_STATUSES, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 
@@ -17,18 +17,28 @@ async function getSampleEntranceTest(id: string) {
   return smapleEntranceTest;
 }
 
-const smapleEntranceTest: EntranceTestDetail = {
-  ...sampleEntranceTests[0],
-  students: [],
-  instructor: {
-    status: 0,
-    username: "HungDepTrai",
-    address: "TN, ĐN",
-    email: "thanhhung16082003@gmail.com",
+const smapleEntranceTest: EntranceTestStudentDetail = {
+  student: {
+    address: "Thong Nhat, Dong Nai",
+    email: "nguynan001@gmail.com",
     phone: "0987654321",
-    avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
+    username: "Ng Ân",
+    status: 0,
+    avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
   },
-  entranceTestResult: [
+  entranceTest: {
+    ...sampleEntranceTests[1],
+    students: [],
+    instructor: {
+      status: 0,
+      username: "HungDepTrai",
+      address: "TN, ĐN",
+      email: "thanhhung16082003@gmail.com",
+      phone: "0987654321",
+      avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
+    },
+  },
+  entranceTestResults: [
     {
       criteriaId: "a",
       criteriaName: "Đúng nhịp",
@@ -96,7 +106,7 @@ export default function ExamDetail({ }: Props) {
       <div className='font-bold text-2xl'>Chi tiết bài thi</div>
       <Suspense fallback={<LoadingSkeleton />}>
         <Await resolve={loaderData.promise}>
-          {(entranceTest) => (
+          {(entranceTestStudent) => (
             <div className='mt-8'>
               <div>
                 <div className="flex place-content-between">
@@ -104,32 +114,39 @@ export default function ExamDetail({ }: Props) {
                     <Music2 />
                     Thông tin chung
                   </div>
-                  <div className={`${getStatusStyle(entranceTest.status)} rounded-xl px-8 py-2 text-white`}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</div>
+                  <div className={`${getStatusStyle(entranceTestStudent.entranceTest.status)} rounded-xl px-8 py-2 text-white`}>{ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}</div>
                 </div>
 
                 <div className='mt-4 grid grid-cols-2 lg:grid-cols-3 gap-4'>
                   <div className="flex flex-col">
                     <div className="font-bold">Địa điểm</div>
-                    <div>{entranceTest.roomName}</div>
+                    <div>{entranceTestStudent.entranceTest.roomName}</div>
                   </div>
                   <div className="flex flex-col">
                     <div className="font-bold">Ca thi</div>
-                    <div>{entranceTest.shift} ({SHIFT_TIME[entranceTest.shift - 1]})</div>
+                    <div>{entranceTestStudent.entranceTest.shift} ({SHIFT_TIME[entranceTestStudent.entranceTest.shift - 1]})</div>
                   </div>
                   <div className="flex flex-col">
                     <div className="font-bold">Ngày thi</div>
-                    <div>{entranceTest.date}</div>
+                    <div>{entranceTestStudent.entranceTest.date}</div>
                   </div>
 
                   <div className="flex flex-col">
                     <div className="font-bold">Số học viên tham dự</div>
-                    <div>{entranceTest.registerStudents} / {entranceTest.roomCapacity ?? 20}</div>
+                    <div>{entranceTestStudent.entranceTest.registerStudents} / {entranceTestStudent.entranceTest.roomCapacity ?? 20}</div>
                   </div>
                   <div className="flex flex-col">
                     <div className="font-bold">Loại</div>
                     <div>Thi xếp lớp đầu vào</div>
                   </div>
                 </div>
+                {
+                  entranceTestStudent.entranceTest.status === 0 && (
+                    <div className='flex justify-center my-4'>
+                      <Button className='px-32 font-bold'>Đổi ca thi</Button>
+                    </div>
+                  )
+                }
               </div>
               <div className='mt-8'>
                 <div className='flex gap-4 text-xl font-bold'>
@@ -137,25 +154,25 @@ export default function ExamDetail({ }: Props) {
                   Thông tin giảng viên chấm
                 </div>
                 {
-                  entranceTest.instructor ? (
+                  entranceTestStudent.entranceTest.instructor ? (
                     <div className='flex gap-8 mt-4 items-center'>
-                      <Image src={entranceTest.instructor?.avatarUrl ?? '/images/noavatar.png'} className='w-48' />
+                      <Image src={entranceTestStudent.entranceTest.instructor?.avatarUrl ?? '/images/noavatar.png'} className='w-48' />
                       <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-grow'>
                         <div className="flex flex-col">
                           <div className="font-bold">Tên</div>
-                          <div>{entranceTest.instructor.username}</div>
+                          <div>{entranceTestStudent.entranceTest.instructor.username}</div>
                         </div>
                         <div className="flex flex-col">
                           <div className="font-bold">SĐT</div>
-                          <div>{entranceTest.instructor.phone}</div>
+                          <div>{entranceTestStudent.entranceTest.instructor.phone}</div>
                         </div>
                         <div className="flex flex-col">
                           <div className="font-bold">Email</div>
-                          <div>{entranceTest.instructor.email}</div>
+                          <div>{entranceTestStudent.entranceTest.instructor.email}</div>
                         </div>
                         <div className="flex flex-col">
                           <div className="font-bold">Địa chỉ</div>
-                          <div>{entranceTest.instructor.address}</div>
+                          <div>{entranceTestStudent.entranceTest.instructor.address}</div>
                         </div>
                         <div className="">
                           <Button>Xem hồ sơ của giảng viên</Button>
@@ -174,7 +191,7 @@ export default function ExamDetail({ }: Props) {
                   Kết quả
                 </div>
                 {
-                  entranceTest.entranceTestResult.length > 0 ? (
+                  entranceTestStudent.entranceTestResults.length > 0 ? (
                     <div className="bg-gray-100 py-10 px-6 md:px-12 lg:px-20 mt-4 rounded-xl relative">
                       <div className="absolute inset-1 z-0 bg-cover bg-no-repeat opacity-5 bg-[url('/images/notes_flows.png')]">
                       </div>
@@ -190,7 +207,7 @@ export default function ExamDetail({ }: Props) {
                             </tr>
                           </thead>
                           <tbody>
-                            {entranceTest.entranceTestResult.map((result) => (
+                            {entranceTestStudent.entranceTestResults.map((result) => (
                               <tr
                                 key={result.id}
                                 className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
@@ -206,15 +223,15 @@ export default function ExamDetail({ }: Props) {
                         <div className='mt-4 flex flex-col items-center'>
                           <div className='font-bold text-xl'>
                             <span>Điểm tổng kết : </span>
-                            <span className='text-2xl text-red-500'>{entranceTest.bandScore}</span>
+                            <span className='text-2xl text-red-500'>{entranceTestStudent.bandScore}</span>
                           </div>
                           <div className='font-bold text-lg'>
                             <span>Xếp hạng trình độ : </span>
-                            <span className='text-blue-500'>{entranceTest.rank} ({LEVEL[(entranceTest.rank ?? 1) - 1]})</span>
+                            <span className='text-blue-500'>{entranceTestStudent.rank} ({LEVEL[(entranceTestStudent.rank ?? 1) - 1]})</span>
                           </div>
                           <div className='mt-4 flex justify-start w-full'>
                             <span className='font-bold  '>Nhận xét của giảng viên chấm :
-                              <span className='font-normal italic'> {entranceTest.instructorComment ?? "Không có nhận xét"}</span>
+                              <span className='font-normal italic'> {entranceTestStudent.instructorComment ?? "Không có nhận xét"}</span>
                             </span>
                           </div>
                           <div className='italic mt-8 text-center text-sm'>
