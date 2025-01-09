@@ -10,6 +10,5 @@ export type EntranceTestStudentDetail = {
     entranceTestResults : EntranceTestResult[],
     bandScore? : number,
     rank? : number,
-    instructorComment? : string,
-    
+    instructorComment? : string,  
 } 

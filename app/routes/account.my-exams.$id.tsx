@@ -1,7 +1,8 @@
 import { LoaderFunctionArgs } from '@remix-run/node';
 import { Await, useLoaderData } from '@remix-run/react';
 import { Music2 } from 'lucide-react';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
+import ExamSwitchingDialog from '~/components/entrance-tests/exam-switching-dialog';
 import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
 import { Skeleton } from '~/components/ui/skeleton';
@@ -16,7 +17,10 @@ async function getSampleEntranceTest(id: string) {
   await new Promise(resolve => setTimeout(resolve, 1000));
   return smapleEntranceTest;
 }
-
+async function getSampleEntranceTests() {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return sampleEntranceTests;
+}
 const smapleEntranceTest: EntranceTestStudentDetail = {
   student: {
     address: "Thong Nhat, Dong Nai",
@@ -27,7 +31,7 @@ const smapleEntranceTest: EntranceTestStudentDetail = {
     avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
   },
   entranceTest: {
-    ...sampleEntranceTests[1],
+    ...sampleEntranceTests[0],
     students: [],
     instructor: {
       status: 0,
@@ -87,7 +91,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   try {
     const promise = getSampleEntranceTest(params.id!)
-    return { promise }
+    const entranceTestsPromise = getSampleEntranceTests()
+    return { promise , entranceTestsPromise }
   } catch (error) {
     console.error({ error });
     if (isRedirectError(error)) {
@@ -99,6 +104,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function ExamDetail({ }: Props) {
+  const [isOpenSwitchShiftDialog, setIsOpenSwitchShiftDialog] = useState(false)
+
   const loaderData = useLoaderData<typeof loader>();
 
   return (
@@ -143,7 +150,9 @@ export default function ExamDetail({ }: Props) {
                 {
                   entranceTestStudent.entranceTest.status === 0 && (
                     <div className='flex justify-center my-4'>
-                      <Button className='px-32 font-bold'>Đổi ca thi</Button>
+                      <Button className='px-32 font-bold' onClick={() => setIsOpenSwitchShiftDialog(true)}>Đổi ca thi</Button>
+                      <ExamSwitchingDialog isOpen={isOpenSwitchShiftDialog} setIsOpen={setIsOpenSwitchShiftDialog} 
+                        entranceTestPromise={loaderData.entranceTestsPromise}/>
                     </div>
                   )
                 }

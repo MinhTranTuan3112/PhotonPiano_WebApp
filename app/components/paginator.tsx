@@ -31,7 +31,7 @@ export default function Paginator({
     return (
         <div className={`flex justify-center mt-4 ${className}`}>
             <Pagination>
-                <PaginationContent>
+                <PaginationContent className='flex flex-wrap'>
                     {/* Previous Button */}
                     <PaginationItem>
                         <PaginationPrevious
