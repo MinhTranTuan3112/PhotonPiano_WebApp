@@ -130,28 +130,20 @@ export default function CreateEntranceTestPage({ }: Props) {
                     </div>
                 </div>
 
-                <div className="flex flex-row gap-5">
-                    <div className="w-full">
-                        <Label className='w-full flex flex-row gap-1 items-center'><MapPin className='p-1' />Phòng thi</Label>
-                        <Controller
-                            name='roomId'
-                            control={control}
-                            render={({ field: { onChange, onBlur, value, ref } }) => (
-                                <Combobox items={rooms} emptyText='Không tìm thấy phòng'
-                                    placeholder='Nhập tên phòng ...'
-                                    value={value}
-                                    onChange={onChange}
-                                    className='w-full' />
-                            )}
-                        />
-                        {errors.roomId && <p className='text-sm text-red-500'>{errors.roomId.message}</p>}
-                    </div>
-                    <div className="w-full">
-                        <Label className='w-full' htmlFor='roomCapacity'>Sức chứa</Label>
-                        <Input type='number' {...register('roomCapacity')} name='roomCapacity' id='roomCapacity'
-                            placeholder='Nhập sức chứa phòng' />
-                        {errors.roomCapacity && <p className='text-sm text-red-500'>{errors.roomCapacity.message}</p>}
-                    </div>
+                <div className="w-full">
+                    <Label className='w-full flex flex-row gap-1 items-center'><MapPin className='p-1' />Phòng thi</Label>
+                    <Controller
+                        name='roomId'
+                        control={control}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <Combobox items={rooms} emptyText='Không tìm thấy phòng'
+                                placeholder='Nhập tên phòng ...'
+                                value={value}
+                                onChange={onChange}
+                                className='w-full' />
+                        )}
+                    />
+                    {errors.roomId && <p className='text-sm text-red-500'>{errors.roomId.message}</p>}
                 </div>
 
                 <div className="w-full">

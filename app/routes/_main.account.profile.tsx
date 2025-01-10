@@ -58,7 +58,6 @@ export default function AccountProfilePage({ }: Props) {
 
     const { profilePromise } = useLoaderData<typeof loader>();
 
-
     return (
         <section className='px-10'>
             <div className="md:max-w-[60%]">

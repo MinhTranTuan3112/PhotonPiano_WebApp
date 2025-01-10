@@ -42,7 +42,7 @@ const sections = [
 export default function Footer() {
     return (
         <section className="p-32 max-h-[30vh]">
-            <footer>
+            <footer className="">
                 <div className="grid grid-cols-2 gap-8 lg:grid-cols-6">
                     <div className="col-span-2 mb-8 lg:mb-0">
                         <img
