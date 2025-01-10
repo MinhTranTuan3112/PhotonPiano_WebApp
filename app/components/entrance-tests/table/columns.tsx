@@ -22,7 +22,6 @@ function StatusBadge({ status }: {
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{ENTRANCE_TEST_STATUSES[status]}</Badge>
 }
-
 export const columns: ColumnDef<EntranceTest>[] = [
     {
         id: "select",
@@ -120,7 +119,9 @@ export const columns: ColumnDef<EntranceTest>[] = [
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer"><Pencil /> Sửa</DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/entrance-tests/${row.original.id}`}>
+                            <Pencil /> Sửa
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
                             <Trash2 /> Xóa
                         </DropdownMenuItem>
