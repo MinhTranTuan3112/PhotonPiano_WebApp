@@ -1,8 +1,10 @@
 import { Account } from "../account/account"
+import { Room } from "../room"
 import { EntranceTest } from "./entrance-test"
 import { EntranceTestResult } from "./entrance-test-result"
 
 export type EntranceTestDetail = {
     students : Account[],
     instructor? : Account,    
+    room? : Room
 } & EntranceTest
