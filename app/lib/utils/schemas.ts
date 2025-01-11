@@ -23,10 +23,16 @@ export const accountInfoSchema = z.object({
 
 export const createEntranceTestSchema = z.object({
     name: z.string({ message: 'Tên đợt thi không được để trống.' }).min(1, { message: 'Tên đợt thi không được để trống.' }),
-    date: z.coerce.date({ message: 'Ngày thi không được để trống.' }).min(new Date(), { message: 'Ngày thi phải sau hôm nay.' }),
-    shift: z.string({ message: 'Vui lòng chọn ca thi.' }).min(1, { message: 'Ca thi không được để trống.' }),
-    roomId: z.string({ message: 'Vui lòng chọn phòng thi.' }).min(1, { message: 'Phòng thi không được để trống.' }),
-    instructorId: z.string({ message: 'Vui lòng chọn người gác thi.' }).min(1, { message: 'Người coi thi không được để trống.' }).optional(),
+    date: z.string({ message: 'Ngày thi không được để trống.' }).min(1, { message: 'Ngày thi không được để trống.' }),
+    shift: z.number({ message: 'Ca thi không được để trống.' }).min(1, { message: 'Ca thi không được để trống.' }),
+    roomId: z.string({ message: 'Phòng thi không được để trống.' }).min(1, { message: 'Phòng thi không được để trống.' }),
+    roomCapacity: z.number({ message: 'Sức chứa không được để trống.' }).min(1, { message: 'Sức chứa không được để trống.' }),
+    instructorId: z.string({ message: 'Người coi thi không được để trống.' }).min(1, { message: 'Người coi thi không được để trống.' }),
+});
+
+export const enrollSchema = z.object({
+    email: z.string().email({ message: 'Email không hợp lệ' }).min(1, { message: 'Email không được để trống' }),
+    phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }).max(12, { message: 'Số điện thoại không hợp lệ.' }),
 });
 
 export type CreateEntranceTestFormData = z.infer<typeof createEntranceTestSchema>;

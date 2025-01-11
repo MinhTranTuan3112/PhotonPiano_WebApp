@@ -24,7 +24,6 @@ function StatusBadge({ status }: {
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{ENTRANCE_TEST_STATUSES[status]}</Badge>
 }
-
 export const columns: ColumnDef<EntranceTest>[] = [
     {
         id: "select",
@@ -109,8 +108,27 @@ export const columns: ColumnDef<EntranceTest>[] = [
     },
     {
         id: "actions",
-        cell: (cell) => {
-            return <ActionsDropdown cell={cell} />
+        cell: ({ row }) => {
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Thao tác</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/entrance-tests/${row.original.id}`}>
+                            <Pencil /> Sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-red-600 cursor-pointer">
+                            <Trash2 /> Xóa
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )
         }
     }
 ]
