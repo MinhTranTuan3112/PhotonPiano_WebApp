@@ -16,7 +16,7 @@ export const signUpSchema = z.object({
 
 export const accountInfoSchema = z.object({
     email: z.string({ message: 'Email không được để trống.' }).email({ message: 'Email không hợp lệ.' }),
-    username: z.string({message: 'Tên người dùng không được để trống.'}).min(1, { message: 'Tên người dùng không được để trống.' }),
+    username: z.string({ message: 'Tên người dùng không được để trống.' }).min(1, { message: 'Tên người dùng không được để trống.' }),
     phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }),
     address: z.string({ message: 'Địa chỉ không được để trống.' }).min(1, { message: 'Địa chỉ không được để trống.' }),
 })
@@ -34,3 +34,5 @@ export const enrollSchema = z.object({
     email: z.string().email({ message: 'Email không hợp lệ' }).min(1, { message: 'Email không được để trống' }),
     phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }).max(12, { message: 'Số điện thoại không hợp lệ.' }),
 });
+
+export type CreateEntranceTestFormData = z.infer<typeof createEntranceTestSchema>;

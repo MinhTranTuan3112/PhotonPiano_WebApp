@@ -186,10 +186,10 @@ function LoadingSkeleton() {
             <Skeleton className="w-[90%] h-[30px] rounded-md mt-4" />
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-4 w-full px-10'>
                 {
-                    Array.from({ length: 9 }).map((v,i) => (
+                    Array.from({ length: 9 }).map((v, i) => (
                         <Skeleton key={i} className="w-full h-[120px] rounded-md" />
                     ))
-                }   
+                }
             </div>
         </div>
     )

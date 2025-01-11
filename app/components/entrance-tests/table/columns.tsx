@@ -1,11 +1,13 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { toast } from "sonner";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -107,7 +109,6 @@ export const columns: ColumnDef<EntranceTest>[] = [
     {
         id: "actions",
         cell: ({ row }) => {
-
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -131,3 +132,39 @@ export const columns: ColumnDef<EntranceTest>[] = [
         }
     }
 ]
+
+function ActionsDropdown({ cell }: { cell: CellContext<EntranceTest, unknown> }) {
+
+    const { table } = cell;
+
+    const { dialog: confirmDialog, open: handleOpenDialog } = useConfirmationDialog({
+        title: 'Xác nhận xóa đợt thi?',
+        description: 'Dữ liệu đợt thi sau khi xóa sẽ không thể hồi phục lại.',
+        onConfirm: () => {
+            // handle delete
+            toast.success('Xóa thành công!');
+        },
+        confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
+    })
+
+    return <>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Thao tác</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer"><Eye /> Xem chi tiết</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer"><Pencil /> Sửa</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}>
+                    <Trash2 /> Xóa
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+        {confirmDialog}
+    </>
+}
