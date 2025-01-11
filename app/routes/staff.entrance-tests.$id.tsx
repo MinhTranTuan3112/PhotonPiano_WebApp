@@ -16,7 +16,7 @@ import { Skeleton } from '~/components/ui/skeleton'
 import { Account } from '~/lib/types/account/account'
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
-import { Room, sampleRooms } from '~/lib/types/room'
+import { Room, sampleRooms } from '~/lib/types/room/room'
 import { cn } from '~/lib/utils'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 
@@ -147,7 +147,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                                     !date && "text-muted-foreground"
                                                 )}
                                             >
-                                                <CalendarIcon className='mr-2'/>
+                                                <CalendarIcon className='mr-2' />
                                                 {date ? format(date, "PPP") : <span>Chọn ngày thi</span>}
                                             </Button>
                                         </PopoverTrigger>
@@ -189,7 +189,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                                                             key={room.id}
                                                                             value={room.name}
                                                                             onSelect={(currentValue) => {
-                                                                                setSelectedRoom(rooms.find(r => r.name === currentValue))
+                                                                                setSelectedRoom(selectedRoom?.name === currentValue ? undefined : rooms.find(r => r.name === currentValue))
                                                                                 setOpenRoomSearch(false)
                                                                             }}
                                                                         >
@@ -240,7 +240,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                                                             key={instructor.email}
                                                                             value={instructor.email}
                                                                             onSelect={(currentValue) => {
-                                                                                setSelectedInstructor(instructors.find(i => i.email === currentValue))
+                                                                                setSelectedInstructor(selectedInstructor?.email === currentValue ? undefined : instructors.find(i => i.email === currentValue))
                                                                                 setOpenRoomSearch(false)
                                                                             }}
                                                                         >
@@ -264,6 +264,8 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                     </Popover>
                                 </div>
                             </div>
+                            <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
+                            <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
                         </div>
                     )}
                 </Await>

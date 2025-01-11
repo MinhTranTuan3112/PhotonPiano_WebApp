@@ -1,5 +1,5 @@
 import { Account } from "../account/account"
-import { Room } from "../room"
+import { Room } from "../room/room"
 import { EntranceTest } from "./entrance-test"
 import { EntranceTestResult } from "./entrance-test-result"
 

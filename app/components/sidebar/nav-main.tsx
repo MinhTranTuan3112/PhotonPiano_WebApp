@@ -44,7 +44,7 @@ export function NavMain({
                                     {item.items?.map((subItem) => (
                                         <SidebarMenuSubItem key={subItem.title} className={``}>
                                             <SidebarMenuSubButton asChild>
-                                                <a href={subItem.url} className={`hover:bg-theme hover:text-theme-foreground ${pathname === subItem.url ? 'bg-theme text-white' : ''}`}>
+                                                <a href={subItem.url} className={`hover:bg-theme hover:text-theme-foreground ${pathname.startsWith(subItem.url) ? 'bg-theme text-white' : ''}`}>
                                                     <span>{subItem.title}</span>
                                                 </a>
                                             </SidebarMenuSubButton>

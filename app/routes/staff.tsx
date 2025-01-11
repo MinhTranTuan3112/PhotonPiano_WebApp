@@ -15,22 +15,49 @@ import {
     SidebarProvider,
     SidebarTrigger
 } from "~/components/ui/sidebar";
+import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
 
-function getBreadcrumbPageName(pathname: string) {
-    let pageName = 'Quản lý thông tin';
-
-    switch (pathname) {
-        case '/staff/profile':
-            pageName = 'Cá nhân';
+function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
+    const defaultNavItem = {
+        name: "Quản lý",
+        url: "/staff/dashboard",
+    };
+    let otherNavItems: BreadcumbNavItem[] = []
+    switch (true) {
+        case pathname === '/staff/profile':
+            otherNavItems = [
+                {
+                    name: "Thông tin cá nhân",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
             break;
-        case '/staff/entrance-tests':
-            pageName = 'Quản lý thi đầu vào';
+        case pathname.startsWith('/staff/entrance-tests'):
+            const param = pathname.replace('/staff/entrance-tests',"")
+            otherNavItems = [
+                {
+                    name: "Quản lý thi đầu vào",
+                    url: '/staff/entrance-tests',
+                    isCurrentPage: param.length === 0
+                }
+            ]
+            if (param.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết ca thi " + param.replace("/",""),
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
             break;
         default:
             break;
     }
 
-    return pageName;
+    return [
+        defaultNavItem,
+        ...otherNavItems
+    ]
 }
 
 export default function StaffLayout() {
@@ -47,15 +74,25 @@ export default function StaffLayout() {
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
                             <BreadcrumbList>
-                                <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="" className={buttonVariants({ variant: "linkHover2" })}>
-                                        Quản lý thông tin
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>{getBreadcrumbPageName(pathname)}</BreadcrumbPage>
-                                </BreadcrumbItem>
+                                {
+                                    getBreadcrumbPageName(pathname).map(breadcumb => (
+                                        <>
+                                            <BreadcrumbItem className="hidden md:block">
+                                                {
+                                                    !breadcumb.isCurrentPage ? (
+                                                        <BreadcrumbLink href={breadcumb.url} className={buttonVariants({ variant: "linkHover2" })}>
+                                                            {breadcumb.name}
+                                                        </BreadcrumbLink>
+                                                    ) : (
+                                                        <BreadcrumbPage>{breadcumb.name}</BreadcrumbPage>
+                                                    )
+                                                }
+
+                                            </BreadcrumbItem>
+                                            <BreadcrumbSeparator className="hidden md:block" />
+                                        </>
+                                    ))
+                                }
                             </BreadcrumbList>
                         </Breadcrumb>
                     </div>

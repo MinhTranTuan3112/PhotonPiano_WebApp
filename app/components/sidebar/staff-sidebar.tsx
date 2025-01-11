@@ -23,7 +23,7 @@ const data = {
             items: [
                 {
                     title: "Thông tin cá nhân",
-                    url: "/",
+                    url: "/info",
                 }
             ],
         },
