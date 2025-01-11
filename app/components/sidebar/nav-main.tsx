@@ -1,6 +1,7 @@
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "../ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
+import { useLocation } from "@remix-run/react"
 
 
 export function NavMain({
@@ -17,6 +18,8 @@ export function NavMain({
         }[]
     }[]
 }) {
+    const { pathname } = useLocation();
+
     return (
         <SidebarGroup>
             {/* <SidebarGroupLabel>Platform</SidebarGroupLabel> */}
@@ -26,7 +29,7 @@ export function NavMain({
                         key={item.title}
                         asChild
                         defaultOpen={item.isActive}
-                        className="group/collapsible"
+                        className={`group/collapsible`}
                     >
                         <SidebarMenuItem>
                             <CollapsibleTrigger asChild>
@@ -39,9 +42,9 @@ export function NavMain({
                             <CollapsibleContent>
                                 <SidebarMenuSub>
                                     {item.items?.map((subItem) => (
-                                        <SidebarMenuSubItem key={subItem.title} >
+                                        <SidebarMenuSubItem key={subItem.title} className={``}>
                                             <SidebarMenuSubButton asChild>
-                                                <a href={subItem.url} className="hover:bg-theme hover:text-theme-foreground">
+                                                <a href={subItem.url} className={`hover:bg-theme hover:text-theme-foreground ${pathname === subItem.url ? 'bg-theme text-white' : ''}`}>
                                                     <span>{subItem.title}</span>
                                                 </a>
                                             </SidebarMenuSubButton>

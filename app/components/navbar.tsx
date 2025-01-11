@@ -1,6 +1,6 @@
 import * as React from "react"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { Link, useNavigation, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useNavigation, useSubmit } from "@remix-run/react"
 import { cn } from "~/lib/utils"
 import { Button, buttonVariants } from "./ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet"
@@ -59,6 +59,8 @@ export default function NavBar() {
 
     const [isScrolling, setIsScrolling] = React.useState(false);
 
+    const { pathname } = useLocation();
+
     React.useEffect(() => {
 
         const handleScroll = () => {
@@ -108,7 +110,7 @@ export default function NavBar() {
                 </div>
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
-                        <NavigationMenuItem>
+                        <NavigationMenuItem className={`${pathname === '/intro' ? buttonVariants({ variant: 'theme'}) : ''}`}>
                             <NavigationMenuTrigger className="uppercase font-bold">Giới thiệu</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
@@ -143,9 +145,7 @@ export default function NavBar() {
                             </NavigationMenuContent>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className={`uppercase font-bold ${buttonVariants({
-                                variant: 'theme'
-                            })}`}>Loại hình đào tạo</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                                     {components.map((component) => (
@@ -161,14 +161,12 @@ export default function NavBar() {
                             </NavigationMenuContent>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
+                            <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${pathname.startsWith('/entrance-tests') ? buttonVariants({ variant: 'theme'}) : ''}`}>
                                 Thi xếp lớp đầu vào
                             </Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${buttonVariants({
-                                variant: 'theme'
-                            })}`}>
+                            <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold `}>
                                 Tin tức
                             </Link>
                         </NavigationMenuItem>
