@@ -9,7 +9,9 @@ export type EntranceTest = {
     shift: number,
     date: string,
     status: number,
-    registerStudents: number
+    registerStudents: number,
+    isAnnoucedScore : boolean,
+    isOpen : boolean
 }
 
 export type CreateEntranceTest = {
@@ -27,7 +29,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-01",
         status: 0,
         instructorName: "HungDepTrai",
-        registerStudents: 20
+        registerStudents: 20,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "b",
@@ -39,7 +43,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-01-01",
         status: 2,
         instructorName: "HungDepTrai",
-        registerStudents: 10
+        registerStudents: 10,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "c",
@@ -50,7 +56,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         shift: 2,
         date: "2025-02-01",
         status: 0,
-        registerStudents: 15
+        registerStudents: 15,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "d",
@@ -62,7 +70,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-01",
         status: 0,
         instructorName: "Thien An",
-        registerStudents: 5
+        registerStudents: 5,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "e",
@@ -74,7 +84,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-02",
         status: 0,
         instructorName: "Thien An",
-        registerStudents: 7
+        registerStudents: 7,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "f",
@@ -85,7 +97,9 @@ export const sampleEntranceTests: EntranceTest[] = [
         shift: 4,
         date: "2025-02-02",
         status: 0,
-        registerStudents: 8
+        registerStudents: 8,
+        isAnnoucedScore : true,
+        isOpen : true
     },
     {
         id: "g",
@@ -93,6 +107,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         shift: 3,
         date: "2025-02-02",
         status: 0,
-        registerStudents: 5
+        registerStudents: 5,
+        isAnnoucedScore : true,
+        isOpen : true
     }
 ]

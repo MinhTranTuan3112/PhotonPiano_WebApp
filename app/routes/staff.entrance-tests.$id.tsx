@@ -1,9 +1,10 @@
 import { LoaderFunctionArgs } from '@remix-run/node'
 import { Await, useLoaderData, useNavigate } from '@remix-run/react'
-import { CalendarIcon, Check, ChevronsUpDown, Plus } from 'lucide-react'
+import { CalendarIcon, Check, ChevronsUpDown, Delete, Lock, Pencil, Plus, Save, Trash, Unlock } from 'lucide-react'
 import { format } from 'node_modules/date-fns/format'
 import { Suspense, useEffect, useState } from 'react'
 import { columns } from '~/components/entrance-tests/table/columns'
+import { studentColumns } from '~/components/entrance-tests/table/student-columns'
 import { Button } from '~/components/ui/button'
 import { Calendar } from '~/components/ui/calendar'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '~/components/ui/command'
@@ -18,7 +19,7 @@ import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { Room, sampleRooms } from '~/lib/types/room/room'
 import { cn } from '~/lib/utils'
-import { SHIFT_TIME } from '~/lib/utils/constants'
+import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
 
 type Props = {}
 
@@ -26,7 +27,36 @@ const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> =>
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
         ...sampleEntranceTests[2],
-        students: [],
+        students: [
+            {
+                email: "abc@gmail.com",
+                address: "abc",
+                phone: "0987654321",
+                status: 1,
+                username: "Test user"
+            },
+            {
+                email: "abc1@gmail.com",
+                address: "abc",
+                phone: "0987654321",
+                status: 1,
+                username: "Test user"
+            },
+            {
+                email: "abc2@gmail.com",
+                address: "abc",
+                phone: "0987654321",
+                status: 1,
+                username: "Test user"
+            },
+            {
+                email: "abc3@gmail.com",
+                address: "abc",
+                phone: "0987654321",
+                status: 1,
+                username: "Test user"
+            }
+        ],
         instructor: {
             status: 0,
             username: "HungDepTrai",
@@ -66,6 +96,16 @@ const getSampleInstructors = async (): Promise<Account[]> => {
 
     ];
 }
+const getStatusStyle = (status: number) => {
+    switch (status) {
+        case 0: return "text-green-500 font-semibold";
+        case 1: return "text-blue-500 font-semibold";
+        case 2: return "text-gray-400 font-semibold";
+        case 3: return "text-gray-400 font-semibold";
+        default: return "text-black font-semibold";
+    }
+};
+
 export async function loader({ params }: LoaderFunctionArgs) {
 
     const promise = getSampleEntranceTest(params.id!);
@@ -264,13 +304,73 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                     </Popover>
                                 </div>
                             </div>
+                            <div className='mt-4 grid grid-cols-1 lg:grid-cols-3'>
+                                <div className='flex gap-4'>
+                                    <span className='font-bold'>Sức chứa hiện tại :</span>
+                                    <span className=''>{selectedRoom?.capacity}</span>
+                                </div>
+                                <div className='flex gap-4'>
+                                    <span className='font-bold'>Số học viên tham dự :</span>
+                                    <span className=''>{entranceTest.registerStudents}</span>
+                                </div>
+                                <div className='flex gap-4'>
+                                    <span className='font-bold'>Trạng thái :</span>
+                                    <span className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</span>
+                                </div>
+                            </div>
+                            <div className='mt-4 flex justify-end flex-wrap gap-4'>
+                                <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+                                    {
+                                        entranceTest.isAnnoucedScore ? (
+                                            <>
+                                                <Delete className='mr-4' />
+                                                Hủy công bố điểm số
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Pencil className='mr-4' />
+                                                Công bố điểm số
+                                            </>
+                                        )
+                                    }
+
+                                </Button>
+                                <Button className='font-bold px-12'>
+                                    <Save className='mr-4' />
+                                    Lưu thay đổi
+                                </Button>
+                            </div>
                             <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
                             <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
+                            <DataTable columns={studentColumns} data={entranceTest.students} />
+                            <div className='flex flex-col md:flex-row justify-center gap-4'>
+                                {
+                                    entranceTest.isOpen ? (
+                                        <Button className='px-12'>
+                                            <Lock className='mr-2' /> Khóa ca thi này
+                                        </Button>
+                                    ) : (
+                                        <Button className='px-12'>
+                                            <Unlock className='mr-2' /> Mở khóa ca thi này
+                                        </Button>
+                                    )
+                                }
+                                {
+                                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
+                                        <Button className='px-12' variant={"destructive"}>
+                                            <Trash className='mr-2' /> Xóa ca thi này
+                                        </Button>
+                                    )
+                                }
+
+                            </div>
+
+
                         </div>
                     )}
                 </Await>
             </Suspense>
-        </article>
+        </article >
     )
 }
 
