@@ -5,7 +5,6 @@ import { ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from './command';
 import { cn } from '~/lib/utils';
 
-
 type Props = {
     items: {
         value: string;

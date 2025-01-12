@@ -175,7 +175,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                                 <ChevronsUpDown className="opacity-50" />
                                             </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent>
+                                        <PopoverContent className='popover-content-width-full'>
                                             <Suspense fallback={<ComboboxSkeleton />}>
                                                 <Await resolve={roomPromise}>
                                                     {(rooms) => (

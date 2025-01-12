@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
+import React from "react";
 import { StaffSidebar } from "~/components/sidebar/staff-sidebar";
 import {
     Breadcrumb,
@@ -17,13 +18,29 @@ import {
 } from "~/components/ui/sidebar";
 import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
 
-function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
+function getBreadcrumbPageName({ pathname }: {
+    pathname: string,
+}): BreadcumbNavItem[] {
     const defaultNavItem = {
         name: "Quản lý",
         url: "/staff/dashboard",
     };
     let otherNavItems: BreadcumbNavItem[] = []
     switch (true) {
+        case pathname === '/staff/entrance-tests/create':
+            otherNavItems = [
+                {
+                    name: "Quản lý thi đầu vào",
+                    url: '/staff/entrance-tests',
+                    isCurrentPage: false
+                },
+                {
+                    name: "Tạo ca thi",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
         case pathname === '/staff/profile':
             otherNavItems = [
                 {
@@ -34,7 +51,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
             ]
             break;
         case pathname.startsWith('/staff/entrance-tests'):
-            const param = pathname.replace('/staff/entrance-tests',"")
+            const param = pathname.replace('/staff/entrance-tests', "")
             otherNavItems = [
                 {
                     name: "Quản lý thi đầu vào",
@@ -44,7 +61,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết ca thi " + param.replace("/",""),
+                    name: "Chi tiết ca thi " + param.replace("/", ""),
                     url: pathname,
                     isCurrentPage: true
                 })
@@ -64,6 +81,9 @@ export default function StaffLayout() {
 
     const { pathname } = useLocation();
 
+    console.log({ pathname });
+
+
     return (
         <SidebarProvider>
             <StaffSidebar />
@@ -75,8 +95,8 @@ export default function StaffLayout() {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 {
-                                    getBreadcrumbPageName(pathname).map(breadcumb => (
-                                        <>
+                                    getBreadcrumbPageName({ pathname }).map((breadcumb, index) => (
+                                        <React.Fragment key={`${breadcumb.name}_${index}`}>
                                             <BreadcrumbItem className="hidden md:block">
                                                 {
                                                     !breadcumb.isCurrentPage ? (
@@ -90,7 +110,7 @@ export default function StaffLayout() {
 
                                             </BreadcrumbItem>
                                             <BreadcrumbSeparator className="hidden md:block" />
-                                        </>
+                                        </React.Fragment>
                                     ))
                                 }
                             </BreadcrumbList>
