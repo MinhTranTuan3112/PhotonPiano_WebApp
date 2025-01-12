@@ -7,13 +7,18 @@ import {
   ScrollRestoration,
   useRouteError,
 } from "@remix-run/react";
-import type { ErrorResponse, LinksFunction, MetaFunction } from "@remix-run/node";
+import type { ErrorResponse, LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
 import "./tailwind.css";
 
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
+import { requireAuth } from "./lib/utils/auth";
+import { fetchGoogleOAuthCallback } from "./lib/services/auth";
+import { AuthResponse } from "./lib/types/auth-response";
+import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
+import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
 
 export const meta: MetaFunction = () => {
   return [
@@ -34,6 +39,45 @@ export const links: LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+export async function loader({ request }: LoaderFunctionArgs) {
+
+  try {
+
+    const { searchParams } = new URL(request.url);
+
+    const code = searchParams.get('code') as string;
+
+    if (!code) {
+      const authData = await requireAuth(request);
+      return {
+        role: authData.role
+      };
+    }
+
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+
+    const callbackResponse = await fetchGoogleOAuthCallback(code, baseUrl);
+
+    const { idToken, refreshToken, expiresIn, role }: AuthResponse = await callbackResponse.data;
+
+    const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
+
+    const headers = new Headers();
+
+    headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
+    headers.append("Set-Cookie", await refreshTokenCookie.serialize(refreshToken));
+    headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
+    headers.append("Set-Cookie", await roleCookie.serialize(role));
+
+    return Response.json({ role }, { headers });
+
+  } catch (error) {
+
+    return null;
+  }
+}
 
 export function ErrorBoundary() {
   let error = useRouteError();

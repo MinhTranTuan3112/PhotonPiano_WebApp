@@ -27,10 +27,10 @@ export async function requireAuth(request: Request) {
 
     const cookies = request.headers.get("Cookie") || "";
 
-    const idToken = await idTokenCookie.parse(cookies);
-    const refreshToken = await refreshTokenCookie.parse(cookies);
+    const idToken = await idTokenCookie.parse(cookies) as string;
+    const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
-    const role = await roleCookie.parse(cookies);
+    const role = await roleCookie.parse(cookies) as string;
 
     // Redirect if no refresh token is present (not logged in)
     if (!refreshToken) {
