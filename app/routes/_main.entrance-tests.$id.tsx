@@ -22,7 +22,7 @@ const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> =>
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
         ...sampleEntranceTests[2],
-        students: [],
+        entranceTestStudents: [],
         instructor: {
             status : 0,
             username: "HungDepTrai",
