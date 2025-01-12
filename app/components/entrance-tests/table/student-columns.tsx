@@ -3,9 +3,9 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account } from "~/lib/types/account/account";
+import { EntranceTestStudentWithScore } from "~/lib/types/entrance-test/entrance-test-student";
 
-export const studentColumns: ColumnDef<Account>[] = [
+export const studentColumns: ColumnDef<EntranceTestStudentWithScore>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -34,23 +34,23 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: "Tên",
         header: "Tên học viên",
         cell: ({ row }) => {
-            return <div>{row.original.username}</div>
+            return <div>{row.original.student.username}</div>
         }
     },
-    {
-        accessorKey: 'Email',
-        header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.email}</div>
-        }
-    },
-    {
-        accessorKey: 'SĐT',
-        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
-        }
-    },
+    // {
+    //     accessorKey: 'Email',
+    //     header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
+    //     cell: ({ row }) => {
+    //         return <div>{row.original.email}</div>
+    //     }
+    // },
+    // {
+    //     accessorKey: 'SĐT',
+    //     header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
+    //     cell: ({ row }) => {
+    //         return <div>{row.original.phone}</div>
+    //     }
+    // },
     {
         id: "actions",
         header: "Hành động",
@@ -70,7 +70,7 @@ export const studentColumns: ColumnDef<Account>[] = [
                             <User /> Xem thông tin
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer">
-                            <Pencil /> Xem điểm số
+                            <Pencil /> Chỉnh sửa điểm số
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
                             <Trash2 /> Xóa khỏi ca thi

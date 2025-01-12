@@ -11,6 +11,7 @@ import { FilterIcon, Mail, SortDescIcon } from 'lucide-react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { Button } from '../ui/button'
+import { Separator } from '../ui/separator'
 
 type Props = {
     isOpen: boolean,
@@ -73,6 +74,7 @@ export default function ExamSwitchingDialog({ isOpen, setIsOpen, entranceTestPro
                             </div>
                             <Button><FilterIcon className='mr-4'/> Lọc</Button>
                         </div>
+                        <Separator/>
                         <Suspense fallback={<LoadingSkeleton />}>
                             <Await resolve={entranceTestPromise}>
                                 {(entranceTests) => (
@@ -84,6 +86,7 @@ export default function ExamSwitchingDialog({ isOpen, setIsOpen, entranceTestPro
                                                 ))
                                             }
                                         </div>
+                                        <Separator />
                                         <Paginator page={1} totalPage={10} />
                                     </div>
                                 )}

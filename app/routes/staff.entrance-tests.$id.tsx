@@ -3,6 +3,7 @@ import { Await, useLoaderData, useNavigate } from '@remix-run/react'
 import { CalendarIcon, Check, ChevronsUpDown, Delete, Lock, Pencil, Plus, Save, Trash, Unlock } from 'lucide-react'
 import { format } from 'node_modules/date-fns/format'
 import { Suspense, useEffect, useState } from 'react'
+import ScoreTable from '~/components/entrance-tests/score-table'
 import { columns } from '~/components/entrance-tests/table/columns'
 import { studentColumns } from '~/components/entrance-tests/table/student-columns'
 import { Button } from '~/components/ui/button'
@@ -27,34 +28,186 @@ const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> =>
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
         ...sampleEntranceTests[2],
-        students: [
+        entranceTestStudents: [
             {
-                email: "abc@gmail.com",
-                address: "abc",
-                phone: "0987654321",
-                status: 1,
-                username: "Test user"
+                student: {
+                    email: "abc@gmail.com",
+                    address: "abc",
+                    phone: "0987654321",
+                    status: 1,
+                    username: "Test user"
+                },
+                entranceTestId: "b",
+                id: "a",
+                studentId: "a",
+                bandScore: 5,
+                instructorComment: "abc",
+                rank: 3,
+                entranceTestResults: [
+                    {
+                        criteriaId: "a",
+                        criteriaName: "Đúng nhịp",
+                        entranceTestStudentId: "abc",
+                        id: "a",
+                        score: 7
+                    },
+                    {
+                        criteriaId: "b",
+                        criteriaName: "Độ chính xác",
+                        entranceTestStudentId: "abc",
+                        id: "b",
+                        score: 8.5
+                    },
+                    {
+                        criteriaId: "c",
+                        criteriaName: "Âm sắc",
+                        entranceTestStudentId: "abc",
+                        id: "c",
+                        score: 5.5
+                    },
+                    {
+                        criteriaId: "d",
+                        criteriaName: "Phong thái",
+                        entranceTestStudentId: "abc",
+                        id: "d",
+                        score: 9
+                    }
+                ]
             },
             {
-                email: "abc1@gmail.com",
-                address: "abc",
-                phone: "0987654321",
-                status: 1,
-                username: "Test user"
+                student: {
+                    email: "abc1@gmail.com",
+                    address: "abc",
+                    phone: "0987654321",
+                    status: 1,
+                    username: "Test user"
+                },
+                entranceTestId: "b",
+                id: "a",
+                studentId: "a",
+                bandScore: 5,
+                instructorComment: "abc",
+                rank: 3,
+                entranceTestResults: [
+                    {
+                        criteriaId: "a",
+                        criteriaName: "Đúng nhịp",
+                        entranceTestStudentId: "abc",
+                        id: "a",
+                        score: 7
+                    },
+                    {
+                        criteriaId: "b",
+                        criteriaName: "Độ chính xác",
+                        entranceTestStudentId: "abc",
+                        id: "b",
+                        score: 8.5
+                    },
+                    {
+                        criteriaId: "c",
+                        criteriaName: "Âm sắc",
+                        entranceTestStudentId: "abc",
+                        id: "c",
+                        score: 5.5
+                    },
+                    {
+                        criteriaId: "d",
+                        criteriaName: "Phong thái",
+                        entranceTestStudentId: "abc",
+                        id: "d",
+                        score: 9
+                    }
+                ]
             },
             {
-                email: "abc2@gmail.com",
-                address: "abc",
-                phone: "0987654321",
-                status: 1,
-                username: "Test user"
+                student: {
+                    email: "abc2@gmail.com",
+                    address: "abc",
+                    phone: "0987654321",
+                    status: 1,
+                    username: "Test user"
+                },
+                entranceTestId: "b",
+                id: "a",
+                studentId: "a",
+                bandScore: 5,
+                instructorComment: "abc",
+                rank: 3,
+                entranceTestResults: [
+                    {
+                        criteriaId: "a",
+                        criteriaName: "Đúng nhịp",
+                        entranceTestStudentId: "abc",
+                        id: "a",
+                        score: 7
+                    },
+                    {
+                        criteriaId: "b",
+                        criteriaName: "Độ chính xác",
+                        entranceTestStudentId: "abc",
+                        id: "b",
+                        score: 8.5
+                    },
+                    {
+                        criteriaId: "c",
+                        criteriaName: "Âm sắc",
+                        entranceTestStudentId: "abc",
+                        id: "c",
+                        score: 5.5
+                    },
+                    {
+                        criteriaId: "d",
+                        criteriaName: "Phong thái",
+                        entranceTestStudentId: "abc",
+                        id: "d",
+                        score: 9
+                    }
+                ]
             },
             {
-                email: "abc3@gmail.com",
-                address: "abc",
-                phone: "0987654321",
-                status: 1,
-                username: "Test user"
+                student: {
+                    email: "abc3@gmail.com",
+                    address: "abc",
+                    phone: "0987654321",
+                    status: 1,
+                    username: "Test user"
+                },
+                entranceTestId: "b",
+                id: "a",
+                studentId: "a",
+                bandScore: 5,
+                instructorComment: "abc",
+                rank: 3,
+                entranceTestResults: [
+                    {
+                        criteriaId: "a",
+                        criteriaName: "Đúng nhịp",
+                        entranceTestStudentId: "abc",
+                        id: "a",
+                        score: 7
+                    },
+                    {
+                        criteriaId: "b",
+                        criteriaName: "Độ chính xác",
+                        entranceTestStudentId: "abc",
+                        id: "b",
+                        score: 8.5
+                    },
+                    {
+                        criteriaId: "c",
+                        criteriaName: "Âm sắc",
+                        entranceTestStudentId: "abc",
+                        id: "c",
+                        score: 5.5
+                    },
+                    {
+                        criteriaId: "d",
+                        criteriaName: "Phong thái",
+                        entranceTestStudentId: "abc",
+                        id: "d",
+                        score: 9
+                    }
+                ]
             }
         ],
         instructor: {
@@ -319,22 +472,6 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                 </div>
                             </div>
                             <div className='mt-4 flex justify-end flex-wrap gap-4'>
-                                <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
-                                    {
-                                        entranceTest.isAnnoucedScore ? (
-                                            <>
-                                                <Delete className='mr-4' />
-                                                Hủy công bố điểm số
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Pencil className='mr-4' />
-                                                Công bố điểm số
-                                            </>
-                                        )
-                                    }
-
-                                </Button>
                                 <Button className='font-bold px-12'>
                                     <Save className='mr-4' />
                                     Lưu thay đổi
@@ -342,7 +479,8 @@ export default function StaffEntranceTestsPage({ }: Props) {
                             </div>
                             <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
                             <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
-                            <DataTable columns={studentColumns} data={entranceTest.students} />
+                            <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' />
+                            {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
                             <div className='flex flex-col md:flex-row justify-center gap-4'>
                                 {
                                     entranceTest.isOpen ? (
@@ -362,7 +500,22 @@ export default function StaffEntranceTestsPage({ }: Props) {
                                         </Button>
                                     )
                                 }
+                                <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+                                    {
+                                        entranceTest.isAnnoucedScore ? (
+                                            <>
+                                                <Delete className='mr-4' />
+                                                Hủy công bố điểm số
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Pencil className='mr-4' />
+                                                Công bố điểm số
+                                            </>
+                                        )
+                                    }
 
+                                </Button>
                             </div>
 
 

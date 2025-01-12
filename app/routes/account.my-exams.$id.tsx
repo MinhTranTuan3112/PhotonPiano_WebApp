@@ -22,6 +22,9 @@ async function getSampleEntranceTests() {
   return sampleEntranceTests;
 }
 const smapleEntranceTest: EntranceTestStudentDetail = {
+  id : "abc",
+  studentId : "a",
+  entranceTestId : "b",
   student: {
     address: "Thong Nhat, Dong Nai",
     email: "nguynan001@gmail.com",
@@ -32,7 +35,7 @@ const smapleEntranceTest: EntranceTestStudentDetail = {
   },
   entranceTest: {
     ...sampleEntranceTests[0],
-    students: [],
+    entranceTestStudents: [],
     instructor: {
       status: 0,
       username: "HungDepTrai",
