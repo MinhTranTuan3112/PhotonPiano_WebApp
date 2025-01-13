@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
+import React from "react";
 import { AppSidebar } from "~/components/sidebar/app-sidebar";
 import {
     Breadcrumb,
@@ -93,8 +94,8 @@ export default function AccountLayout() {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 {
-                                    getBreadcrumbPageName(pathname).map(breadcumb => (
-                                        <>
+                                    getBreadcrumbPageName(pathname).map((breadcumb, index) => (
+                                        <React.Fragment key={`${breadcumb.name}_${index}`}>
                                             <BreadcrumbItem className="hidden md:block">
                                                 {
                                                     !breadcumb.isCurrentPage ? (
@@ -108,7 +109,7 @@ export default function AccountLayout() {
 
                                             </BreadcrumbItem>
                                             <BreadcrumbSeparator className="hidden md:block" />
-                                        </>
+                                        </React.Fragment>
                                     ))
                                 }
                             </BreadcrumbList>

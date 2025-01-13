@@ -8,6 +8,7 @@ import {
     getSortedRowModel,
     Row,
     SortingState,
+    TableOptions,
     useReactTable,
     VisibilityState,
 } from "@tanstack/react-table"
@@ -25,19 +26,18 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 import { ChevronLeft, ChevronRight, Settings2, Trash2 } from 'lucide-react'
 
-type TableOptions = Partial<{
-    enableColumnDisplayOptions: boolean;
-    defaultPageSize: number;
-    pageSizeOptions: number[];
-}>;
-
 type DataTableProps<TData, TValue> = {
     columns: ColumnDef<TData, TValue>[]
     data: TData[],
     onRowSelectionChange?: (selectedRows: Row<TData>[]) => void;
     emptyContentText?: string;
     extraHeaderContent?: React.ReactNode;
-} & TableOptions;
+    enableColumnDisplayOptions?: boolean;
+    defaultPageSize?: number;
+    pageSizeOptions?: number[];
+    manualPagination?: boolean;
+    onPaginationChange?: (page: number) => void;
+}
 
 export function DataTable<TData, TValue>({
     columns,
@@ -47,17 +47,22 @@ export function DataTable<TData, TValue>({
     emptyContentText = "Không có kết quả.",
     enableColumnDisplayOptions = true,
     defaultPageSize = 5,
-    pageSizeOptions = [5, 10, 20, 30, 40, 50]
+    pageSizeOptions = [5, 10, 20, 30, 40, 50],
+    manualPagination = false,
+    onPaginationChange
+
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = useState({})
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: defaultPageSize });
 
     const table = useReactTable({
         data,
         columns,
+        manualPagination,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
@@ -78,6 +83,14 @@ export function DataTable<TData, TValue>({
             rowSelection
         },
     });
+
+    const handlePageChange = (newPageIndex: number) => {
+        setPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
+        if (onPaginationChange) {
+            onPaginationChange(newPageIndex + 1);
+        }
+    };
+
 
     useEffect(() => {
         if (onRowSelectionChange) {
@@ -208,7 +221,7 @@ export function DataTable<TData, TValue>({
                         variant="outline"
                         size="icon"
                         className="rounded-full"
-                        onClick={() => table.previousPage()}
+                        onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex - 1) : () => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
                     >
                         <ChevronLeft />
@@ -217,7 +230,7 @@ export function DataTable<TData, TValue>({
                         variant="outline"
                         size="icon"
                         className="rounded-full"
-                        onClick={() => table.nextPage()}
+                        onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex + 1) : () => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
                         <ChevronRight />

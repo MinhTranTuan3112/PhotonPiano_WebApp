@@ -2,9 +2,8 @@ import { LoaderFunctionArgs } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate } from '@remix-run/react';
 import { ArrowRightCircle, SortDescIcon } from 'lucide-react';
 import { Suspense } from 'react';
-import Paginator from '~/components/paginator';
 import { Button } from '~/components/ui/button';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination';
+import PaginationBar from '~/components/ui/pagination-bar';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Account } from '~/lib/types/account/account';
@@ -147,7 +146,7 @@ export default function EntranceTests({ }: Props) {
                                     }
                                 </div>
                                 <div className='flex justify-center mt-4'>
-                                    <Paginator totalPage={10} page={3}/>
+                                    <PaginationBar currentPage={1} totalPages={10} />
                                 </div>
                             </>
                         ) : (

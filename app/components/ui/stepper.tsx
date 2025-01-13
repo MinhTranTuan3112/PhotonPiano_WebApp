@@ -13,9 +13,9 @@ const StepperBar: FC<StepperBarProps> = ({ steps, currentStep }) => {
                     {/* Step Indicator */}
                     <div className="flex flex-col items-center justify-center">
                         <div
-                            className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-colors ${index <= currentStep
-                                    ? "bg-black text-white"
-                                    : "bg-gray-200 text-gray-700"
+                            className={`mb-1 flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-colors ${index <= currentStep
+                                ? "bg-black text-white"
+                                : "bg-gray-200 text-gray-700"
                                 }`}
                         >
                             {index + 1}
@@ -27,7 +27,7 @@ const StepperBar: FC<StepperBarProps> = ({ steps, currentStep }) => {
                     {/* Divider Line */}
                     {index < steps.length - 1 && (
                         <div
-                            className={`flex-1 -mt-6 h-1 transition-colors ${index < currentStep ? "bg-black" : "bg-gray-200"
+                            className={`flex-1 -mt-6 h-1 transition-colors rounded-md ${index < currentStep ? "bg-black" : "bg-gray-200"
                                 }`}
                         ></div>
                     )}

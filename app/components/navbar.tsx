@@ -1,14 +1,14 @@
 import * as React from "react"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { Link, useLocation, useNavigation, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useNavigation, useRouteLoaderData, useSubmit } from "@remix-run/react"
 import { cn } from "~/lib/utils"
 import { Button, buttonVariants } from "./ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet"
 import { Menu, Piano, X } from "lucide-react"
 import { Separator } from "./ui/separator"
-import pianoLogo from '../lib/assets/images/piano.png';
-// import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
+import { loader } from "~/root"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -53,7 +53,7 @@ const navItems = [
 
 export default function NavBar() {
 
-    // const authData = useRouteLoaderData<typeof loader>("root");
+    const authData = useRouteLoaderData<typeof loader>("root");
 
     const [isOpen, setIsOpen] = React.useState(false);
 
@@ -87,17 +87,17 @@ export default function NavBar() {
 
     const isSubmitting = navigation.state === 'submitting';
 
-    // const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-    //     title: 'Xác nhận đăng xuất?',
-    //     description: 'Bạn có chắc chắn muốn đăng xuất?',
-    //     onConfirm: () => {
-    //         submit(null, {
-    //             method: 'POST',
-    //             action: '/sign-out'
-    //         });
-    //     },
-    //     confirmText: 'Đăng xuất',
-    // });
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận đăng xuất?',
+        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        onConfirm: () => {
+            submit(null, {
+                method: 'POST',
+                action: '/sign-out'
+            });
+        },
+        confirmText: 'Đăng xuất',
+    });
 
 
     return (
@@ -211,9 +211,7 @@ export default function NavBar() {
                 </section>
             </div>
             <div className="hidden md:block">
-                <Link className={`${buttonVariants({ variant: "theme" })} uppercase`}
-                    to={'/sign-in'}>Đăng nhập</Link>
-                {/* {(!authData || !authData.role) ? (
+                {(!authData || !authData.role) ? (
                     <Link className={`${buttonVariants({ variant: "theme" })} uppercase`}
                         to={'/sign-in'}>Đăng nhập</Link>
                 ) : (
@@ -225,7 +223,7 @@ export default function NavBar() {
                         </Button>
                         {confirmDialog}
                     </>
-                )} */}
+                )}
             </div>
         </div>
     )

@@ -12,7 +12,7 @@ export async function fetchSignIn(email: string, password: string) {
 }
 
 export async function fetchSignUp(email: string, password: string) {
-    
+
     const response = await axiosInstance.post('/auth/sign-up', {
         email,
         password
@@ -45,5 +45,17 @@ export async function fetchSendForgotPasswordEmail(email: string) {
     });
 
     return response;
-    
+
+}
+
+export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) {
+
+    const response = await axiosInstance.get('/auth/account-info', {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+
 }
