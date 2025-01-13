@@ -8,6 +8,15 @@ export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn =
     let url = `/entrance-tests?page=${page}&pageSize=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
     const response = await axiosInstance.get(url);
+    
+    return response;
+}
 
+export async function fetchEntranceTestDetail(id : string) {
+
+    let url = `/entrance-tests/${id}`;
+
+    const response = await axiosInstance.get(url);
+    
     return response;
 }

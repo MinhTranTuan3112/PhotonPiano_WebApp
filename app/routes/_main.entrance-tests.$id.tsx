@@ -9,6 +9,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Button } from "~/components/ui/button";
 import Image from "~/components/ui/image";
 import { Skeleton } from "~/components/ui/skeleton";
+import { fetchEntranceTestDetail } from "~/lib/services/entrance-tests";
 import { Account } from "~/lib/types/account/account";
 import { sampleEntranceTests } from "~/lib/types/entrance-test/entrance-test";
 import { EntranceTestDetail } from "~/lib/types/entrance-test/entrance-test-detail";
@@ -18,21 +19,21 @@ import { enrollSchema } from "~/lib/utils/schemas";
 
 type Props = {}
 
-const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return {
-        ...sampleEntranceTests[2],
-        entranceTestStudents: [],
-        instructor: {
-            status : 0,
-            username: "HungDepTrai",
-            address: "TN, ĐN",
-            email: "thanhhung16082003@gmail.com",
-            phone: "0987654321",
-            avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
-        },
-    }
-}
+// const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> => {
+//     await new Promise(resolve => setTimeout(resolve, 1000));
+//     return {
+//         ...sampleEntranceTests[2],
+//         entranceTestStudents: [],
+//         instructor: {
+//             status : 0,
+//             username: "HungDepTrai",
+//             address: "TN, ĐN",
+//             email: "thanhhung16082003@gmail.com",
+//             phone: "0987654321",
+//             avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
+//         },
+//     }
+// }
 
 const getSampleAccount = async (): Promise<Account | undefined> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -42,7 +43,7 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
         email: "nguynan001@gmail.com",
         phone: "0987654321",
         username: "Ng Ân",
-        status : 0,
+        status: 0,
         avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
     }
 }
@@ -71,9 +72,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     try {
 
-        const promise = getSampleEntranceTest(params.id!)
+        const promise = fetchEntranceTestDetail(params.id!)
         const accountPromise = getSampleAccount()
-        return { promise, accountPromise, id : params.id! };
+        return { promise, accountPromise, id: params.id! };
 
     } catch (error) {
 
@@ -110,89 +111,92 @@ export default function EntranceTestDetailPage({ }: Props) {
                 <div>
                     <Suspense fallback={<LoadingSkeleton />}>
                         <Await resolve={loaderData?.promise}>
-                            {(entranceTest) => (
-                                <div>
-                                    <Breadcrumb className="px-10">
-                                        <BreadcrumbList>
-                                            <BreadcrumbItem>
-                                                <BreadcrumbLink href="/entrance-tests">Thi xếp lớp đầu vào</BreadcrumbLink>
-                                            </BreadcrumbItem>
-                                            <BreadcrumbSeparator />
-                                            <BreadcrumbItem>
-                                                <BreadcrumbPage>
-                                                    {entranceTest.name}
-                                                </BreadcrumbPage>
-                                            </BreadcrumbItem>
-                                        </BreadcrumbList>
-                                    </Breadcrumb>
-                                    <h1 className="font-extrabold text-3xl text-center text-gray-800 px-10">
-                                        Chi tiết ca thi
-                                    </h1>
-                                    <div className="relative">
-                                        <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-5 bg-[url('/images/notes_flows.png')]">
-                                        </div>
-                                        <div className="flex justify-center text-xl mt-2">{entranceTest.name}</div>
-                                        {
-                                            entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) && (
-                                                <div className="flex justify-center text-xl text-red-500 font-bold mt-2">
-                                                    (Ca thi này đã full)
-                                                </div>
-                                            )
-                                        }
-                                        <div className="mt-8 flex flex-col lg:flex-row gap-4 px-10 relative z-10">
-                                            <div className="w-full lg:w-1/3 flex flex-col items-center">
-                                                <div className="font-bold">Giảng viên phụ trách</div>
-                                                {
-                                                    entranceTest.instructor ? (
-                                                        <>
-                                                            <div className="w-48 mt-2">
-                                                                <Image src={entranceTest.instructor?.avatarUrl ?? "/images/noavatar.png"}></Image>
-                                                            </div>
-                                                            <Button className="mt-2 text-xl font-bold" variant={"link"}>
-                                                                {entranceTest.instructor.username}
-                                                            </Button>
-                                                            <div className="mt-2">
-                                                                <div><span className="font-bold">Email : </span> {entranceTest.instructor?.email}</div>
-                                                                <div><span className="font-bold">SĐT : </span> {entranceTest.instructor?.phone}</div>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="italic">Chưa có giảng viên</div>
-                                                    )
-                                                }
-
+                            {(result) => {
+                                const entranceTest = result.data as EntranceTestDetail
+                                return (
+                                    <div>
+                                        <Breadcrumb className="px-10">
+                                            <BreadcrumbList>
+                                                <BreadcrumbItem>
+                                                    <BreadcrumbLink href="/entrance-tests">Thi xếp lớp đầu vào</BreadcrumbLink>
+                                                </BreadcrumbItem>
+                                                <BreadcrumbSeparator />
+                                                <BreadcrumbItem>
+                                                    <BreadcrumbPage>
+                                                        {entranceTest.name}
+                                                    </BreadcrumbPage>
+                                                </BreadcrumbItem>
+                                            </BreadcrumbList>
+                                        </Breadcrumb>
+                                        <h1 className="font-extrabold text-3xl text-center text-gray-800 px-10">
+                                            Chi tiết ca thi
+                                        </h1>
+                                        <div className="relative">
+                                            <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-5 bg-[url('/images/notes_flows.png')]">
                                             </div>
-                                            <div className="w-full lg:w-1/3 grid grid-cols-2 gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="font-bold text-center">Địa điểm</div>
-                                                    <div>{entranceTest.roomName}</div>
-                                                </div>
-                                                <div className="flex flex-col items-center">
-                                                    <div className="font-bold text-center">Ca thi</div>
-                                                    <div>{entranceTest.shift} ({SHIFT_TIME[entranceTest.shift - 1]})</div>
-                                                </div>
-                                                <div className="flex flex-col items-center">
-                                                    <div className="font-bold text-center">Số học viên tham dự</div>
-                                                    <div>{entranceTest.registerStudents} / {entranceTest.roomCapacity ?? 20}</div>
-                                                </div>
-                                                <div className="flex flex-col items-center">
-                                                    <div className="font-bold text-center">Ngày thi</div>
-                                                    <div>{entranceTest.date}</div>
-                                                </div>
-                                                <div className="flex flex-col items-center col-span-2">
-                                                    <div className="font-bold text-center">Trạng thái</div>
-                                                    <div className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</div>
-                                                </div>
+                                            <div className="flex justify-center text-xl mt-2">{entranceTest.name}</div>
+                                            {
+                                                entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) && (
+                                                    <div className="flex justify-center text-xl text-red-500 font-bold mt-2">
+                                                        (Ca thi này đã full)
+                                                    </div>
+                                                )
+                                            }
+                                            <div className="mt-8 flex flex-col lg:flex-row gap-4 px-10 relative z-10">
+                                                <div className="w-full lg:w-1/3 flex flex-col items-center">
+                                                    <div className="font-bold">Giảng viên phụ trách</div>
+                                                    {
+                                                        entranceTest.instructor ? (
+                                                            <>
+                                                                <div className="w-48 mt-2">
+                                                                    <Image src={entranceTest.instructor?.avatarUrl ?? "/images/noavatar.png"}></Image>
+                                                                </div>
+                                                                <Button className="mt-2 text-xl font-bold" variant={"link"}>
+                                                                    {entranceTest.instructor.username}
+                                                                </Button>
+                                                                <div className="mt-2">
+                                                                    <div><span className="font-bold">Email : </span> {entranceTest.instructor?.email}</div>
+                                                                    <div><span className="font-bold">SĐT : </span> {entranceTest.instructor?.phone}</div>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <div className="italic">Chưa có giảng viên</div>
+                                                        )
+                                                    }
 
-                                            </div>
-                                            <div className="w-1/3 hidden lg:block">
-                                                <img className="relative z-10" src="/images/grand_piano_1.png"></img>
+                                                </div>
+                                                <div className="w-full lg:w-1/3 grid grid-cols-2 gap-4">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="font-bold text-center">Địa điểm</div>
+                                                        <div>{entranceTest.roomName}</div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="font-bold text-center">Ca thi</div>
+                                                        <div>{entranceTest.shift + 1} ({SHIFT_TIME[entranceTest.shift]})</div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="font-bold text-center">Số học viên tham dự</div>
+                                                        <div>{entranceTest.registerStudents} / {entranceTest.roomCapacity ?? 20}</div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="font-bold text-center">Ngày thi</div>
+                                                        <div>{entranceTest.date}</div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center col-span-2">
+                                                        <div className="font-bold text-center">Trạng thái</div>
+                                                        <div className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</div>
+                                                    </div>
+
+                                                </div>
+                                                <div className="w-1/3 hidden lg:block">
+                                                    <img className="relative z-10" src="/images/grand_piano_1.png"></img>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                            )}
+                                )
+                            }}
                         </Await>
                     </Suspense>
                 </div>
@@ -212,12 +216,15 @@ export default function EntranceTestDetailPage({ }: Props) {
                             {(account) => account ? (
                                 <div className="flex justify-center mt-8">
                                     <Await resolve={loaderData?.promise}>
-                                        {(entranceTest) => (
-                                            <Button
-                                                disabled={ entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) || entranceTest.status !== 0}
-                                                onClick={() => setIsOpenEnrollDialog(true)}
-                                                className="text-xl" size={"lg"}>Đăng ký thi & bắt đầu học</Button>
-                                        )}
+                                        {(result) => {
+                                            const entranceTest = result.data as EntranceTestDetail
+                                            return (
+                                                <Button
+                                                    disabled={entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) || entranceTest.status !== 0}
+                                                    onClick={() => setIsOpenEnrollDialog(true)}
+                                                    className="text-xl" size={"lg"}>Đăng ký thi & bắt đầu học</Button>
+                                            )
+                                        }}
                                     </Await>
                                     <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} entranceTestId={loaderData.id} />
                                 </div>
