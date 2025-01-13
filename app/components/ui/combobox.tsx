@@ -15,10 +15,12 @@ type Props = {
     value?: string;
     placeholder?: string;
     emptyText?: string;
+
 }
 
 
-export default function Combobox({ items, onChange, className, placeholder = 'Chọn', emptyText = 'Không tìm thấy.', value: controlledValue }: Props) {
+export default function Combobox({ items, onChange, className, placeholder = 'Chọn', emptyText = 'Không tìm thấy.', value: controlledValue,
+}: Props) {
 
     const [open, setOpen] = React.useState(false);
     const [value, setValue] = React.useState('');
@@ -51,7 +53,7 @@ export default function Combobox({ items, onChange, className, placeholder = 'Ch
             <PopoverContent className="w-full p-0 popover-content-width-full">
                 <Command className={className}>
                     <CommandInput placeholder={placeholder} onValueChange={onChange} />
-                    <CommandList >
+                    <CommandList>
                         {items?.length ? (
                             items.map((item) => (
                                 <CommandItem

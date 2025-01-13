@@ -19,6 +19,7 @@ import { fetchGoogleOAuthCallback } from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
 import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const meta: MetaFunction = () => {
   return [
@@ -97,6 +98,8 @@ export function ErrorBoundary() {
   }
 }
 
+const queryClient = new QueryClient();
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -108,10 +111,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
-        <Toaster richColors={true} theme={"light"} />
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+          <Toaster richColors={true} theme={"light"} />
+        </QueryClientProvider>
       </body>
     </html>
   );

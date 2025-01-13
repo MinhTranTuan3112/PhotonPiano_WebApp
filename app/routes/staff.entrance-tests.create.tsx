@@ -14,6 +14,7 @@ import { Controller } from 'react-hook-form'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { Clock, MapPin, UserCog } from 'lucide-react'
 import Combobox from '~/components/ui/combobox'
+import RoomsCombobox from '~/components/room/rooms-combobox'
 
 type Props = {}
 
@@ -136,11 +137,7 @@ export default function CreateEntranceTestPage({ }: Props) {
                         name='roomId'
                         control={control}
                         render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <Combobox items={rooms} emptyText='Không tìm thấy phòng'
-                                placeholder='Nhập tên phòng ...'
-                                value={value}
-                                onChange={onChange}
-                                className='w-full' />
+                            <RoomsCombobox value={value} onChange={onChange} />
                         )}
                     />
                     {errors.roomId && <p className='text-sm text-red-500'>{errors.roomId.message}</p>}
