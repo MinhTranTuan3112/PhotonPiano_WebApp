@@ -19,7 +19,7 @@ const cards = [
     },
 ]
 
-export function WhatWeDo() {
+export function FeatureSection() {
     return (
         <section className="relative py-24 overflow-hidden bg-gray-100">
             {/* Piano key decorative elements */}

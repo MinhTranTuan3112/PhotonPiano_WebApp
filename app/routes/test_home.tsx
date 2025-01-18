@@ -2,11 +2,11 @@ import { MetaFunction } from "@remix-run/react";
 import { Carousel } from "~/components/test_components/carousel";
 import { Header } from "../components/test_components/header";
 import { ProgramsSection } from "~/components/test_components/programs-section";
-import { NewsEvents } from "~/components/test_components/news";
 import Footer from "~/components/footer";
-import { WhatWeDo } from "~/components/test_components/what-we-do";
+import { FeatureSection } from "~/components/test_components/what-we-do";
 import { PianoPromo } from "~/components/test_components/promo";
 import { RegistrationSection } from "~/components/test_components/registration-section";
+import { NewsSection } from "~/components/test_components/news";
 
 export const meta: MetaFunction = () => {
     return [
@@ -36,10 +36,9 @@ export default function TestHome() {
                     </div>
                 </section>
 
-                {/* <ProgramsSection /> */}
-                <WhatWeDo />
+                <FeatureSection />
                 <PianoPromo />
-                <NewsEvents />
+                <NewsSection />
                 <RegistrationSection />
             </main>
             <Footer />
