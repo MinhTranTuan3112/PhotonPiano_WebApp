@@ -7,3 +7,5 @@ export const SHIFT_TIME = ["7:00 - 8:30", "8:45 - 10:15", "10:30 - 12:00", "12:3
 export const ENTRANCE_TEST_STATUSES = ["Sắp bắt đầu", "Đang diễn ra", "Đã kết thúc", "Vô hiệu hóa"];
 
 export const LEVEL = ["Người mới học","Nghiệp dư","Trung cấp","Cao cấp","Bậc thầy"];
+
+export const STUDENT_STATUS = ["Chưa đăng ký","Thi đầu vào","Chờ xếp lớp","Đang học","Bị thôi học","Đã rời"];

@@ -69,9 +69,9 @@ export const studentColumns: ColumnDef<EntranceTestStudentWithScore>[] = [
                         <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
                             <User /> Xem thông tin
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="cursor-pointer">
+                        {/* <DropdownMenuItem className="cursor-pointer">
                             <Pencil /> Chỉnh sửa điểm số
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
                             <Trash2 /> Xóa khỏi ca thi
                         </DropdownMenuItem>

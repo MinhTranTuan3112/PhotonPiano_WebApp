@@ -36,6 +36,10 @@ const data = {
                 {
                     title: "Quản lý lịch thi đầu vào",
                     url: "/staff/entrance-tests",
+                },
+                {
+                    title: "Danh sách học viên",
+                    url: "/staff/students",
                 }
             ],
         }
