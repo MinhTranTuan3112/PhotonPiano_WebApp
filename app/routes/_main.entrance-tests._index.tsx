@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs } from '@remix-run/node';
-import { Await, useLoaderData, useNavigate } from '@remix-run/react';
+import { Await, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { ArrowRightCircle, SortDescIcon } from 'lucide-react';
 import { Suspense } from 'react';
 import { Button } from '~/components/ui/button';
@@ -49,8 +49,11 @@ const getStatusStyle = (status: number) => {
 export async function loader({ request, params }: LoaderFunctionArgs) {
 
     try {
+        const url = new URL(request.url);
+        const page = Number(url.searchParams.get("page") || 1);
+        const sort = url.searchParams.get("sortItem") 
 
-        const promise = fetchEntranceTests({})
+        const promise =  fetchEntranceTests({page : 2 , pageSize : 9, sortColumn : sort || "Id" })
         const accountPromise = getSampleAccount()
         return { promise, accountPromise };
 
@@ -70,8 +73,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export default function EntranceTests({ }: Props) {
     const loaderData = useLoaderData<typeof loader>();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const navigate = useNavigate()
+
+    const handleSort = (sortItem : string) => {
+        setSearchParams({
+            ...Object.fromEntries(searchParams.entries()),
+            sortItem
+        });
+    }
+
     return (
         <div className={`bg-gradient-to-br from-gray-100 via-slate-200 to-gray-300 px-6 md:px-12 lg:px-20 py-10 `}>
             <div className="rounded-xl bg-white p-10 shadow-lg">
@@ -94,7 +106,7 @@ export default function EntranceTests({ }: Props) {
                                                         Các ca thi hiện đang mở
                                                     </p>
                                                     <div className='flex justify-end'>
-                                                        <Select>
+                                                        <Select onValueChange={handleSort}>
                                                             <SelectTrigger className='w-64'>
                                                                 <SortDescIcon />
                                                                 <SelectValue placeholder="Sắp xếp theo" />
