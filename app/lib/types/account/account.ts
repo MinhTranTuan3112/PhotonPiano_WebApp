@@ -4,6 +4,16 @@ export type Account = {
     email: string;
     phone: string;
     address: string;
-    avatarUrl? : string;
-    status : number;
+    shortDescription: string;
+    avatarUrl?: string;
+    level: string;
+    status: number;
+    desiredLevel: string;
+    desiredTargets: string[];
+    favoriteMusicGenres: string[];
+    preferredLearningMethods: string[];
 };
+
+export type SignUpRequest = {
+
+} & Omit<Account, 'level' | 'status' | 'avatarUrl' | 'address' | 'username'>;

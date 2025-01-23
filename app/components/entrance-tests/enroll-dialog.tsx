@@ -24,7 +24,6 @@ export default function EnrollDialog({ isOpen, setIsOpen, entranceTestId }: Prop
     const [isAgreed, setIsAgreee] = useState(false)
     const [paymentMethod, setPaymentMethod] = useState("")
 
-
     return (
         <Form method='POST' action={`/entrance-tests/${entranceTestId}`} navigate={false}>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
