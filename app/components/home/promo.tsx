@@ -6,7 +6,7 @@ export function PianoPromo() {
     return (
         <div className="relative overflow-hidden">
             {/* Decorative elements */}
-            <div className="absolute top-10 left-10 w-20 h-20 border-2 border-indigo-200 rounded-full animate-spin-slow" />
+            <div className="absolute top-5 left-10 w-20 h-20 border-2 border-indigo-200 rounded-full animate-spin-slow" />
             <div className="absolute bottom-10 right-10 w-32 h-32 border-4 border-teal-200 rounded-full animate-pulse" />
 
             <div className="container mx-auto px-6 py-24">

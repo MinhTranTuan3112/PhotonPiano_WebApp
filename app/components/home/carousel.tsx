@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const slides = [
     {
@@ -20,6 +20,7 @@ const slides = [
 ]
 
 export function Carousel() {
+    
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
 
