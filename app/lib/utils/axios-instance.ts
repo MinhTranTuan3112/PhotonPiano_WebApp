@@ -1,11 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from './constants';
+import https from 'https';
 
 let axiosInstance: AxiosInstance;
 
 if (typeof window === 'undefined') {
     // Node.js environment (server-side)
-    const https = await import('https'); // Dynamically import https module
     axiosInstance = axios.create({
         baseURL: `${API_BASE_URL}/api`,
         timeout: 10000,
