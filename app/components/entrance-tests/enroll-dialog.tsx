@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
@@ -6,36 +6,40 @@ import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
 import { Checkbox } from '../ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
-import { Form } from '@remix-run/react'
+import { Form, useFetcher, useNavigation } from '@remix-run/react'
 import StepperBar from '../ui/stepper'
+import { action } from '~/routes/enroll'
+
 
 type Props = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
-    entranceTestId: string
 }
 
-export default function EnrollDialog({ isOpen, setIsOpen, entranceTestId }: Props) {
+export default function EnrollDialog({ isOpen, setIsOpen }: Props) {
 
-    const [currentStep, setCurrentStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(1);
 
     const steps = ["Xác nhận thông tin", "Thanh toán lệ phí"];
 
     const [isAgreed, setIsAgreee] = useState(false)
-    const [paymentMethod, setPaymentMethod] = useState("")
+
+    const navigation = useNavigation();
+
+    const isSubmitting = navigation.state === 'submitting';
 
     return (
-        <Form method='POST' action={`/entrance-tests/${entranceTestId}`} navigate={false}>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Đăng ký nhập học</DialogTitle>
-                        <DialogDescription>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Đăng ký thi đầu vào để nhập học</DialogTitle>
+                    {/* <DialogDescription>
                             Hãy xác nhận các thông tin sau để tiến hành đăng ký.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <StepperBar steps={steps} currentStep={currentStep} />
-                    <div className={`transition-opacity duration-300 ease-in-out ${currentStep === 0 ? 'opacity-100' : 'opacity-0'}`}>
+                            </DialogDescription> */}
+                </DialogHeader>
+                <Form method='POST' action={`/enroll`}>
+                    {/* <StepperBar steps={steps} currentStep={currentStep} /> */}
+                    {/* <div className={`transition-opacity duration-300 ease-in-out ${currentStep === 0 ? 'opacity-100' : 'opacity-0'}`}>
                         {
                             currentStep === 0 && (
                                 <div className='mt-4 flex flex-col gap-4'>
@@ -69,7 +73,7 @@ export default function EnrollDialog({ isOpen, setIsOpen, entranceTestId }: Prop
                                 </div>
                             )
                         }
-                    </div>
+                    </div> */}
                     <div className={`transition-opacity duration-300 ease-in-out ${currentStep === 1 ? 'opacity-100' : 'opacity-0'}`}>
                         {
                             currentStep === 1 && (
@@ -77,7 +81,11 @@ export default function EnrollDialog({ isOpen, setIsOpen, entranceTestId }: Prop
                                     <div className='text-gray-600 italic text-sm mb-4'>
                                         Để tránh trường hợp spam yêu cầu đăng ký, trung tâm Photon Piano sẽ thu lệ phí <span className='font-bold'>100.000đ</span> cho mỗi đơn đăng ký thi đầu vào
                                     </div>
-                                    <RadioGroup value={paymentMethod} onValueChange={(e) => setPaymentMethod(e)}>
+                                    <div className='flex gap-4 items-start mb-3'>
+                                        <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
+                                        <span className='text-sm'>Tôi đồng ý với các <a className='underline font-bold' href='/'>quy định</a>   của trung tâm Photon Piano</span>
+                                    </div>
+                                    <RadioGroup defaultValue='vnpay'>
                                         <div className="flex items-center space-x-2 p-4 border rounded-lg">
                                             <RadioGroupItem value="vnpay" id="r1" />
                                             <div className='flex place-content-between w-full items-center'>
@@ -91,18 +99,16 @@ export default function EnrollDialog({ isOpen, setIsOpen, entranceTestId }: Prop
                                         <div className='font-extrabold text-xl'>100.000 đ </div>
                                     </div>
                                     <div className='w-full flex gap-4 '>
-                                        <Button variant={'outline'} onClick={() => setCurrentStep(0)}
-                                            type="submit" className='w-full'>Quay lại</Button>
-                                        <Button disabled={paymentMethod === ""}
-                                            type="submit" className='w-full'>Thanh toán lệ phí</Button>
+                                        <Button disabled={!isAgreed}
+                                            type="submit" className='w-full' isLoading={isSubmitting}>Thanh toán lệ phí</Button>
                                     </div>
 
                                 </div>
                             )
                         }
                     </div>
-                </DialogContent>
-            </Dialog>
-        </Form>
+                </Form>
+            </DialogContent>
+        </Dialog>
     )
 }

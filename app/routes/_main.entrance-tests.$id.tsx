@@ -24,7 +24,7 @@ const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> =>
         ...sampleEntranceTests[2],
         entranceTestStudents: [],
         instructor: {
-            status : 0,
+            status: 0,
             username: "HungDepTrai",
             address: "TN, ĐN",
             email: "thanhhung16082003@gmail.com",
@@ -42,7 +42,7 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
         email: "nguynan001@gmail.com",
         phone: "0987654321",
         username: "Ng Ân",
-        status : 0,
+        status: 0,
         avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
     }
 }
@@ -73,7 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
         const promise = getSampleEntranceTest(params.id!)
         const accountPromise = getSampleAccount()
-        return { promise, accountPromise, id : params.id! };
+        return { promise, accountPromise, id: params.id! };
 
     } catch (error) {
 
@@ -214,12 +214,12 @@ export default function EntranceTestDetailPage({ }: Props) {
                                     <Await resolve={loaderData?.promise}>
                                         {(entranceTest) => (
                                             <Button
-                                                disabled={ entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) || entranceTest.status !== 0}
+                                                disabled={entranceTest.registerStudents >= (entranceTest.roomCapacity ?? 20) || entranceTest.status !== 0}
                                                 onClick={() => setIsOpenEnrollDialog(true)}
                                                 className="text-xl" size={"lg"}>Đăng ký thi & bắt đầu học</Button>
                                         )}
                                     </Await>
-                                    <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} entranceTestId={loaderData.id} />
+                                    <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} />
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center  mt-8">

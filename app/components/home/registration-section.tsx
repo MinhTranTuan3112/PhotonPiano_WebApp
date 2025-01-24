@@ -44,11 +44,11 @@ export function RegistrationSection() {
                         transition={{ duration: 0.6, delay: 0.4 }}
                     >
                         <Link
-                            to="/register"
+                            to="/get-started"
                             className="inline-flex items-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
                         >
                             <UserPlus className="w-5 h-5" />
-                            Register Now
+                            Đăng ký ngay
                         </Link>
                     </motion.div>
                 </div>

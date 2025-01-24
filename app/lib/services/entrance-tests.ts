@@ -11,3 +11,18 @@ export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn =
 
     return response;
 }
+
+export async function fetchEnrollInEntranceTest({ idToken, returnUrl }: { idToken: string; returnUrl: string }) {
+    const response = await axiosInstance.post(
+        '/entrance-tests/enrollment-requests',
+        { returnUrl }, // This is the request body
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${idToken}`,
+            },
+        }
+    );
+
+    return response;
+}
