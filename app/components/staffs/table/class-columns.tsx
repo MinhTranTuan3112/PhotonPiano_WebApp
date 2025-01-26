@@ -1,20 +1,18 @@
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2 } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import { STUDENT_STATUS } from "~/lib/utils/constants";
+import { CLASS_STATUS, STUDENT_STATUS } from "~/lib/utils/constants";
+import { Class } from "~/lib/types/class/class";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-gray-500 font-semibold";
-        case 1: return "text-orange-500 font-semibold";
+        case 1: return "text-green-500 font-semibold";
         case 2: return "text-blue-400 font-semibold";
-        case 3: return "text-green-400 font-semibold";
-        case 4: return "text-red-400 font-semibold";
-        case 5: return "text-gray-500 font-semibold";
+        case 3: return "text-red-400 font-semibold";
         default: return "text-black font-semibold";
     }
 };
@@ -37,59 +35,66 @@ function LevelBadge({ level }: {
 function StatusBadge({ status }: {
     status: number
 }) {
-    return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{STUDENT_STATUS[status]}</Badge>
+    return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{CLASS_STATUS[status]}</Badge>
 }
-export const studentColumns: ColumnDef<Account>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && "indeterminate")
-                }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
+export const classColums: ColumnDef<Class>[] = [
+    // {
+    //     id: "select",
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             variant={'theme'}
+    //             checked={
+    //                 table.getIsAllPageRowsSelected() ||
+    //                 (table.getIsSomePageRowsSelected() && "indeterminate")
+    //             }
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label="Chọn tất cả"
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox
+    //             variant={'theme'}
+    //             checked={row.getIsSelected()}
+    //             onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //             aria-label="Chọn dòng"
+    //         />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    // },
     {
         accessorKey: "Tên",
-        header: "Tên học viên",
+        header: "Tên",
         cell: ({ row }) => {
-            return <div>{row.original.username}</div>
-        }
-    },
-    {
-        accessorKey: 'Email',
-        header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.email}</div>
-        }
-    },
-    {
-        accessorKey: 'SĐT',
-        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
+            return <div>{row.original.name}</div>
         }
     },
     {
         accessorKey: 'Level',
         header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
         cell: ({ row }) => {
-            return (row.original.level ?? -1) >= 0 && <LevelBadge level={row.original.level ?? -1}/>
+            return row.original.level >= 0 && <LevelBadge level={row.original.level}/>
+        }
+    },
+    {
+        accessorKey: 'Số buổi học',
+        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Số buổi học</div>,
+        cell: ({ row }) => {
+            return <div>{row.original.totalSlots} / {row.original.requiredSlots}</div>
+        }
+    },
+    {
+        accessorKey: 'Giảng viên',
+        header: () => <div className="flex flex-row gap-1 items-center"><User /> Giảng viên</div>,
+        cell: ({ row }) => {
+            return <div>{row.original.instructor?.username ?? "(Chưa có GV)"}</div>
+        }
+    },
+    {
+        accessorKey: 'Sĩ số',
+        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Sĩ số</div>,
+        cell: ({ row }) => {
+            return <div>{row.original.studentNumber} / {row.original.capacity}</div>
         }
     },
     {

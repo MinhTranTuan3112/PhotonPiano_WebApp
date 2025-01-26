@@ -40,6 +40,10 @@ const data = {
                 {
                     title: "Danh sách học viên",
                     url: "/staff/students",
+                },
+                {
+                    title: "Danh sách lớp",
+                    url: "/staff/classes",
                 }
             ],
         }

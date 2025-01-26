@@ -37,7 +37,7 @@ export const sampleStudents : Account[] = [
         address : "Đồng Nai",
         phone : "0987654321",
         status : 2,
-        level : 1,
+        level : 0,
         desiredTargets : [],
         favoriteMusicGenres : [],
         preferredLearningMethods : []
