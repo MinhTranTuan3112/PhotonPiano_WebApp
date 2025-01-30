@@ -6,7 +6,7 @@ export function formatDateToRFC3339(date: Date | undefined): string {
     if (!date) {
         return '';
     }
-    
+
     // Create a Date object in UTC time
     const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
 
@@ -20,4 +20,17 @@ export function formatDateToRFC3339(date: Date | undefined): string {
 
     // Construct the RFC 3339 formatted string with 'Z' for UTC
     return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
+}
+
+export function formatRFC3339ToDisplayableDate(dateString: string): string {
+    const date = new Date(dateString);
+
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const year = date.getUTCFullYear();
+
+    const hours = String(date.getUTCHours() + 7).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} vào lúc ${hours}:${minutes}`;
 }

@@ -8,7 +8,7 @@ export type Account = {
     avatarUrl?: string;
     level: string;
     status: number;
-    desiredLevel: string;
+    desiredLevel: number;
     desiredTargets: string[];
     favoriteMusicGenres: string[];
     preferredLearningMethods: string[];

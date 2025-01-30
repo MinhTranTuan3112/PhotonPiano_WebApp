@@ -18,7 +18,6 @@ export async function fetchEnrollInEntranceTest({ idToken, returnUrl }: { idToke
         { returnUrl }, // This is the request body
         {
             headers: {
-                'Content-Type': 'application/json',
                 Authorization: `Bearer ${idToken}`,
             },
         }

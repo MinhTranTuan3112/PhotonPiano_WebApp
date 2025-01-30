@@ -76,12 +76,13 @@ export async function refreshIdToken(refreshToken: string) {
 
     try {
 
-        const { idToken, refreshToken: newRefreshToken, expiresIn }: AuthResponse = await response.data;
+        const { idToken, refreshToken: newRefreshToken, expiresIn, role }: AuthResponse = await response.data;
 
         const headers = new Headers();
         headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
         headers.append("Set-Cookie", await refreshTokenCookie.serialize(newRefreshToken));
         headers.append("Set-Cookie", await expirationCookie.serialize(expiresIn));
+        headers.append("Set-Cookie", await roleCookie.serialize(role));
 
         return {
             idToken, // Return new idToken
