@@ -21,7 +21,7 @@ import {
     TableRow
 } from "./table"
 import { Button } from "./button"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "./dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 import { ChevronLeft, ChevronRight, Settings2, Trash2 } from 'lucide-react'
@@ -30,7 +30,7 @@ type DataTableProps<TData, TValue> = {
     columns: ColumnDef<TData, TValue>[]
     data: TData[],
     onRowSelectionChange?: (selectedRows: Row<TData>[]) => void;
-    emptyContentText?: string;
+    emptyContent?: React.ReactNode;
     extraHeaderContent?: React.ReactNode;
     enableColumnDisplayOptions?: boolean;
     defaultPageSize?: number;
@@ -44,7 +44,7 @@ export function DataTable<TData, TValue>({
     data,
     onRowSelectionChange,
     extraHeaderContent,
-    emptyContentText = "Không có kết quả.",
+    emptyContent = "Không có kết quả.",
     enableColumnDisplayOptions = true,
     defaultPageSize = 5,
     pageSizeOptions = [5, 10, 20, 30, 40, 50],
@@ -73,8 +73,8 @@ export function DataTable<TData, TValue>({
         onRowSelectionChange: setRowSelection,
         initialState: {
             pagination: {
-                pageSize: defaultPageSize
-            }
+                pageSize: defaultPageSize,
+            },
         },
         state: {
             sorting,
@@ -143,7 +143,7 @@ export function DataTable<TData, TValue>({
                 )}
             </div>
             <div className="rounded-md border">
-                <Table>
+                <Table className="w-full">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -179,7 +179,7 @@ export function DataTable<TData, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    {emptyContentText}
+                                    {emptyContent}
                                 </TableCell>
                             </TableRow>
                         )}

@@ -18,7 +18,7 @@ type Props = {
 const DatePickerInput = React.forwardRef<HTMLInputElement, Props>(
     ({ className, defaultValue, value, placeholder = 'Chọn ngày', onChange, ...props }, ref) => {
 
-        const [date, setDate] = React.useState<Date | undefined>(defaultValue ? parse(defaultValue || "", "yyyy-MM-dd", new Date()) : undefined);
+        const [date, setDate] = React.useState<Date | undefined>(defaultValue ? new Date(defaultValue) : undefined);
 
         React.useEffect(() => {
             setDate(value ? new Date(String(value)) : undefined);

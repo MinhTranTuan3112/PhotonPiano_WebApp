@@ -1,14 +1,73 @@
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, CircleX, Loader2, MoreHorizontal, Copy } from "lucide-react"
+import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Checkbox } from "~/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu"
+import { Transaction } from "~/lib/types/transaction/transaction"
+import { formatPrice } from "~/lib/utils/price"
+import { Banknote, CircleCheck } from 'lucide-react';
+import VnPayLogo from '../../../lib/assets/images/vnpay.webp'
+import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime"
+import { toast } from "sonner"
 
-export type Transaction = {
-    id: string
-    amount: number
-    status: "pending" | "processing" | "success" | "failed"
-    email: string
+function PaymentMethodBadge({ method }: { method: number }) {
+
+    let badge = <></>;
+
+    switch (method) {
+        case 0:
+            badge = <Badge variant="outline" className="flex flex-row gap-1 items-center"><Banknote /> Tiền mặt</Badge>;
+            break;
+
+        case 1:
+            badge = <Badge variant="outline" className="flex flex-row gap-1 items-center">
+                <img src={VnPayLogo} alt="" className="size-5" />
+                VNPAY
+            </Badge>;
+            break;
+        default:
+            break;
+    }
+
+    return badge;
+}
+
+function PaymentStatusBadge({ status }: { status: number }) {
+    let badge = <></>;
+
+    switch (status) {
+        case 0:
+            badge = <Badge variant="outline" className="bg-blue-400 flex flex-row gap-1 items-center">
+                <Loader2 />
+                Đang chờ
+            </Badge>;
+            break;
+
+        case 1:
+            badge = <Badge variant="outline" className="bg-green-400 flex flex-row gap-1 items-center">
+                <CircleCheck />
+                Thành công
+            </Badge>;
+            break;
+        case 2:
+            badge = <Badge variant="outline" className="bg-red-400 flex flex-row gap-1 items-center">
+                <CircleX />
+                Thất bại
+            </Badge>;
+            break;
+        case 3:
+            badge = <Badge variant="outline" className="bg-red-400 flex flex-row gap-1 items-center">
+                <CircleX />
+                Đã hủy
+            </Badge>;
+            break;
+
+        default:
+            break;
+    }
+
+    return badge;
 }
 
 export const columns: ColumnDef<Transaction>[] = [
@@ -37,8 +96,38 @@ export const columns: ColumnDef<Transaction>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'Mã giao dịch',
+        header: 'Mã giao dịch',
+        cell: ({ row }) => {
+            return <div className="">{row.original.id}</div>
+        }
+    },
+    {
+        accessorKey: 'Loại giao dịch',
+        header: 'Loại giao dịch',
+        cell: ({ row }) => {
+            const type = row.original.transactionType;
+
+            return type === 0 ? "Phí thi đầu vào" : "Học phí"
+        }
+    },
+    {
+        accessorKey: 'Phương thức thanh toán',
+        header: 'Phương thức thanh toán',
+        cell: ({ row }) => {
+            const method = row.original.paymentMethod;
+
+            return <PaymentMethodBadge method={method} />
+        }
+    },
+    {
+        accessorKey: 'Trạng thái',
+        header: 'Trạng thái',
+        cell: ({ row }) => {
+            const status = row.original.paymentStatus;
+
+            return <PaymentStatusBadge status={status} />
+        }
     },
     {
         accessorKey: "email",
@@ -52,25 +141,31 @@ export const columns: ColumnDef<Transaction>[] = [
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
+        },
+        cell: ({ row }) => {
+            return <div className="">{row.original.createdByEmail}</div>
         }
     },
     {
-        accessorKey: "amount",
-        header: () => <div className="text-right">Amount</div>,
+        accessorKey: "Số tiền",
+        header: () => <div className="text-right">Số tiền</div>,
         cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("amount"))
-            const formatted = new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-            }).format(amount)
-
-            return <div className="text-right font-medium">{formatted}</div>
+            const amount = row.original.amount;
+            return <div className="text-right font-medium">{formatPrice(amount)} đ</div>
+        }
+    },
+    {
+        accessorKey: 'Thời gian giao dịch',
+        header: () => <div className="">Thời gian giao dịch</div>,
+        cell: ({ row }) => {
+            return <div className="">{formatRFC3339ToDisplayableDate(row.original.createdAt)}</div>
         }
     },
     {
         id: "actions",
         cell: ({ row }) => {
-            const payment = row.original
+
+            const transaction = row.original
 
             return (
                 <DropdownMenu>
@@ -80,16 +175,19 @@ export const columns: ColumnDef<Transaction>[] = [
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => navigator.clipboard.writeText(payment.id)}
+                    <DropdownMenuContent align="end" >
+                        <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                        <DropdownMenuItem className="cursor-pointer"
+                            onClick={() => {
+                                navigator.clipboard.writeText(transaction.id);
+                                toast.success('Đã sao chép mã giao dịch!');
+                            }}
                         >
-                            Copy payment ID
+                            <Copy />  Copy mã giao dịch
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
+                        {/* <DropdownMenuSeparator />
                         <DropdownMenuItem>View customer</DropdownMenuItem>
-                        <DropdownMenuItem>View payment details</DropdownMenuItem>
+                        <DropdownMenuItem>View payment details</DropdownMenuItem> */}
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
