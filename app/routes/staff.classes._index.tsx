@@ -1,15 +1,21 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { data, LoaderFunctionArgs } from '@remix-run/node';
-import { Await, useLoaderData } from '@remix-run/react';
+import { Await, useLoaderData, useSearchParams } from '@remix-run/react';
 import { Music2, PlusCircle, SortDescIcon } from 'lucide-react';
 import React, { Suspense } from 'react'
+import { Controller } from 'react-hook-form';
+import { useRemixForm } from 'remix-hook-form';
+import { z } from 'zod';
 import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { Button } from '~/components/ui/button';
 import { DataTable } from '~/components/ui/data-table';
+import { MultiSelect } from '~/components/ui/multi-select';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { sampleClasses } from '~/lib/types/class/class';
 import { CLASS_STATUS, LEVEL } from '~/lib/utils/constants';
+import { getParsedParamsArray } from '~/lib/utils/url';
 
 type Props = {}
 
@@ -19,6 +25,7 @@ async function getSampleClasses() {
   return sampleClasses;
 }
 
+
 export async function loader({ }: LoaderFunctionArgs) {
 
   const promise = getSampleClasses();
@@ -27,9 +34,27 @@ export async function loader({ }: LoaderFunctionArgs) {
     promise
   }
 }
+export const searchSchema = z.object({
+  levels: z.array(z.string()).optional(),
+  statuses: z.array(z.string()).optional(),
+});
+
+type SearchFormData = z.infer<typeof searchSchema>;
+const resolver = zodResolver(searchSchema);
 
 export default function StaffClassesPage({ }: Props) {
   const { promise } = useLoaderData<typeof loader>()
+  const {
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    register,
+    control
+  } = useRemixForm<SearchFormData>({
+    mode: "onSubmit",
+    resolver
+  });
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return (
     <div>
@@ -39,38 +64,35 @@ export default function StaffClassesPage({ }: Props) {
           Quản lý danh sách lớp
         </p>
         <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
-          <div className='flex gap-2'>
-            <Select>
-              <SelectTrigger className='w-32 lg:w-64'>
-                <SelectValue placeholder="Chọn level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {
-                    LEVEL.map((item,index) => (
-                      <SelectItem key={index} value={index.toString()}>LEVEL {index + 1} - {item}</SelectItem>
-                    ))
-                  }
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Select>
-              <SelectTrigger className='w-32 lg:w-64'>
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {
-                    CLASS_STATUS.map((item,index) => (
-                      <SelectItem key={index} value={index.toString()}>{item}</SelectItem>
-                    ))
-                  }
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+          <div className='flex flex-col lg:flex-row gap-2'>
+            <Controller
+              name='levels'
+              control={control}
+              render={({ field: { onChange, onBlur, value, ref } }) => (
+                <MultiSelect options={LEVEL.map((level, index) => ({ label: `LEVEL ${index + 1} - ${level}`, value: index.toString() }))}
+                  value={value}
+                  defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
+                  placeholder='Chọn level'
+                  className=''
+                  onValueChange={onChange} />
+              )}
+            />
+            <Controller
+              name='statuses'
+              control={control}
+              render={({ field: { onChange, onBlur, value, ref } }) => (
+                <MultiSelect options={CLASS_STATUS.map((status, index) => ({ label: status, value: index.toString() }))}
+                  value={value}
+                  defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
+                  placeholder='Trạng thái'
+                  className=''
+                  onValueChange={onChange} />
+              )}
+            />
+
           </div>
           <div className='flex gap-4'>
-            <Button variant={'outline'}><PlusCircle className='mr-4'/> Thêm lớp mới</Button>
+            <Button variant={'outline'}><PlusCircle className='mr-4' /> Thêm lớp mới</Button>
             <Button>Xếp lớp tự động</Button>
           </div>
         </div>
