@@ -30,7 +30,7 @@ export async function requireAuth(request: Request) {
     const idToken = await idTokenCookie.parse(cookies) as string;
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
-    const role = await roleCookie.parse(cookies) as string;
+    const role = await roleCookie.parse(cookies) as number;
 
     // Redirect if no refresh token is present (not logged in)
     if (!refreshToken) {
@@ -64,7 +64,7 @@ export async function getAuth(request: Request) {
     const idToken = await idTokenCookie.parse(cookies) as string;
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
-    const role = await roleCookie.parse(cookies) as string;
+    const role = await roleCookie.parse(cookies) as number;
 
     return { idToken, refreshToken, idTokenExpiry, role };
 }

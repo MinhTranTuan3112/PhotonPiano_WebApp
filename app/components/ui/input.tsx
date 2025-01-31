@@ -10,7 +10,8 @@ type InputProps = React.ComponentProps<"input"> & {
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, startContent, endContent, ...props }, ref) => {
     return (
-      <div className={`w-full ${(endContent || startContent) ? 'relative' : ''}`}>
+      <div className={cn(`w-full ${(endContent || startContent) ? 'relative' : ''}`,
+        `${(endContent || startContent) ? className : ''}`)}>
         <input
           type={type}
           className={cn(

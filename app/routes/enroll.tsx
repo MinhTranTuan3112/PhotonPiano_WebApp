@@ -12,6 +12,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const authData = await requireAuth(request);
 
+        if (authData.role !== 4) {
+            return redirect('/');
+        }
+
         const response = await fetchEnrollInEntranceTest({
             idToken: authData.idToken,
             returnUrl: `${baseUrl}/payment-result/success`

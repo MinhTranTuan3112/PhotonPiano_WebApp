@@ -32,7 +32,9 @@ const getLevelStyle = (level: number) => {
 function LevelBadge({ level }: {
     level: number
 }) {
-    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>LEVEL {level + 1}</Badge>
+    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
+        {level ? `LEVEL ${level + 1}` : 'Chưa xếp'}
+    </Badge>
 }
 function StatusBadge({ status }: {
     status: number
@@ -89,14 +91,14 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Level',
         header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
         cell: ({ row }) => {
-            return (row.original.level ?? -1) >= 0 && <LevelBadge level={row.original.level ?? -1}/>
+            return (row.original.level ?? -1) >= 0 && <LevelBadge level={row.original.level ?? -1} />
         }
     },
     {
         accessorKey: 'Trạng thái',
         header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.status}/>
+            return <StatusBadge status={row.original.status} />
         }
     },
     {

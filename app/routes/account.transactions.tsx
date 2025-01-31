@@ -1,11 +1,11 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { Await, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useRouteError, useSearchParams } from "@remix-run/react";
-import { FilterX, RotateCcw, SearchX } from "lucide-react";
+import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
+import { RotateCcw} from "lucide-react";
 import { Suspense } from "react";
 import { columns } from "~/components/transactions/transaction-table/columns";
 import SearchForm from "~/components/transactions/transaction-table/search-form";
 import { buttonVariants } from "~/components/ui/button";
-import { DataTable } from "~/components/ui/data-table";
+import GenericDataTable from "~/components/ui/generic-data-table";
 import { Skeleton } from "~/components/ui/skeleton";
 import { fetchTransactions } from "~/lib/services/transaction";
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
@@ -102,7 +102,8 @@ export default function TransactionHistoryPage({ }: Props) {
                 <Await resolve={loaderData.promise}>
                     {({ transactionsPromise }) => (
                         <Await resolve={transactionsPromise}>
-                            <TransactionsTable />
+                            <GenericDataTable columns={columns}
+                                emptyText="Không có giao dịch nào." />
                         </Await>
                     )}
                 </Await>
@@ -118,37 +119,6 @@ function LoadingSkeleton() {
     </div>
 }
 
-function TransactionsTable() {
-
-    const transactionsValue = useAsyncValue();
-
-    const transactions = transactionsValue as Transaction[];
-
-    const [searchParams, setSearchParams] = useSearchParams();
-
-    return <>
-        <DataTable columns={columns} data={transactions}
-            defaultPageSize={Number.parseInt(searchParams.get('size') || '10')}
-            manualPagination={true}
-            onPaginationChange={(newPage) => {
-                const newSearchParams = new URLSearchParams(searchParams);
-                newSearchParams.set('page', newPage.toString());
-                setSearchParams(newSearchParams);
-            }}
-            emptyContent={<div className='flex flex-col gap-5 justify-center items-center'>
-                <SearchX className="size-24" />
-                <p className="text-center text-xl">Không có giao dịch nào.</p>
-                <Link className={`${buttonVariants({ variant: "theme" })} size-52 font-bold uppercase 
-                            flex flex-row gap-3`}
-                    to={'/account/transactions'}
-                    replace={true}
-                    reloadDocument={true}>
-                    <FilterX /> Đặt lại bộ lọc
-                </Link>
-            </div>}
-        />
-    </>
-}
 
 export function ErrorBoundary() {
 
@@ -168,7 +138,7 @@ export function ErrorBoundary() {
                     'Có lỗi đã xảy ra.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                         flex flex-row gap-1`}
-                    to={pathname ? `${pathname}${search}` : '/quizzes'}
+                    to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
                     <RotateCcw /> Thử lại
