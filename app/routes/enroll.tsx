@@ -12,7 +12,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const authData = await requireAuth(request);
 
-        if (authData.role !== 4) {
+        if (authData.role !== 1) {
             return redirect('/');
         }
 
