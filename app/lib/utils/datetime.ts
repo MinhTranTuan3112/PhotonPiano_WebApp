@@ -34,3 +34,22 @@ export function formatRFC3339ToDisplayableDate(dateString: string): string {
 
     return `${day}/${month}/${year} vào lúc ${hours}:${minutes}`;
 }
+
+
+export interface WeekRange {
+    startDate: Date;
+    endDate: Date;
+}
+
+export function getWeekRange(year: number, weekNumber: number): WeekRange {
+    const firstDayOfYear = new Date(year, 0, 1);
+
+    // Adjust for the first Monday of the year
+    const daysOffset = (weekNumber - 1) * 7 - firstDayOfYear.getDay() + (firstDayOfYear.getDay() === 0 ? -6 : 1);
+    const startDate = new Date(firstDayOfYear.setDate(firstDayOfYear.getDate() + daysOffset));
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+
+    return { startDate, endDate };
+}
+
