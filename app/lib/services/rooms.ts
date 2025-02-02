@@ -14,7 +14,7 @@ export async function fetchRooms({ page = 1, pageSize = 5, sortColumn = 'Id', or
     }
 
     const response = await axiosInstance.get(url);
-
+    console.log(url);
     return response;
 }
 
