@@ -1,5 +1,6 @@
 
 export type Account = {
+    accountFirebaseId: string;
     username: string;
     email: string;
     phone: string;
@@ -12,6 +13,7 @@ export type Account = {
     desiredTargets: string[];
     favoriteMusicGenres: string[];
     preferredLearningMethods: string[];
+    studentStatus?: StudentStatus;
 };
 
 export type SignUpRequest = {
@@ -45,6 +47,7 @@ export enum StudentStatus {
 
 export const sampleStudents: Account[] = [
     {
+        accountFirebaseId: "1",
         username: "Thanh Hưng",
         email: "thanhhung16082003@gmail.com",
         address: "Đồng Nai",
@@ -56,6 +59,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "2",
         username: "Hiểu Phàm",
         email: "hieuga47@yahoo.com",
         address: "Đồng Nai",
@@ -67,6 +71,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "3",
         username: "Nguyễn Ân",
         email: "nguynan001@gmail.com",
         address: "Đồng Nai",
@@ -77,6 +82,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "4",
         username: "Uyên Dương",
         email: "ud@gmail.com",
         address: "Quảng Nam",
@@ -87,6 +93,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "5",
         username: "Hoàng Thái",
         email: "hthai0703@gmail.com",
         address: "Đồng Nai",
@@ -97,6 +104,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "6",
         username: "Ngân Trần",
         email: "ngantran@gmail.com",
         address: "Đồng Nai",
@@ -108,6 +116,7 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
+        accountFirebaseId: "7",
         username: "Vũ Miên Ly",
         email: "thanhngan@gmail.com",
         address: "Đồng Nai",

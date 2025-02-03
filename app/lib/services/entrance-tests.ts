@@ -5,7 +5,7 @@ export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn =
 
 } & Partial<QueryPagedRequest>) {
 
-    let url = `/entrance-tests?page=${page}&pageSize=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+    let url = `/entrance-tests?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
     const response = await axiosInstance.get(url);
 
@@ -20,6 +20,38 @@ export async function fetchEnrollInEntranceTest({ idToken, returnUrl }: { idToke
             headers: {
                 Authorization: `Bearer ${idToken}`,
             },
+        }
+    );
+
+    return response;
+}
+
+
+export async function fetchAutoArrangeEntranceTests({
+    startDate,
+    endDate,
+    shiftOptions = [],
+    studentIds,
+    idToken,
+}: {
+    startDate: string,
+    endDate: string,
+    shiftOptions?: number[],
+    studentIds: string[],
+    idToken: string
+}) {
+    
+    const response = await axiosInstance.post('/entrance-tests/auto-arrangement',
+        {
+            startDate,
+            endDate,
+            shiftOptions,
+            studentIds
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            }
         }
     );
 

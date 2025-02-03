@@ -82,6 +82,7 @@ export function DataTable<TData, TValue>({
             columnVisibility,
             rowSelection
         },
+        enableRowSelection: true
     });
 
     const handlePageChange = (newPageIndex: number) => {
