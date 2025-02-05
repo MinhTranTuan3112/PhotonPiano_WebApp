@@ -39,6 +39,20 @@ export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn =
     return response;
 }
 
+export async function fetchAnEntranceTest({ id, idToken }: {
+    id: string,
+    idToken: string
+}) {
+
+    const response = await axiosInstance.get(`/entrance-tests/${id}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
+
 export async function fetchEnrollInEntranceTest({ idToken, returnUrl }: { idToken: string; returnUrl: string }) {
     const response = await axiosInstance.post(
         '/entrance-tests/enrollment-requests',
@@ -91,7 +105,7 @@ export async function fetchUpdateEntranceTest({
     ...data
 }: UpdateEntranceTest & { idToken: string }) {
 
-    const response = await axiosInstance.put(`/entrance-tests/${id}`, { data }, {
+    const response = await axiosInstance.put(`/entrance-tests/${id}`, { ...data }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }

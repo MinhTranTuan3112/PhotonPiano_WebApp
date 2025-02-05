@@ -10,6 +10,7 @@ import { ChevronsUpDown, Loader2 } from 'lucide-react'
 import { Room } from '~/lib/types/room/room'
 
 type Props = {
+    defaultValue?: string;
     onChange?: (value: string) => void;
     value?: string;
 }
@@ -22,7 +23,7 @@ async function fetchRoomsData(query: Partial<{
     return await response.data;
 }
 
-export default function RoomsCombobox({ onChange, value: controlledValue }: Props) {
+export default function RoomsCombobox({ onChange, value: controlledValue, defaultValue }: Props) {
 
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -30,7 +31,7 @@ export default function RoomsCombobox({ onChange, value: controlledValue }: Prop
 
     useEffect(() => {
 
-        setValue(controlledValue || '');
+        setValue(defaultValue ? defaultValue : controlledValue || '');
 
         return () => {
 
@@ -85,7 +86,7 @@ export default function RoomsCombobox({ onChange, value: controlledValue }: Prop
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0 popover-content-width-full">
-                <Command>
+                <Command defaultValue={defaultValue}>
                     <CommandInput
                         placeholder="Nhập tên phòng..."
                         value={search}

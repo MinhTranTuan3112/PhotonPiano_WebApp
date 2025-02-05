@@ -3,19 +3,24 @@ import { DataTable } from './data-table';
 import { Link, useAsyncValue, useLocation, useSearchParams } from '@remix-run/react';
 import { FilterX, SearchX } from 'lucide-react';
 import { buttonVariants } from './button';
+import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 
 type Props<T> = {
     columns: ColumnDef<T, unknown>[];
     emptyText?: string;
     enableRefresh?: boolean;
     extraHeaderContent?: React.ReactNode;
+    metadata: PaginationMetaData;
 }
 
 export default function GenericDataTable<T>({ columns,
     extraHeaderContent,
     emptyText = 'Không có kết quả.',
-    enableRefresh = true
+    enableRefresh = true,
+    metadata
 }: Props<T>) {
+
+    const { totalCount, totalPages } = metadata;
 
     const resolvedValues = useAsyncValue();
 
@@ -35,6 +40,13 @@ export default function GenericDataTable<T>({ columns,
                 newSearchParams.set('page', newPage.toString());
                 setSearchParams(newSearchParams);
             }}
+            onPageSizeChange={(newPageSize) => {
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.set('size', newPageSize.toString());
+                setSearchParams(newSearchParams);
+            }}
+            totalCount={totalCount}
+            totalPages={totalPages}
             emptyContent={<div className='flex flex-col gap-5 justify-center items-center'>
                 <SearchX className="size-24" />
                 <p className="text-center text-xl">{emptyText}</p>

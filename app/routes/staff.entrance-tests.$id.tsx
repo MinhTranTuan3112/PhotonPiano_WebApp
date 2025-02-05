@@ -1,254 +1,31 @@
-import { LoaderFunctionArgs } from '@remix-run/node'
-import { Await, useLoaderData, useNavigate } from '@remix-run/react'
-import { CalendarIcon, Check, ChevronsUpDown, Delete, Lock, Pencil, Plus, Save, Trash, Unlock } from 'lucide-react'
-import { format } from 'node_modules/date-fns/format'
-import { Suspense, useEffect, useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
+import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
+import { Delete, Lock, Pencil, Save, Trash, Unlock } from 'lucide-react'
+import { Suspense, useEffect } from 'react'
+import { Controller } from 'react-hook-form'
+import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
 import ScoreTable from '~/components/entrance-tests/score-table'
-import { columns } from '~/components/entrance-tests/table/columns'
-import { studentColumns } from '~/components/entrance-tests/table/student-columns'
+import RoomsCombobox from '~/components/room/rooms-combobox'
 import { Button } from '~/components/ui/button'
-import { Calendar } from '~/components/ui/calendar'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '~/components/ui/command'
-import { DataTable } from '~/components/ui/data-table'
+import { DatePickerInput } from '~/components/ui/date-picker-input'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Skeleton } from '~/components/ui/skeleton'
-import { Account } from '~/lib/types/account/account'
-import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test'
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
+import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
+import { Role } from '~/lib/types/account/account'
+import { UpdateEntranceTest, UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
-import { Room, sampleRooms } from '~/lib/types/room/room'
-import { cn } from '~/lib/utils'
+import { requireAuth } from '~/lib/utils/auth'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
+import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 
 type Props = {}
 
-const getSampleEntranceTest = async (id: string): Promise<EntranceTestDetail> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return {
-        ...sampleEntranceTests[2],
-        entranceTestStudents: [
-            {
-                student: {
-                    email: "abc@gmail.com",
-                    address: "abc",
-                    phone: "0987654321",
-                    status: 1,
-                    username: "Test user"
-                },
-                entranceTestId: "b",
-                id: "a",
-                studentId: "a",
-                bandScore: 5,
-                instructorComment: "abc",
-                rank: 3,
-                entranceTestResults: [
-                    {
-                        criteriaId: "a",
-                        criteriaName: "Đúng nhịp",
-                        entranceTestStudentId: "abc",
-                        id: "a",
-                        score: 7
-                    },
-                    {
-                        criteriaId: "b",
-                        criteriaName: "Độ chính xác",
-                        entranceTestStudentId: "abc",
-                        id: "b",
-                        score: 8.5
-                    },
-                    {
-                        criteriaId: "c",
-                        criteriaName: "Âm sắc",
-                        entranceTestStudentId: "abc",
-                        id: "c",
-                        score: 5.5
-                    },
-                    {
-                        criteriaId: "d",
-                        criteriaName: "Phong thái",
-                        entranceTestStudentId: "abc",
-                        id: "d",
-                        score: 9
-                    }
-                ]
-            },
-            {
-                student: {
-                    email: "abc1@gmail.com",
-                    address: "abc",
-                    phone: "0987654321",
-                    status: 1,
-                    username: "Test user"
-                },
-                entranceTestId: "b",
-                id: "a",
-                studentId: "a",
-                bandScore: 5,
-                instructorComment: "abc",
-                rank: 3,
-                entranceTestResults: [
-                    {
-                        criteriaId: "a",
-                        criteriaName: "Đúng nhịp",
-                        entranceTestStudentId: "abc",
-                        id: "a",
-                        score: 7
-                    },
-                    {
-                        criteriaId: "b",
-                        criteriaName: "Độ chính xác",
-                        entranceTestStudentId: "abc",
-                        id: "b",
-                        score: 8.5
-                    },
-                    {
-                        criteriaId: "c",
-                        criteriaName: "Âm sắc",
-                        entranceTestStudentId: "abc",
-                        id: "c",
-                        score: 5.5
-                    },
-                    {
-                        criteriaId: "d",
-                        criteriaName: "Phong thái",
-                        entranceTestStudentId: "abc",
-                        id: "d",
-                        score: 9
-                    }
-                ]
-            },
-            {
-                student: {
-                    email: "abc2@gmail.com",
-                    address: "abc",
-                    phone: "0987654321",
-                    status: 1,
-                    username: "Test user"
-                },
-                entranceTestId: "b",
-                id: "a",
-                studentId: "a",
-                bandScore: 5,
-                instructorComment: "abc",
-                rank: 3,
-                entranceTestResults: [
-                    {
-                        criteriaId: "a",
-                        criteriaName: "Đúng nhịp",
-                        entranceTestStudentId: "abc",
-                        id: "a",
-                        score: 7
-                    },
-                    {
-                        criteriaId: "b",
-                        criteriaName: "Độ chính xác",
-                        entranceTestStudentId: "abc",
-                        id: "b",
-                        score: 8.5
-                    },
-                    {
-                        criteriaId: "c",
-                        criteriaName: "Âm sắc",
-                        entranceTestStudentId: "abc",
-                        id: "c",
-                        score: 5.5
-                    },
-                    {
-                        criteriaId: "d",
-                        criteriaName: "Phong thái",
-                        entranceTestStudentId: "abc",
-                        id: "d",
-                        score: 9
-                    }
-                ]
-            },
-            {
-                student: {
-                    email: "abc3@gmail.com",
-                    address: "abc",
-                    phone: "0987654321",
-                    status: 1,
-                    username: "Test user"
-                },
-                entranceTestId: "b",
-                id: "a",
-                studentId: "a",
-                bandScore: 5,
-                instructorComment: "abc",
-                rank: 3,
-                entranceTestResults: [
-                    {
-                        criteriaId: "a",
-                        criteriaName: "Đúng nhịp",
-                        entranceTestStudentId: "abc",
-                        id: "a",
-                        score: 7
-                    },
-                    {
-                        criteriaId: "b",
-                        criteriaName: "Độ chính xác",
-                        entranceTestStudentId: "abc",
-                        id: "b",
-                        score: 8.5
-                    },
-                    {
-                        criteriaId: "c",
-                        criteriaName: "Âm sắc",
-                        entranceTestStudentId: "abc",
-                        id: "c",
-                        score: 5.5
-                    },
-                    {
-                        criteriaId: "d",
-                        criteriaName: "Phong thái",
-                        entranceTestStudentId: "abc",
-                        id: "d",
-                        score: 9
-                    }
-                ]
-            }
-        ],
-        instructor: {
-            status: 0,
-            username: "HungDepTrai",
-            address: "TN, ĐN",
-            email: "thanhhung16082003@gmail.com",
-            phone: "0987654321",
-            avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
-        },
-        room: sampleRooms[1]
-    }
-}
-
-async function getSampleRooms() {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return sampleRooms;
-}
-
-const getSampleInstructors = async (): Promise<Account[]> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return [
-        {
-            status: 0,
-            username: "HungDepTrai",
-            address: "TN, ĐN",
-            email: "thanhhung16082003@gmail.com",
-            phone: "0987654321",
-            avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
-        },
-        {
-            address: "Thong Nhat, Dong Nai",
-            email: "nguynan001@gmail.com",
-            phone: "0987654321",
-            username: "Ng Ân",
-            status: 0,
-            avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
-        }
-
-    ];
-}
 const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-green-500 font-semibold";
@@ -259,39 +36,53 @@ const getStatusStyle = (status: number) => {
     }
 };
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
 
-    const promise = getSampleEntranceTest(params.id!);
-    const roomPromise = getSampleRooms();
-    const instructorPromise = getSampleInstructors();
+    try {
 
-    return {
-        promise, roomPromise, instructorPromise
+        const { role, idToken } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        if (!params.id) {
+            return redirect('/staff/entrance-tests');
+        }
+
+        const id = params.id as string;
+
+        const promise = fetchAnEntranceTest({ id, idToken }).then((response) => {
+
+            const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
+
+            return {
+                entranceTestDetailsPromise
+            }
+        });
+
+        return {
+            promise,
+            id
+        }
+
+    } catch (error) {
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
     }
 }
 
 export default function StaffEntranceTestsPage({ }: Props) {
 
-    const { promise, roomPromise, instructorPromise } = useLoaderData<typeof loader>();
-
-    const [openRoomSearch, setOpenRoomSearch] = useState(false)
-    const [selectedRoom, setSelectedRoom] = useState<Room>()
-    const [openInstructorSearch, setOpenInstructorSearch] = useState(false)
-    const [selectedInstructor, setSelectedInstructor] = useState<Account>()
-    const [date, setDate] = useState<Date>()
-
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        promise.then((et) => {
-            setSelectedRoom(et.room)
-            setSelectedInstructor(et.instructor)
-            setDate(new Date(et.date))
-        }).catch((error) => {
-            console.error("Error fetching rooms:", error);
-        });
-    }, [promise]);
-
+    const { promise } = useLoaderData<typeof loader>();
 
     return (
         <article className='px-10'>
@@ -299,227 +90,10 @@ export default function StaffEntranceTestsPage({ }: Props) {
             <p className='text-muted-foreground'>Thông tin chung</p>
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>
-                    {(entranceTest) => (
-                        <div className='mt-4'>
-                            <div className='flex gap-2 items-center'>
-                                <Label htmlFor="name" className="w-32">
-                                    Tên bài thi
-                                </Label>
-                                <Input id="name" className="col-span-3" placeholder='Hãy nhập 1 tên nào đó...' defaultValue={entranceTest.name} />
-                            </div>
-                            <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full'>
-                                <div className='flex gap-2 items-center'>
-                                    <Label htmlFor="name" className="w-32">
-                                        Ca thi
-                                    </Label>
-                                    <Select defaultValue={SHIFT_TIME[entranceTest.shift - 1]}>
-                                        <SelectTrigger className='w-64'>
-                                            <SelectValue placeholder="Chọn ca thi" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                {
-                                                    SHIFT_TIME.map((item, index) => (
-                                                        <SelectItem key={index} value={item}>Ca {index + 1} ({item})</SelectItem>
-                                                    ))
-                                                }
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className='flex gap-2 items-center'>
-                                    <Label htmlFor="name" className="w-32">
-                                        Ngày thi
-                                    </Label>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-[240px] justify-start text-left font-normal",
-                                                    !date && "text-muted-foreground"
-                                                )}
-                                            >
-                                                <CalendarIcon className='mr-2' />
-                                                {date ? format(date, "PPP") : <span>Chọn ngày thi</span>}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={date}
-                                                onSelect={setDate}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                                <div className=' flex gap-2 items-center'>
-                                    <Label htmlFor="name" className="w-32">
-                                        Phòng thi
-                                    </Label>
-                                    <Popover open={openRoomSearch} onOpenChange={setOpenRoomSearch}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-3/4 justify-between"
-                                            >
-                                                {selectedRoom?.name ?? "Hãy chọn phòng..."}
-                                                <ChevronsUpDown className="opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='popover-content-width-full'>
-                                            <Suspense fallback={<ComboboxSkeleton />}>
-                                                <Await resolve={roomPromise}>
-                                                    {(rooms) => (
-                                                        <Command>
-                                                            <CommandInput placeholder="Tìm phòng..." className="h-9" />
-                                                            <CommandList>
-                                                                <CommandEmpty>Không thấy phòng nào</CommandEmpty>
-                                                                <CommandGroup>
-                                                                    {rooms.map((room) => (
-                                                                        <CommandItem
-                                                                            key={room.id}
-                                                                            value={room.name}
-                                                                            onSelect={(currentValue) => {
-                                                                                setSelectedRoom(selectedRoom?.name === currentValue ? undefined : rooms.find(r => r.name === currentValue))
-                                                                                setOpenRoomSearch(false)
-                                                                            }}
-                                                                        >
-                                                                            {room.name}
-                                                                            <Check
-                                                                                className={
-                                                                                    "ml-auto " +
-                                                                                    (selectedRoom?.name === room.name ? "opacity-100" : "opacity-0")
-                                                                                }
-                                                                            />
-                                                                        </CommandItem>
-                                                                    ))}
-                                                                </CommandGroup>
-                                                            </CommandList>
-                                                        </Command>
-                                                    )}
-                                                </Await>
-                                            </Suspense>
-
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                                <div className='flex gap-2 items-center'>
-                                    <Label htmlFor="name" className="w-32">
-                                        Giảng viên coi thi
-                                    </Label>
-                                    <Popover open={openInstructorSearch} onOpenChange={setOpenInstructorSearch}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant="outline"
-                                                className="w-3/4 justify-between text-wrap"
-                                            >
-                                                {selectedInstructor ? `${selectedInstructor.username} (${selectedInstructor.email})` : "Hãy giảng viên coi thi..."}
-                                                <ChevronsUpDown className="opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-full'>
-                                            <Suspense fallback={<ComboboxSkeleton />}>
-                                                <Await resolve={instructorPromise}>
-                                                    {(instructors) => (
-                                                        <Command>
-                                                            <CommandInput placeholder="Tìm giảng viên..." className="h-9" />
-                                                            <CommandList>
-                                                                <CommandEmpty>Không thấy giảng viên nào</CommandEmpty>
-                                                                <CommandGroup>
-                                                                    {instructors.map((instructor) => (
-                                                                        <CommandItem
-                                                                            key={instructor.email}
-                                                                            value={instructor.email}
-                                                                            onSelect={(currentValue) => {
-                                                                                setSelectedInstructor(selectedInstructor?.email === currentValue ? undefined : instructors.find(i => i.email === currentValue))
-                                                                                setOpenRoomSearch(false)
-                                                                            }}
-                                                                        >
-                                                                            {instructor.username} ({instructor.email})
-                                                                            <Check
-                                                                                className={
-                                                                                    "ml-auto " +
-                                                                                    (selectedInstructor?.email === instructor.email ? "opacity-100" : "opacity-0")
-                                                                                }
-                                                                            />
-                                                                        </CommandItem>
-                                                                    ))}
-                                                                </CommandGroup>
-                                                            </CommandList>
-                                                        </Command>
-                                                    )}
-                                                </Await>
-                                            </Suspense>
-
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            </div>
-                            <div className='mt-4 grid grid-cols-1 lg:grid-cols-3'>
-                                <div className='flex gap-4'>
-                                    <span className='font-bold'>Sức chứa hiện tại :</span>
-                                    <span className=''>{selectedRoom?.capacity}</span>
-                                </div>
-                                <div className='flex gap-4'>
-                                    <span className='font-bold'>Số học viên tham dự :</span>
-                                    <span className=''>{entranceTest.registerStudents}</span>
-                                </div>
-                                <div className='flex gap-4'>
-                                    <span className='font-bold'>Trạng thái :</span>
-                                    <span className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</span>
-                                </div>
-                            </div>
-                            <div className='mt-4 flex justify-end flex-wrap gap-4'>
-                                <Button className='font-bold px-12'>
-                                    <Save className='mr-4' />
-                                    Lưu thay đổi
-                                </Button>
-                            </div>
-                            <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
-                            <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
-                            <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' />
-                            {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
-                            <div className='flex flex-col md:flex-row justify-center gap-4'>
-                                {
-                                    entranceTest.isOpen ? (
-                                        <Button className='px-12'>
-                                            <Lock className='mr-2' /> Khóa ca thi này
-                                        </Button>
-                                    ) : (
-                                        <Button className='px-12'>
-                                            <Unlock className='mr-2' /> Mở khóa ca thi này
-                                        </Button>
-                                    )
-                                }
-                                {
-                                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
-                                        <Button className='px-12' variant={"destructive"}>
-                                            <Trash className='mr-2' /> Xóa ca thi này
-                                        </Button>
-                                    )
-                                }
-                                <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
-                                    {
-                                        entranceTest.isAnnoucedScore ? (
-                                            <>
-                                                <Delete className='mr-4' />
-                                                Hủy công bố điểm số
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Pencil className='mr-4' />
-                                                Công bố điểm số
-                                            </>
-                                        )
-                                    }
-
-                                </Button>
-                            </div>
-
-
-                        </div>
+                    {({ entranceTestDetailsPromise }) => (
+                        <Await resolve={entranceTestDetailsPromise}>
+                            <EntranceTestDetailsContent />
+                        </Await>
                     )}
                 </Await>
             </Suspense>
@@ -527,6 +101,280 @@ export default function StaffEntranceTestsPage({ }: Props) {
     )
 }
 
+const serverSchema = updateEntranceTestSchema.pick({
+    name: true,
+    shift: true,
+    instructorId: true,
+    roomId: true
+}).extend({
+    date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
+});
+
+type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
+
+export async function action({ request, params }: ActionFunctionArgs) {
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        const { data, errors, receivedValues: defaultValues } =
+            await getValidatedFormData<ServerUpdateEntranceTestFormData>(request, zodResolver(serverSchema));
+
+        if (errors) {
+            console.log({ errors });
+
+            return { success: false, errors, defaultValues };
+        }
+
+        if (!params.id) {
+            return {
+                success: false,
+                error: 'Không có mã đợt thi',
+            }
+        }
+
+        const id = params.id as string;
+
+        const updateRequest = {
+            ...data,
+            date: data.date.toString(),
+            shift: parseInt(data.shift),
+            id,
+            instructorId: data.instructorId || undefined,
+            idToken
+        };
+        const response = await fetchUpdateEntranceTest(updateRequest);
+
+        return {
+            success: response.status === 204
+        }
+
+    } catch (error) {
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        return {
+            success: false,
+            error: message,
+            status
+        }
+    }
+}
+
+const resolver = zodResolver(updateEntranceTestSchema);
+
+function EntranceTestDetailsContent() {
+
+    const entranceTestValue = useAsyncValue();
+
+    const entranceTest = entranceTestValue as EntranceTestDetail;
+
+    const fetcher = useFetcher<typeof action>();
+
+    const { handleSubmit,
+        formState: { errors, isSubmitting },
+        control,
+        register
+    } =
+        useRemixForm<UpdateEntranceTestFormData>({
+            mode: 'onSubmit',
+            resolver,
+            defaultValues: {
+                name: entranceTest.name,
+                shift: entranceTest.shift.toString(),
+                instructorId: entranceTest.instructorId,
+                roomId: entranceTest.roomId,
+                date: new Date(entranceTest.date)
+            },
+            fetcher
+        });
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận cập nhật ca thi',
+        description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
+        onConfirm: () => {
+            handleSubmit();
+        }
+    })
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Cập nhật thông tin đợt thi thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.error(fetcher.data.error, {
+                position: 'top-center'
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [fetcher.data]);
+
+    return <>
+        <Form className='mt-4'
+            method='POST'
+            onSubmit={() => {
+                handleOpenModal();
+            }}>
+            <div className='flex gap-2 items-center'>
+                <Label className="w-32">
+                    Tên bài thi
+                </Label>
+                <Input  {...register('name')} id="name" className="col-span-3"
+                    placeholder='Nhập tên đợt thi...' />
+                {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
+            </div>
+            <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full'>
+                <div className='flex gap-2 items-center'>
+                    <Label className="w-32">
+                        Ca thi
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='shift'
+                        render={({ field: { value, onChange } }) => (
+                            <Select value={value}
+                                onValueChange={onChange}>
+                                <SelectTrigger className='w-64'>
+                                    <SelectValue placeholder="Chọn ca thi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {
+                                            SHIFT_TIME.map((item, index) => (
+                                                <SelectItem key={index} value={index.toString()}>Ca {index + 1} ({item})</SelectItem>
+                                            ))
+                                        }
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
+                </div>
+                {/*Ngày thi */}
+                <div className='flex gap-2 items-center'>
+                    <Label className="w-32">
+                        Ngày thi
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='date'
+                        render={({ field: { value, onChange, ref, onBlur } }) => (
+                            <DatePickerInput
+                                ref={ref}
+                                onBlur={onBlur}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Chọn ngày thi'
+                                className='w-56'
+                            />
+                        )}
+                    />
+                    {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
+                </div>
+                {/*Room */}
+                <div className='flex gap-2 items-center '>
+                    <Label className="w-32">
+                        Phòng thi
+                    </Label>
+                    <Controller
+                        control={control}
+                        name='roomId'
+                        render={({ field: { value, onChange } }) => (
+                            <RoomsCombobox
+                                value={value}
+                                onChange={onChange}
+                            />
+                        )}
+                    />
+                    {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
+                </div>
+                <div className='flex gap-2 items-center'>
+                    {/*Người gác thi */}
+                    {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
+                </div>
+            </div>
+            <div className='mt-4 grid grid-cols-1 lg:grid-cols-3'>
+                <div className='flex gap-4'>
+                    <span className='font-bold'>Sức chứa hiện tại :</span>
+                    <span className=''>{entranceTest.roomCapacity}</span>
+                </div>
+                <div className='flex gap-4'>
+                    <span className='font-bold'>Số học viên tham dự :</span>
+                    <span className=''>{entranceTest.registerStudents}</span>
+                </div>
+                <div className='flex gap-4'>
+                    <span className='font-bold'>Trạng thái :</span>
+                    <span className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</span>
+                </div>
+            </div>
+            <div className='mt-4 flex justify-end flex-wrap gap-4'>
+                <Button className='font-bold px-12' isLoading={isSubmitting}
+                    disabled={isSubmitting}>
+                    <Save className='mr-4' />
+                    {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </Button>
+            </div>
+            <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
+            <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
+            {/* <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' /> */}
+            {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
+            <div className='flex flex-col md:flex-row justify-center gap-4'>
+                {
+                    entranceTest.isOpen ? (
+                        <Button className='px-12'>
+                            <Lock className='mr-2' /> Khóa ca thi này
+                        </Button>
+                    ) : (
+                        <Button className='px-12'>
+                            <Unlock className='mr-2' /> Mở khóa ca thi này
+                        </Button>
+                    )
+                }
+                {
+                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
+                        <Button className='px-12' variant={"destructive"}>
+                            <Trash className='mr-2' /> Xóa ca thi này
+                        </Button>
+                    )
+                }
+                <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+                    {
+                        entranceTest.isAnnoucedScore ? (
+                            <>
+                                <Delete className='mr-4' />
+                                Hủy công bố điểm số
+                            </>
+                        ) : (
+                            <>
+                                <Pencil className='mr-4' />
+                                Công bố điểm số
+                            </>
+                        )
+                    }
+                </Button>
+            </div>
+        </Form>
+        {confirmDialog}
+    </>
+}
 
 function LoadingSkeleton() {
     return <div className="flex justify-center items-center my-4">

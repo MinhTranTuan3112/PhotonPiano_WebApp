@@ -100,12 +100,14 @@ export default function StaffEntranceTestsPage({ }: Props) {
             <SearchForm />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
-                    {({ entranceTestsPromise }) => (
+                    {({ entranceTestsPromise, metadata }) => (
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
                                 <Button variant={'default'} Icon={Plus} iconPlacement='right'
-                                    onClick={() => navigate('/staff/entrance-tests/create')}>Tạo</Button>
-                            } />
+                                    onClick={() => navigate('/staff/entrance-tests/create')}>Tạo
+                                </Button>
+                            } metadata={metadata}
+                                emptyText='Không có đợt thi nào.' />
                         </Await>
                     )}
                 </Await>

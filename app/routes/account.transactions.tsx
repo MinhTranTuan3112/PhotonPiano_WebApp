@@ -100,10 +100,11 @@ export default function TransactionHistoryPage({ }: Props) {
             <SearchForm />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(loaderData.query)}>
                 <Await resolve={loaderData.promise}>
-                    {({ transactionsPromise }) => (
+                    {({ transactionsPromise, metadata }) => (
                         <Await resolve={transactionsPromise}>
                             <GenericDataTable columns={columns}
-                                emptyText="Không có giao dịch nào." />
+                                emptyText="Không có giao dịch nào."
+                                metadata={metadata} />
                         </Await>
                     )}
                 </Await>
