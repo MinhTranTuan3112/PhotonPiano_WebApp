@@ -1,7 +1,7 @@
 
 export type Account = {
     accountFirebaseId: string;
-    username: string;
+    userName: string;
     fullName: string;
     email: string;
     phone: string;
@@ -49,7 +49,7 @@ export enum StudentStatus {
 export const sampleStudents: Account[] = [
     {
         accountFirebaseId: "1",
-        username: "Thanh Hưng",
+        userName: "Thanh Hưng",
         fullName: "Thanh Hưng",
         email: "thanhhung16082003@gmail.com",
         address: "Đồng Nai",
@@ -62,7 +62,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "2",
-        username: "Hiểu Phàm",
+        userName: "Hiểu Phàm",
         fullName: "Hiểu Phàm",
         email: "hieuga47@yahoo.com",
         address: "Đồng Nai",
@@ -75,7 +75,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "3",
-        username: "Nguyễn Ân",
+        userName: "Nguyễn Ân",
         fullName: "Nguyễn Ân",
         email: "nguynan001@gmail.com",
         address: "Đồng Nai",
@@ -87,7 +87,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "4",
-        username: "Uyên Dương",
+        userName: "Uyên Dương",
         fullName: "Uyên Dương",
         email: "ud@gmail.com",
         address: "Quảng Nam",
@@ -99,7 +99,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "5",
-        username: "Hoàng Thái",
+        userName: "Hoàng Thái",
         fullName: "Hoàng Thái",
         email: "hthai0703@gmail.com",
         address: "Đồng Nai",
@@ -111,7 +111,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "6",
-        username: "Ngân Trần",
+        userName: "Ngân Trần",
         fullName: "Ngân Trần",
         email: "ngantran@gmail.com",
         address: "Đồng Nai",
@@ -124,7 +124,7 @@ export const sampleStudents: Account[] = [
     },
     {
         accountFirebaseId: "7",
-        username: "Vũ Miên Ly",
+        userName: "Vũ Miên Ly",
         fullName: "Vũ Miên Ly",
         email: "thanhngan@gmail.com",
         address: "Đồng Nai",

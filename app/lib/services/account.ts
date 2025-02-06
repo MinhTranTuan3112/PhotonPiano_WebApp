@@ -4,12 +4,13 @@ import axiosInstance from "../utils/axios-instance";
 
 export async function fetchAccounts({
     page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
-    levels = [], roles = [], studentStatuses = [],
+    levels = [], roles = [], studentStatuses = [], q,
     idToken
 }:
     Partial<QueryPagedRequest & {
         levels: Level[];
         roles: Role[];
+        q? : string;
         studentStatuses: StudentStatus[];
     }> & {
         idToken: string
@@ -17,6 +18,11 @@ export async function fetchAccounts({
 ) {
 
     let url = `/accounts?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+
+    if (q)
+    {
+        url += `&q=${q}`
+    }
 
     if (levels.length > 0) {
         levels.forEach(level => {
