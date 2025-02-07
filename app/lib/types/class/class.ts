@@ -12,14 +12,16 @@ export type Class = {
     status : number
 }
 const teacher = {
-    username : "Thanh Hung",
+    accountFirebaseId : "abc",
+    userName : "Thanh Hung",
+    fullName : "Thanh Hung",
     favoriteMusicGenres : [],
     desiredTargets : [],
     preferredLearningMethods : [],
     address : "",
     email : "thanhhung@gmail.com",
     status : 0,
-    phone : "0987654321"
+    phone : "0987654321",
 }
 export const sampleClasses : Class[] = [
     {

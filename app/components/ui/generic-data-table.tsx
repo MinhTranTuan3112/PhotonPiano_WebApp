@@ -11,12 +11,14 @@ type Props<T> = {
     enableRefresh?: boolean;
     extraHeaderContent?: React.ReactNode;
     metadata: PaginationMetaData;
+    resolvedData? : T[]
 }
 
 export default function GenericDataTable<T>({ columns,
     extraHeaderContent,
     emptyText = 'Không có kết quả.',
     enableRefresh = true,
+    resolvedData = [],
     metadata
 }: Props<T>) {
 
@@ -24,7 +26,7 @@ export default function GenericDataTable<T>({ columns,
 
     const resolvedValues = useAsyncValue();
 
-    const data = resolvedValues as T[];
+    const data = resolvedData.length > 0 ? resolvedData : resolvedValues as T[];
 
     const [searchParams, setSearchParams] = useSearchParams();
 

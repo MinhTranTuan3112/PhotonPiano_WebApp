@@ -1,6 +1,6 @@
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2 } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2, UsersRound } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -87,7 +87,7 @@ export const classColums: ColumnDef<Class>[] = [
         accessorKey: 'Giảng viên',
         header: () => <div className="flex flex-row gap-1 items-center"><User /> Giảng viên</div>,
         cell: ({ row }) => {
-            return <div>{row.original.instructor?.username ?? "(Chưa có GV)"}</div>
+            return <div>{row.original.instructor?.userName ?? "(Chưa có GV)"}</div>
         }
     },
     {
@@ -120,7 +120,7 @@ export const classColums: ColumnDef<Class>[] = [
                         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
-                            <User /> Xem thông tin
+                            <UsersRound /> Xem thông tin lớp
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
                             <BanIcon /> Vô hiệu hóa
