@@ -39,7 +39,7 @@ function LevelBadge({ level }: {
     level?: number
 }) {
     return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
-        {level !== null ? `LEVEL ${level || 0 + 1} - ${Level[level || 0]}` : 'Chưa xếp'}
+        {level !== null ? `LEVEL ${(level || 0) + 1} - ${Level[level || 0]}` : 'Chưa xếp'}
     </Badge>
 }
 
@@ -85,7 +85,7 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Tên',
         header: 'Tên học viên',
         cell: ({ row }) => {
-            return <div>{row.original.fullName || row.original.username}</div>
+            return <div>{row.original.fullName || row.original.userName}</div>
         }
     },
     {
