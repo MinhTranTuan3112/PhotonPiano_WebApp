@@ -119,7 +119,7 @@ export const classColums: ColumnDef<Class>[] = [
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
                             <UsersRound /> Xem thông tin lớp
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 cursor-pointer">

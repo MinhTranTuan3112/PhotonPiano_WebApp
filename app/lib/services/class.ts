@@ -26,3 +26,12 @@ export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id',
 
     return response;
 }
+
+export async function fetchClassDetail(id : string) {
+
+    let url = `/classes/${id}`;
+
+    const response = await axiosInstance.get(url);
+
+    return response;
+}
