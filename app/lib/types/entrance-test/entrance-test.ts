@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Account } from "../account/account";
 import { Room } from "../room/room";
-import { EntranceTestStudent } from "./entrance-test-student";
+import { EntranceTestStudent, EntranceTestStudentWithResults } from "./entrance-test-student";
 
 export type EntranceTest = {
     id: string,
@@ -28,6 +28,7 @@ export type UpdateEntranceTest = {
 } & Partial<Omit<EntranceTest, 'roomName' | 'instructorName' | 'status' | 'registerStudents' | 'isAnnoucedScore' | 'isOpen' | 'roomCapacity'>>;
 
 export const updateEntranceTestSchema = z.object({
+    target: z.string().nonempty(),
     name: z.string({ message: 'Tên đợt thi không được để trống.' }).nonempty({ message: 'Tên đợt thi không được để trống.' }),
     shift: z.string({ message: 'Ca thi không được để trống.' }).nonempty({ message: 'Ca thi không được để trống.' }),
     date: z.date(),
@@ -38,7 +39,7 @@ export const updateEntranceTestSchema = z.object({
 export type UpdateEntranceTestFormData = z.infer<typeof updateEntranceTestSchema>;
 
 export type EntranceTestDetails = {
-    entranceTestStudents: EntranceTestStudent[];
+    entranceTestStudents: EntranceTestStudentWithResults[];
     instructor: Account;
     room: Room;
 } & EntranceTest;

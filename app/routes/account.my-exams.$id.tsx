@@ -23,7 +23,7 @@ async function getSampleEntranceTests() {
 }
 const smapleEntranceTest: EntranceTestStudentDetail = {
   id : "abc",
-  studentId : "a",
+  studentFirebaseId : "a",
   entranceTestId : "b",
   student: {
     address: "Thong Nhat, Dong Nai",

@@ -1,25 +1,28 @@
-import React, { useState } from 'react'
-import { Criteria } from '~/lib/types/criteria/criteria';
-import { EntranceTestStudentWithScore } from '~/lib/types/entrance-test/entrance-test-student';
+import { useState } from 'react'
+import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useNavigate } from '@remix-run/react';
-import { Input } from '../ui/input';
 
 type Props = {
-    data: EntranceTestStudentWithScore[],
+    data: EntranceTestStudentWithResults[],
     className?: string
 }
 
 export default function ScoreTable({ data, className }: Props) {
-    const criteria = data[0]?.entranceTestResults.map(result => ({
+    
+    const criteria = data[0]?.entranceTestResults?.map(result => ({
         id: result.criteriaId,
         name: result.criteriaName,
     }));
-    const [editableStudent, setEditableStudent] = useState<EntranceTestStudentWithScore | null>(null)
+
+    const [editableStudent, setEditableStudent] = useState<EntranceTestStudentWithResults | null>(null)
     const navigate = useNavigate()
+
+    console.log({ data });
+    
     return (
         <div className={`overflow-x-auto ${className}`}>
             <Table className=" bg-white border border-gray-200 rounded-lg min-w-full">
@@ -28,7 +31,7 @@ export default function ScoreTable({ data, className }: Props) {
                         <TableHead className="px-4 py-2 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700 rounded-tl-lg">
                             Tên học viên
                         </TableHead>
-                        {criteria.map(criterion => (
+                        {criteria?.map(criterion => (
                             <TableHead
                                 key={criterion.id}
                                 className="px-4 py-2 border-b border-gray-200 bg-gray-100 text-sm font-semibold text-gray-700 text-center"
@@ -46,22 +49,22 @@ export default function ScoreTable({ data, className }: Props) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {data.map(student => (
-                        <TableRow key={student.student.email}>
+                    {data?.map(entranceTestStudent => (
+                        <TableRow key={entranceTestStudent.id}>
                             <TableCell className="px-4 py-2 border-b border-gray-200 text-sm text-gray-600">
-                                {student.student.username}
+                                {entranceTestStudent.fullName}
                             </TableCell>
-                            {criteria.map(criterion => {
-                                const result = student.entranceTestResults.find(
+                            {criteria?.map(criterion => {
+                                const result = entranceTestStudent.entranceTestResults.find(
                                     r => r.criteriaId === criterion.id
                                 );
                                 return (
                                     <TableCell
-                                        key={criterion.id + student.student.email}
+                                        key={criterion.id + entranceTestStudent.studentFirebaseId}
                                         className="px-4 py-2 border-b border-gray-200 text-sm text-gray-600"
                                     >
                                         {
-                                            editableStudent === student ? (
+                                            editableStudent === entranceTestStudent ? (
                                                 <div className='flex justify-center'>
                                                     <input className='flex text-center h-10 w-16 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm' defaultValue={result?.score} type='number'></input>
                                                 </div>
@@ -75,12 +78,12 @@ export default function ScoreTable({ data, className }: Props) {
                                 );
                             })}
                             <TableCell className='font-bold text-center'>
-                                {student.bandScore || '-'}
+                                {entranceTestStudent.bandScore || '-'}
                             </TableCell>
                             <TableCell>
                                 <div className='flex justify-center gap-2'>
                                     {
-                                        editableStudent !== student ? (
+                                        editableStudent !== entranceTestStudent ? (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -91,10 +94,10 @@ export default function ScoreTable({ data, className }: Props) {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/${student.studentId}`)}>
+                                                    <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/${entranceTestStudent.studentFirebaseId}`)}>
                                                         <User /> Xem thông tin
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="cursor-pointer" onClick={() => setEditableStudent(student)}>
+                                                    <DropdownMenuItem className="cursor-pointer" onClick={() => setEditableStudent(entranceTestStudent)}>
                                                         <Pencil /> Chỉnh sửa điểm số
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem className="text-red-600 cursor-pointer">

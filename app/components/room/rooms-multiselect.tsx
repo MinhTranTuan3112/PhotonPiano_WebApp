@@ -18,6 +18,7 @@ import { QueryPagedRequest } from "~/lib/types/query/query-paged-request";
 import { fetchRooms } from "~/lib/services/rooms";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Room } from "~/lib/types/room/room";
+import { useDebounce } from "~/hooks/use-debounce";
 
 /**
  * Variants for the multi-select component to handle different styles.
@@ -95,11 +96,14 @@ interface MultiSelectProps
      * Optional, can be used to add custom styles.
      */
     className?: string;
+    idToken: string;
 }
 
 async function fetchRoomsData(query: Partial<{
     keyword: string
-} & QueryPagedRequest>) {
+} & QueryPagedRequest> & {
+    idToken: string
+}) {
     const response = await fetchRooms(query);
 
     return await response.data;
@@ -111,6 +115,7 @@ export const RoomsMultiSelect = React.forwardRef<
 >(
     (
         {
+            idToken,
             onValueChange,
             variant,
             defaultValue = [],
@@ -125,13 +130,16 @@ export const RoomsMultiSelect = React.forwardRef<
         ref
     ) => {
 
-        const [search, setSearch] = React.useState('');
+        const [isPreloading, setIsPreloading] = React.useState(true);
+
+        const [searchTerm, setSearchTerm] = React.useState('');
+        const debouncedSearchTerm = useDebounce(searchTerm, isPreloading ? 0 : 300);
 
         const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
             useInfiniteQuery({
-                queryKey: ['rooms', search],
+                queryKey: ['rooms', debouncedSearchTerm],
                 queryFn: ({ pageParam = 1 }) =>
-                    fetchRoomsData({ keyword: search, page: pageParam, pageSize: 5 }),
+                    fetchRoomsData({ keyword: debouncedSearchTerm, page: pageParam, pageSize: 10, idToken }),
                 getNextPageParam: (lastPage) =>
                     lastPage.nextPage ? lastPage.nextPage : undefined,
                 enabled: true, // Automatically fetch when the component is mounted
@@ -209,6 +217,17 @@ export const RoomsMultiSelect = React.forwardRef<
             }
         };
 
+        React.useEffect(() => {
+
+            setIsPreloading(false);
+
+            return () => {
+
+            }
+            
+        }, []);
+
+
         return (
             <Popover
                 open={isPopoverOpen}
@@ -230,7 +249,7 @@ export const RoomsMultiSelect = React.forwardRef<
                                 <div className="flex flex-wrap items-center">
                                     {selectedValues.slice(0, maxCount).map((value) => {
                                         const option = items.find((o) => o.value === value);
-                                       
+
                                         return (
                                             <Badge
                                                 key={value}
@@ -301,10 +320,11 @@ export const RoomsMultiSelect = React.forwardRef<
                     align="start"
                     onEscapeKeyDown={() => setIsPopoverOpen(false)}
                 >
-                    <Command>
+                    <Command shouldFilter={false}>
                         <CommandInput
-                            placeholder="Search..."
+                            placeholder={`Nhập tên phòng...`}
                             onKeyDown={handleInputKeyDown}
+                            onValueChange={(value) => setSearchTerm(value)}
                         />
                         <CommandList onScroll={handleScroll}>
                             {isLoading && (

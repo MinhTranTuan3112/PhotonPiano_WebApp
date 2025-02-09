@@ -1,4 +1,4 @@
-import { Form, Link, useLocation, useSearchParams } from '@remix-run/react'
+import { Form, Link, useLoaderData, useLocation, useSearchParams } from '@remix-run/react'
 import { Input } from '../ui/input'
 import { FilterX, Search } from 'lucide-react'
 import { Button, buttonVariants } from '../ui/button'
@@ -10,6 +10,7 @@ import { MultiSelect } from '../ui/multi-select'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { RoomsMultiSelect } from '../room/rooms-multiselect'
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url'
+import { loader } from '~/routes/staff.entrance-tests._index'
 
 type Props = {}
 
@@ -24,6 +25,8 @@ export type EntranceTestsSearchFormData = z.infer<typeof entranceTestsSearchSche
 export const resolver = zodResolver(entranceTestsSearchSchema);
 
 export default function SearchForm({ }: Props) {
+
+    const { query } = useLoaderData<typeof loader>();
 
     const {
         handleSubmit,
@@ -72,6 +75,7 @@ export default function SearchForm({ }: Props) {
                     control={control}
                     render={({ field: { value = [], onChange } }) => (
                         <RoomsMultiSelect
+                            idToken={query.idToken}
                             value={value}
                             onValueChange={onChange}
                             placeholder='Chọn phòng'
