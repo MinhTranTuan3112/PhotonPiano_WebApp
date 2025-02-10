@@ -26,11 +26,11 @@ const getStatusStyle = (status: number) => {
 
 const getLevelStyle = (level?: number) => {
     switch (level) {
-        case 0: return "text-blue-500 font-semibold";
-        case 1: return "text-pink-500 font-semibold";
-        case 2: return "text-red-500 font-semibold";
-        case 3: return "text-black font-semibold";
-        case 4: return "text-gray-400 font-semibold";
+        case 0: return "text-[#92D808] font-semibold";
+        case 1: return "text-[#FBDE00] font-semibold";
+        case 2: return "text-[#FBA000] font-semibold";
+        case 3: return "text-[#fc4e03] font-semibold";
+        case 4: return "text-[#ff0000] font-semibold";
         default: return "text-black font-semibold";
     }
 };

@@ -36,7 +36,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const query = {
     page: Number.parseInt(searchParams.get('page') || '1'),
     pageSize: Number.parseInt(searchParams.get('size') || '10'),
-    sortColumn: searchParams.get('column') || 'Status',
+    sortColumn: searchParams.get('column') || 'Level',
     orderByDesc: searchParams.get('desc') === 'true' ? true : false,
     levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(Number),
     statuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
