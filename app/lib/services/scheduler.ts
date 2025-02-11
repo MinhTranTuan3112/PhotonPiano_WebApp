@@ -20,12 +20,12 @@ export async function fetchSlots({
     try {
         let url = `/scheduler/slots?`;
 
-        if (startTime) url += `startTime=${startTime}&`;
-        if (endTime) url += `endTime=${endTime}&`;
+        if (startTime) url += `start-time=${startTime}&`;
+        if (endTime) url += `end-time=${endTime}&`;
         if (shifts) url += `shifts=${shifts.join(',')}&`;
-        if (slotStatuses) url += `slotStatuses=${slotStatuses.join(',')}&`;
-        if (instructorFirebaseId) url += `instructorFirebaseId=${instructorFirebaseId}&`;
-        if (studentFirebaseId) url += `studentFirebaseId=${studentFirebaseId}&`;
+        if (slotStatuses) url += `slot-statuses=${slotStatuses.join(',')}&`;
+        if (instructorFirebaseId) url += `instructor-firebase-id=${instructorFirebaseId}&`;
+        if (studentFirebaseId) url += `student-firebase-id=${studentFirebaseId}&`;
 
         // Remove the trailing '&' or '?' if present
         url = url.slice(0, -1);
@@ -35,9 +35,6 @@ export async function fetchSlots({
                 Authorization: `Bearer ${idToken}`
         },
         });
-
-        console.log("url: ", url);
-        console.log("data: ", response.data);
 
         return response;
     } catch (error : any) {
@@ -51,13 +48,17 @@ export async function fetchSlots({
     }
 }
 
-export async function fetchSlotById(id: string) {
+export async function fetchSlotById(id: string, idToken: string) {
     try {
-        const response = await axiosInstance.get(`/scheduler/slot/${id}`);
+        const url = `/scheduler/slot/${id}`;
+        const response = await axiosInstance.get(url, {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            },
+        });
 
-        console.log("data: ", response.data);
 
-        return response.data;
+        return response;
     } catch (error : any) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
@@ -78,9 +79,36 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
             },
         });
 
-
-        return response.data;
+        return response;
     } catch (error: any) {
+        if (error.response) {
+            throw new Error(`API Error: ${error.response.data?.message || error.message}`);
+        } else {
+            throw new Error(`Unexpected Error: ${error.message}`);
+        }
+    }
+}
+
+
+export async function fetchUpdateAttendanceStatus(slotId: string, StudentAttentIds: string[], StudentAbsentIds: string[],  idToken: string) {
+
+    try {
+        const url = `/scheduler/update-attendance`;
+
+        console.log(slotId);
+
+        const response = await axiosInstance.post(url, {
+            slotId,
+            StudentAttentIds,
+            StudentAbsentIds
+        }, {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            },
+        });
+
+        return response;
+    }catch (error: any) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {

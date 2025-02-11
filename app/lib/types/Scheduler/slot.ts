@@ -32,14 +32,58 @@ export type Slot = {
     room: {
         id: string;
         name: string;
-        status: number; // Use the TypeScript built-in 'number' type
+        status: number;
     };
     class: {
         id: string;
         name: string;
         level: number;
     };
+    attendanceStatus?: AttendanceStatus;
 };
+
+export type SlotStudentModel = {
+    slotId : string;
+    studentFirebaseId: string;
+    attendanceStatus: number;
+    studentAccount: {
+        userName: string | null;
+        email: string
+        avatarUrl : string | null
+    }
+};
+
+export type StudentAttendanceModel =  {
+    studentFirebaseId: string;
+    attendanceStatus: AttendanceStatus;
+}
+
+export type SlotDetail = {
+    id: string;
+    classId: string | null;
+    roomId: string | null;
+    shift: Shift;
+    date: string;
+    status: SlotStatus;
+    room: {
+        id: string;
+        name: string;
+        status: number;
+        capacity: number;
+    };
+    class: {
+        id: string;
+        instructorId: string;
+        instructorName: string;
+        status: number;
+
+        name: string;
+        level: number;
+    };
+    slotStudents: SlotStudentModel[] | null;
+    numberOfStudents: number;
+    attendanceStatus?: AttendanceStatus;
+}
 
 
 export const sampleSlots: Slot[] = [

@@ -11,3 +11,5 @@ export const LEVEL = ["Người mới học","Nghiệp dư","Trung cấp","Cao c
 export const STUDENT_STATUS = ["Chưa đăng ký","Thi đầu vào","Chờ xếp lớp","Đang học","Bị thôi học","Đã rời"];
 
 export const CLASS_STATUS = ["Sắp bắt đầu","Đang diễn ra","Đã kết thúc","Vô hiệu hóa"];
+
+export const API_PUB_SUB_URL = import.meta.env.VITE_API_PUB_SUB_URL as string;
