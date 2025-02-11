@@ -9,6 +9,7 @@ import { Separator } from "./ui/separator"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { loader } from "~/root"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import AccountDropdown from "./auth/account-dropdown"
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -224,12 +225,13 @@ export default function NavBar() {
                     </button>
                 ) : (
                     <>
-                        <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
+                        {/* <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
                             isLoading={isSubmitting}
                             disabled={isSubmitting}>
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
-                        {confirmDialog}
+                        {confirmDialog} */}
+                        <AccountDropdown />
                     </>
                 )}
             </div>
