@@ -1,0 +1,161 @@
+import { LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
+import { isAxiosError } from "axios";
+import { RotateCcw } from "lucide-react";
+import { Suspense } from "react";
+import { columns } from "~/components/application/application-table";
+import SearchForm from "~/components/application/search-form";
+import { buttonVariants } from "~/components/ui/button";
+import GenericDataTable from "~/components/ui/generic-data-table";
+import { Skeleton } from "~/components/ui/skeleton";
+import { fetchApplications } from "~/lib/services/applications";
+import { Role } from "~/lib/types/account/account";
+import { Application, sampleApplications } from "~/lib/types/application/application"
+import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
+import { requireAuth } from "~/lib/utils/auth";
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
+import { getParsedParamsArray, trimQuotes } from "~/lib/utils/url";
+
+type Props = {}
+
+async function getSampleApplications() {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return sampleApplications;
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        const { searchParams } = new URL(request.url);
+
+        const query = {
+            page: Number.parseInt(searchParams.get('page') || '1'),
+            pageSize: Number.parseInt(searchParams.get('size') || '10'),
+            sortColumn: searchParams.get('column') || 'Id',
+            orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+            q: trimQuotes(searchParams.get('q') || ''),
+            types: getParsedParamsArray({ paramsValue: searchParams.get('types') }).map(Number),
+            statuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
+            idToken
+        };
+
+        const promise = fetchApplications({ ...query }).then((response) => {
+
+            const applicationsPromise: Promise<Application[]> = response.data;
+
+            const headers = response.headers;
+
+            const metadata: PaginationMetaData = {
+                page: parseInt(headers['x-page'] || '1'),
+                pageSize: parseInt(headers['x-page-size'] || '10'),
+                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                totalCount: parseInt(headers['x-total-count'] || '0'),
+            };
+
+            return {
+                applicationsPromise,
+                metadata,
+                query
+            };
+        });
+
+        return {
+            promise,
+            query
+        }
+
+    } catch (error) {
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        if (isAxiosError(error) && error.response?.status === 401) {
+            return {
+                success: false,
+                error: 'Email hoặc mật khẩu không đúng',
+            }
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+    }
+
+}
+
+export default function StaffApplicationsPage({ }: Props) {
+
+    const { promise, query } = useLoaderData<typeof loader>();
+
+    return (
+        <article className="px-8">
+
+            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <p className="text-muted-foreground">
+                Quản lý danh sách đơn từ, thủ tục của học viên
+            </p>
+
+            <SearchForm />
+
+            <Suspense fallback={<LoadingSkeleton />}>
+                <Await resolve={promise}>
+                    {(data) => (
+                        <Await resolve={data?.applicationsPromise}>
+                            {(applications) => (
+                                <GenericDataTable columns={columns} metadata={data?.metadata!}/>
+                            )}
+                        </Await>
+                    )}
+                </Await>
+            </Suspense>
+
+        </article>
+    );
+};
+
+function LoadingSkeleton() {
+    return <div className="flex justify-center items-center my-4">
+        <Skeleton className="w-full h-[500px] rounded-md" />
+    </div>
+}
+
+export function ErrorBoundary() {
+
+    const error = useRouteError();
+
+    const { pathname, search } = useLocation();
+
+    return (
+        <article className="px-8">
+            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <p className="text-muted-foreground">
+                Quản lý danh sách đơn từ, thủ tục của học viên
+            </p>
+
+            <SearchForm />
+
+            <div className="flex flex-col gap-5 justify-center items-center">
+                <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
+                    'Có lỗi đã xảy ra.'} </h1>
+                <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
+                      flex flex-row gap-1`}
+                    to={pathname ? `${pathname}${search}` : '/'}
+                    replace={true}
+                    reloadDocument={false}>
+                    <RotateCcw /> Thử lại
+                </Link>
+            </div>
+
+        </article>
+    );
+}
