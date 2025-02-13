@@ -33,3 +33,12 @@ export const expirationCookie = createCookie("idTokenExpiry", {
     sameSite: "lax",      // Prevents CSRF by only sending the cookie with same-site requests
     secrets: [cookieSecret],
 });
+
+
+export const localIdCookie = createCookie("localId", {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30, // 30 days (adjust as needed)
+    secrets: [cookieSecret],
+});
