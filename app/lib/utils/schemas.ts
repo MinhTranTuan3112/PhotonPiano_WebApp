@@ -1,3 +1,4 @@
+import { addDays } from 'date-fns';
 import { z } from 'zod';
 
 export const signInSchema = z.object({
@@ -40,7 +41,8 @@ export const surveySchema = z.object({
     targets: z.array(z.string({ message: 'Vui lòng chọn mục tiêu của bạn.' })).min(1, { message: 'Vui lòng chọn ít nhất một mục tiêu của bạn.' }), // Ensure at least one target is selected
     favoriteGenres: z.array(z.string().nonempty({ message: 'Vui lòng chọn thể loại nhạc yêu thích của bạn.' })) // Validate each string in array
         .min(1, { message: 'Vui lòng chọn ít nhất một thể loại nhạc yêu thích của bạn.' }), // Ensure at least one genre is selected
-    learningMethods: z.array(z.string({ message: 'Vui lòng chọn phương pháp học của bạn.' })).min(1, { message: 'Vui lòng chọn ít nhất một phương pháp học của bạn.' }), 
+    learningMethods: z.array(z.string({ message: 'Vui lòng chọn phương pháp học của bạn.' })).min(1, { message: 'Vui lòng chọn ít nhất một phương pháp học của bạn.' }),
+    fullName: z.string({ message: 'Vui lòng nhập họ và tên của bạn.' }).min(1, { message: 'Vui lòng nhập họ và tên của bạn.' }),
     email: z.string({ message: 'Email không được để trống' }).email({ message: 'Email không hợp lệ' }),
     password: z.string({ message: 'Mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
     confirmPassword: z.string({ message: 'Xác nhận mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
@@ -55,3 +57,21 @@ export const surveySchema = z.object({
 export type SurveyFormData = z.infer<typeof surveySchema>;
 
 export type CreateEntranceTestFormData = z.infer<typeof createEntranceTestSchema>;
+
+export const entranceTestArrangementSchema = z.object({
+    date: z.object({
+        from: z.date({ message: 'Ngày thi không được để trống.' }),
+        to: z.date({ message: 'Ngày thi không được để trống.' }),
+    }, {
+        message: 'Vui lòng chọn đợt thi.',
+    }).refine(
+        (data) => data.from > addDays(new Date(), -1),
+        "Ngày thi phải sau hôm nay"
+    ),
+    shiftOptions: z.array(z.string()).optional(),
+    studentIds: z.array(z.string()).min(1, { message: 'Vui lòng chọn ít nhất một học viên.' }),
+})
+
+
+
+export type EntranceTestArrangementFormData = z.infer<typeof entranceTestArrangementSchema>;

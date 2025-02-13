@@ -29,12 +29,10 @@ function isExpired(expirationTimeInSeconds: number) {
 export async function requireAuth(request: Request) {
   const cookies = request.headers.get("Cookie") || "";
 
-  const idToken = (await idTokenCookie.parse(cookies)) as string;
-  const refreshToken = (await refreshTokenCookie.parse(cookies)) as string;
-  const idTokenExpiry = parseInt(
-    (await expirationCookie.parse(cookies)) || "0"
-  );
-  const role = (await roleCookie.parse(cookies)) as number;
+    const idToken = await idTokenCookie.parse(cookies) as string;
+    const refreshToken = await refreshTokenCookie.parse(cookies) as string;
+    const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
+    const role = await roleCookie.parse(cookies) as number;
 
   // Redirect if no refresh token is present (not logged in)
   if (!refreshToken) {
@@ -65,12 +63,10 @@ export async function requireAuth(request: Request) {
 export async function getAuth(request: Request) {
   const cookies = request.headers.get("Cookie") || "";
 
-  const idToken = (await idTokenCookie.parse(cookies)) as string;
-  const refreshToken = (await refreshTokenCookie.parse(cookies)) as string;
-  const idTokenExpiry = parseInt(
-    (await expirationCookie.parse(cookies)) || "0"
-  );
-  const role = (await roleCookie.parse(cookies)) as number;
+    const idToken = await idTokenCookie.parse(cookies) as string;
+    const refreshToken = await refreshTokenCookie.parse(cookies) as string;
+    const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
+    const role = await roleCookie.parse(cookies) as number;
 
   return { idToken, refreshToken, idTokenExpiry, role };
 }
@@ -78,22 +74,15 @@ export async function getAuth(request: Request) {
 export async function refreshIdToken(refreshToken: string) {
   const response = await fetchRefreshToken(refreshToken);
 
-  try {
-    const {
-      idToken,
-      refreshToken: newRefreshToken,
-      expiresIn,
-      role,
-    }: AuthResponse = await response.data;
+    try {
 
-    const headers = new Headers();
-    headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
-    headers.append(
-      "Set-Cookie",
-      await refreshTokenCookie.serialize(newRefreshToken)
-    );
-    headers.append("Set-Cookie", await expirationCookie.serialize(expiresIn));
-    headers.append("Set-Cookie", await roleCookie.serialize(role));
+        const { idToken, refreshToken: newRefreshToken, expiresIn, role }: AuthResponse = await response.data;
+
+        const headers = new Headers();
+        headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
+        headers.append("Set-Cookie", await refreshTokenCookie.serialize(newRefreshToken));
+        headers.append("Set-Cookie", await expirationCookie.serialize(expiresIn));
+        headers.append("Set-Cookie", await roleCookie.serialize(role));
 
     return {
       idToken, // Return new idToken

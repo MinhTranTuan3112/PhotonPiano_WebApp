@@ -20,10 +20,12 @@ export const ENTRANCE_TEST_STATUSES = [
   "Vô hiệu hóa",
 ];
 
-export const LEVEL = [
-  "Người mới học",
-  "Nghiệp dư",
-  "Trung cấp",
-  "Cao cấp",
-  "Bậc thầy",
-];
+export const LEVEL = ["Người mới học","Nghiệp dư","Trung cấp","Cao cấp","Bậc thầy"];
+
+export const STUDENT_STATUS = ["Chưa đăng ký","Thi đầu vào","Chờ xếp lớp","Đang học","Bị thôi học","Đã rời"];
+
+export const CLASS_STATUS = ["Sắp bắt đầu","Đang diễn ra","Đã kết thúc","Vô hiệu hóa"];
+
+export const APPLICATION_TYPE = ["Đơn tạm nghỉ","Đơn tạm hoãn kì","Đơn xin phúc tra điểm đầu vào","Đơn xin phúc tra điểm thi","Đơn xin chuyển lớp","Đơn khiếu nại giáo viên","Đơn khiếu nại csvc","Các loại đơn khác","Báo cáo sai sót chứng chỉ"];
+
+export const APPLICATION_STATUS = ["Chờ duyệt","Đã duyệt","Đã từ chối","Đã hủy"];

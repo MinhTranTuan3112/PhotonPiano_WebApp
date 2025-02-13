@@ -273,14 +273,14 @@ export default function SurveyPage({ }: Props) {
                         className='rounded-full'>
                         <ArrowLeft />
                     </Button>
-                    {getValues().targets.length > 0 && (
-                        <div className="flex justify-end">
-                            <Button variant={'outline'} type='button' onClick={() => setCurrentStepCount(prev =>
-                                prev < steps.length - 1 ? prev + 1 : prev
-                            )}
-                                size={'icon'} className='rounded-full'><ArrowRight /></Button>
-                        </div>
-                    )}
+
+                    <div className="flex justify-end">
+                        <Button variant={'outline'} type='button' onClick={() => setCurrentStepCount(prev =>
+                            prev < steps.length - 1 ? prev + 1 : prev
+                        )}
+                            size={'icon'} className='rounded-full'><ArrowRight /></Button>
+                    </div>
+
                 </div>
             </>
         }, {
@@ -363,6 +363,15 @@ export default function SurveyPage({ }: Props) {
                         Đây là những thông tin cá nhân quan trọng của bạn
                         mà <strong>Photon Piano</strong> sử dụng để liên lạc với bạn.
                     </p>
+                    <div className='flex gap-4 items-center'>
+                        <Label htmlFor="fullName" className="w-32">
+                            Họ và tên
+                        </Label>
+                        <div className="w-full">
+                            <Input id="fullName" {...register('fullName')} placeholder='Nhập họ và tên của bạn...' />
+                            {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName.message}</p>}
+                        </div>
+                    </div>
                     <div className='flex gap-4 items-center'>
                         <Label htmlFor="email" className="w-32">
                             Email

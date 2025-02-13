@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap");
+
+.scheduler-page {
+    font-family: "Roboto", sans-serif;
+}
+
+.scheduler-page h1,
+.scheduler-page h2 {
+    font-family: "Playfair Display", serif;
+}
+
+.schedule-table {
+    background-image: linear-gradient(to right, #f0f0f0 50%, #ffffff 50%);
+    background-size: 14px 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.time-slot {
+    position: relative;
+}
+
+.time-slot::before {
+    content: "🎹";
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+}
+
+.slot {
+    border-left: 4px solid #4f46e5;
+    transition: all 0.3s ease;
+}
+
+.slot:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.controls select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234F46E5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.slot-cell > div {
+    animation: fadeIn 0.5s ease-in-out;
+}
+

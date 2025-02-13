@@ -9,6 +9,7 @@ import { Separator } from "./ui/separator"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { loader } from "~/root"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import AccountDropdown from "./auth/account-dropdown"
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -218,18 +219,19 @@ export default function NavBar() {
             </div>
             <div className="hidden md:block">
                 {(!authData || !authData.role) ? (
-                    <button onClick={() => navigate('/sign-in')} className="relative overflow-hidden px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                    <button onClick={() => navigate('/sign-in')} className="relative w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
                         Đăng nhập
                         <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
                     </button>
                 ) : (
                     <>
-                        <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
+                        {/* <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
                             isLoading={isSubmitting}
                             disabled={isSubmitting}>
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
-                        {confirmDialog}
+                        {confirmDialog} */}
+                        <AccountDropdown />
                     </>
                 )}
             </div>

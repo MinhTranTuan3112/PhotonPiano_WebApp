@@ -50,6 +50,33 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+        case pathname === '/staff/students':
+            otherNavItems = [
+                {
+                    name: "Danh sách học viên",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname === '/staff/classes':
+            otherNavItems = [
+                {
+                    name: "Danh sách lớp",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname === '/staff/applications':
+            otherNavItems = [
+                {
+                    name: "Danh sách đơn từ",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
         case pathname.startsWith('/staff/entrance-tests'):
             const param = pathname.replace('/staff/entrance-tests', "")
             otherNavItems = [
