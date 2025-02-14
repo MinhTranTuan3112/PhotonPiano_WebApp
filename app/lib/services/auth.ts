@@ -50,7 +50,7 @@ export async function fetchSendForgotPasswordEmail(email: string) {
 
 export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) {
 
-    const response = await axiosInstance.get('/auth/account-info', {
+    const response = await axiosInstance.get('/auth/current-info', {
         headers: {
             Authorization: `Bearer ${idToken}`
         }
