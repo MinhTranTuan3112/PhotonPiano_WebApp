@@ -364,6 +364,15 @@ export default function SurveyPage({ }: Props) {
                         mà <strong>Photon Piano</strong> sử dụng để liên lạc với bạn.
                     </p>
                     <div className='flex gap-4 items-center'>
+                        <Label htmlFor="fullName" className="w-32">
+                            Họ và tên
+                        </Label>
+                        <div className="w-full">
+                            <Input id="fullName" {...register('fullName')} placeholder='Nhập họ và tên của bạn...' />
+                            {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName.message}</p>}
+                        </div>
+                    </div>
+                    <div className='flex gap-4 items-center'>
                         <Label htmlFor="email" className="w-32">
                             Email
                         </Label>

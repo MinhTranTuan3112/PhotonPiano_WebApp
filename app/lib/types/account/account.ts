@@ -1,6 +1,8 @@
 
 export type Account = {
-    username: string;
+    accountFirebaseId: string;
+    userName: string;
+    fullName: string;
     email: string;
     phone: string;
     address: string;
@@ -12,11 +14,12 @@ export type Account = {
     desiredTargets: string[];
     favoriteMusicGenres: string[];
     preferredLearningMethods: string[];
+    studentStatus?: StudentStatus;
 };
 
 export type SignUpRequest = {
 
-} & Omit<Account, 'level' | 'status' | 'avatarUrl' | 'address' | 'username'>;
+} & Omit<Account, 'level' | 'status' | 'avatarUrl' | 'address' | 'username' | 'accountFirebaseId'>;
 
 export enum Level {
     Beginner,
@@ -45,7 +48,9 @@ export enum StudentStatus {
 
 export const sampleStudents: Account[] = [
     {
-        username: "Thanh Hưng",
+        accountFirebaseId: "1",
+        userName: "Thanh Hưng",
+        fullName: "Thanh Hưng",
         email: "thanhhung16082003@gmail.com",
         address: "Đồng Nai",
         phone: "0987654321",
@@ -56,7 +61,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Hiểu Phàm",
+        accountFirebaseId: "2",
+        userName: "Hiểu Phàm",
+        fullName: "Hiểu Phàm",
         email: "hieuga47@yahoo.com",
         address: "Đồng Nai",
         phone: "0987654321",
@@ -67,7 +74,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Nguyễn Ân",
+        accountFirebaseId: "3",
+        userName: "Nguyễn Ân",
+        fullName: "Nguyễn Ân",
         email: "nguynan001@gmail.com",
         address: "Đồng Nai",
         phone: "0987654321",
@@ -77,7 +86,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Uyên Dương",
+        accountFirebaseId: "4",
+        userName: "Uyên Dương",
+        fullName: "Uyên Dương",
         email: "ud@gmail.com",
         address: "Quảng Nam",
         phone: "0987654321",
@@ -87,7 +98,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Hoàng Thái",
+        accountFirebaseId: "5",
+        userName: "Hoàng Thái",
+        fullName: "Hoàng Thái",
         email: "hthai0703@gmail.com",
         address: "Đồng Nai",
         phone: "0987654321",
@@ -97,7 +110,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Ngân Trần",
+        accountFirebaseId: "6",
+        userName: "Ngân Trần",
+        fullName: "Ngân Trần",
         email: "ngantran@gmail.com",
         address: "Đồng Nai",
         phone: "0987654321",
@@ -108,7 +123,9 @@ export const sampleStudents: Account[] = [
         preferredLearningMethods: []
     },
     {
-        username: "Vũ Miên Ly",
+        accountFirebaseId: "7",
+        userName: "Vũ Miên Ly",
+        fullName: "Vũ Miên Ly",
         email: "thanhngan@gmail.com",
         address: "Đồng Nai",
         phone: "0987654321",

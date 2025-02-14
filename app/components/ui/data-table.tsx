@@ -25,6 +25,7 @@ import React, { useEffect, useState } from "react"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "./dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 import { ChevronLeft, ChevronRight, Settings2, Trash2 } from 'lucide-react'
+import { useSearchParams } from "@remix-run/react"
 
 type DataTableProps<TData, TValue> = {
     columns: ColumnDef<TData, TValue>[]
@@ -37,6 +38,9 @@ type DataTableProps<TData, TValue> = {
     pageSizeOptions?: number[];
     manualPagination?: boolean;
     onPaginationChange?: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
+    totalPages?: number;
+    totalCount?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -49,15 +53,19 @@ export function DataTable<TData, TValue>({
     defaultPageSize = 5,
     pageSizeOptions = [5, 10, 20, 30, 40, 50],
     manualPagination = false,
-    onPaginationChange
-
+    onPaginationChange,
+    onPageSizeChange,
+    totalPages = 1,
+    totalCount = 0
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = useState({})
-    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: defaultPageSize });
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get("page")) || 1;
+    const pageSize = Number(searchParams.get("size")) || defaultPageSize;
 
     const table = useReactTable({
         data,
@@ -74,23 +82,28 @@ export function DataTable<TData, TValue>({
         initialState: {
             pagination: {
                 pageSize: defaultPageSize,
+                pageIndex: page - 1
             },
         },
         state: {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection
+            rowSelection,
+            pagination: {
+                pageIndex: page - 1,
+                pageSize,
+            }
         },
+        enableRowSelection: true,
     });
 
     const handlePageChange = (newPageIndex: number) => {
-        setPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
+        // setPagination((prev) => ({ ...prev, pageIndex: newPageIndex }));
         if (onPaginationChange) {
             onPaginationChange(newPageIndex + 1);
         }
     };
-
 
     useEffect(() => {
         if (onRowSelectionChange) {
@@ -102,14 +115,6 @@ export function DataTable<TData, TValue>({
         <>
             <div className="flex flex-col items-end gap-5 py-4">
                 {extraHeaderContent}
-                {/* <Input
-                    placeholder="Nhập email..."
-                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("email")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                /> */}
                 {enableColumnDisplayOptions && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -193,14 +198,20 @@ export function DataTable<TData, TValue>({
                 <div className="flex-1 text-sm text-muted-foreground my-3">
                     {table.getFilteredSelectedRowModel().rows.length} trên{" "}
                     {table.getState().pagination.pageSize} dòng đã chọn.
+                    <br />
+                    <strong>&#40;Tổng cộng: {totalCount}&#41;</strong>
                 </div>
 
                 <div className="flex items-center space-x-2">
                     <p className="text-sm font-medium">Số dòng tối đa</p>
                     <Select
                         value={`${table.getState().pagination.pageSize}`}
-                        onValueChange={(value) => {
-                            table.setPageSize(Number(value))
+                        onValueChange={(newPageSize) => {
+                            if (manualPagination === false) {
+                                table.setPageSize(Number(newPageSize))
+                            } else {
+                                onPageSizeChange?.(Number(newPageSize));
+                            }
                         }}
                     >
                         <SelectTrigger className="h-8 w-[70px]">
@@ -222,7 +233,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex - 1) : () => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
+                        disabled={manualPagination ? page <= 1 : table.getCanPreviousPage()}
                     >
                         <ChevronLeft />
                     </Button>
@@ -231,7 +242,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex + 1) : () => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
+                        disabled={manualPagination ? page === totalPages : table.getCanNextPage()}
                     >
                         <ChevronRight />
                     </Button>

@@ -68,6 +68,15 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+        case pathname === '/staff/applications':
+            otherNavItems = [
+                {
+                    name: "Danh sách đơn từ",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
         case pathname.startsWith('/staff/entrance-tests'):
             const param = pathname.replace('/staff/entrance-tests', "")
             otherNavItems = [

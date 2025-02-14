@@ -190,10 +190,12 @@ export default function StaffStudentsPage({ }: Props) {
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise} >
-          {({ accountsPromise }) => (
+          {({ accountsPromise, metadata }) => (
             <Await resolve={accountsPromise}>
-              <GenericDataTable columns={studentColumns}
+              <GenericDataTable
+                columns={studentColumns}
                 emptyText='Không có học viên nào.'
+                metadata={metadata}
               />
             </Await>
           )}
