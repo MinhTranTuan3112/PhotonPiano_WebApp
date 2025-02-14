@@ -76,7 +76,6 @@ export type SlotDetail = {
         instructorId: string;
         instructorName: string;
         status: number;
-
         name: string;
         level: number;
     };
