@@ -5,16 +5,11 @@ import type { LoaderFunctionArgs } from "@remix-run/node"
 import { fetchSlotById, fetchUpdateAttendanceStatus} from "~/lib/services/scheduler"
 import { requireAuth } from "~/lib/utils/auth"
 import type { SlotDetail, SlotStudentModel } from "~/lib/types/Scheduler/slot"
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Users, UserX, Check, X, Circle, AlertTriangle } from "lucide-react"
 import { Button } from "app/components/ui/button"
-import {
-    Dialog, DialogFooter, DialogHeader,
 
-} from "app/components/ui/dialog"
-
-import {DialogContent, DialogDescription, DialogTitle} from "@radix-ui/react-dialog";
 import Modal from "~/components/scheduler/modal-props";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {

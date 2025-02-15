@@ -14,9 +14,10 @@ import { action } from "~/routes/sign-out";
 import { LogOut } from "lucide-react";
 import NotificationBell from "../notification/notification-bell";
 
+
 type Props = {}
 
-export default function AccountDropdown({ }: Props) {
+export default function AccountDropdown({  accountFirebaseId }: { accountFirebaseId: string }) {
 
     const fetcher = useFetcher<typeof action>();
 
@@ -61,7 +62,7 @@ export default function AccountDropdown({ }: Props) {
                         </DropdownMenuGroup>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <NotificationBell />
+                <NotificationBell accountFirebaseId={accountFirebaseId} />
             </div>
             {confirmDialog}
         </>

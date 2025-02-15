@@ -15,7 +15,7 @@ import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
 import { requireAuth } from "./lib/utils/auth";
-import { fetchGoogleOAuthCallback } from "./lib/services/auth";
+import {fetchCurrentAccountInfo, fetchGoogleOAuthCallback} from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
 import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
@@ -51,8 +51,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     if (!code) {
       const authData = await requireAuth(request);
+
+      const idToken = authData.idToken;
+      const currentAccount = await fetchCurrentAccountInfo({idToken});
+
       return {
-        role: authData.role
+        role: authData.role,
+        currentAccountFirebaseId: currentAccount.data.accountFirebaseId
       };
     }
 

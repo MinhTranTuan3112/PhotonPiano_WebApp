@@ -5,10 +5,32 @@ import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from 
 import { fetchRefreshToken } from "../services/auth";
 import { AuthResponse } from "../types/auth-response";
 
+interface AuthData {
+    idToken?: string
+    refreshToken?: string
+    idTokenExpiry?: number
+    role?: number
+}
+
 // Calculate expiration timestamp in milliseconds
 function calculateExpiry(expiresIn: number): number {
     return Date.now() + expiresIn * 1000; // converts seconds to milliseconds
 }
+
+async function parseAuthData(input: Request | AuthData): Promise<AuthData> {
+    if (input instanceof Request) {
+        const cookies = input.headers.get("Cookie") || ""
+        return {
+            idToken: (await idTokenCookie.parse(cookies)) as string,
+            refreshToken: (await refreshTokenCookie.parse(cookies)) as string,
+            idTokenExpiry: Number.parseInt((await expirationCookie.parse(cookies)) || "0"),
+            role: (await roleCookie.parse(cookies)) as number,
+        }
+    } else {
+        return input
+    }
+}
+
 
 function isExpired(expirationTimeInSeconds: number) {
 

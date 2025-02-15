@@ -231,7 +231,7 @@ export default function NavBar() {
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
                         {confirmDialog} */}
-                        <AccountDropdown />
+                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} />
                     </>
                 )}
             </div>
