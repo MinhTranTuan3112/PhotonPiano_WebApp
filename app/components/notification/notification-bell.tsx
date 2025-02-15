@@ -1,9 +1,11 @@
 
 import { Bell } from "lucide-react";
-import { useCallback, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import {INotificationMessage, NotificationService} from "~/lib/services/notification";
+
 
 const initialNotifications = [
     {
@@ -56,6 +58,7 @@ const initialNotifications = [
     },
 ];
 
+
 function Dot({ className }: { className?: string }) {
     return (
         <svg
@@ -72,10 +75,32 @@ function Dot({ className }: { className?: string }) {
     );
 }
 
-export default function NotificationBell() {
-
+export default function NotificationBell({ accountFirebaseId }: { accountFirebaseId: string }) {
     const [notifications, setNotifications] = useState(initialNotifications);
     const unreadCount = notifications.filter((n) => n.unread).length;
+
+    useEffect(() => {
+        if (!accountFirebaseId) {
+            console.error("accountFirebaseId is undefined");
+            return;
+        }
+
+        console.log("accountFirebaseId", accountFirebaseId);
+
+        const notificationService = new NotificationService(accountFirebaseId);
+        console.log("notificationService" ,notificationService);
+        const subscription = notificationService.receiveMessage().subscribe((notification: INotificationMessage) => {
+            console.log("received notification", notification);
+            setNotifications((prevNotifications) => [
+                { id: Date.now(), user: "System", action: "sent you a notification", target: notification.message, timestamp: "just now", unread: true },
+                ...prevNotifications,
+            ]);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [accountFirebaseId]);
 
     const handleMarkAllAsRead = useCallback(() => {
         setNotifications(
@@ -84,7 +109,7 @@ export default function NotificationBell() {
                 unread: false,
             })),
         );
-    }, []);
+    }, [notifications]);
 
     const handleNotificationClick = useCallback((id: number) => {
         setNotifications(
@@ -92,7 +117,8 @@ export default function NotificationBell() {
                 notification.id === id ? { ...notification, unread: false } : notification,
             ),
         );
-    }, []);
+    }, [notifications]);
+
 
     return (
         <Popover>
