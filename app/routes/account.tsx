@@ -43,15 +43,15 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
                 }
             ]
             break;
-            case pathname === '/account/transactions':
-                otherNavItems = [
-                    {
-                        name: "Lịch sử giao dịch",
-                        url: pathname,
-                        isCurrentPage: true
-                    }
-                ]
-                break;
+        case pathname === '/account/transactions':
+            otherNavItems = [
+                {
+                    name: "Lịch sử giao dịch",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
         case pathname.startsWith('/account/my-exams'):
             const param = pathname.replace('/account/my-exams', "")
             otherNavItems = [

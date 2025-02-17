@@ -1,9 +1,7 @@
-
-
 import * as React from "react"
 import {
-    BookOpen,
     CircleUserRound,
+    FileClock,
     History,
     Music
 } from "lucide-react"
@@ -48,6 +46,12 @@ const data = {
                     url: "/account/my-exams",
                 }
             ],
+        },
+        {
+            title: "Lịch sử đơn từ",
+            url: "/account/applications",
+            icon: FileClock,
+            isActive: true,
         },
         // {
         //     title: "Luyện thi bằng lái",

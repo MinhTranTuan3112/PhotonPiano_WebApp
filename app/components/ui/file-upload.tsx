@@ -3,7 +3,8 @@ import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useDropzone } from "react-dropzone-esm";
 import { cn } from "~/lib/utils";
-import { Upload } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
+import { Button } from "./button";
 
 const mainVariant = {
     initial: {
@@ -31,7 +32,7 @@ export const FileUpload = ({
 }: {
     onChange?: (files: File[]) => void;
 }) => {
-    
+
     const [files, setFiles] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,6 +40,10 @@ export const FileUpload = ({
         setFiles((prevFiles) => [...prevFiles, ...newFiles]);
         onChange && onChange(newFiles);
     };
+
+    const handleRemoveFile = (file: File) => {
+        setFiles((prevFiles) => prevFiles.filter((f) => f !== file));
+    }
 
     const handleClick = () => {
         fileInputRef.current?.click();
@@ -75,7 +80,7 @@ export const FileUpload = ({
                         Upload file
                     </p>
                     <p className="relative z-20 font-sans font-normal text-neutral-400 dark:text-neutral-400 text-base mt-2">
-                        Drag or drop your files here or click to upload
+                        Kéo hoặc thả file ở đây để upload
                     </p>
                     <div className="relative w-full mt-10 max-w-xl mx-auto">
                         {files.length > 0 &&
@@ -125,7 +130,13 @@ export const FileUpload = ({
                                             modified{" "}
                                             {new Date(file.lastModified).toLocaleDateString()}
                                         </motion.p>
+                                        <div className="">
+                                            <Button type="button" size={'icon'} variant={'outline'} onClick={() => handleRemoveFile(file)}>
+                                                <X />
+                                            </Button>
+                                        </div>
                                     </div>
+
                                 </motion.div>
                             ))}
                         {!files.length && (

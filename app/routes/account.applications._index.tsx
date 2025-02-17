@@ -2,18 +2,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
 import { isAxiosError } from "axios";
-import { RotateCcw } from "lucide-react";
-import { Suspense } from "react";
+import { RotateCcw, Send } from "lucide-react";
+import { Suspense, useState } from "react";
 import { getValidatedFormData } from "remix-hook-form";
-import { z } from "zod";
 import { columns } from "~/components/application/application-table";
 import SearchForm from "~/components/application/search-form";
-import { buttonVariants } from "~/components/ui/button";
+import SendApplicationDialog from "~/components/application/send-application-dialog";
+import { Button, buttonVariants } from "~/components/ui/button";
 import GenericDataTable from "~/components/ui/generic-data-table";
 import { Skeleton } from "~/components/ui/skeleton";
-import { fetchApplications, fetchUpdateApplicationStatus } from "~/lib/services/applications";
+import { fetchApplications, fetchSendApplication } from "~/lib/services/applications";
 import { Role } from "~/lib/types/account/account";
-import { Application, sampleApplications } from "~/lib/types/application/application"
+import { Application, sampleApplications, SendApplicationFormData, sendApplicationSchema } from "~/lib/types/application/application"
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
@@ -32,7 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Staff) {
+        if (role !== Role.Student) {
             return redirect('/');
         }
 
@@ -83,6 +83,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
             throw error;
         }
 
+        if (isAxiosError(error) && error.response?.status === 401) {
+            return {
+                success: false,
+                error: 'Email hoặc mật khẩu không đúng',
+            }
+        }
+
         const { message, status } = getErrorDetailsInfo(error);
 
         throw new Response(message, { status });
@@ -90,38 +97,46 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 }
 
-const schema = z.object({
-    id: z.string().nonempty({ message: 'Id không được để trống' }),
-    status: z.number()
-});
-
-type ServerFormData = z.infer<typeof schema>;
-
 export async function action({ request }: ActionFunctionArgs) {
 
     try {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Staff) {
+        if (role !== Role.Student) {
             return redirect('/');
         }
 
-        const { errors, data, receivedValues: defaultValues } =
-            await getValidatedFormData<ServerFormData>(request, zodResolver(schema));
+        // const { errors, data, receivedValues: defaultValues } =
+        //     await getValidatedFormData<SendApplicationFormData>(request, zodResolver(sendApplicationSchema));
 
-        if (errors) {
-            return { success: false, errors, defaultValues };
-        }
+        // if (errors) {
+        //     return { success: false, errors, defaultValues };
+        // }
 
-        const response = await fetchUpdateApplicationStatus({ idToken, id: data.id, status: data.status });
+        // const formData = new FormData();
+
+        // formData.append('type', data.type.toString());
+        // formData.append('reason', data.reason);
+
+        // if (data.file) {
+        //     formData.append('file', data.file);
+        // }
+
+        const formData = await request.formData();
+
+        // const id = formData.get('id') as string;
+        // const status = formData.get('status') as string;
+
+        console.log({ formData });
+
+        const response = await fetchSendApplication({ idToken, formData });
 
         return {
-            success: response.status === 204
+            success: response.status === 201
         }
 
     } catch (error) {
-
         console.error({ error });
 
         if (isRedirectError(error)) {
@@ -136,10 +151,22 @@ export async function action({ request }: ActionFunctionArgs) {
             status
         }
     }
-
 }
 
-export default function StaffApplicationsPage({ }: Props) {
+function TableHeaderContent() {
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    return <>
+        <Button type="button" variant={'default'}
+            Icon={Send} iconPlacement="left" onClick={() => setIsOpen(!isOpen)}>
+            Gửi đơn mới
+        </Button>
+        <SendApplicationDialog isOpen={isOpen} onOpenChange={setIsOpen} />
+    </>
+}
+
+export default function AccountApplicationsPage({ }: Props) {
 
     const { promise, query, role } = useLoaderData<typeof loader>();
 
@@ -148,7 +175,7 @@ export default function StaffApplicationsPage({ }: Props) {
 
             <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
             <p className="text-muted-foreground">
-                Quản lý danh sách đơn từ, thủ tục của học viên
+                Quản lý lịch sử đơn từ, thủ tục đã gửi
             </p>
 
             <SearchForm />
@@ -159,7 +186,9 @@ export default function StaffApplicationsPage({ }: Props) {
                         <Await resolve={data?.applicationsPromise}>
                             <GenericDataTable
                                 columns={role === Role.Staff ? columns : columns.filter((col) => col.id !== 'actions')}
-                                metadata={data?.metadata!} />
+                                metadata={data?.metadata!}
+                                extraHeaderContent={<TableHeaderContent />}
+                            />
                         </Await>
                     )}
                 </Await>
@@ -185,7 +214,7 @@ export function ErrorBoundary() {
         <article className="px-8">
             <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
             <p className="text-muted-foreground">
-                Quản lý danh sách đơn từ, thủ tục của học viên
+                Quản lý lịch sử đơn từ, thủ tục đã gửi
             </p>
 
             <SearchForm />

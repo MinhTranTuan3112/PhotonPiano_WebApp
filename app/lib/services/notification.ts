@@ -1,6 +1,8 @@
 import { HttpTransportType, HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { API_NOTIFICATION_URL } from '../utils/constants';
+import { QueryPagedRequest } from '../types/query/query-paged-request';
+import axiosInstance from '../utils/axios-instance';
 
 export interface INotificationMessage {
     title: string;
@@ -45,4 +47,47 @@ export class NotificationService {
     receiveMessage() {
         return this.messageSubject.asObservable();
     }
+}
+
+export async function fetchNotifications({
+    page = 1,
+    pageSize = 10,
+    sortColumn = 'Id',
+    orderByDesc = true,
+    isViewed,
+    idToken
+}: Partial<QueryPagedRequest & {
+    isViewed: boolean
+}> & {
+    idToken: string
+}) {
+    let url = `/notifications?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+
+    if (isViewed) {
+        url += `&view=${isViewed}`;
+    }
+    
+    const response = await axiosInstance.get(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function toggleNotificationStatus({
+    id, idToken
+}: {
+    id: string,
+    idToken: string
+}) {
+
+    const response = await axiosInstance.put(`/notifications/${id}/view-status`, null, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
 }

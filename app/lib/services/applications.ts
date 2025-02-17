@@ -1,4 +1,4 @@
-import { ApplicationStatus, ApplicationType } from "../types/application/application";
+import { ApplicationStatus, ApplicationType, SendApplicationRequest } from "../types/application/application";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 
@@ -18,8 +18,7 @@ export async function fetchApplications({
 
     let url = `/applications?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
-    if (q)
-    {
+    if (q) {
         url += `&q=${q}`
     }
 
@@ -36,6 +35,40 @@ export async function fetchApplications({
     }
 
     const response = await axiosInstance.get(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchSendApplication({
+    idToken, formData
+}: {
+    idToken: string,
+    formData: FormData;
+}) {
+
+    const response = await axiosInstance.post('/applications', formData, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": 'multipart/form-data'
+        }
+    });
+
+    return response;
+}
+
+export async function fetchUpdateApplicationStatus({
+    id, status, idToken
+}: {
+    id: string,
+    status: ApplicationStatus,
+    idToken: string
+}) {
+
+    const response = await axiosInstance.put(`/applications/${id}/status`, { status }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }
