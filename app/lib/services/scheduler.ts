@@ -1,63 +1,80 @@
 import axiosInstance from "~/lib/utils/axios-instance";
+import {Shift, SlotStatus} from "~/lib/types/Scheduler/slot";
+import axios from "axios";
+
+export type FetchSlotsParams = {
+    startTime?: string;
+    endTime?: string;
+    shifts?: Shift[];
+    slotStatuses?: SlotStatus[];
+    instructorFirebaseIds?: string[];
+    studentFirebaseId?: string;
+    classIds?: string[];
+    idToken: string;
+};
 
 export async function fetchSlots({
                                      startTime,
                                      endTime,
                                      shifts,
                                      slotStatuses,
-                                     instructorFirebaseId,
+                                     instructorFirebaseIds,
                                      studentFirebaseId,
+                                     classIds,
                                      idToken
-                                 }: Partial<{
-    startTime: string,
-    endTime: string,
-    shifts: string[],
-    slotStatuses: string[],
-    instructorFirebaseId: string,
-    studentFirebaseId: string,
-    idToken: string
-}>) {
+                                 }: FetchSlotsParams) {
     try {
-        let url = `/scheduler/slots?`;
+        const params = new URLSearchParams();
 
-        if (startTime) url += `startTime=${startTime}&`;
-        if (endTime) url += `endTime=${endTime}&`;
-        if (shifts) url += `shifts=${shifts.join(',')}&`;
-        if (slotStatuses) url += `slotStatuses=${slotStatuses.join(',')}&`;
-        if (instructorFirebaseId) url += `instructorFirebaseId=${instructorFirebaseId}&`;
-        if (studentFirebaseId) url += `studentFirebaseId=${studentFirebaseId}&`;
+        if (startTime) params.append("start-time", startTime);
+        if (endTime) params.append("end-time", endTime);
+        // Handle list parameters
+        if (shifts?.length) {
+            shifts.forEach((shift) => params.append("shifts", shift.toString()))
+        }
+        if (slotStatuses?.length) {
+            slotStatuses.forEach((status) => params.append("slot-statuses", status.toString()))
+        }
+        if (instructorFirebaseIds?.length) {
+            instructorFirebaseIds.forEach((id) => params.append("instructor-firebase-ids", id))
+        }
+        if (classIds?.length) {
+            classIds.forEach((id) => params.append("class-ids", id))
+        }
 
-        // Remove the trailing '&' or '?' if present
-        url = url.slice(0, -1);
+        if (studentFirebaseId) params.append("student-firebase-id", studentFirebaseId)
+
+        const url = `/scheduler/slots?${params.toString()}`
 
         const response = await axiosInstance.get(url, {
             headers: {
-                Authorization: `Bearer ${idToken}`
-        },
-        });
+                Authorization: `Bearer ${idToken}`,
+            },
+        })
 
-        console.log("url: ", url);
-        console.log("data: ", response.data);
 
         return response;
-    } catch (error : any) {
-        if (error.response) {
-            // Handle Axios-specific errors
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
-            // Handle other errors
-            throw new Error(`Unexpected Error: ${error.message}`);
+            throw new Error(`Unexpected Error: ${(error as Error).message}`);
         }
     }
 }
 
-export async function fetchSlotById(id: string) {
+
+export async function fetchSlotById(id: string, idToken: string) {
     try {
-        const response = await axiosInstance.get(`/scheduler/slot/${id}`);
+        const url = `/scheduler/slot/${id}`;
+        const response = await axiosInstance.get(url, {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            },
+        });
 
-        console.log("data: ", response.data);
 
-        return response.data;
+        return response;
     } catch (error : any) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
@@ -78,9 +95,36 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
             },
         });
 
-
-        return response.data;
+        return response;
     } catch (error: any) {
+        if (error.response) {
+            throw new Error(`API Error: ${error.response.data?.message || error.message}`);
+        } else {
+            throw new Error(`Unexpected Error: ${error.message}`);
+        }
+    }
+}
+
+
+export async function fetchUpdateAttendanceStatus(slotId: string, StudentAttentIds: string[], StudentAbsentIds: string[],  idToken: string) {
+
+    try {
+        const url = `/scheduler/update-attendance`;
+
+        console.log(slotId);
+
+        const response = await axiosInstance.post(url, {
+            slotId,
+            StudentAttentIds,
+            StudentAbsentIds
+        }, {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            },
+        });
+
+        return response;
+    }catch (error: any) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {

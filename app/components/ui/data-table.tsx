@@ -39,8 +39,8 @@ type DataTableProps<TData, TValue> = {
     manualPagination?: boolean;
     onPaginationChange?: (page: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
-    totalPages: number;
-    totalCount: number;
+    totalPages?: number;
+    totalCount?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
     const [rowSelection, setRowSelection] = useState({})
     const [searchParams, setSearchParams] = useSearchParams();
     const page = Number(searchParams.get("page")) || 1;
-    const pageSize = Number(searchParams.get("pageSize")) || defaultPageSize;
+    const pageSize = Number(searchParams.get("size")) || defaultPageSize;
 
     const table = useReactTable({
         data,
@@ -95,7 +95,7 @@ export function DataTable<TData, TValue>({
                 pageSize,
             }
         },
-        enableRowSelection: true
+        enableRowSelection: true,
     });
 
     const handlePageChange = (newPageIndex: number) => {
@@ -233,7 +233,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex - 1) : () => table.previousPage()}
-                        disabled={page <= 1}
+                        disabled={manualPagination ? page <= 1 : table.getCanPreviousPage()}
                     >
                         <ChevronLeft />
                     </Button>
@@ -242,7 +242,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex + 1) : () => table.nextPage()}
-                        disabled={page === totalPages}
+                        disabled={manualPagination ? page === totalPages : table.getCanNextPage()}
                     >
                         <ChevronRight />
                     </Button>

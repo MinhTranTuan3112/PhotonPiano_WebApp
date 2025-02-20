@@ -1,27 +1,27 @@
-import type React from "react"
+ import type React from "react"
 import { useEffect, useState } from "react"
+import { useLoaderData } from "@remix-run/react"
+import type { LoaderFunctionArgs } from "@remix-run/node"
 import { getWeekRange } from "~/lib/utils/datetime"
-import { fetchAttendanceStatus, fetchSlotById, fetchSlots } from "~/lib/services/scheduler"
-import { AttendanceStatus, Shift, SlotStatus, type Slot } from "~/lib/types/Scheduler/slot"
-import Modal from "~/components/scheduler/ModalProps"
+import {fetchAttendanceStatus, fetchSlotById, fetchSlots} from "~/lib/services/scheduler"
 import { motion } from "framer-motion"
-import { Piano, Music, Calendar } from "lucide-react"
-
-const idToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImE0MzRmMzFkN2Y3NWRiN2QyZjQ0YjgxZDg1MjMwZWQxN2ZlNTk3MzciLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcGhvdG9ucGlhbm8tMmYyMzMiLCJhdWQiOiJwaG90b25waWFuby0yZjIzMyIsImF1dGhfdGltZSI6MTczODU1MDIzOSwidXNlcl9pZCI6IjFheFJONGZHMHliWnlET1l2Tzh3bmttNWxISjMiLCJzdWIiOiIxYXhSTjRmRzB5Ylp5RE9Zdk84d25rbTVsSEozIiwiaWF0IjoxNzM4NTUwMjM5LCJleHAiOjE3Mzg1NTM4MzksImVtYWlsIjoidGVhY2hlcnBoYXRsb3JkQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJlbWFpbCI6WyJ0ZWFjaGVycGhhdGxvcmRAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.GTf4rqDPEzmTdUDuOCb4JdeNlJs7xHZird1wN3IaThieQEJOBFK1u78xrrIAKfBwqGaCFgtnDAlZQqLorB3mBgaBQ7d2mzHJroLvAzvUnEjaKqvw-DytDQ2hYZ0Bis-l2-0ZlZqdxZPrjwTQot9qRYltMiHpzEanKy5zgcwm07zY_xrGIFLRvo7tbxTG0AUyoronmHHS5kGQK1Nk5RBX_HauTqvSdr38YIrw_lh05xZF4VpWqbfB3pm7IsrXNvbB4JIf2-4FN0VU40e4uCpAAoFN-Agj6R8FVT2L1lrgKOpJJo0PX7eRJ-0WMOxjlWSrZUaa54u2whlTSfr-bCvjSw"
-
-const formatDateForDisplay = (date: Date): string => {
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const year = date.getFullYear()
-    return `${day}/${month}/${year}`
-}
-
-const formatDateForAPI = (date: Date): string => {
-    const year = date.getFullYear()
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const day = date.getDate().toString().padStart(2, "0")
-    return `${year}-${month}-${day}`
-}
+import {Piano, Calendar, Music, Filter, ChevronLeft, ChevronRight} from "lucide-react"
+ import { getWeek } from "date-fns"
+import {
+    type Slot,
+    Shift,
+    type SlotDetail,
+    AttendanceStatus,
+    type StudentAttendanceModel,
+    SlotStatus,
+} from "~/lib/types/Scheduler/slot"
+import { requireAuth } from "~/lib/utils/auth"
+import { fetchCurrentAccountInfo } from "~/lib/services/auth"
+import { PubSub, type IPubSubMessage } from "~/lib/services/pub-sub"
+ import {Button} from "~/components/ui/button";
+ import {Checkbox} from "~/components/ui/checkbox";
+ import {Dialog, DialogContent, DialogHeader, DialogTitle} from "~/components/ui/dialog"
+ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "~/components/ui/select";
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -36,9 +36,20 @@ const shiftTimesMap: Record<Shift, string> = {
 
 const shiftTimes = Object.values(shiftTimesMap)
 
-interface WeekRange {
-    startDate: Date
-    endDate: Date
+const formatDateForDisplay = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, "0")
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const year = date.getFullYear()
+    return `${day}/${month}/${year}`
+}
+
+
+
+const formatDateForAPI = (date: Date): string => {
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const day = date.getDate().toString().padStart(2, "0")
+    return `${year}-${month}-${day}`
 }
 
 const getVietnameseWeekday = (date: Date): string => {
@@ -46,230 +57,496 @@ const getVietnameseWeekday = (date: Date): string => {
     return weekdays[date.getDay()]
 }
 
-const SchedulerPage: React.FC = () => {
-    const [slots, setSlots] = useState<Slot[]>([])
-    const [loading, setLoading] = useState<boolean>(true)
-    const [error, setError] = useState<string | null>(null)
-    const [year, setYear] = useState<number>(new Date().getFullYear())
-    const [week, setWeek] = useState<WeekRange | null>(null)
-    const [weekNumber, setWeekNumber] = useState<number>(getCurrentWeekNumber())
-    const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
-    const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-    const [attendanceStatus, setAttendanceStatus] = useState<AttendanceStatus | null>(null)
+const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
+    // const currentDate = new Date();
+    // const slotDateObj = new Date(slotDate);
+    // const oneDayInMs = 24 * 60 * 60 * 1000;
+    // const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
+    //
+    // return currentDate > slotDateObj && differenceInDays <= 1;
 
-    function getCurrentWeekNumber(): number {
-        const currentDate = new Date()
-        const firstDayOfYear = new Date(currentDate.getFullYear(), 0, 1)
-        const days = Math.floor((currentDate.getTime() - firstDayOfYear.getTime()) / (1000 * 3600 * 24))
-        return Math.ceil((days + firstDayOfYear.getDay() + 1) / 7)
-    }
-
-    const handleWeekChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedWeek = Number(event.target.value)
-        setWeekNumber(selectedWeek)
-        const newWeek = getWeekRange(year, selectedWeek)
-        setWeek(newWeek)
-    }
-
-    useEffect(() => {
-        const newWeek = getWeekRange(year, weekNumber)
-        setWeek(newWeek)
-    }, [year, weekNumber])
-
-    useEffect(() => {
-        const fetchSlotsData = async () => {
-            if (!week) return
-
-            setLoading(true)
-            try {
-                const startTime = formatDateForAPI(week.startDate)
-                const endTime = formatDateForAPI(week.endDate)
-                const response = await fetchSlots({ startTime, endTime, idToken })
-                setSlots(response.data)
-            } catch (err) {
-                if (err instanceof Error) {
-                    setError(err.message)
-                } else {
-                    setError("An unknown error occurred")
-                }
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchSlotsData()
-    }, [week])
-
-    const handleSlotClick = async (slotId: string) => {
-        try {
-            const slotDetails = await fetchSlotById(slotId)
-            setSelectedSlot(slotDetails)
-            const attendance = await fetchAttendanceStatus(slotId, idToken)
-            setAttendanceStatus(attendance.attendanceStatus)
-            setIsModalOpen(true)
-        } catch (error) {
-            console.error("Failed to fetch slot details:", error)
-        }
-    }
-
-    if (loading) return <div>Loading...</div>
-    if (error) return <div className="text-red-500">{error}</div>
-    if (!week) return <div>Loading Week Information...</div>
-
-    return (
-        <div className="scheduler-page p-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="max-w-7xl mx-auto"
-            >
-                <h1 className="title text-4xl font-bold mb-6 text-center text-blue-800 flex items-center justify-center">
-                    <Piano className="mr-2" /> Piano Learning Center Timetable
-                </h1>
-                <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
-                    <label className="control flex flex-col mb-4 sm:mb-0">
-                        <span className="mb-1 font-semibold text-blue-700">Year:</span>
-                        <select
-                            value={year}
-                            onChange={(e) => setYear(Number(e.target.value))}
-                            className="px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                        >
-                            {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
-                                <option key={year} value={year}>
-                                    {year}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className="control flex flex-col">
-                        <span className="mb-1 font-semibold text-blue-700">Week:</span>
-                        <select
-                            value={weekNumber}
-                            onChange={handleWeekChange}
-                            className="px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                        >
-                            {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
-                                <option key={week} value={week}>
-                                    Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
-                                    {formatDateForDisplay(getWeekRange(year, week).endDate)}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                </div>
-
-                <div className="week-info text-center mb-4">
-                    <p className="text-lg font-medium text-blue-700 flex items-center justify-center">
-                        <Calendar className="mr-2" />
-                        {formatDateForDisplay(week.startDate)} - {formatDateForDisplay(week.endDate)}
-                    </p>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="schedule-table w-full border-collapse bg-white shadow-lg rounded-lg overflow-hidden">
-                        <thead>
-                        <tr className="bg-blue-600 text-white">
-                            <th className="py-3 px-4 border-b border-blue-500">Time Slot</th>
-                            {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(week.startDate)
-                                currentDay.setDate(currentDay.getDate() + i)
-                                return (
-                                    <th key={i} className="py-3 px-4 border-b border-blue-500">
-                                        {getVietnameseWeekday(currentDay)}
-                                    </th>
-                                )
-                            })}
-                        </tr>
-                        <tr className="bg-blue-100 text-blue-800">
-                            <th className="py-2 px-4 border-b border-blue-200"></th>
-                            {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(week.startDate)
-                                currentDay.setDate(currentDay.getDate() + i)
-                                return (
-                                    <th key={i} className="py-2 px-4 border-b border-blue-200 text-sm">
-                                        {formatDateForDisplay(currentDay)}
-                                    </th>
-                                )
-                            })}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {shiftTimes.map((time, index) => (
-                            <tr key={index} className="hover:bg-blue-50 transition-colors duration-150">
-                                <td className="time-slot py-4 px-2 font-semibold border-b border-blue-100">{time}</td>
-                                {Array.from({ length: 7 }, (_, i) => {
-                                    const currentDay = new Date(week.startDate)
-                                    currentDay.setDate(currentDay.getDate() + i)
-                                    const currentDayString = formatDateForAPI(currentDay)
-                                    const slotForDateAndShift = slots.filter((slot) => {
-                                        return slot.date === currentDayString && shiftTimesMap[slot.shift] === time
-                                    })
-                                    return (
-                                        <td key={i} className="slot-cell border-b border-blue-100 p-2">
-                                            {slotForDateAndShift.length > 0 ? (
-                                                slotForDateAndShift.map((slot, idx) => (
-                                                    <motion.div
-                                                        key={idx}
-                                                        className="slot bg-white rounded-lg shadow-md p-3 mb-2 cursor-pointer hover:shadow-lg transition-all duration-200"
-                                                        onClick={() => handleSlotClick(slot.id)}
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onKeyPress={(e) => e.key === "Enter" && handleSlotClick(slot.id)}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                    >
-                                                        <div className="slot-room text-lg font-bold text-indigo-600 flex items-center">
-                                                            <Music className="mr-1" size={16} />
-                                                            {slot.room?.name}
-                                                        </div>
-                                                        <div className="slot-class text-md">{slot.class?.name}</div>
-                                                        <div className="slot-status text-sm mt-1 text-blue-500">{SlotStatus[slot.status]}</div>
-                                                    </motion.div>
-                                                ))
-                                            ) : (
-                                                <div className="h-16 flex items-center justify-center text-gray-400">-</div>
-                                            )}
-                                        </td>
-                                    )
-                                })}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                    {selectedSlot && (
-                        <div className="p-6 bg-white rounded-lg">
-                            <h2 className="modal-title text-2xl font-bold mb-4 text-blue-800">Slot Details</h2>
-                            <div className="space-y-3">
-                                <p className="flex items-center">
-                                    <strong className="mr-2">Room:</strong>{" "}
-                                    <span className="text-indigo-600">{selectedSlot.room?.name}</span>
-                                </p>
-                                <p className="flex items-center">
-                                    <strong className="mr-2">Class:</strong>{" "}
-                                    <span className="text-green-600">{selectedSlot.class?.name}</span>
-                                </p>
-                                <p className="flex items-center">
-                                    <strong className="mr-2">Number of Students:</strong>{" "}
-                                    <span className="text-orange-600">{selectedSlot.class?.level}</span>
-                                </p>
-                  {/*              <p className="flex items-center">*/}
-                  {/*                  <strong className="mr-2">Attendance Status:</strong>{" "}*/}
-                  {/*                  <span className="text-purple-600">*/}
-                  {/*  {attendanceStatus !== null ? AttendanceStatus[attendanceStatus] : "N/A"}*/}
-                  {/*</span>*/}
-                  {/*              </p>*/}
-                            </div>
-                        </div>
-                    )}
-                </Modal>
-            </motion.div>
-        </div>
-    )
+    // for demo
+    return true
 }
+ export const loader = async ({ request }: LoaderFunctionArgs) => {
+     try {
+         const { idToken, role } = await requireAuth(request)
+         const url = new URL(request.url)
+         const searchParams = url.searchParams
+         const currentYear = new Date().getFullYear()
+         const currentDate = new Date()
+         const currentWeekNumber = getWeek(currentDate)
+         const year = Number.parseInt(searchParams.get("year") || currentYear.toString())
+         const weekNumber = Number.parseInt(searchParams.get("week") || currentWeekNumber.toString())
+         const { startDate, endDate } = getWeekRange(year, weekNumber)
 
-export default SchedulerPage
+         const startTime = formatDateForAPI(startDate)
+         const endTime = formatDateForAPI(endDate)
 
+         const currentAccountResponse = await fetchCurrentAccountInfo({ idToken })
+         const currentAccount = currentAccountResponse.data
+
+         let accountId = ""
+
+         if (role === 1) {
+             accountId = currentAccount.accountFirebaseId?.toLowerCase()
+         }
+
+         const response = await fetchSlots({ startTime, endTime, studentFirebaseId: accountId, idToken: idToken })
+         const slots: SlotDetail[] = response.data
+
+         for (const slot of slots) {
+             const attendanceStatusResponse = await fetchAttendanceStatus(slot.id, idToken)
+             const studentAttendanceModel: StudentAttendanceModel[] = attendanceStatusResponse.data
+             const rs = studentAttendanceModel.find(
+                 (studentAttendanceModel) =>
+                     studentAttendanceModel.studentFirebaseId?.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
+             )
+             slot.attendanceStatus = rs?.attendanceStatus
+         }
+
+         return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
+     } catch (error) {
+         console.error("Failed to load data:", error)
+         throw new Response("Failed to load data", { status: 500 })
+     }
+ }
+
+ const SchedulerPage: React.FC = () => {
+     const {
+         slots: initialSlots,
+         startDate: initialStartDate,
+         endDate: initialEndDate,
+         year: initialYear,
+         weekNumber: initialWeekNumber,
+         idToken,
+         role,
+         currentAccount,
+     } = useLoaderData<typeof loader>()
+
+     const [slots, setSlots] = useState<SlotDetail[]>(initialSlots)
+     const [year, setYear] = useState(initialYear)
+     const [weekNumber, setWeekNumber] = useState(initialWeekNumber)
+     const [startDate, setStartDate] = useState(new Date(initialStartDate))
+     const [endDate, setEndDate] = useState(new Date(initialEndDate))
+     const [selectedSlot, setSelectedSlot] = useState<SlotDetail | null>(null)
+     const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+     const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false)
+     const [filters, setFilters] = useState({
+         shifts: [] as Shift[],
+         slotStatuses: [] as SlotStatus[],
+         instructorFirebaseIds: [] as string[],
+         studentFirebaseId: "",
+         classIds: [] as string[],
+     })
+
+
+     const uniqueShifts = Array.from(new Set(slots.map((slot) => slot.shift)))
+     const uniqueSlotStatuses = Array.from(new Set(slots.map((slot) => slot.status)))
+     const uniqueInstructorIds = Array.from(new Set(slots.map((slot) => slot.class.instructorId)))
+     const uniqueClassIds = Array.from(new Set(slots.map((slot) => slot.class.id)))
+
+     const instructorMap = new Map(slots.map((slot) => [slot.class.instructorId, slot.class.instructorName]))
+     const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]))
+
+     useEffect(() => {
+         const pubSubService = new PubSub()
+         const subscription = pubSubService.receiveMessage().subscribe((message: IPubSubMessage) => {
+             console.log("[Pub Sub] Message received in Student screen:", message)
+
+             if (message.content.includes("changed") && message.topic.includes("scheduler_attendance")) {
+                 console.log("[Pub Sub] Attendance updated. Fetching latest data...")
+                 Promise.all(
+                     slots.map(async (slot) => {
+                         try {
+                             const attendanceStatusResponse = await fetchAttendanceStatus(slot.id, idToken)
+                             const studentAttendanceModel: StudentAttendanceModel[] = attendanceStatusResponse.data
+                             const rs = studentAttendanceModel.find(
+                                 (studentAttendanceModel) =>
+                                     studentAttendanceModel.studentFirebaseId?.toLowerCase() ===
+                                     currentAccount.accountFirebaseId?.toLowerCase(),
+                             )
+                             return { ...slot, attendanceStatus: rs?.attendanceStatus }
+                         } catch (error) {
+                             console.error(`Failed to fetch attendance status for slot ${slot.id}:`, error)
+                             return slot
+                         }
+                     }),
+                 ).then((updatedSlots) => {
+                     setSlots(updatedSlots)
+                 })
+             }
+         })
+
+         return () => {
+             subscription.unsubscribe()
+         }
+     }, [year, weekNumber])
+
+     const fetchSlotsForWeek = async (year: number, week: number) => {
+         try {
+             const { startDate, endDate } = getWeekRange(year, week)
+             const startTime = formatDateForAPI(startDate)
+             const endTime = formatDateForAPI(endDate)
+
+             const response = await fetchSlots({
+                 startTime,
+                 endTime,
+                 studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : '' ,
+                 idToken,
+                 ...filters,
+             })
+
+             setSlots(response.data)
+             setStartDate(startDate)
+             setEndDate(endDate)
+         } catch (error) {
+             console.error("Failed to fetch slots for week:", error)
+         }
+     }
+
+     const handleSlotClick = async (slotId: string) => {
+         try {
+             const response = await fetchSlotById(slotId, idToken)
+             const slotDetails: SlotDetail = response.data
+             setSelectedSlot(slotDetails)
+             setIsModalOpen(true)
+         } catch (error) {
+             console.error("Failed to fetch slot details:", error)
+         }
+     }
+
+     const handleWeekChange = (newWeekNumber: number) => {
+         setWeekNumber(newWeekNumber)
+         fetchSlotsForWeek(year, newWeekNumber)
+     }
+
+     const handleYearChange = (newYear: string) => {
+         const yearNumber = Number.parseInt(newYear, 10)
+         setYear(yearNumber)
+         fetchSlotsForWeek(yearNumber, weekNumber)
+     }
+
+     const handleFilterChange = (name: string, value: string | string[] | Shift[] | SlotStatus[]) => {
+         setFilters((prev) => ({
+             ...prev,
+             [name]: Array.isArray(value)
+                 ? value
+                 : prev[name as keyof typeof filters].includes(value)
+                     ? (prev[name as keyof typeof filters] as string[]).filter((item) => item !== value)
+                     : [...(prev[name as keyof typeof filters] as string[]), value],
+         }))
+     }
+
+     const resetFilters = () => {
+         setFilters({
+             shifts: [],
+             slotStatuses: [],
+             instructorFirebaseIds: [],
+             studentFirebaseId: "",
+             classIds: [],
+         })
+         fetchSlotsForWeek(year, weekNumber)
+     }
+
+     const applyFilters = async () => {
+         try {
+             await fetchSlotsForWeek(year, weekNumber)
+             setIsFilterModalOpen(false)
+         } catch (error) {
+             console.error("Error applying filters:", error)
+         }
+     }
+
+     return (
+         <div className="scheduler-page p-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+             <motion.div
+                 initial={{ opacity: 0, y: -20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ duration: 0.5 }}
+                 className="max-w-7xl mx-auto"
+             >
+                 <div className="flex justify-between items-center mb-6">
+                     <h1 className="title text-4xl font-bold text-center text-blue-800 flex items-center">
+                         <Piano className="mr-2" /> Piano Learning Center Timetable
+                     </h1>
+                     <div className="current-user bg-gray-100 p-2 rounded shadow-md">
+                         <p className="text-sm font-semibold">{currentAccount.email}</p>
+                         <p className="text-xs text-gray-600">{currentAccount.fullName}</p>
+                     </div>
+                 </div>
+                 <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
+                     <div className="control flex flex-col mb-4 sm:mb-0">
+                         <span className="mb-1 font-semibold text-blue-700">Year:</span>
+                         <Select value={year.toString()} onValueChange={handleYearChange}>
+                             <SelectTrigger className="w-[180px]">
+                                 <SelectValue placeholder="Select year" />
+                             </SelectTrigger>
+                             <SelectContent>
+                                 {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
+                                     <SelectItem key={year} value={year.toString()}>
+                                         {year}
+                                     </SelectItem>
+                                 ))}
+                             </SelectContent>
+                         </Select>
+                     </div>
+                     <div className="control flex flex-col">
+                         <span className="mb-1 font-semibold text-blue-700">Week:</span>
+                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
+                             <SelectTrigger className="w-[180px]">
+                                 <SelectValue placeholder="Select week" />
+                             </SelectTrigger>
+                             <SelectContent>
+                                 {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
+                                     <SelectItem key={week} value={week.toString()}>
+                                         Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
+                                         {formatDateForDisplay(getWeekRange(year, week).endDate)}
+                                     </SelectItem>
+                                 ))}
+                             </SelectContent>
+                         </Select>
+                     </div>
+                     {role === 4 && (
+                         <Button variant="outline" onClick={() => setIsFilterModalOpen(true)}>
+                             <Filter className="mr-2 h-4 w-4" /> Filter Options
+                         </Button>
+                     )}
+                 </div>
+                 <div className="week-info flex justify-center items-center mb-4 space-x-2">
+                     <Button
+                         variant="outline"
+                         size="icon"
+                         onClick={() => handleWeekChange(weekNumber - 1)}
+                         disabled={weekNumber <= 1}
+                     >
+                         <ChevronLeft className="h-4 w-4" />
+                     </Button>
+                     <p className="text-lg font-medium text-blue-700 flex items-center justify-center">
+                         <Calendar className="mr-2" />
+                         {formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}
+                     </p>
+                     <Button
+                         variant="outline"
+                         size="icon"
+                         onClick={() => handleWeekChange(weekNumber + 1)}
+                         disabled={weekNumber >= 52}
+                     >
+                         <ChevronRight className="h-4 w-4" />
+                     </Button>
+                 </div>
+                 <div className="overflow-x-auto">
+                     <table className="schedule-table w-full border-collapse bg-white shadow-lg rounded-lg overflow-hidden">
+                         <thead>
+                         <tr className="bg-blue-600 text-white">
+                             <th className="py-3 px-4 border-b border-blue-500">Time Slot</th>
+                             {Array.from({ length: 7 }, (_, i) => {
+                                 const currentDay = new Date(startDate)
+                                 currentDay.setDate(currentDay.getDate() + i)
+                                 return (
+                                     <th key={i} className="py-3 px-4 border-b border-blue-500 relative">
+                                         {getVietnameseWeekday(currentDay)}
+                                         {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-400"></div>}
+                                     </th>
+                                 )
+                             })}
+                         </tr>
+                         <tr className="bg-blue-100 text-blue-800">
+                             <th className="py-2 px-4 border-b border-blue-200"></th>
+                             {Array.from({ length: 7 }, (_, i) => {
+                                 const currentDay = new Date(startDate)
+                                 currentDay.setDate(currentDay.getDate() + i)
+                                 return (
+                                     <th key={i} className="py-2 px-4 border-b border-blue-200 text-sm relative">
+                                         {formatDateForDisplay(currentDay)}
+                                         {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-300"></div>}
+                                     </th>
+                                 )
+                             })}
+                         </tr>
+                         </thead>
+                         <tbody>
+                         {shiftTimes.map((time: string, index: number) => (
+                             <tr key={index} className="hover:bg-blue-50 transition-colors duration-150">
+                                 <td className="time-slot py-4 px-2 font-semibold border-b border-blue-100">{time}</td>
+                                 {Array.from({ length: 7 }, (_, i) => {
+                                     const currentDay = new Date(startDate)
+                                     currentDay.setDate(currentDay.getDate() + i)
+                                     const currentDayString = formatDateForAPI(currentDay)
+                                     const slotForDateAndShift = slots.filter((slot: Slot) => {
+                                         return slot.date === currentDayString && shiftTimesMap[slot.shift] === time
+                                     })
+                                     return (
+                                         <td key={i} className="slot-cell border-b border-blue-100 p-2 relative">
+                                             {slotForDateAndShift.length > 0 ? (
+                                                 slotForDateAndShift.map((slot: Slot, idx: number) => (
+                                                     <motion.div
+                                                         key={idx}
+                                                         className="slot bg-white rounded-lg shadow-md p-3 mb-2 cursor-pointer hover:shadow-lg transition-all duration-200"
+                                                         onClick={() => handleSlotClick(slot.id)}
+                                                         role="button"
+                                                         tabIndex={0}
+                                                         onKeyPress={(e) => e.key === "Enter" && handleSlotClick(slot.id)}
+                                                         whileHover={{ scale: 1.05 }}
+                                                         whileTap={{ scale: 0.95 }}
+                                                     >
+                                                         <div className="slot-room text-lg font-bold text-indigo-600 flex items-center">
+                                                             <Music className="mr-1" size={16} />
+                                                             {slot.room?.name}
+                                                         </div>
+                                                         <div className="slot-class text-md">{slot.class?.name}</div>
+                                                         <div className="slot-status text-sm mt-1 text-blue-500">
+                                                             {slot.attendanceStatus !== undefined
+                                                                 ? AttendanceStatus[slot.attendanceStatus]
+                                                                 : AttendanceStatus[AttendanceStatus.NotYet]}
+                                                         </div>
+                                                     </motion.div>
+                                                 ))
+                                             ) : (
+                                                 <div className="h-16 flex items-center justify-center text-gray-400">-</div>
+                                             )}
+                                             {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-100"></div>}
+                                         </td>
+                                     )
+                                 })}
+                             </tr>
+                         ))}
+                         </tbody>
+                     </table>
+                 </div>
+                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                     <DialogContent>
+                         <DialogHeader>
+                             <DialogTitle>Slot Details</DialogTitle>
+                         </DialogHeader>
+                         {selectedSlot && (
+                             <div className="p-6 bg-white rounded-lg">
+                                 <div className="space-y-3">
+                                     <p className="flex items-center">
+                                         <strong className="mr-2">Room:</strong>{" "}
+                                         <span className="text-indigo-600">{selectedSlot.room?.name}</span>
+                                     </p>
+                                     <p className="flex items-center">
+                                         <strong className="mr-2">Class:</strong>{" "}
+                                         <span className="text-green-600">{selectedSlot.class?.name}</span>
+                                     </p>
+                                     <p className="flex items-center">
+                                         <strong className="mr-2">Teacher name:</strong>{" "}
+                                         <span className="text-green-600">{selectedSlot.class.instructorName}</span>
+                                     </p>
+                                     <p className="flex items-center">
+                                         <strong className="mr-2">Number of Students:</strong>{" "}
+                                         <span className="text-orange-600">{selectedSlot.numberOfStudents}</span>
+                                     </p>
+
+                                     {role === 2 && (
+                                         <Button
+                                             onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
+                                             disabled={!isCurrentDatePastSlotDate(selectedSlot.date)}
+                                         >
+                                             Check Attendance
+                                         </Button>
+                                     )}
+                                 </div>
+                             </div>
+                         )}
+                     </DialogContent>
+                 </Dialog>
+                 <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
+                     <DialogContent>
+                         <DialogHeader>
+                             <DialogTitle>Filter Options</DialogTitle>
+                         </DialogHeader>
+                         <div className="space-y-4">
+                             <div>
+                                 <h3 className="font-semibold mb-2">Shifts</h3>
+                                 {uniqueShifts.map((value) => (
+                                     <div key={value} className="flex items-center space-x-2">
+                                         <Checkbox
+                                             id={`shift-${value}`}
+                                             checked={filters.shifts.includes(value)}
+                                             onCheckedChange={(checked) =>
+                                                 handleFilterChange(
+                                                     "shifts",
+                                                     checked ? [...filters.shifts, value] : filters.shifts.filter((s) => s !== value),
+                                                 )
+                                             }
+                                         />
+                                         <label htmlFor={`shift-${value}`}>{shiftTimesMap[value as Shift]}</label>
+                                     </div>
+                                 ))}
+                             </div>
+                             <div>
+                                 <h3 className="font-semibold mb-2">Slot Statuses</h3>
+                                 {uniqueSlotStatuses.map((value) => (
+                                     <div key={value} className="flex items-center space-x-2">
+                                         <Checkbox
+                                             id={`status-${value}`}
+                                             checked={filters.slotStatuses.includes(value)}
+                                             onCheckedChange={(checked) =>
+                                                 handleFilterChange(
+                                                     "slotStatuses",
+                                                     checked ? [...filters.slotStatuses, value] : filters.slotStatuses.filter((s) => s !== value),
+                                                 )
+                                             }
+                                         />
+                                         <label htmlFor={`status-${value}`}>{SlotStatus[value as SlotStatus]}</label>
+                                     </div>
+                                 ))}
+                             </div>
+                             <div>
+                                 <h3 className="font-semibold mb-2">Instructor Names</h3>
+                                 {uniqueInstructorIds.map((id) => (
+                                     <div key={id} className="flex items-center space-x-2">
+                                         <Checkbox
+                                             id={`instructor-${id}`}
+                                             checked={filters.instructorFirebaseIds.includes(id)}
+                                             onCheckedChange={(checked) =>
+                                                 handleFilterChange(
+                                                     "instructorFirebaseIds",
+                                                     checked
+                                                         ? [...filters.instructorFirebaseIds, id]
+                                                         : filters.instructorFirebaseIds.filter((i) => i !== id),
+                                                 )
+                                             }
+                                         />
+                                         <label htmlFor={`instructor-${id}`}>{instructorMap.get(id) || "Unknown Instructor"}</label>
+                                     </div>
+                                 ))}
+                             </div>
+                             <div>
+                                 <h3 className="font-semibold mb-2">Class Names</h3>
+                                 {uniqueClassIds.map((id) => (
+                                     <div key={id} className="flex items-center space-x-2">
+                                         <Checkbox
+                                             id={`class-${id}`}
+                                             checked={filters.classIds.includes(id)}
+                                             onCheckedChange={(checked) =>
+                                                 handleFilterChange(
+                                                     "classIds",
+                                                     checked ? [...filters.classIds, id] : filters.classIds.filter((c) => c !== id),
+                                                 )
+                                             }
+                                         />
+                                         <label htmlFor={`class-${id}`}>{classMap.get(id) || "Unknown Class"}</label>
+                                     </div>
+                                 ))}
+                             </div>
+                             <div className="flex justify-end space-x-2">
+                                 <Button variant="outline" onClick={resetFilters}>
+                                     Reset Filters
+                                 </Button>
+                                 <Button variant="outline" onClick={() => setIsFilterModalOpen(false)}>
+                                     Cancel
+                                 </Button>
+                                 <Button onClick={applyFilters}>Apply Filters</Button>
+                             </div>
+                         </div>
+                     </DialogContent>
+                 </Dialog>
+             </motion.div>
+         </div>
+     )
+ }
+
+ export default SchedulerPage

@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     });
 
-    return {
+     return{
       promise,
       query: { ...query, idToken: undefined }
     }

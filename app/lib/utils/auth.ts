@@ -1,14 +1,36 @@
 
 import { redirect } from "@vercel/remix";
 import { getCurrentTimeInSeconds } from "./datetime";
-import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./cookie";
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./cookie";
 import { fetchRefreshToken } from "../services/auth";
 import { AuthResponse } from "../types/auth-response";
+
+interface AuthData {
+    idToken?: string
+    refreshToken?: string
+    idTokenExpiry?: number
+    role?: number
+}
 
 // Calculate expiration timestamp in milliseconds
 function calculateExpiry(expiresIn: number): number {
     return Date.now() + expiresIn * 1000; // converts seconds to milliseconds
 }
+
+async function parseAuthData(input: Request | AuthData): Promise<AuthData> {
+    if (input instanceof Request) {
+        const cookies = input.headers.get("Cookie") || ""
+        return {
+            idToken: (await idTokenCookie.parse(cookies)) as string,
+            refreshToken: (await refreshTokenCookie.parse(cookies)) as string,
+            idTokenExpiry: Number.parseInt((await expirationCookie.parse(cookies)) || "0"),
+            role: (await roleCookie.parse(cookies)) as number,
+        }
+    } else {
+        return input
+    }
+}
+
 
 function isExpired(expirationTimeInSeconds: number) {
 
@@ -31,6 +53,7 @@ export async function requireAuth(request: Request) {
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
     const role = await roleCookie.parse(cookies) as number;
+    const accountId = await accountIdCookie.parse(cookies) as string;
 
     // Redirect if no refresh token is present (not logged in)
     if (!refreshToken) {
@@ -48,6 +71,7 @@ export async function requireAuth(request: Request) {
                 idToken: newTokens.idToken,
                 refreshToken: newTokens.refreshToken,
                 role,
+                headers: newTokens.headers
             };
         } else {
             console.log("Failed to refresh token, redirecting to /sign-in");
@@ -55,7 +79,7 @@ export async function requireAuth(request: Request) {
         }
     }
 
-    return { idToken, refreshToken, role };
+    return { idToken, refreshToken, role, accountId };
 }
 
 export async function getAuth(request: Request) {
@@ -65,10 +89,10 @@ export async function getAuth(request: Request) {
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
     const role = await roleCookie.parse(cookies) as number;
+    const accountId = await accountIdCookie.parse(cookies) as string;
 
-    return { idToken, refreshToken, idTokenExpiry, role };
+    return { idToken, refreshToken, idTokenExpiry, role, accountId };
 }
-
 
 export async function refreshIdToken(refreshToken: string) {
 
@@ -76,17 +100,23 @@ export async function refreshIdToken(refreshToken: string) {
 
     try {
 
-        const { idToken, refreshToken: newRefreshToken, expiresIn, role }: AuthResponse = await response.data;
+        const { idToken, refreshToken: newRefreshToken, expiresIn, role, userId }: AuthResponse & {
+            userId: string
+        } = await response.data;
 
         const headers = new Headers();
         headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
         headers.append("Set-Cookie", await refreshTokenCookie.serialize(newRefreshToken));
         headers.append("Set-Cookie", await expirationCookie.serialize(expiresIn));
         headers.append("Set-Cookie", await roleCookie.serialize(role));
+        headers.append("Set-Cookie", await accountIdCookie.serialize(userId));
 
         return {
             idToken, // Return new idToken
             refreshToken: newRefreshToken, // Return new refreshToken
+            expiresIn,
+            role,
+            accountId: userId,
             headers
         };
 

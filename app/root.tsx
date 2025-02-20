@@ -51,8 +51,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     if (!code) {
       const authData = await requireAuth(request);
+
+      const idToken = authData.idToken;
+
       return {
-        role: authData.role
+        role: authData.role,
+        currentAccountFirebaseId: authData.accountId,
+        idToken
       };
     }
 

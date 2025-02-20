@@ -44,6 +44,10 @@ const data = {
                 {
                     title: "Danh sách lớp",
                     url: "/staff/classes",
+                },
+                {
+                    title: 'Danh sách đơn từ',
+                    url: '/staff/applications',
                 }
             ],
         }

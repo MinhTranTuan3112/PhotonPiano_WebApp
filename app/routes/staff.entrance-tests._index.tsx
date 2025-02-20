@@ -62,13 +62,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
             return {
                 entranceTestsPromise,
                 metadata,
-                query: { ...query, idToken: undefined }
+                query
             }
         });
 
         return {
             promise,
-            query: { ...query, idToken: undefined }
+            query
         }
 
     } catch (error) {
