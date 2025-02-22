@@ -90,10 +90,13 @@ export function DataTable<TData, TValue>({
             columnFilters,
             columnVisibility,
             rowSelection,
-            pagination: {
-                pageIndex: page - 1,
-                pageSize,
-            }
+            // pagination: manualPagination === true ? {
+            //     pageIndex: page - 1,
+            //     pageSize,
+            // } : {
+            //     pageSize: defaultPageSize,
+            //     pageIndex: 0
+            // }
         },
         enableRowSelection: true,
     });
