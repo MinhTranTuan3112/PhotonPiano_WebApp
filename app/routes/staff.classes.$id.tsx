@@ -1,5 +1,6 @@
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData } from '@remix-run/react';
+import { CalendarDays, Music2, PlusCircle } from 'lucide-react';
 import React, { Suspense } from 'react'
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Badge } from '~/components/ui/badge';
@@ -13,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchClassDetail } from '~/lib/services/class';
 import { ClassDetail } from '~/lib/types/class/class-detail';
 import { requireAuth } from '~/lib/utils/auth';
-import { CLASS_STATUS, LEVEL } from '~/lib/utils/constants';
+import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -40,7 +41,15 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     promise,
   }
 }
-
+const getSlotCover = (status: number) => {
+  switch (status) {
+    case 0: return "bg-gray-500 text-white font-semibold";
+    case 1: return "bg-yellow-500 text-white font-semibold";
+    case 2: return "bg-green-500 text-white font-semibold";
+    case 3: return "bg-red-500 text-white font-semibold";
+    default: return "bg-black text-white font-semibold";
+  }
+};
 const getLevelStyle = (level: number) => {
   switch (level) {
     case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
@@ -133,7 +142,48 @@ function ClassStudentsList({ classInfo }: { classInfo: ClassDetail }) {
         </DataTable>
       </CardContent>
     </Card>
+  )
+}
 
+function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Thời khóa biểu</CardTitle>
+        <CardDescription>
+          Quản lý lịch trình của lớp
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='flex justify-end gap-2'>
+          <Button variant={'outline'} disabled={classInfo.requiredSlots <= classInfo.slots.length}><PlusCircle className='mr-4' /> Thêm buổi học mới</Button>
+          <Button Icon={CalendarDays} iconPlacement='left'>Xem dạng lịch</Button>
+        </div>
+        <div className='text-center text-xl mt-4'>
+          Tổng số buổi học :
+          <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
+        </div>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8'>
+          {
+            classInfo.slots.map((s, index) => (
+              <div className='hover:scale-105 transition-all flex flex-col'>
+                <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
+                  <div className='flex gap-2 justify-center'>
+                    <Music2 /> Buổi {index + 1}
+                  </div>
+                </div>
+                <div className='px-2 py-4 rounded-b-lg shadow-md'>
+                  <div className='flex flex-col gap-2'>
+                    <div><span className='font-bold'>Ca : </span><span className='ml-2'>{s.shift} ({SHIFT_TIME[s.shift]})</span></div>
+                    <div><span className='font-bold'>Ngày : </span><span className='ml-2'>{s.date}</span></div>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -179,17 +229,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </Card>
                   </TabsContent>
                   <TabsContent value="timeTable">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Thời khóa biểu</CardTitle>
-                        <CardDescription>
-                          Quản lý lịch trình của lớp
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-
-                      </CardContent>
-                    </Card>
+                    <ClassScheduleList classInfo={data.classDetail} />
                   </TabsContent>
                 </Tabs>
               </div>
