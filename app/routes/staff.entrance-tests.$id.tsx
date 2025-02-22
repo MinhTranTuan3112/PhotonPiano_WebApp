@@ -17,9 +17,11 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Skeleton } from '~/components/ui/skeleton'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { fetchAccounts } from '~/lib/services/account'
+import { fetchCriterias } from '~/lib/services/criteria'
 import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { fetchRooms } from '~/lib/services/rooms'
 import { Account, Role } from '~/lib/types/account/account'
+import { Criteria } from '~/lib/types/criteria/criteria'
 import { UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
@@ -64,7 +66,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
                 entranceTestDetailsPromise
             }
         });
-
+        
         return {
             promise,
             idToken,
