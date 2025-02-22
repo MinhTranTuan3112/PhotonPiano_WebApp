@@ -119,6 +119,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           {children}
           <ScrollRestoration />
+          {/*Deploy thì bật lại*/}
+          {/* <script src="https://cdn.jsdelivr.net/npm/disable-devtool@latest" {...{ "disable-devtool-auto": "" }}></script> */}
           <Scripts />
           <Toaster richColors={true} theme={"light"} />
         </QueryClientProvider>
