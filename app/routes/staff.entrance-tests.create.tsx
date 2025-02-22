@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ActionFunctionArgs } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { ActionFunctionArgs, redirect } from '@remix-run/node'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import { Button } from '~/components/ui/button'
 import { DatePickerInput } from '~/components/ui/date-picker-input'
@@ -14,7 +14,13 @@ import { Controller } from 'react-hook-form'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { Clock, MapPin, UserCog } from 'lucide-react'
 import Combobox from '~/components/ui/combobox'
-import RoomsCombobox from '~/components/room/rooms-combobox'
+import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
+import { requireAuth } from '~/lib/utils/auth'
+import { Role } from '~/lib/types/account/account'
+import GenericCombobox from '~/components/ui/generic-combobox'
+import { fetchRooms } from '~/lib/services/rooms'
+import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
+import { Room } from '~/lib/types/room/room'
 
 type Props = {}
 
@@ -30,6 +36,33 @@ const instructors = [
 ];
 
 const resolver = zodResolver(createEntranceTestSchema);
+
+export async function loader({ request }: ActionFunctionArgs) {
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        return { idToken };
+
+    } catch (error) {
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+    }
+
+}
 
 export async function action({ request }: ActionFunctionArgs) {
 
@@ -49,6 +82,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CreateEntranceTestPage({ }: Props) {
+
+    const { idToken } = useLoaderData<typeof loader>();
 
     const {
         handleSubmit,
@@ -137,7 +172,37 @@ export default function CreateEntranceTestPage({ }: Props) {
                         name='roomId'
                         control={control}
                         render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <RoomsCombobox value={value} onChange={onChange} />
+                            <GenericCombobox<Room>
+                                idToken={idToken}
+                                queryKey='rooms'
+                                fetcher={async (query) => {
+                                    const response = await fetchRooms(query);
+
+                                    const headers = response.headers;
+
+                                    const metadata: PaginationMetaData = {
+                                        page: parseInt(headers['x-page'] || '1'),
+                                        pageSize: parseInt(headers['x-page-size'] || '10'),
+                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                        totalCount: parseInt(headers['x-total-count'] || '0'),
+                                    };
+
+                                    return {
+                                        data: response.data,
+                                        metadata
+                                    };
+                                }}
+                                mapItem={(item) => ({
+                                    label: item?.name,
+                                    value: item?.id
+                                })}
+                                placeholder='Chọn phòng thi'
+                                emptyText='Không tìm thấy phòng thi.'
+                                errorText='Lỗi khi tải danh sách phòng thi.'
+                                value={value}
+                                onChange={onChange}
+                                maxItemsDisplay={10}
+                            />
                         )}
                     />
                     {errors.roomId && <p className='text-sm text-red-500'>{errors.roomId.message}</p>}

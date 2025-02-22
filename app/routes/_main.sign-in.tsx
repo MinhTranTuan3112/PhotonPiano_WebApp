@@ -13,7 +13,7 @@ import { PasswordInput } from '~/components/ui/password-input'
 import { toast } from 'sonner'
 import { fetchSignIn } from '~/lib/services/auth'
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime'
-import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
 import { isAxiosError } from 'axios'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { AuthResponse } from '~/lib/types/auth-response'
@@ -45,7 +45,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (response.status === 200) {
 
-            const { idToken, refreshToken, expiresIn, role }: AuthResponse = await response.data;
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
@@ -55,6 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await refreshTokenCookie.serialize(refreshToken));
             headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
             headers.append("Set-Cookie", await roleCookie.serialize(role));
+            headers.append("Set-Cookie", await accountIdCookie.serialize(localId));
 
             return redirect('/', { headers });
         }

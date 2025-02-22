@@ -1,37 +1,49 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { fetchRooms } from '~/lib/services/rooms'
 import { QueryPagedRequest } from '~/lib/types/query/query-paged-request'
-import { Skeleton } from '../ui/skeleton'
 import { useEffect, useState } from 'react'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../ui/command'
 import { ChevronsUpDown, Loader2 } from 'lucide-react'
-import { Room } from '~/lib/types/room/room'
+import { useDebounce } from '~/hooks/use-debounce'
+import { PagedResult } from '~/lib/types/query/paged-result'
 
-type Props = {
+type Props<T> = {
+    queryKey: string;
+    fetcher: (query: Partial<{ keyword: string } & QueryPagedRequest> & { idToken: string }) => Promise<PagedResult<T>>;
+    mapItem: (item: T) => { label: string; value: string };  // Mapping function
+    idToken: string;
     defaultValue?: string;
     onChange?: (value: string) => void;
     value?: string;
+    maxItemsDisplay?: number;
+    placeholder?: string;
+    errorText?: string;
+    emptyText?: string;
 }
 
-async function fetchRoomsData(query: Partial<{
-    keyword: string
-} & QueryPagedRequest>) {
-    const response = await fetchRooms(query);
+export default function GenericCombobox<T>({
+    queryKey,
+    fetcher,
+    mapItem,
+    idToken,
+    onChange, value: controlledValue, defaultValue, maxItemsDisplay = 10,
+    placeholder = 'Chọn',
+    errorText = 'Lỗi',
+    emptyText = 'Không có kết quả.'
+}: Props<T>) {
 
-    return await response.data;
-}
-
-export default function RoomsCombobox({ onChange, value: controlledValue, defaultValue }: Props) {
-
+    const [isPreloading, setIsPreloading] = useState(true);
     const [open, setOpen] = useState(false);
-    const [search, setSearch] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearchTerm = useDebounce(searchTerm, isPreloading ? 0 : 300);
     const [value, setValue] = useState('');
 
     useEffect(() => {
 
         setValue(defaultValue ? defaultValue : controlledValue || '');
+
+        setIsPreloading(false);
 
         return () => {
 
@@ -41,13 +53,14 @@ export default function RoomsCombobox({ onChange, value: controlledValue, defaul
 
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
         useInfiniteQuery({
-            queryKey: ['rooms', search],
+            queryKey: [queryKey, debouncedSearchTerm],
             queryFn: ({ pageParam = 1 }) =>
-                fetchRoomsData({ keyword: search, page: pageParam, pageSize: 5 }),
-            getNextPageParam: (lastPage) =>
-                lastPage.nextPage ? lastPage.nextPage : undefined,
+                fetcher({ keyword: debouncedSearchTerm, page: pageParam, pageSize: maxItemsDisplay, idToken: idToken || '' }),
+            getNextPageParam: (lastResult) =>
+                lastResult.metadata?.page < lastResult.metadata?.totalPages ? lastResult.metadata?.page + 1 : undefined,
             enabled: true, // Automatically fetch when the component is mounted
-            initialPageParam: 1
+            initialPageParam: 1,
+            refetchOnWindowFocus: false,
         });
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -58,17 +71,12 @@ export default function RoomsCombobox({ onChange, value: controlledValue, defaul
     };
 
     if (isError) {
-        return <div>Error</div>;
+        return <div>{errorText}</div>;
     }
 
-    const rooms: Room[] = data?.pages.flatMap(item => item) || [];
+    const fetchedData: T[] = data?.pages.flatMap(item => item.data) || [];
 
-    const items = rooms.map(item => {
-        return {
-            label: item.name,
-            value: item.id
-        }
-    }) || [];
+    const items = fetchedData.map(mapItem) || [];
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -81,16 +89,16 @@ export default function RoomsCombobox({ onChange, value: controlledValue, defaul
                 >
                     {(value && value != '')
                         ? items.find((item) => item.value === value)?.label
-                        : 'Chọn phòng thi'}
+                        : placeholder}
                     {isLoading ? <Loader2 className='animate-spin' /> : <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0 popover-content-width-full">
                 <Command defaultValue={defaultValue}>
                     <CommandInput
-                        placeholder="Nhập tên phòng..."
-                        value={search}
-                        onValueChange={(value) => setSearch(value)}
+                        placeholder={placeholder}
+                        value={searchTerm}
+                        onValueChange={(value) => setSearchTerm(value)}
                     />
                     <CommandList onScroll={handleScroll} >
                         {isLoading && (
@@ -100,12 +108,12 @@ export default function RoomsCombobox({ onChange, value: controlledValue, defaul
                         )}
                         {isError && (
                             <CommandItem>
-                                <span>Error loading rooms</span>
+                                <span>{errorText}</span>
                             </CommandItem>
                         )}
                         {items.length > 0 ? (
                             <CommandGroup>
-                                {items.map((item, index) => (
+                                {items.map((item) => (
                                     <CommandItem key={item.value} onSelect={() => {
                                         setValue(item.value);
                                         onChange?.(item.value);
@@ -121,7 +129,7 @@ export default function RoomsCombobox({ onChange, value: controlledValue, defaul
                                 )}
                             </CommandGroup>
                         ) : (
-                            <CommandEmpty>Không tìm thấy phòng.</CommandEmpty>
+                            <CommandEmpty>{emptyText}</CommandEmpty>
                         )}
                     </CommandList>
                 </Command>
