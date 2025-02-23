@@ -1,7 +1,7 @@
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useLoaderData } from '@remix-run/react';
+import { Await, useLoaderData, useNavigate } from '@remix-run/react';
 import { CalendarDays, Music2, PlusCircle } from 'lucide-react';
-import React, { Suspense } from 'react'
+import React, { Suspense, useState } from 'react'
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -12,7 +12,9 @@ import { Label } from '~/components/ui/label';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchClassDetail } from '~/lib/services/class';
+import { fetchSlotById } from '~/lib/services/scheduler';
 import { ClassDetail } from '~/lib/types/class/class-detail';
+import { SlotDetail } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 
@@ -27,6 +29,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   if (!params.id) {
     return redirect('/staff/classes')
   }
+
+  const { searchParams } = new URL(request.url);
+  const slotId = searchParams.get('slotId')
+
+  const slotPromise = slotId ? fetchSlotById(slotId, idToken).then((response) => {
+    const slot: SlotDetail = response.data;
+    return {
+      slot,
+    }
+  }) : null;
 
   const promise = fetchClassDetail(params.id).then((response) => {
 
@@ -60,6 +72,7 @@ const getLevelStyle = (level: number) => {
     default: return "text-black font-semibold";
   }
 };
+
 
 const getStatusStyle = (status: number) => {
   switch (status) {
@@ -146,6 +159,8 @@ function ClassStudentsList({ classInfo }: { classInfo: ClassDetail }) {
 }
 
 function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
+  const navigate = useNavigate()
+
   return (
     <Card>
       <CardHeader>
@@ -163,10 +178,10 @@ function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
           Tổng số buổi học :
           <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
         </div>
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
           {
             classInfo.slots.map((s, index) => (
-              <div className='hover:scale-105 transition-all flex flex-col'>
+              <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
                 <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
                   <div className='flex gap-2 justify-center'>
                     <Music2 /> Buổi {index + 1}

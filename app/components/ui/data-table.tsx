@@ -113,7 +113,11 @@ export function DataTable<TData, TValue>({
             onRowSelectionChange(table.getFilteredSelectedRowModel().rows);
         }
     }, [rowSelection])
-
+    console.log("Total Rows:", table.getRowModel().rows.length);
+    console.log("Page Size:", table.getState().pagination.pageSize);
+    console.log("Page Count:", table.getPageCount());
+    console.log("Can Next Page:", table.getCanNextPage());
+    
     return (
         <>
             <div className="flex flex-col items-end gap-5 py-4">
@@ -236,7 +240,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex - 1) : () => table.previousPage()}
-                        disabled={manualPagination ? page <= 1 : table.getCanPreviousPage()}
+                        disabled={manualPagination ? (page <= 1) : !table.getCanPreviousPage()}
                     >
                         <ChevronLeft />
                     </Button>
@@ -245,7 +249,7 @@ export function DataTable<TData, TValue>({
                         size="icon"
                         className="rounded-full"
                         onClick={manualPagination ? () => handlePageChange(table.getState().pagination.pageIndex + 1) : () => table.nextPage()}
-                        disabled={manualPagination ? page === totalPages : table.getCanNextPage()}
+                        disabled={manualPagination ? (page === totalPages) : !table.getCanNextPage()}
                     >
                         <ChevronRight />
                     </Button>

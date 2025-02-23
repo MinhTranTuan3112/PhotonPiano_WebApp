@@ -48,6 +48,7 @@ export type SlotStudentModel = {
     attendanceStatus: number;
     studentAccount: {
         userName: string | null;
+        fullName: string | null;
         email: string
         avatarUrl : string | null
     }

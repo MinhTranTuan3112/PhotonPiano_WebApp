@@ -20,6 +20,8 @@ type Props<T> = {
     placeholder?: string;
     errorText?: string;
     emptyText?: string;
+    className?: string;
+    prechosenItem?: T
 }
 
 export default function GenericCombobox<T>({
@@ -30,7 +32,9 @@ export default function GenericCombobox<T>({
     onChange, value: controlledValue, defaultValue, maxItemsDisplay = 10,
     placeholder = 'Chọn',
     errorText = 'Lỗi',
-    emptyText = 'Không có kết quả.'
+    emptyText = 'Không có kết quả.',
+    className,
+    prechosenItem
 }: Props<T>) {
 
     const [isPreloading, setIsPreloading] = useState(true);
@@ -38,6 +42,8 @@ export default function GenericCombobox<T>({
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, isPreloading ? 0 : 300);
     const [value, setValue] = useState('');
+    // Store prechosenItem only when the component first mounts
+    const [initialItems, setInitialItems] = useState<T[]>(prechosenItem ? [prechosenItem] : []);
 
     useEffect(() => {
 
@@ -74,7 +80,12 @@ export default function GenericCombobox<T>({
         return <div>{errorText}</div>;
     }
 
-    const fetchedData: T[] = data?.pages.flatMap(item => item.data) || [];
+    const fetchedData: T[] = [
+        ...initialItems,
+        ...(data?.pages
+            .flatMap(item => item.data)
+            .filter(item => mapItem(item).value !== mapItem(prechosenItem!).value) || [])
+    ];
 
     const items = fetchedData.map(mapItem) || [];
 
@@ -85,7 +96,7 @@ export default function GenericCombobox<T>({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className={'justify-between w-full'}
+                    className={`justify-between w-full ${className}`}
                 >
                     {(value && value != '')
                         ? items.find((item) => item.value === value)?.label
