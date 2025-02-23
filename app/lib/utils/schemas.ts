@@ -1,5 +1,6 @@
 import { addDays } from 'date-fns';
 import { z } from 'zod';
+import { ImageFile } from '~/hooks/use-images-dialog';
 
 export const signInSchema = z.object({
     email: z.string().email({ message: 'Email không hợp lệ' }).min(1, { message: 'Email không được để trống' }),
@@ -15,12 +16,31 @@ export const signUpSchema = z.object({
     path: ['confirmPassword']
 });
 
-export const accountInfoSchema = z.object({
-    email: z.string({ message: 'Email không được để trống.' }).email({ message: 'Email không hợp lệ.' }),
-    username: z.string({ message: 'Tên người dùng không được để trống.' }).min(1, { message: 'Tên người dùng không được để trống.' }),
-    phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }),
-    address: z.string({ message: 'Địa chỉ không được để trống.' }).min(1, { message: 'Địa chỉ không được để trống.' }),
-})
+export const accountInfoSchema = z
+    .object({
+        avatarUrl: z.string().optional(), // Optional URL for existing avatar
+        email: z
+            .string({ message: "Email không được để trống." })
+            .email({ message: "Email không hợp lệ." }),
+        fullName: z
+            .string({ message: "Họ và tên không được để trống." })
+            .min(1, { message: "Họ và tên không được để trống." }),
+        userName: z
+            .string({ message: "Tên người dùng không được để trống." })
+            .min(1, { message: "Tên người dùng không được để trống." }),
+        phone: z
+            .string({ message: "Số điện thoại không được để trống." })
+            .min(10, { message: "Số điện thoại không hợp lệ." }),
+        address: z
+            .string({ message: "Địa chỉ không được để trống." })
+            .min(1, { message: "Địa chỉ không được để trống." }),
+        shortDescription: z
+            .string({ message: "Vui lòng giới thiệu về bản thân." })
+            .min(1, { message: "Vui lòng giới thiệu về bản thân." }),
+        gender: z.coerce.number(),
+        dateOfBirth: z.coerce.date(),
+    });
+
 
 export const createEntranceTestSchema = z.object({
     name: z.string({ message: 'Tên đợt thi không được để trống.' }).min(1, { message: 'Tên đợt thi không được để trống.' }),
