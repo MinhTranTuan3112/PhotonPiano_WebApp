@@ -2,6 +2,8 @@ import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate } from '@remix-run/react';
 import { CalendarDays, Music2, PlusCircle } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
+import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
+import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
@@ -30,27 +32,18 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return redirect('/staff/classes')
   }
 
-  const { searchParams } = new URL(request.url);
-  const slotId = searchParams.get('slotId')
-
-  const slotPromise = slotId ? fetchSlotById(slotId, idToken).then((response) => {
-    const slot: SlotDetail = response.data;
-    return {
-      slot,
-    }
-  }) : null;
-
   const promise = fetchClassDetail(params.id).then((response) => {
 
     const classDetail: ClassDetail = response.data;
-
+    const slotsPerWeek = parseInt(response.headers['x-slots-per-week'] || '2')
+    const totalSlots = parseInt(response.headers['x-total-slots'] || '30')
     return {
-      classDetail,
+      classDetail,slotsPerWeek,totalSlots
     }
   });
 
   return {
-    promise,
+    promise, idToken
   }
 }
 const getSlotCover = (status: number) => {
@@ -158,8 +151,10 @@ function ClassStudentsList({ classInfo }: { classInfo: ClassDetail }) {
   )
 }
 
-function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
+function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { classInfo: ClassDetail, idToken: string, slotsPerWeek : number, totalSlots : number }) {
   const navigate = useNavigate()
+  const [isOpenAddSlotDialog, setIsOpenAddSlotDialog] = useState(false)
+  const [isOpenArrangeDialog, setIsOpenArrangeDialog] = useState(false)
 
   return (
     <Card>
@@ -170,10 +165,16 @@ function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className='flex justify-end gap-2'>
-          <Button variant={'outline'} disabled={classInfo.requiredSlots <= classInfo.slots.length}><PlusCircle className='mr-4' /> Thêm buổi học mới</Button>
+        <div className='flex place-content-between gap-2'>
+          <div className='flex flex-col lg:flex-row justify-end gap-2'>
+            <Button variant={'outline'} disabled={!(classInfo.requiredSlots <= classInfo.slots.length)} onClick={() => setIsOpenAddSlotDialog(true)}>
+              <PlusCircle className='mr-4' /> Thêm buổi học mới
+            </Button>
+            <Button disabled={!(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Xếp lịch tự động</Button>
+          </div>
           <Button Icon={CalendarDays} iconPlacement='left'>Xem dạng lịch</Button>
         </div>
+
         <div className='text-center text-xl mt-4'>
           Tổng số buổi học :
           <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
@@ -197,6 +198,9 @@ function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
             ))
           }
         </div>
+        <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} />
+        <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken} 
+          slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level}/>
       </CardContent>
     </Card>
   )
@@ -204,7 +208,7 @@ function ClassScheduleList({ classInfo }: { classInfo: ClassDetail }) {
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise } = useLoaderData<typeof loader>()
+  const { promise, idToken } = useLoaderData<typeof loader>()
 
   return (
     <div className='px-8'>
@@ -244,7 +248,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </Card>
                   </TabsContent>
                   <TabsContent value="timeTable">
-                    <ClassScheduleList classInfo={data.classDetail} />
+                    <ClassScheduleList classInfo={data.classDetail} idToken={idToken} slotsPerWeek={data.slotsPerWeek} totalSlots={data.totalSlots}/>
                   </TabsContent>
                 </Tabs>
               </div>
