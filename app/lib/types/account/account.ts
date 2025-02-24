@@ -26,7 +26,7 @@ export type SignUpRequest = {
 
 export type UpdateAccountRequest = {
 
-} & Partial<Pick<Account, 'userName' | 'email' | 'fullName' | 'phone' | 'address'
+} & Partial<Pick<Account, 'userName' | 'fullName' | 'phone' | 'address'
     | 'avatarUrl' | 'dateOfBirth' | 'gender' | 'shortDescription'>>;
 
 export enum Gender {

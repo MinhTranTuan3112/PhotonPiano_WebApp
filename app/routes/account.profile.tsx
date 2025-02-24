@@ -25,9 +25,6 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { requireAuth } from '~/lib/utils/auth'
 import { fetchCurrentAccountInfo } from '~/lib/services/auth'
 import { fetchUpdateAccountInfo } from '~/lib/services/account'
-import { TEST_IMAGE_GROUP_ID } from '~/lib/utils/constants'
-import { getImageUrl, uploadImageFile } from '~/lib/services/images'
-
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -320,7 +317,8 @@ function ProfileForm() {
                     {...register('email')}
                     startContent={<Mail />} name='email' type='text'
                     id='email'
-                    placeholder='Nhập email...' />
+                    placeholder='Nhập email...'
+                    readOnly />
                 <p className="text-sm text-muted-foreground mt-2">
                     <strong>Photon Piano</strong> sẽ sử dụng email này để liên lạc với bạn về vấn đề hỗ trợ đăng ký học ở trung tâm, lịch thi đầu vào
                     lịch học trung tâm và các thông báo khác.

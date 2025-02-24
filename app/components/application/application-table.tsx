@@ -4,7 +4,7 @@ import { Application, ApplicationStatus } from "~/lib/types/application/applicat
 import { Badge } from "../ui/badge";
 import { APPLICATION_STATUS, APPLICATION_TYPE } from "~/lib/utils/constants";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
-import { CircleX, Clock, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
+import { CircleX, Clock, Download, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
 import { Link, useFetcher } from "@remix-run/react";
 import { Button, buttonVariants } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -75,10 +75,11 @@ export const columns: ColumnDef<Application>[] = [
             </div>
         },
         cell: ({ row }) => {
-            return <div className="">
+            return <div className="text-center">
                 {row.original.fileUrl ? (
-                    <Link className={buttonVariants({ variant: "linkHover1" })} to={row.original.fileUrl}>
-                        Xem
+                    <Link className={` ${buttonVariants({ variant: "link" })}`} to={row.original.fileUrl}
+                        target="_blank" rel="noopener noreferrer">
+                        <Download />
                     </Link>
                 ) : (
                     <div className="">&#40;Không có&#41;</div>

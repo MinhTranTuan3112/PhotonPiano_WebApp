@@ -14,7 +14,7 @@ import "./tailwind.css";
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
-import { requireAuth } from "./lib/utils/auth";
+import { getAuth } from "./lib/utils/auth";
 import { fetchGoogleOAuthCallback } from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
@@ -50,7 +50,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const code = searchParams.get('code') as string;
 
     if (!code) {
-      const authData = await requireAuth(request);
+      const authData = await getAuth(request);
 
       const idToken = authData.idToken;
 

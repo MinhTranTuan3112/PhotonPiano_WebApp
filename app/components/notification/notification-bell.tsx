@@ -116,7 +116,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             queryKey: queryKey,
             queryFn: ({ pageParam = 1 }) =>
                 fetchNoti({
-                    page: pageParam, pageSize: 10, sortColumn: 'CreatedAt', orderByDesc: true, idToken: authData?.idToken || '',
+                    page: pageParam, pageSize: 5, sortColumn: 'CreatedAt', orderByDesc: true, idToken: authData?.idToken || '',
                     isViewed
                 }),
             getNextPageParam: (lastResult) =>
@@ -245,47 +245,48 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                     aria-orientation="horizontal"
                     className="-mx-1 my-1 h-px bg-border"
                 ></div>
-                {fetchedNotifications.length > 0 ? fetchedNotifications.map((notification) => (
-                    <div
-                        key={notification.id}
-                        className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
-                        onScroll={handleScroll}
-                    >
-                        <div className="relative flex items-start pe-3">
-                            <div className="flex-1 space-y-1">
-                                <button
-                                    className="text-left text-foreground/80 after:absolute after:inset-0"
-                                    onClick={() => handleNotificationClick(notification.id)}
-                                    type="button"
-                                >
-                                    <span className="font-medium text-foreground hover:underline">
-                                        {notification.content}
-                                    </span>
-                                    {/* <span className="font-medium text-foreground hover:underline">
-                                        {notification.user}
-                                    </span>{" "}
-                                    {notification.action}{" "}
-                                    <span className="font-medium text-foreground hover:underline">
-                                        {notification.target}
-                                    </span>
-                                    . */}
-                                </button>
-                                <div className="text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</div>
-                            </div>
-
-                            {notification.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false && (
-                                <div className="absolute end-0 self-center">
-                                    <span className="sr-only">Unread</span>
-                                    <Dot />
+                <div className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
+                    {fetchedNotifications.length > 0 ? fetchedNotifications.map((notification) => (
+                        <div
+                            key={notification.id}
+                            className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                            onScroll={handleScroll}
+                        >
+                            <div className="relative flex items-start pe-3">
+                                <div className="flex-1 space-y-1">
+                                    <button
+                                        className="text-left text-foreground/80 after:absolute after:inset-0"
+                                        onClick={() => handleNotificationClick(notification.id)}
+                                        type="button"
+                                    >
+                                        <span className="font-medium text-foreground hover:underline">
+                                            {notification.content}
+                                        </span>
+                                        {/* <span className="font-medium text-foreground hover:underline">
+                                            {notification.user}
+                                        </span>{" "}
+                                        {notification.action}{" "}
+                                        <span className="font-medium text-foreground hover:underline">
+                                            {notification.target}
+                                        </span>
+                                        . */}
+                                    </button>
+                                    <div className="text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</div>
                                 </div>
-                            )}
+                                {notification.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false && (
+                                    <div className="absolute end-0 self-center">
+                                        <span className="sr-only">Unread</span>
+                                        <Dot />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )) : (
-                    <div className="px-3 py-2 text-sm text-center text-muted-foreground">
-                        Không có thông báo mới
-                    </div>
-                )}
+                    )) : (
+                        <div className="px-3 py-2 text-sm text-center text-muted-foreground">
+                            Không có thông báo mới
+                        </div>
+                    )}
+                </div>
 
                 {isLoading || isFetchingNextPage && (
                     <Loader2 className="animate-spin" />

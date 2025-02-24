@@ -37,8 +37,8 @@ export const accountInfoSchema = z
         shortDescription: z
             .string({ message: "Vui lòng giới thiệu về bản thân." })
             .min(1, { message: "Vui lòng giới thiệu về bản thân." }),
-        gender: z.coerce.number(),
-        dateOfBirth: z.coerce.date(),
+        gender: z.coerce.number({ message: "Vui lòng chọn giới tính." }),
+        dateOfBirth: z.coerce.date({ message: "Vui lòng chọn ngày sinh." }),
     });
 
 

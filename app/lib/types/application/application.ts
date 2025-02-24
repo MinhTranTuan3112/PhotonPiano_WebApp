@@ -20,9 +20,9 @@ export type SendApplicationRequest = {
 export const sendApplicationSchema = z.object({
     type: z.coerce.number({ message: 'Vui lòng chọn loại đơn.' }),
     reason: z.string({ message: 'Vui lòng nhập lý do.' }).nonempty({ message: 'Vui lòng nhập lý do.' }),
-    file: z
-    .instanceof(File, { message: "file không hợp lệ" })
-    .optional() 
+    file: (z.unknown().transform(value => {
+        return value as File
+    })).optional()
 });
 
 export type SendApplicationFormData = z.infer<typeof sendApplicationSchema>;
