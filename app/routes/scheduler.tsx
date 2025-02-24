@@ -1,6 +1,6 @@
  import type React from "react"
 import { useEffect, useState } from "react"
-import { useLoaderData } from "@remix-run/react"
+import { useLoaderData, useNavigate } from "@remix-run/react"
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { getWeekRange } from "~/lib/utils/datetime"
 import {fetchAttendanceStatus, fetchSlotById, fetchSlots} from "~/lib/services/scheduler"
@@ -103,6 +103,8 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                      studentAttendanceModel.studentFirebaseId?.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
              )
              slot.attendanceStatus = rs?.attendanceStatus
+
+             console.log({slot});
          }
 
          return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
@@ -258,6 +260,8 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
          }
      }
 
+     const navigate = useNavigate();
+
      return (
          <div className="scheduler-page p-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
              <motion.div
@@ -267,9 +271,17 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                  className="max-w-7xl mx-auto"
              >
                  <div className="flex justify-between items-center mb-6">
+                     <button
+                         onClick={() => navigate('/')}
+                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                     >
+                         Quay lại
+                     </button>
+
                      <h1 className="title text-4xl font-bold text-center text-blue-800 flex items-center">
-                         <Piano className="mr-2" /> Piano Learning Center Timetable
+                         <Piano className="mr-2" /> Lịch học của Trung tâm học Piano
                      </h1>
+
                      <div className="current-user bg-gray-100 p-2 rounded shadow-md">
                          <p className="text-sm font-semibold">{currentAccount.email}</p>
                          <p className="text-xs text-gray-600">{currentAccount.fullName}</p>
@@ -277,7 +289,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                  </div>
                  <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
                      <div className="control flex flex-col mb-4 sm:mb-0">
-                         <span className="mb-1 font-semibold text-blue-700">Year:</span>
+                         <span className="mb-1 font-semibold text-blue-700">Năm:</span>
                          <Select value={year.toString()} onValueChange={handleYearChange}>
                              <SelectTrigger className="w-[180px]">
                                  <SelectValue placeholder="Select year" />
@@ -292,7 +304,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                          </Select>
                      </div>
                      <div className="control flex flex-col">
-                         <span className="mb-1 font-semibold text-blue-700">Week:</span>
+                         <span className="mb-1 font-semibold text-blue-700">Tuần:</span>
                          <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
                              <SelectTrigger className="w-[180px]">
                                  <SelectValue placeholder="Select week" />
@@ -309,7 +321,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                      </div>
                      {role === 4 && (
                          <Button variant="outline" onClick={() => setIsFilterModalOpen(true)}>
-                             <Filter className="mr-2 h-4 w-4" /> Filter Options
+                             <Filter className="mr-2 h-4 w-4" /> Bộ lọc
                          </Button>
                      )}
                  </div>
@@ -395,10 +407,11 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                                                              {slot.room?.name}
                                                          </div>
                                                          <div className="slot-class text-md">{slot.class?.name}</div>
+
                                                          <div className="slot-status text-sm mt-1 text-blue-500">
-                                                             {slot.attendanceStatus !== undefined
-                                                                 ? AttendanceStatus[slot.attendanceStatus]
-                                                                 : AttendanceStatus[AttendanceStatus.NotYet]}
+                                                             {role === 1 && slot.status !== undefined
+                                                                 ? AttendanceStatus[slot.attendanceStatus!]
+                                                                 : SlotStatus[slot.status]}
                                                          </div>
                                                      </motion.div>
                                                  ))
@@ -417,25 +430,25 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                  <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                      <DialogContent>
                          <DialogHeader>
-                             <DialogTitle>Slot Details</DialogTitle>
+                             <DialogTitle>Chi tiết tiết học</DialogTitle>
                          </DialogHeader>
                          {selectedSlot && (
                              <div className="p-6 bg-white rounded-lg">
                                  <div className="space-y-3">
                                      <p className="flex items-center">
-                                         <strong className="mr-2">Room:</strong>{" "}
+                                         <strong className="mr-2">Phòng:</strong>{" "}
                                          <span className="text-indigo-600">{selectedSlot.room?.name}</span>
                                      </p>
                                      <p className="flex items-center">
-                                         <strong className="mr-2">Class:</strong>{" "}
+                                         <strong className="mr-2">Lớp:</strong>{" "}
                                          <span className="text-green-600">{selectedSlot.class?.name}</span>
                                      </p>
                                      <p className="flex items-center">
-                                         <strong className="mr-2">Teacher name:</strong>{" "}
+                                         <strong className="mr-2">Tên giáo viên:</strong>{" "}
                                          <span className="text-green-600">{selectedSlot.class.instructorName}</span>
                                      </p>
                                      <p className="flex items-center">
-                                         <strong className="mr-2">Number of Students:</strong>{" "}
+                                         <strong className="mr-2">Sĩ số học sinh:</strong>{" "}
                                          <span className="text-orange-600">{selectedSlot.numberOfStudents}</span>
                                      </p>
 
