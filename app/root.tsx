@@ -14,12 +14,13 @@ import "./tailwind.css";
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
-import { requireAuth } from "./lib/utils/auth";
+import { getAuth } from "./lib/utils/auth";
 import { fetchGoogleOAuthCallback } from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
 import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuthProvider from "./lib/contexts/auth-context";
 
 export const meta: MetaFunction = () => {
   return [
@@ -50,9 +51,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const code = searchParams.get('code') as string;
 
     if (!code) {
-      const authData = await requireAuth(request);
+      const authData = await getAuth(request);
+
+      const idToken = authData.idToken;
+
       return {
-        role: authData.role
+        role: authData.role,
+        currentAccountFirebaseId: authData.accountId,
+        idToken
       };
     }
 
@@ -112,10 +118,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <QueryClientProvider client={queryClient}>
-          {children}
-          <ScrollRestoration />
-          <Scripts />
-          <Toaster richColors={true} theme={"light"} />
+          <AuthProvider>
+            {children}
+            <ScrollRestoration />
+            {/*Deploy thì bật lại*/}
+            {/* <script src="https://cdn.jsdelivr.net/npm/disable-devtool@latest" {...{ "disable-devtool-auto": "" }}></script> */}
+            <Scripts />
+            <Toaster richColors={true} theme={"light"} />
+          </AuthProvider>
         </QueryClientProvider>
       </body>
     </html>

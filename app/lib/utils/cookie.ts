@@ -27,6 +27,14 @@ export const roleCookie = createCookie("role", {
     secrets: [cookieSecret],
 });
 
+export const accountIdCookie = createCookie("accountId", {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60, // 1 hour
+    secrets: [cookieSecret],
+});
+
 export const expirationCookie = createCookie("idTokenExpiry", {
     secure: process.env.NODE_ENV === "production",
     path: "/",            // Ensures the cookie is accessible across the app

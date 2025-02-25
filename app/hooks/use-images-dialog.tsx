@@ -13,6 +13,7 @@ type Props = {
     maxImages?: number;
     defaultOpen?: boolean;
     onConfirm: (imageUrlsResult: string[]) => void;
+    onFilesUploaded?: (imageFiles: ImageFile[]) => void;
     onCancel?: () => void;
     cancelText?: string;
     confirmText?: string;
@@ -32,6 +33,7 @@ export function useImagesDialog({
     maxImages = 1, defaultOpen = false, onConfirm, onCancel,
     cancelText = 'Hủy', confirmText = 'Hoàn tất',
     cancelButtonClassname, confirmButtonClassname,
+    onFilesUploaded,
     requiresUpload = false }: Props) {
 
     const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -120,6 +122,7 @@ export function useImagesDialog({
         }
 
         onConfirm(imageUrls);
+        onFilesUploaded?.(imageFiles);
         
         toast.success('Upload ảnh thành công!', {
             duration: 1250

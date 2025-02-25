@@ -13,12 +13,17 @@ import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { action } from "~/routes/sign-out";
 import { LogOut } from "lucide-react";
 import NotificationBell from "../notification/notification-bell";
+import { useAuth } from "~/lib/contexts/auth-context";
+import { Skeleton } from "../ui/skeleton";
+
 
 type Props = {}
 
-export default function AccountDropdown({ }: Props) {
+export default function AccountDropdown({ accountFirebaseId }: { accountFirebaseId: string }) {
 
     const fetcher = useFetcher<typeof action>();
+
+    const { currentAccount } = useAuth();
 
     const isSubmitting = fetcher.state === 'submitting';
 
@@ -40,12 +45,14 @@ export default function AccountDropdown({ }: Props) {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Avatar className="cursor-pointer border-[3px] border-gray-300 border-solid ">
-                            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                            <AvatarFallback>CN</AvatarFallback>
+                            <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "https://github.com/shadcn.png"} alt="@shadcn" />
+                            <AvatarFallback>
+                                <Skeleton className="rounded-full" />
+                            </AvatarFallback>
                         </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                        <DropdownMenuLabel>Xin chào</DropdownMenuLabel>
+                        <DropdownMenuLabel>Xin chào, {currentAccount?.fullName || currentAccount?.userName}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem className="cursor-pointer">
@@ -56,12 +63,12 @@ export default function AccountDropdown({ }: Props) {
                         <DropdownMenuGroup>
                             <DropdownMenuItem onClick={() => handleOpenModal()} disabled={isSubmitting}
                                 className="cursor-pointer">
-                                <LogOut /> Đăng xuất
+                                <LogOut /> Đăng xuất    
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <NotificationBell />
+                <NotificationBell accountFirebaseId={accountFirebaseId} />
             </div>
             {confirmDialog}
         </>

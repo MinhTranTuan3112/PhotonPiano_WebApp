@@ -1,8 +1,12 @@
+import { LoaderFunctionArgs } from "@remix-run/node";
 import { Carousel } from "~/components/home/carousel";
 import { NewsSection } from "~/components/home/news";
 import { PianoPromo } from "~/components/home/promo";
 import { RegistrationSection } from "~/components/home/registration-section";
 import { FeatureSection } from "~/components/home/what-we-do";
+import { getAuth } from "~/lib/utils/auth";
+
+
 
 export default function Index() {
 

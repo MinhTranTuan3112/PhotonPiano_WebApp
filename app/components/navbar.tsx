@@ -59,7 +59,7 @@ export default function NavBar() {
     const [isOpen, setIsOpen] = React.useState(false);
 
     const [isScrolling, setIsScrolling] = React.useState(false);
-
+    
     const { pathname } = useLocation();
 
     React.useEffect(() => {
@@ -231,7 +231,7 @@ export default function NavBar() {
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
                         {confirmDialog} */}
-                        <AccountDropdown />
+                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} />
                     </>
                 )}
             </div>

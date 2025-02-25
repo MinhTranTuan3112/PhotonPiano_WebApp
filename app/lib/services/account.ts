@@ -1,4 +1,4 @@
-import { Level, Role, StudentStatus } from "../types/account/account";
+import { Level, Role, StudentStatus, UpdateAccountRequest } from "../types/account/account";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 
@@ -10,7 +10,7 @@ export async function fetchAccounts({
     Partial<QueryPagedRequest & {
         levels: Level[];
         roles: Role[];
-        q? : string;
+        q?: string;
         studentStatuses: StudentStatus[];
     }> & {
         idToken: string
@@ -19,8 +19,7 @@ export async function fetchAccounts({
 
     let url = `/accounts?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
-    if (q)
-    {
+    if (q) {
         url += `&q=${q}`
     }
 
@@ -43,6 +42,23 @@ export async function fetchAccounts({
     }
 
     const response = await axiosInstance.get(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchUpdateAccountInfo({
+    idToken,
+    request
+}: {
+    idToken: string;
+    request: UpdateAccountRequest
+}) {
+    
+    const response = await axiosInstance.put('/accounts', { ...request }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

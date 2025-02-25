@@ -2,7 +2,7 @@ import { ColumnDef, Row } from '@tanstack/react-table';
 import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
+import { ArrowUpDown, Loader2, MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
 import { DataTable } from '../ui/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import {
@@ -13,7 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Form, useFetcher } from '@remix-run/react';
+import { Form, useFetcher, useLoaderData } from '@remix-run/react';
 import { UpdateEntranceTestResultsFormData, updateEntranceTestResultsSchema } from '~/lib/types/entrance-test/entrance-test-result';
 import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +21,7 @@ import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { useState } from 'react';
-import { action } from '~/routes/staff.entrance-tests.$id';
+import { action, loader } from '~/routes/staff.entrance-tests.$id';
 import {
     Table,
     TableBody,
@@ -32,6 +32,11 @@ import {
     TableRow
 } from '../ui/table';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import { useQuery } from '@tanstack/react-query';
+import { fetchCriterias } from '~/lib/services/criteria';
+import { Criteria } from '~/lib/types/criteria/criteria';
+import { Skeleton } from '../ui/skeleton';
+import { ScrollArea } from '../ui/scroll-area';
 
 
 type Props = {
@@ -156,15 +161,33 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     setIsOpen: (isOpen: boolean) => void;
 }) {
 
+    const { idToken } = useLoaderData<typeof loader>();
+
     const fetcher = useFetcher<typeof action>();
 
     const isSubmitting = fetcher.state === 'submitting';
+
+    const { data, isLoading: isFetchingCriterias } = useQuery({
+        queryKey: ['criterias'],
+        queryFn: async () => {
+            const response = await fetchCriterias({
+                idToken
+            });
+
+            return await response.data;
+        }
+    });
+
+    const criterias: Criteria[] = data || [];
+
+    const results = entranceTestStudent.entranceTestResults;
 
     const { handleSubmit,
         formState: { errors },
         control,
         register,
-        getValues
+        getValues,
+        setValue
     } = useRemixForm<UpdateEntranceTestResultsFormData>({
         mode: 'onSubmit',
         resolver: zodResolver(updateEntranceTestResultsSchema),
@@ -173,10 +196,16 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             entranceTestStudentId: entranceTestStudent.id,
             bandScore: entranceTestStudent.bandScore,
             instructorComment: entranceTestStudent.instructorComment,
-            scores: entranceTestStudent.entranceTestResults.map(result => ({
+            scores: results.length > 0 ? results.map(result => ({
                 id: result.id,
                 criteriaId: result.criteriaId,
+                criteriaName: result.criteriaName,
                 score: result.score
+            })) : criterias.map(criteria => ({
+                id: '',
+                criteriaId: criteria.id,
+                criteriaName: criteria.name,
+                score: 0
             }))
         },
         fetcher
@@ -191,7 +220,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     });
 
     return <>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen} >
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Chi tiết kết quả thi đầu vào</DialogTitle>
@@ -225,27 +254,37 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                         {errors.bandScore && <div className="text-red-600">{errors.bandScore.message}</div>}
                     </div>
 
-                    <Table>
-                        <TableCaption>Chi tiết điểm số.</TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Tiêu chí đánh giá</TableHead>
-                                <TableHead>Điểm số</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {getValues().scores.length > 0 ? getValues().scores.map((result) => (
-                                <TableRow key={result.id}>
-                                    <TableCell>{result.criteriaName}</TableCell>
-                                    <TableCell className='font-bold'>{result.score}</TableCell>
+                    <ScrollArea className='h-[200px]'>
+                        <Table>
+                            <TableCaption>Chi tiết điểm số.</TableCaption>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Tiêu chí đánh giá</TableHead>
+                                    <TableHead>Điểm số</TableHead>
                                 </TableRow>
-                            )) : <TableRow>
-                                <TableCell colSpan={2} className="h-24 text-center">
-                                    Không có dữ liệu.
-                                </TableCell>
-                            </TableRow>}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {isFetchingCriterias ? <TableRow>
+                                    <TableCell colSpan={2}>
+                                        <Loader2 className='h-full w-full animate-spin' />
+                                    </TableCell>
+                                </TableRow> : getValues().scores.length > 0 ? getValues().scores.map((result) => (
+                                    <TableRow key={result.id} className='w-full'>
+                                        <TableCell>{result.criteriaName}</TableCell>
+                                        <TableCell className='font-bold'>{result.score}</TableCell>
+                                    </TableRow>
+                                )) : criterias.map((criteria, index) => (
+                                    <TableRow key={index} className='w-full'>
+                                        <TableCell>{criteria.name}</TableCell>
+                                        <TableCell className='font-bold'>0</TableCell>
+                                    </TableRow>
+                                ))}
+                                <TableRow >
+                                    <TableCell colSpan={2} className='font-bold'>Điểm trung bình: {entranceTestStudent.bandScore}</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
                     {errors.scores && <div className="text-red-600">{errors.scores.message}</div>}
 
                     <DialogFooter>
