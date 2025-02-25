@@ -16,6 +16,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-sm">
                     <img src="/app/lib/assets/images/message.png" alt="Messages" className="w-5 h-5" />
                 </div>
+                {/*Announcements */}
                 <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer shadow-sm relative">
                     <img src="/app/lib/assets/images/announcement.png" alt="Announcements" className="w-5 h-5" />
                     <div className="absolute -top-3 -right-3 w-5 h-5 flex items-center justify-center bg-purple-500 text-white rounded-full text-xs">

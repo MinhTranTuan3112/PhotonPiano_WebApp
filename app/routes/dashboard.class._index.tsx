@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Badge } from "~/components/ui/badge"
 import { Progress } from "~/components/ui/progress"
 import { Role } from "~/lib/types/account/account"
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 
 type Class = {
     id: string
@@ -49,8 +50,15 @@ export const loader: LoaderFunction = async ({ request }) => {
         });
         return json<LoaderData>({ classes: classesResponse.data })
     } catch (error) {
-        console.error("Error fetching teacher classes:", error)
-        return json<LoaderData>({ classes: [] })
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
     }
 }
 
