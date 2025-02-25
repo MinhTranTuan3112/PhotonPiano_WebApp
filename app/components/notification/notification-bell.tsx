@@ -13,6 +13,7 @@ import { NotificationDetails } from "~/lib/types/notification/notification";
 import { loader } from "~/root";
 import { action } from "~/routes/notification";
 import { toast } from "sonner";
+import { ScrollArea } from "../ui/scroll-area";
 import { timeAgo } from "~/lib/utils/datetime";
 
 
@@ -245,12 +246,11 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                     aria-orientation="horizontal"
                     className="-mx-1 my-1 h-px bg-border"
                 ></div>
-                <div className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
+                <ScrollArea className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
                     {fetchedNotifications.length > 0 ? fetchedNotifications.map((notification) => (
                         <div
                             key={notification.id}
                             className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
-                            onScroll={handleScroll}
                         >
                             <div className="relative flex items-start pe-3">
                                 <div className="flex-1 space-y-1">
@@ -286,7 +286,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                             Không có thông báo mới
                         </div>
                     )}
-                </div>
+                </ScrollArea>
 
                 {isLoading || isFetchingNextPage && (
                     <Loader2 className="animate-spin" />

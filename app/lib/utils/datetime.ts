@@ -1,12 +1,18 @@
-import { formatDistanceToNow, parseISO } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { formatDistanceToNow, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 export const getCurrentTimeInSeconds = (): number => Math.floor(Date.now() / 1000);
 
 export function timeAgo(rfc3339Date: string): string {
-    const date = parseISO(rfc3339Date); // Convert RFC 3339 to Date object
-    return formatDistanceToNow(date, { addSuffix: true, locale: vi }); // "3 minutes ago"
+    const date = parseISO(rfc3339Date);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 5) {
+        return "Bây giờ"; 
+    }
+
+    return formatDistanceToNowStrict(date, { addSuffix: true, locale: vi });
 }
 
 export function formatDateToRFC3339(date: Date | undefined): string {
