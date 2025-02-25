@@ -45,7 +45,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                 </DialogHeader>
                 <div>
                     <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>
-                        <TriangleAlert className='flex=grow' size={100}/>
+                        <TriangleAlert size={100}/>
                         <div>
                             Quá trình tự động xếp lịch có thể thất bại vì trùng lịch học. Nếu điều này xảy ra, vui lòng chọn phòng học, ca học hoặc tuần bắt đầu khác.
                         </div>

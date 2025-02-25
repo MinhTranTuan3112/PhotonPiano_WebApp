@@ -9,7 +9,8 @@ export type Class = {
     instructor? : Account,
     studentNumber : number,
     level : number,
-    status : number
+    status : number,
+    isPublic : boolean
 }
 const teacher = {
     accountFirebaseId : "abc",
@@ -33,7 +34,8 @@ export const sampleClasses : Class[] = [
         studentNumber : 10,
         status : 0,
         capacity : 12,
-        requiredSlots : 20
+        requiredSlots : 20,
+        isPublic : true
     },
     {
         name : "LEVEL2_1_012025",
@@ -44,7 +46,8 @@ export const sampleClasses : Class[] = [
         studentNumber : 8,
         status : 1,
         capacity : 12,
-        requiredSlots : 20
+        requiredSlots : 20,
+        isPublic : true
     },
     {
         name : "LEVEL3_1_012025",
@@ -55,7 +58,8 @@ export const sampleClasses : Class[] = [
         studentNumber : 9,
         status : 2,
         capacity : 12,
-        requiredSlots : 30
+        requiredSlots : 30,
+        isPublic : true
     },
     {
         name : "LEVEL4_1_012025",
@@ -65,7 +69,8 @@ export const sampleClasses : Class[] = [
         studentNumber : 10,
         status : 0,
         capacity : 12,
-        requiredSlots : 40
+        requiredSlots : 40,
+        isPublic : true
     },
     {
         name : "LEVEL5_1_012025",
@@ -75,6 +80,7 @@ export const sampleClasses : Class[] = [
         studentNumber : 10,
         status : 0,
         capacity : 12,
-        requiredSlots : 50
+        requiredSlots : 50,
+        isPublic : true
     }
 ]

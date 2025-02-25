@@ -2,7 +2,9 @@ import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
-    Calendar
+    Calendar,
+    Trash,
+    Shuffle
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -164,13 +166,13 @@ function ActionsDropdown({ table }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                    <Shuffle /> Chuyển lớp
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <BanIcon /> Vô hiệu hóa
+                    <Trash /> Xóa khỏi lớp
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        <ArrangeDialog isOpen={arrangeDialogProps.isOpen} setIsOpen={(openState) => {
-            setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
-        }} studentIds={arrangeDialogProps.studentIds} />
     </>
 }

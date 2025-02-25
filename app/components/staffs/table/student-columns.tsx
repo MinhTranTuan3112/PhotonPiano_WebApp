@@ -74,13 +74,13 @@ export const studentColumns: ColumnDef<Account>[] = [
         enableSorting: false,
         enableHiding: false,
     },
-    {
-        accessorKey: "Mã học viên",
-        header: "Mã học viên",
-        cell: ({ row }) => {
-            return <div>{row.original.accountFirebaseId}</div>
-        }
-    },
+    // {
+    //     accessorKey: "Mã học viên",
+    //     header: "Mã học viên",
+    //     cell: ({ row }) => {
+    //         return <div>{row.original.accountFirebaseId}</div>
+    //     }
+    // },
     {
         accessorKey: 'Tên',
         header: 'Tên học viên',

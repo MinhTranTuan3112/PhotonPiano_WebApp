@@ -1,8 +1,9 @@
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate } from '@remix-run/react';
-import { CalendarDays, Music2, PlusCircle } from 'lucide-react';
+import { CalendarDays, Music2, PlusCircle, TriangleAlert } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
+import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Badge } from '~/components/ui/badge';
@@ -13,9 +14,12 @@ import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail } from '~/lib/services/class';
 import { fetchSlotById } from '~/lib/services/scheduler';
+import { Account } from '~/lib/types/account/account';
 import { ClassDetail } from '~/lib/types/class/class-detail';
+import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { SlotDetail } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
@@ -37,10 +41,37 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     const classDetail: ClassDetail = response.data;
     const slotsPerWeek = parseInt(response.headers['x-slots-per-week'] || '2')
     const totalSlots = parseInt(response.headers['x-total-slots'] || '30')
+
+    const query = {
+      page: Number.parseInt(searchParams.get('page') || '1'),
+      pageSize: Number.parseInt(searchParams.get('size') || '10'),
+      sortColumn: searchParams.get('column') || 'Id',
+      orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+      studentStatuses: [2],
+      level: classDetail.level,
+      idToken
+    };
+    const studentPromise = fetchAccounts(query).then((response) => {
+
+      const students: Account[] = response.data;
+      const headers = response.headers
+      const metadata: PaginationMetaData = {
+        page: parseInt(headers['x-page'] || '1'),
+        pageSize: parseInt(headers['x-page-size'] || '10'),
+        totalPages: parseInt(headers['x-total-pages'] || '1'),
+        totalCount: parseInt(headers['x-total-count'] || '0'),
+      };
+      return {
+        students,metadata
+      }
+    });
     return {
-      classDetail,slotsPerWeek,totalSlots
+      classDetail, slotsPerWeek, totalSlots, studentPromise
     }
   });
+
+  const { searchParams } = new URL(request.url);
+
 
   return {
     promise, idToken
@@ -134,7 +165,9 @@ function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
   )
 }
 
-function ClassStudentsList({ classInfo }: { classInfo: ClassDetail }) {
+function ClassStudentsList({ classInfo, studentPromise }: { classInfo: ClassDetail, studentPromise : Promise<{ students : Account[], metadata : PaginationMetaData}> }) {
+  const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(false)
+
   return (
     <Card>
       <CardHeader>
@@ -144,14 +177,20 @@ function ClassStudentsList({ classInfo }: { classInfo: ClassDetail }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className='flex flex-col lg:flex-row gap-2'>
+          <Button variant={'outline'} disabled={!(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => setIsOpenAddStudentDialog(true)}>
+            <PlusCircle className='mr-4' /> Thêm học viên mới
+          </Button>
+        </div>
         <DataTable data={classInfo.studentClasses} columns={studentClassColumns}>
         </DataTable>
+        <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={setIsOpenAddStudentDialog} studentPromise={studentPromise}/>
       </CardContent>
     </Card>
   )
 }
 
-function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { classInfo: ClassDetail, idToken: string, slotsPerWeek : number, totalSlots : number }) {
+function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { classInfo: ClassDetail, idToken: string, slotsPerWeek: number, totalSlots: number }) {
   const navigate = useNavigate()
   const [isOpenAddSlotDialog, setIsOpenAddSlotDialog] = useState(false)
   const [isOpenArrangeDialog, setIsOpenArrangeDialog] = useState(false)
@@ -199,10 +238,37 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           }
         </div>
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} />
-        <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken} 
-          slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level}/>
+        <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
+          slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} />
       </CardContent>
     </Card>
+  )
+}
+
+function ClassScoreboard({ classInfo }: { classInfo: ClassDetail }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Bảng điểm</CardTitle>
+        <CardDescription>
+          Danh sách này hiển thị các cột điểm của từng học viên trong lớp
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {
+          classInfo.isPublic && (
+            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>
+              <TriangleAlert size={100} />
+              <div>
+                Bảng điểm của học viên sẽ được kích hoạt sau khi công bố lớp.
+              </div>
+            </div>
+          )
+        }
+
+      </CardContent>
+    </Card>
+
   )
 }
 
@@ -232,23 +298,13 @@ export default function StaffClassDetailPage({ }: Props) {
                     <ClassGeneralInformation classInfo={data.classDetail} />
                   </TabsContent>
                   <TabsContent value="students">
-                    <ClassStudentsList classInfo={data.classDetail} />
+                    <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise} />
                   </TabsContent>
                   <TabsContent value="scores">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Bảng điểm</CardTitle>
-                        <CardDescription>
-                          Danh sách này hiển thị các cột điểm của từng học viên trong lớp
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-
-                      </CardContent>
-                    </Card>
+                    <ClassScoreboard classInfo={data.classDetail} />
                   </TabsContent>
                   <TabsContent value="timeTable">
-                    <ClassScheduleList classInfo={data.classDetail} idToken={idToken} slotsPerWeek={data.slotsPerWeek} totalSlots={data.totalSlots}/>
+                    <ClassScheduleList classInfo={data.classDetail} idToken={idToken} slotsPerWeek={data.slotsPerWeek} totalSlots={data.totalSlots} />
                   </TabsContent>
                 </Tabs>
               </div>
