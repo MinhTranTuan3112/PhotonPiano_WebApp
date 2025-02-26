@@ -66,7 +66,7 @@ export async function fetchNotifications({
     if (isViewed) {
         url += `&view=${isViewed}`;
     }
-    
+
     const response = await axiosInstance.get(url, {
         headers: {
             Authorization: `Bearer ${idToken}`
@@ -84,6 +84,23 @@ export async function toggleNotificationStatus({
 }) {
 
     const response = await axiosInstance.put(`/notifications/${id}/view-status`, null, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchToggleBatchNotificationsStatus({
+    notificationIds,
+    idToken
+}: {
+    notificationIds: string[],
+    idToken: string
+}) {
+
+    const response = await axiosInstance.put(`/notifications/view-status`, { notificationIds }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

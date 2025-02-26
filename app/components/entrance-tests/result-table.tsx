@@ -33,8 +33,8 @@ import {
 } from '../ui/table';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCriterias } from '~/lib/services/criteria';
-import { Criteria } from '~/lib/types/criteria/criteria';
+import { fetchAllMinimalCriterias, fetchCriterias } from '~/lib/services/criteria';
+import { Criteria, MinimalCriterias } from '~/lib/types/criteria/criteria';
 import { Skeleton } from '../ui/skeleton';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -170,15 +170,16 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     const { data, isLoading: isFetchingCriterias } = useQuery({
         queryKey: ['criterias'],
         queryFn: async () => {
-            const response = await fetchCriterias({
+            const response = await fetchAllMinimalCriterias({
                 idToken
             });
 
             return await response.data;
-        }
+        },
+        refetchOnWindowFocus: false
     });
 
-    const criterias: Criteria[] = data || [];
+    const criterias: MinimalCriterias[] = data || [];
 
     const results = entranceTestStudent.entranceTestResults;
 
@@ -229,9 +230,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                         dựa trên nhiều tiêu chí khác nhau.
                     </DialogDescription>
                 </DialogHeader>
-                <Form method='POST' className='flex flex-col gap-3' onSubmit={(e) => {
-                    handleOpenModal();
-                }}>
+                <Form method='POST' className='flex flex-col gap-3' onSubmit={handleOpenModal}>
 
                     <div className="">
                         <div className="">

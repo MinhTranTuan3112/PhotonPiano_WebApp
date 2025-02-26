@@ -25,6 +25,7 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { requireAuth } from '~/lib/utils/auth'
 import { fetchCurrentAccountInfo } from '~/lib/services/auth'
 import { fetchUpdateAccountInfo } from '~/lib/services/account'
+import { useAuth } from '~/lib/contexts/auth-context'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -202,6 +203,8 @@ function ProfileForm() {
 
     const fetcher = useFetcher<typeof action>();
 
+    const { refetchAccountInfo } = useAuth();
+
     const {
         handleSubmit,
         formState: { errors },
@@ -246,6 +249,7 @@ function ProfileForm() {
                 position: 'top-center',
                 duration: 1250
             });
+            refetchAccountInfo();
             return;
         }
 

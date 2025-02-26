@@ -2,7 +2,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { Account } from "../types/account/account";
 import { loader } from "~/root";
 import { useRouteLoaderData } from "@remix-run/react";
-import { useQuery } from "@tanstack/react-query";
+import { QueryObserverResult, RefetchOptions, useQuery } from "@tanstack/react-query";
 import { fetchCurrentAccountInfo } from "../services/auth";
 
 type AuthProviderProps = {
@@ -11,6 +11,7 @@ type AuthProviderProps = {
 
 type AuthContextType = {
     currentAccount: Account | null;
+    refetchAccountInfo: (options?: RefetchOptions) => Promise<QueryObserverResult<Account | null, Error>>;
 };
 
 export const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -21,7 +22,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const [currentAccount, setCurrentAccount] = useState<Account | null>(null);
 
-    const { isLoading } = useQuery({
+    const { refetch: refetchAccountInfo } = useQuery({
 
         queryKey: ['account', authData?.idToken],
         queryFn: async () => {
@@ -54,7 +55,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     // }, [authData]);
 
 
-    const contextValue = useMemo(() => ({ currentAccount }), [currentAccount]);
+    const contextValue = useMemo(() => ({ currentAccount, refetchAccountInfo }), [currentAccount]);
 
     return (
         <AuthContext.Provider value={contextValue}>

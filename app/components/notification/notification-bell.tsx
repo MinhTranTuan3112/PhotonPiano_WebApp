@@ -15,6 +15,7 @@ import { action } from "~/routes/notification";
 import { toast } from "sonner";
 import { ScrollArea } from "../ui/scroll-area";
 import { timeAgo } from "~/lib/utils/datetime";
+import { useBatchUpdateNotifications } from "~/hooks/use-update-batch-notifications";
 
 
 const initialNotifications = [
@@ -127,11 +128,13 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             refetchOnWindowFocus: false,
         });
 
+
     const queryClient = useQueryClient();
 
     const fetchedNotifications: NotificationDetails[] = data?.pages.flatMap(item => item.data) || [];
 
-    const [notifications, setNotifications] = useState(fetchedNotifications);
+    const { mutate: markAllRead, isPending: isMarkingAllRead } = useBatchUpdateNotifications();
+    
     const unreadCount = fetchedNotifications.filter((n) => n.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false).length;
 
     useEffect(() => {
@@ -140,6 +143,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             return;
         }
 
+        // ]);
         console.log("accountFirebaseId", accountFirebaseId);
 
         const notificationService = new NotificationService(accountFirebaseId);
@@ -152,7 +156,6 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             // setNotifications((prevNotifications) => [
             //     { id: Date.now(), user: "System", action: "sent you a notification", target: notification.message, timestamp: "just now", unread: true },
             //     ...prevNotifications,
-            // ]);
         });
 
         return () => {
@@ -161,14 +164,15 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
 
     }, [accountFirebaseId]);
 
-    const handleMarkAllAsRead = useCallback(() => {
-        // setNotifications(
-        //     notifications.map((notification) => ({
-        //         ...notification,
-        //         unread: false,
-        //     })),
-        // );
-    }, [notifications]);
+    const handleMarkAllAsRead = useCallback((idToken: string, notificationIds: string[]) => {
+        markAllRead({ idToken, notificationIds }, {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey
+                });
+            }
+        });
+    }, []);
 
     const handleNotificationClick = useCallback((id: string) => {
 
@@ -223,7 +227,11 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                 <div className="flex items-baseline justify-between gap-4 px-3 py-2">
                     <div className="text-sm font-semibold">Thông báo</div>
                     {unreadCount > 0 && (
-                        <button type="button" className="text-xs font-medium hover:underline" onClick={handleMarkAllAsRead}
+                        <button type="button" className="text-xs font-medium hover:underline" onClick={() => {
+                            const notificationIds = fetchedNotifications.map(n => n.id);
+
+                            handleMarkAllAsRead(authData?.idToken || '', notificationIds);
+                        }}
                             disabled={fetcher.state === 'submitting' || isLoading || isFetchingNextPage}>
                             Đánh dấu tất cả đã đọc
                         </button>
