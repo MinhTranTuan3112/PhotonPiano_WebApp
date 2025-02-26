@@ -41,13 +41,15 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
 
     const {
         handleSubmit,
-        formState: { errors },
-        control,
+        formState: { errors, isValid },
+        control,    
         register,
+        getValues
     } = useRemixForm<SendApplicationFormData>({
         mode: 'onSubmit',
         resolver: zodResolver(sendApplicationSchema),
-        fetcher
+        fetcher,
+        stringifyAllValues: false
     });
 
     const isSubmitting = fetcher.state === 'submitting';
@@ -57,7 +59,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         description: 'Bạn có chắc chắn muốn gửi đơn này không?',
         onConfirm: handleSubmit,
         confirmText: 'Gửi đơn',
-    })
+    });
 
     useEffect(() => {
 
@@ -83,7 +85,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
                 <DialogContent>
-                    <Form method='POST' onSubmit={handleOpen} action='/account/applications' navigate={false}
+                    <Form method='POST' onSubmit={handleSubmit} action='/account/applications' navigate={false}
                         encType='multipart/form-data'>
                         <DialogHeader>
                             <DialogTitle>Gửi đơn mới</DialogTitle>
@@ -119,11 +121,11 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                             <Controller
                                 control={control}
                                 name='file'
-                                render={({ field: { onChange, onBlur, value, ref } }) => (
-                                    <FileUpload onChange={onChange} />
+                                render={({ field: { onChange: onFileChange, onBlur, value, ref } }) => (
+                                    <FileUpload onChange={onFileChange} />
                                 )}
                             />
-                            {errors.file && <p className="text-red-500">{errors.file.message}</p>}
+                            {errors.file && "message" in errors.file && <p className="text-red-500">{errors.file.message}</p>}
                         </div>
                         <DialogFooter>
                             <Button type="submit" Icon={Send} iconPlacement='left' isLoading={isSubmitting}

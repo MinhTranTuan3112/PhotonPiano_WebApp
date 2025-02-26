@@ -6,20 +6,33 @@ export type Account = {
     email: string;
     phone: string;
     address: string;
+    gender?: Gender;
+    dateOfBirth?: string;
     shortDescription?: string;
     avatarUrl?: string;
-    level?: number;
+    level?: Level;
     status: number;
     desiredLevel?: string;
     desiredTargets: string[];
     favoriteMusicGenres: string[];
     preferredLearningMethods: string[];
     studentStatus?: StudentStatus;
+    role: Role;
 };
 
 export type SignUpRequest = {
 
 } & Omit<Account, 'level' | 'status' | 'avatarUrl' | 'address' | 'username' | 'accountFirebaseId'>;
+
+export type UpdateAccountRequest = {
+
+} & Partial<Pick<Account, 'userName' | 'fullName' | 'phone' | 'address'
+    | 'avatarUrl' | 'dateOfBirth' | 'gender' | 'shortDescription'>>;
+
+export enum Gender {
+    Male,
+    Female
+}
 
 export enum Level {
     Beginner,
@@ -58,7 +71,8 @@ export const sampleStudents: Account[] = [
         level: 2,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "2",
@@ -71,7 +85,8 @@ export const sampleStudents: Account[] = [
         level: 0,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "3",
@@ -83,7 +98,8 @@ export const sampleStudents: Account[] = [
         status: 2,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "4",
@@ -95,7 +111,8 @@ export const sampleStudents: Account[] = [
         status: 1,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "5",
@@ -107,7 +124,8 @@ export const sampleStudents: Account[] = [
         status: 0,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "6",
@@ -120,7 +138,8 @@ export const sampleStudents: Account[] = [
         level: 3,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     },
     {
         accountFirebaseId: "7",
@@ -133,6 +152,7 @@ export const sampleStudents: Account[] = [
         level: 4,
         desiredTargets: [],
         favoriteMusicGenres: [],
-        preferredLearningMethods: []
+        preferredLearningMethods: [],
+        role: Role.Student
     }
 ]

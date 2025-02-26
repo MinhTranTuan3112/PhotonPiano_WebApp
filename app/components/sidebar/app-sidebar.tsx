@@ -44,15 +44,13 @@ const data = {
                 {
                     title: "Bài thi của tôi",
                     url: "/account/my-exams",
+                },
+                {
+                    title: "Lịch sử đơn từ",
+                    url: "/account/applications"
                 }
             ],
-        },
-        {
-            title: "Lịch sử đơn từ",
-            url: "/account/applications",
-            icon: FileClock,
-            isActive: true,
-        },
+        }
         // {
         //     title: "Luyện thi bằng lái",
         //     url: "",

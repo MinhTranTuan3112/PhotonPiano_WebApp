@@ -13,7 +13,9 @@ import { NotificationDetails } from "~/lib/types/notification/notification";
 import { loader } from "~/root";
 import { action } from "~/routes/notification";
 import { toast } from "sonner";
+import { ScrollArea } from "../ui/scroll-area";
 import { timeAgo } from "~/lib/utils/datetime";
+import { useBatchUpdateNotifications } from "~/hooks/use-update-batch-notifications";
 
 
 const initialNotifications = [
@@ -116,7 +118,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             queryKey: queryKey,
             queryFn: ({ pageParam = 1 }) =>
                 fetchNoti({
-                    page: pageParam, pageSize: 10, sortColumn: 'CreatedAt', orderByDesc: true, idToken: authData?.idToken || '',
+                    page: pageParam, pageSize: 5, sortColumn: 'CreatedAt', orderByDesc: true, idToken: authData?.idToken || '',
                     isViewed
                 }),
             getNextPageParam: (lastResult) =>
@@ -126,11 +128,13 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             refetchOnWindowFocus: false,
         });
 
+
     const queryClient = useQueryClient();
 
     const fetchedNotifications: NotificationDetails[] = data?.pages.flatMap(item => item.data) || [];
 
-    const [notifications, setNotifications] = useState(fetchedNotifications);
+    const { mutate: markAllRead, isPending: isMarkingAllRead } = useBatchUpdateNotifications();
+    
     const unreadCount = fetchedNotifications.filter((n) => n.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false).length;
 
     useEffect(() => {
@@ -139,6 +143,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             return;
         }
 
+        // ]);
         console.log("accountFirebaseId", accountFirebaseId);
 
         const notificationService = new NotificationService(accountFirebaseId);
@@ -151,7 +156,6 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             // setNotifications((prevNotifications) => [
             //     { id: Date.now(), user: "System", action: "sent you a notification", target: notification.message, timestamp: "just now", unread: true },
             //     ...prevNotifications,
-            // ]);
         });
 
         return () => {
@@ -160,14 +164,15 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
 
     }, [accountFirebaseId]);
 
-    const handleMarkAllAsRead = useCallback(() => {
-        // setNotifications(
-        //     notifications.map((notification) => ({
-        //         ...notification,
-        //         unread: false,
-        //     })),
-        // );
-    }, [notifications]);
+    const handleMarkAllAsRead = useCallback((idToken: string, notificationIds: string[]) => {
+        markAllRead({ idToken, notificationIds }, {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey
+                });
+            }
+        });
+    }, []);
 
     const handleNotificationClick = useCallback((id: string) => {
 
@@ -222,7 +227,11 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                 <div className="flex items-baseline justify-between gap-4 px-3 py-2">
                     <div className="text-sm font-semibold">Thông báo</div>
                     {unreadCount > 0 && (
-                        <button type="button" className="text-xs font-medium hover:underline" onClick={handleMarkAllAsRead}
+                        <button type="button" className="text-xs font-medium hover:underline" onClick={() => {
+                            const notificationIds = fetchedNotifications.map(n => n.id);
+
+                            handleMarkAllAsRead(authData?.idToken || '', notificationIds);
+                        }}
                             disabled={fetcher.state === 'submitting' || isLoading || isFetchingNextPage}>
                             Đánh dấu tất cả đã đọc
                         </button>
@@ -245,47 +254,47 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
                     aria-orientation="horizontal"
                     className="-mx-1 my-1 h-px bg-border"
                 ></div>
-                {fetchedNotifications.length > 0 ? fetchedNotifications.map((notification) => (
-                    <div
-                        key={notification.id}
-                        className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
-                        onScroll={handleScroll}
-                    >
-                        <div className="relative flex items-start pe-3">
-                            <div className="flex-1 space-y-1">
-                                <button
-                                    className="text-left text-foreground/80 after:absolute after:inset-0"
-                                    onClick={() => handleNotificationClick(notification.id)}
-                                    type="button"
-                                >
-                                    <span className="font-medium text-foreground hover:underline">
-                                        {notification.content}
-                                    </span>
-                                    {/* <span className="font-medium text-foreground hover:underline">
-                                        {notification.user}
-                                    </span>{" "}
-                                    {notification.action}{" "}
-                                    <span className="font-medium text-foreground hover:underline">
-                                        {notification.target}
-                                    </span>
-                                    . */}
-                                </button>
-                                <div className="text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</div>
-                            </div>
-
-                            {notification.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false && (
-                                <div className="absolute end-0 self-center">
-                                    <span className="sr-only">Unread</span>
-                                    <Dot />
+                <ScrollArea className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
+                    {fetchedNotifications.length > 0 ? fetchedNotifications.map((notification) => (
+                        <div
+                            key={notification.id}
+                            className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                        >
+                            <div className="relative flex items-start pe-3">
+                                <div className="flex-1 space-y-1">
+                                    <button
+                                        className="text-left text-foreground/80 after:absolute after:inset-0"
+                                        onClick={() => handleNotificationClick(notification.id)}
+                                        type="button"
+                                    >
+                                        <span className="font-medium text-foreground hover:underline">
+                                            {notification.content}
+                                        </span>
+                                        {/* <span className="font-medium text-foreground hover:underline">
+                                            {notification.user}
+                                        </span>{" "}
+                                        {notification.action}{" "}
+                                        <span className="font-medium text-foreground hover:underline">
+                                            {notification.target}
+                                        </span>
+                                        . */}
+                                    </button>
+                                    <div className="text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</div>
                                 </div>
-                            )}
+                                {notification.accountNotifications.find(an => an.accountFirebaseId == accountFirebaseId)?.isViewed === false && (
+                                    <div className="absolute end-0 self-center">
+                                        <span className="sr-only">Unread</span>
+                                        <Dot />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )) : (
-                    <div className="px-3 py-2 text-sm text-center text-muted-foreground">
-                        Không có thông báo mới
-                    </div>
-                )}
+                    )) : (
+                        <div className="px-3 py-2 text-sm text-center text-muted-foreground">
+                            Không có thông báo mới
+                        </div>
+                    )}
+                </ScrollArea>
 
                 {isLoading || isFetchingNextPage && (
                     <Loader2 className="animate-spin" />

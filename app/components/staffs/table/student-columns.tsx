@@ -35,7 +35,7 @@ const getLevelStyle = (level?: number) => {
     }
 };
 
-function LevelBadge({ level }: {
+export function LevelBadge({ level }: {
     level?: number
 }) {
     return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
@@ -43,7 +43,7 @@ function LevelBadge({ level }: {
     </Badge>
 }
 
-function StatusBadge({ status }: {
+export function StatusBadge({ status }: {
     status: number
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{STUDENT_STATUS[status]}</Badge>
