@@ -1,6 +1,6 @@
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { CalendarDays, Music2, PlusCircle, TriangleAlert } from 'lucide-react';
+import { CalendarDays, Music2, PlusCircle, Trash, TriangleAlert } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
@@ -37,35 +37,40 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   }
   const { searchParams } = new URL(request.url);
 
-  const query = {
-    page: Number.parseInt(searchParams.get('page-students') || '1'),
-    pageSize: Number.parseInt(searchParams.get('size-students') || '10'),
-    sortColumn: searchParams.get('column') || 'Id',
-    orderByDesc: searchParams.get('desc') === 'true' ? true : false,
-    studentStatuses: [StudentStatus.WaitingForClass],
-    idToken
-  };
-  const studentPromise = fetchAccounts(query).then((response) => {
-    const students: Account[] = response.data;
-    const headers = response.headers
-    const metadata: PaginationMetaData = {
-      page: parseInt(headers['x-page'] || '1'),
-      pageSize: parseInt(headers['x-page-size'] || '10'),
-      totalPages: parseInt(headers['x-total-pages'] || '1'),
-      totalCount: parseInt(headers['x-total-count'] || '0'),
-    };
-    return {
-      students, metadata
-    }
-  });
+
   const promise = fetchClassDetail(params.id).then((response) => {
 
     const classDetail: ClassDetail = response.data;
     const slotsPerWeek = parseInt(response.headers['x-slots-per-week'] || '2')
     const totalSlots = parseInt(response.headers['x-total-slots'] || '30')
+    const minimum = parseInt(response.headers['x-minimum'] || '8')
 
+    const query = {
+      page: Number.parseInt(searchParams.get('page-students') || '1'),
+      pageSize: Number.parseInt(searchParams.get('size-students') || '10'),
+      sortColumn: searchParams.get('column') || 'Id',
+      orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+      studentStatuses: [StudentStatus.WaitingForClass],
+      q: searchParams.get('q') || '',
+      levels: [classDetail.level],
+      idToken
+    };
+
+    const studentPromise = fetchAccounts(query).then((response) => {
+      const students: Account[] = response.data;
+      const headers = response.headers
+      const metadata: PaginationMetaData = {
+        page: parseInt(headers['x-page'] || '1'),
+        pageSize: parseInt(headers['x-page-size'] || '10'),
+        totalPages: parseInt(headers['x-total-pages'] || '1'),
+        totalCount: parseInt(headers['x-total-count'] || '0'),
+      };
+      return {
+        students, metadata
+      }
+    });
     return {
-      classDetail, slotsPerWeek, totalSlots
+      classDetail, slotsPerWeek, totalSlots, studentPromise, minimum
     }
   });
 
@@ -73,7 +78,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, studentPromise
+    promise, idToken, tab, isOpenStudentClassDialog
   }
 }
 const getSlotCover = (status: number) => {
@@ -88,7 +93,7 @@ const getSlotCover = (status: number) => {
 const getLevelStyle = (level: number) => {
   switch (level) {
     case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
-    case 1: return "text-[#FBDE00] bg-[#f5eba4] font-semibold";
+    case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
     case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
     case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
     case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
@@ -159,20 +164,29 @@ function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
             </div>
           </div>
         </div>
+        <div className='mt-12'>
+          <div className='flex flex-col justify-center'>
+            <div className='font-bold text-xl text-center'>Vùng Nguy Hiểm</div>
+            <div className='flex gap-2 justify-center mt-4'>
+              <Button Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
 }
 
-function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog }: {
+function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum }: {
   classInfo: ClassDetail,
   studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
-  isOpenStudentClassDialog: boolean
+  isOpenStudentClassDialog: boolean,
+  minimum : number
 }) {
   const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const onOpenChange = (isOpen : boolean) => {
+  const onOpenChange = (isOpen: boolean) => {
     setIsOpenAddStudentDialog(isOpen)
     setSearchParams({
       ...Object.fromEntries(searchParams.entries()),
@@ -190,6 +204,17 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </CardDescription>
       </CardHeader>
       <CardContent>
+      {
+          (minimum - classInfo.studentNumber > 0) && (
+            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
+              <TriangleAlert size={100} />
+              <div>
+                Lớp chưa đạt sĩ số học sinh như yêu cầu. Vui lòng thêm học viên để đạt điều kiện công bố lớp.<br></br>
+                Bạn cần thêm {minimum - classInfo.studentNumber} học viên nữa
+              </div>
+            </div>
+          )
+        }
         <div className='flex flex-col lg:flex-row gap-2'>
           <Button variant={'outline'} disabled={(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => onOpenChange(true)}>
             <PlusCircle className='mr-4' /> Thêm học viên mới
@@ -199,7 +224,8 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </DataTable>
         {
           (classInfo.capacity > classInfo.studentClasses.length) && (
-            <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise} />
+            <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
+              classInfo={classInfo} />
           )
         }
       </CardContent>
@@ -221,6 +247,18 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {
+          classInfo.requiredSlots - classInfo.totalSlots > 0 && (
+            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
+              <TriangleAlert size={100} />
+              <div>
+                Lớp chưa đạt số buổi học như yêu cầu. Vui lòng thêm các buổi học để thỏa mãn quy định trung tâm.<br></br>
+                Bạn cần thêm {classInfo.requiredSlots - classInfo.totalSlots} nữa
+              </div>
+            </div>
+          )
+        }
+
         <div className='flex place-content-between gap-2'>
           <div className='flex flex-col lg:flex-row justify-end gap-2'>
             <Button variant={'outline'} disabled={!(classInfo.requiredSlots <= classInfo.slots.length)} onClick={() => setIsOpenAddSlotDialog(true)}>
@@ -291,7 +329,7 @@ function ClassScoreboard({ classInfo }: { classInfo: ClassDetail }) {
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, studentPromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
@@ -305,8 +343,18 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
+                <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2  items-center'>
+                  <div className='flex gap-2 items-center'>
+                    <TriangleAlert size={64} />
+                    <div>
+                      Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
+                    </div>
+                  </div>
+                  <Button>CÔNG BỐ LỚP</Button>
+                </div>
+
                 <Tabs defaultValue={tab}>
-                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4">
                     <TabsTrigger value="general" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "general",
@@ -333,10 +381,11 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail} />
+                    <ClassGeneralInformation classInfo={data.classDetail}/>
                   </TabsContent>
                   <TabsContent value="students">
-                    <ClassStudentsList classInfo={data.classDetail} studentPromise={studentPromise} isOpenStudentClassDialog={isOpenStudentClassDialog} />
+                    <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise} 
+                      isOpenStudentClassDialog={isOpenStudentClassDialog}  minimum={data.minimum}/>
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} />
