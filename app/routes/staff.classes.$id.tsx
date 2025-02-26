@@ -1,5 +1,5 @@
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useLoaderData, useNavigate } from '@remix-run/react';
+import { Await, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { CalendarDays, Music2, PlusCircle, TriangleAlert } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail } from '~/lib/services/class';
 import { fetchSlotById } from '~/lib/services/scheduler';
-import { Account } from '~/lib/types/account/account';
+import { Account, Level, StudentStatus } from '~/lib/types/account/account';
 import { ClassDetail } from '~/lib/types/class/class-detail';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { SlotDetail } from '~/lib/types/Scheduler/slot';
@@ -35,46 +35,45 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   if (!params.id) {
     return redirect('/staff/classes')
   }
+  const { searchParams } = new URL(request.url);
 
+  const query = {
+    page: Number.parseInt(searchParams.get('page-students') || '1'),
+    pageSize: Number.parseInt(searchParams.get('size-students') || '10'),
+    sortColumn: searchParams.get('column') || 'Id',
+    orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+    studentStatuses: [StudentStatus.WaitingForClass],
+    idToken
+  };
+  const studentPromise = fetchAccounts(query).then((response) => {
+    const students: Account[] = response.data;
+    const headers = response.headers
+    const metadata: PaginationMetaData = {
+      page: parseInt(headers['x-page'] || '1'),
+      pageSize: parseInt(headers['x-page-size'] || '10'),
+      totalPages: parseInt(headers['x-total-pages'] || '1'),
+      totalCount: parseInt(headers['x-total-count'] || '0'),
+    };
+    return {
+      students, metadata
+    }
+  });
   const promise = fetchClassDetail(params.id).then((response) => {
 
     const classDetail: ClassDetail = response.data;
     const slotsPerWeek = parseInt(response.headers['x-slots-per-week'] || '2')
     const totalSlots = parseInt(response.headers['x-total-slots'] || '30')
 
-    const query = {
-      page: Number.parseInt(searchParams.get('page') || '1'),
-      pageSize: Number.parseInt(searchParams.get('size') || '10'),
-      sortColumn: searchParams.get('column') || 'Id',
-      orderByDesc: searchParams.get('desc') === 'true' ? true : false,
-      studentStatuses: [2],
-      level: classDetail.level,
-      idToken
-    };
-    const studentPromise = fetchAccounts(query).then((response) => {
-
-      const students: Account[] = response.data;
-      const headers = response.headers
-      const metadata: PaginationMetaData = {
-        page: parseInt(headers['x-page'] || '1'),
-        pageSize: parseInt(headers['x-page-size'] || '10'),
-        totalPages: parseInt(headers['x-total-pages'] || '1'),
-        totalCount: parseInt(headers['x-total-count'] || '0'),
-      };
-      return {
-        students,metadata
-      }
-    });
     return {
-      classDetail, slotsPerWeek, totalSlots, studentPromise
+      classDetail, slotsPerWeek, totalSlots
     }
   });
 
-  const { searchParams } = new URL(request.url);
-
+  const tab = (searchParams.get('tab') || 'general')
+  const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken
+    promise, idToken, tab, isOpenStudentClassDialog, studentPromise
   }
 }
 const getSlotCover = (status: number) => {
@@ -165,8 +164,22 @@ function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
   )
 }
 
-function ClassStudentsList({ classInfo, studentPromise }: { classInfo: ClassDetail, studentPromise : Promise<{ students : Account[], metadata : PaginationMetaData}> }) {
-  const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(false)
+function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog }: {
+  classInfo: ClassDetail,
+  studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
+  isOpenStudentClassDialog: boolean
+}) {
+  const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const onOpenChange = (isOpen : boolean) => {
+    setIsOpenAddStudentDialog(isOpen)
+    setSearchParams({
+      ...Object.fromEntries(searchParams.entries()),
+      studentClassDialog: isOpen ? "true" : "false",
+    })
+  }
+
 
   return (
     <Card>
@@ -178,13 +191,17 @@ function ClassStudentsList({ classInfo, studentPromise }: { classInfo: ClassDeta
       </CardHeader>
       <CardContent>
         <div className='flex flex-col lg:flex-row gap-2'>
-          <Button variant={'outline'} disabled={!(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => setIsOpenAddStudentDialog(true)}>
+          <Button variant={'outline'} disabled={(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => onOpenChange(true)}>
             <PlusCircle className='mr-4' /> Thêm học viên mới
           </Button>
         </div>
         <DataTable data={classInfo.studentClasses} columns={studentClassColumns}>
         </DataTable>
-        <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={setIsOpenAddStudentDialog} studentPromise={studentPromise}/>
+        {
+          (classInfo.capacity > classInfo.studentClasses.length) && (
+            <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise} />
+          )
+        }
       </CardContent>
     </Card>
   )
@@ -274,7 +291,8 @@ function ClassScoreboard({ classInfo }: { classInfo: ClassDetail }) {
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, studentPromise } = useLoaderData<typeof loader>()
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return (
     <div className='px-8'>
@@ -287,18 +305,38 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
-                <Tabs defaultValue="general">
+                <Tabs defaultValue={tab}>
                   <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    <TabsTrigger value="general" >Thông tin chung</TabsTrigger>
-                    <TabsTrigger value="students" >Danh sách học viên</TabsTrigger>
-                    <TabsTrigger value="scores" >Bảng điểm học viên</TabsTrigger>
-                    <TabsTrigger value="timeTable">Thời khóa biểu</TabsTrigger>
+                    <TabsTrigger value="general" onClick={() => setSearchParams({
+                      ...Object.fromEntries(searchParams.entries()),
+                      tab: "general",
+                    })}>
+                      Thông tin chung
+                    </TabsTrigger>
+                    <TabsTrigger value="students" onClick={() => setSearchParams({
+                      ...Object.fromEntries(searchParams.entries()),
+                      tab: "students",
+                    })}>
+                      Danh sách học viên
+                    </TabsTrigger>
+                    <TabsTrigger value="scores" onClick={() => setSearchParams({
+                      ...Object.fromEntries(searchParams.entries()),
+                      tab: "scores",
+                    })}>
+                      Bảng điểm học viên
+                    </TabsTrigger>
+                    <TabsTrigger value="timeTable" onClick={() => setSearchParams({
+                      ...Object.fromEntries(searchParams.entries()),
+                      tab: "timeTable",
+                    })}>
+                      Thời khóa biểu
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
                     <ClassGeneralInformation classInfo={data.classDetail} />
                   </TabsContent>
                   <TabsContent value="students">
-                    <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise} />
+                    <ClassStudentsList classInfo={data.classDetail} studentPromise={studentPromise} isOpenStudentClassDialog={isOpenStudentClassDialog} />
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} />
@@ -314,7 +352,7 @@ export default function StaffClassDetailPage({ }: Props) {
 
       </Suspense>
 
-    </div>
+    </div >
   )
 }
 

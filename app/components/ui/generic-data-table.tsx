@@ -11,7 +11,9 @@ type Props<T> = {
     enableRefresh?: boolean;
     extraHeaderContent?: React.ReactNode;
     metadata: PaginationMetaData;
-    resolvedData? : T[]
+    resolvedData? : T[],
+    pageParamName? : string,
+    sizeParamName? : string
 }
 
 export default function GenericDataTable<T>({ columns,
@@ -19,7 +21,9 @@ export default function GenericDataTable<T>({ columns,
     emptyText = 'Không có kết quả.',
     enableRefresh = true,
     resolvedData = [],
-    metadata
+    metadata,
+    pageParamName = 'page',
+    sizeParamName = 'size'
 }: Props<T>) {
 
     const { totalCount, totalPages } = metadata;
@@ -39,16 +43,18 @@ export default function GenericDataTable<T>({ columns,
             manualPagination={true}
             onPaginationChange={(newPage) => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                newSearchParams.set('page', newPage.toString());
+                newSearchParams.set(pageParamName, newPage.toString());
                 setSearchParams(newSearchParams);
             }}
             onPageSizeChange={(newPageSize) => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                newSearchParams.set('size', newPageSize.toString());
+                newSearchParams.set(sizeParamName, newPageSize.toString());
                 setSearchParams(newSearchParams);
             }}
             totalCount={totalCount}
             totalPages={totalPages}
+            pageParamName={pageParamName}
+            sizeParamName={sizeParamName}
             emptyContent={<div className='flex flex-col gap-5 justify-center items-center'>
                 <SearchX className="size-24" />
                 <p className="text-center text-xl">{emptyText}</p>

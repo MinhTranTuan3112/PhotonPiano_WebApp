@@ -1,16 +1,9 @@
+import { useState } from "react";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import {
-    MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
-    Calendar
-} from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
-import { Account, Level } from "~/lib/types/account/account";
+import { Mail, Music2 } from 'lucide-react';
+import { Account } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
-import { useState } from "react";
-import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
 
 const getLevelStyle = (level?: number) => {
     switch (level) {
@@ -23,67 +16,65 @@ const getLevelStyle = (level?: number) => {
     }
 };
 
-function LevelBadge({ level }: {
-    level?: number
-}) {
+function LevelBadge({ level }: { level?: number }) {
     return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
-        {level !== null ? `LEVEL ${(level || 0) + 1} - ${Level[level || 0]}` : 'Chưa xếp'}
-    </Badge>
+        {level !== null ? `LEVEL ${(level || 0) + 1}` : 'Chưa xếp'}
+    </Badge>;
 }
 
+export function useSelection(maxSelectionLimit?: number) {
+    const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
-export const studentSimpleColumns: ColumnDef<Account>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && "indeterminate")
+    const toggleRowSelection = (row: Row<Account>, isSelected: boolean) => {
+        setSelectedRowIds((prev) => {
+            if (isSelected) {
+                // Prevent selection if the limit is reached
+                if (maxSelectionLimit && prev.length >= maxSelectionLimit) {
+                    //alert(`Bạn chỉ có thể chọn tối đa ${maxSelectionLimit} dòng.`);
+                    return prev;
                 }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
-    // {
-    //     accessorKey: "Mã học viên",
-    //     header: "Mã học viên",
-    //     cell: ({ row }) => {
-    //         return <div>{row.original.accountFirebaseId}</div>
-    //     }
-    // },
-    {
-        accessorKey: 'Tên',
-        header: 'Tên học viên',
-        cell: ({ row }) => {
-            return <div>{row.original.fullName || row.original.userName}</div>
-        }
-    },
-    {
-        accessorKey: 'Email',
-        header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.email}</div>
-        }
-    },
-    {
-        accessorKey: 'Level',
-        header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
-        cell: ({ row }) => {
-            return <LevelBadge level={row.original.level} />
-        }
-    }
-]
+                return [...prev, row.original.accountFirebaseId]; // Add new selection
+            } else {
+                return prev.filter(id => id !== row.original.accountFirebaseId); // Remove selection
+            }
+        });
+    };
 
+    return { selectedRowIds, toggleRowSelection };
+}
+
+export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: {
+    selectedRowIds: string[];
+    toggleRowSelection: (row: Row<Account>, isSelected: boolean) => void;
+}): ColumnDef<Account>[] {
+    return [
+        {
+            id: "select",
+            cell: ({ row }) => (
+                <Checkbox
+                    variant={'theme'}
+                    checked={selectedRowIds.includes(row.original.accountFirebaseId)}
+                    onCheckedChange={(value) => toggleRowSelection(row, !!value)}
+                    aria-label="Chọn dòng"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+        {
+            accessorKey: 'Tên',
+            header: 'Tên học viên',
+            cell: ({ row }) => <div>{row.original.fullName || row.original.userName}</div>
+        },
+        {
+            accessorKey: 'Email',
+            header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
+            cell: ({ row }) => <div>{row.original.email}</div>
+        },
+        {
+            accessorKey: 'Level',
+            header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
+            cell: ({ row }) => <LevelBadge level={row.original.level} />
+        }
+    ];
+}
