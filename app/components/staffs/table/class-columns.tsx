@@ -1,6 +1,6 @@
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2, UsersRound } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2, UsersRound, Check, CheckCircle } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -73,14 +73,16 @@ export const classColums: ColumnDef<Class>[] = [
         accessorKey: 'Level',
         header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
         cell: ({ row }) => {
-            return row.original.level >= 0 && <LevelBadge level={row.original.level}/>
+            return row.original.level >= 0 && <LevelBadge level={row.original.level} />
         }
     },
     {
         accessorKey: 'Số buổi học',
         header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Số buổi học</div>,
         cell: ({ row }) => {
-            return <div>{row.original.totalSlots} / {row.original.requiredSlots}</div>
+            return <div className={(row.original.totalSlots > row.original.requiredSlots) ? "text-red-500" : ""}>
+                {row.original.totalSlots} / {row.original.requiredSlots}
+                </div>
         }
     },
     {
@@ -101,7 +103,20 @@ export const classColums: ColumnDef<Class>[] = [
         accessorKey: 'Trạng thái',
         header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.status}/>
+            return <StatusBadge status={row.original.status} />
+        }
+    },
+    {
+        accessorKey: 'Công bố',
+        header: () => <div className="flex flex-row gap-1 items-center">Công bố</div>,
+        cell: ({ row }) => {
+            return (
+                row.original.isPublic && (
+                    <div className="text-green-400 flex justify-center">
+                        <CheckCircle />
+                    </div>
+                )
+            )
         }
     },
     {

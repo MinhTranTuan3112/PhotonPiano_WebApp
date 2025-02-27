@@ -1,6 +1,7 @@
+import { Select } from '@radix-ui/react-select';
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { CalendarDays, Music2, PlusCircle, Trash, TriangleAlert } from 'lucide-react';
+import { CalendarDays, CheckIcon, Edit2Icon, Music2, PlusCircle, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
@@ -10,14 +11,16 @@ import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
+import GenericCombobox from '~/components/ui/generic-combobox';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
+import { SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail } from '~/lib/services/class';
 import { fetchSlotById } from '~/lib/services/scheduler';
-import { Account, Level, StudentStatus } from '~/lib/types/account/account';
+import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ClassDetail } from '~/lib/types/class/class-detail';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { SlotDetail } from '~/lib/types/Scheduler/slot';
@@ -122,7 +125,10 @@ function StatusBadge({ status }: {
   return <div className={`${getStatusStyle(status)} uppercase w-5/6 text-center my-1 p-2 rounded-lg`}>{CLASS_STATUS[status]}</div>
 }
 
-function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
+function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetail, idToken: string }) {
+  const [isEdit, setIsEdit] = useState(false)
+  const [selectedInstructorId, setSelectedInstructorId] = useState(classInfo.instructor?.accountFirebaseId)
+
   return (
     <Card>
       <CardHeader>
@@ -132,15 +138,76 @@ function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className='flex justify-end gap-2 mb-8'>
+          {
+            isEdit ? (
+              <>
+                <Button className='bg-green-500 hover:bg-green-300'><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
+                <Button className='bg-red-400 hover:bg-red-200' onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
+              </>
+            ) : (
+              <Button variant={'theme'} onClick={() => setIsEdit(true)}><Edit2Icon className='mr-4' /> Chỉnh sửa lớp</Button>
+            )
+          }
+        </div>
         <div className="grid grid-cols-2 gap-4 text-sm text-gray-800">
           <div className="bg-gray-100 p-3 rounded-lg">
             <span className="font-medium text-gray-700">📌 Tên lớp:</span>
-            <p className="text-gray-900">{classInfo.name}</p>
+            {
+              isEdit ? (
+                <div >
+                  <Input placeholder='Tên lớp' name='className' defaultValue={classInfo.name} />
+                </div>
+              ) : (
+                <p className="text-gray-900">{classInfo.name}</p>
+              )
+            }
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
             <span className="font-medium text-gray-700">👨‍🏫 Giáo viên:</span>
             <p className="text-gray-900">
-              {classInfo.instructor ? classInfo.instructor.fullName : "Chưa có"}
+              {
+                isEdit ? (
+                  <div>
+                    <GenericCombobox<Account>
+                      className=''
+                      idToken={idToken}
+                      queryKey='teachers'
+                      fetcher={async (query) => {
+                        const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
+
+                        const headers = response.headers;
+
+                        const metadata: PaginationMetaData = {
+                          page: parseInt(headers['x-page'] || '1'),
+                          pageSize: parseInt(headers['x-page-size'] || '10'),
+                          totalPages: parseInt(headers['x-total-pages'] || '1'),
+                          totalCount: parseInt(headers['x-total-count'] || '0'),
+                        };
+                        const data = response.data as Account[]
+                        return {
+                          data: data,
+                          metadata
+                        };
+                      }}
+                      mapItem={(item) => ({
+                        label: item?.fullName || item?.userName,
+                        value: item?.accountFirebaseId
+                      })}
+                      prechosenItem={classInfo.instructor}
+                      placeholder='Chọn giảng viên'
+                      emptyText='Không tìm thấy dữ liệu.'
+                      errorText='Lỗi khi tải danh sách giảng viên.'
+                      value={selectedInstructorId ?? undefined}
+                      onChange={setSelectedInstructorId}
+                      maxItemsDisplay={10}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-gray-900">{classInfo.instructor ? classInfo.instructor.fullName : "Chưa có"}</p>
+                )
+              }
+
             </p>
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
@@ -153,9 +220,31 @@ function ClassGeneralInformation({ classInfo }: { classInfo: ClassDetail }) {
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
             <span className="font-medium text-gray-700">🔢 Cấp độ:</span>
-            <div className='flex justify-center'>
-              <LevelBadge level={classInfo.level} />
-            </div>
+            {
+              isEdit ? (
+                <div >
+                  <Select defaultValue={classInfo.level.toString()} >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Chọn level" />
+                    </SelectTrigger>
+                    <SelectGroup>
+                      <SelectContent>
+                        {
+                          LEVEL.map((level, index) => (
+                            <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </SelectGroup>
+                  </Select>
+                </div>
+              ) : (
+                <div className='flex justify-center'>
+                  <LevelBadge level={classInfo.level} />
+                </div>
+              )
+            }
+
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
             <span className="font-medium text-gray-700">📊 Trạng thái:</span>
@@ -181,7 +270,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
   classInfo: ClassDetail,
   studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
   isOpenStudentClassDialog: boolean,
-  minimum : number
+  minimum: number
 }) {
   const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
   const [searchParams, setSearchParams] = useSearchParams();
@@ -204,7 +293,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </CardDescription>
       </CardHeader>
       <CardContent>
-      {
+        {
           (minimum - classInfo.studentNumber > 0) && (
             <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
               <TriangleAlert size={100} />
@@ -381,11 +470,11 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail}/>
+                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} />
                   </TabsContent>
                   <TabsContent value="students">
-                    <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise} 
-                      isOpenStudentClassDialog={isOpenStudentClassDialog}  minimum={data.minimum}/>
+                    <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
+                      isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.minimum} />
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} />

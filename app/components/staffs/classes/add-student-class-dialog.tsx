@@ -74,7 +74,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             <Button Icon={Search} iconPlacement='left'>Tìm kiếm</Button>
                         </div>
                     </Form>
-                    <div className='max-h-[30rem] overflow-y-auto mt-2'>
+                    <div className='max-h-[28rem] overflow-y-auto mt-2'>
                         <Suspense fallback={<LoadingDialog />}>
                             <Await resolve={studentPromise}>
                                 {(data) => (
@@ -90,7 +90,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             </Await>
                         </Suspense>
                     </div>
-                    <div className='flex gap-2 items-center italic'>
+                    <div className='flex gap-2 items-center italic mt-2'>
                         <Checkbox></Checkbox> Phân bổ ngẫu nhiên để đủ sĩ số
                     </div>
                     <div className='flex gap-2 mt-2 '>
