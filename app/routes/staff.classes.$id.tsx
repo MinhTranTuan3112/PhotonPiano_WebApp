@@ -44,9 +44,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const promise = fetchClassDetail(params.id).then((response) => {
 
     const classDetail: ClassDetail = response.data;
-    const slotsPerWeek = parseInt(response.headers['x-slots-per-week'] || '2')
-    const totalSlots = parseInt(response.headers['x-total-slots'] || '30')
-    const minimum = parseInt(response.headers['x-minimum'] || '8')
 
     const query = {
       page: Number.parseInt(searchParams.get('page-students') || '1'),
@@ -73,7 +70,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       }
     });
     return {
-      classDetail, slotsPerWeek, totalSlots, studentPromise, minimum
+      classDetail, studentPromise
     }
   });
 
@@ -152,7 +149,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm text-gray-800">
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">📌 Tên lớp:</span>
+            <span className="font-medium text-gray-700">Tên lớp:</span>
             {
               isEdit ? (
                 <div >
@@ -164,7 +161,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
             }
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">👨‍🏫 Giáo viên:</span>
+            <span className="font-medium text-gray-700">Giáo viên:</span>
             <p className="text-gray-900">
               {
                 isEdit ? (
@@ -211,15 +208,15 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
             </p>
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">🎯 Tổng số buổi học:</span>
+            <span className="font-medium text-gray-700">Tổng số buổi học:</span>
             <p className="text-gray-900">{classInfo.slots.length} / {classInfo.requiredSlots}</p>
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">🧑‍🎓 Số học viên:</span>
+            <span className="font-medium text-gray-700">Số học viên:</span>
             <p className="text-gray-900">{classInfo.studentNumber} / {classInfo.capacity}</p>
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">🔢 Cấp độ:</span>
+            <span className="font-medium text-gray-700">Cấp độ:</span>
             {
               isEdit ? (
                 <div >
@@ -247,7 +244,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
 
           </div>
           <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">📊 Trạng thái:</span>
+            <span className="font-medium text-gray-700">Trạng thái:</span>
             <div className='flex justify-center'>
               <StatusBadge status={classInfo.status} />
             </div>
@@ -373,7 +370,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
                 </div>
                 <div className='px-2 py-4 rounded-b-lg shadow-md'>
                   <div className='flex flex-col gap-2'>
-                    <div><span className='font-bold'>Ca : </span><span className='ml-2'>{s.shift} ({SHIFT_TIME[s.shift]})</span></div>
+                    <div><span className='font-bold'>Ca : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
                     <div><span className='font-bold'>Ngày : </span><span className='ml-2'>{s.date}</span></div>
                   </div>
                 </div>
@@ -474,13 +471,13 @@ export default function StaffClassDetailPage({ }: Props) {
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
-                      isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.minimum} />
+                      isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.classDetail.minimumStudents} />
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} />
                   </TabsContent>
                   <TabsContent value="timeTable">
-                    <ClassScheduleList classInfo={data.classDetail} idToken={idToken} slotsPerWeek={data.slotsPerWeek} totalSlots={data.totalSlots} />
+                    <ClassScheduleList classInfo={data.classDetail} idToken={idToken} slotsPerWeek={data.classDetail.slotsPerWeek} totalSlots={data.classDetail.totalSlots} />
                   </TabsContent>
                 </Tabs>
               </div>
