@@ -1,6 +1,6 @@
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2 } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2, UsersRound } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -19,11 +19,11 @@ const getStatusStyle = (status: number) => {
 
 const getLevelStyle = (level: number) => {
     switch (level) {
-        case 0: return "text-blue-500 font-semibold";
-        case 1: return "text-pink-500 font-semibold";
-        case 2: return "text-red-500 font-semibold";
-        case 3: return "text-black font-semibold";
-        case 4: return "text-gray-400 font-semibold";
+        case 0: return "text-[#92D808] font-semibold";
+        case 1: return "text-[#FBDE00] font-semibold";
+        case 2: return "text-[#FBA000] font-semibold";
+        case 3: return "text-[#fc4e03] font-semibold";
+        case 4: return "text-[#ff0000] font-semibold";
         default: return "text-black font-semibold";
     }
 };
@@ -87,7 +87,7 @@ export const classColums: ColumnDef<Class>[] = [
         accessorKey: 'Giảng viên',
         header: () => <div className="flex flex-row gap-1 items-center"><User /> Giảng viên</div>,
         cell: ({ row }) => {
-            return <div>{row.original.instructor?.username ?? "(Chưa có GV)"}</div>
+            return <div>{row.original.instructor?.userName ?? "(Chưa có GV)"}</div>
         }
     },
     {
@@ -119,8 +119,8 @@ export const classColums: ColumnDef<Class>[] = [
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
-                            <User /> Xem thông tin
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
+                            <UsersRound /> Xem thông tin lớp
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
                             <BanIcon /> Vô hiệu hóa

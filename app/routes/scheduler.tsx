@@ -104,7 +104,6 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
              )
              slot.attendanceStatus = rs?.attendanceStatus
 
-             console.log({slot});
          }
 
          return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
@@ -115,7 +114,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
  }
 
  const SchedulerPage: React.FC = () => {
-     const {
+   const {
          slots: initialSlots,
          startDate: initialStartDate,
          endDate: initialEndDate,

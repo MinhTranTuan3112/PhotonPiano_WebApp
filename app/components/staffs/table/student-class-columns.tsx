@@ -2,7 +2,9 @@ import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
-    Calendar
+    Calendar,
+    Trash,
+    Shuffle
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -11,6 +13,8 @@ import { Badge } from "~/components/ui/badge";
 import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
 import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
+import { StudentClassWithStudent } from "~/lib/types/class/student-class";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -26,16 +30,16 @@ const getStatusStyle = (status: number) => {
 
 const getLevelStyle = (level?: number) => {
     switch (level) {
-        case 0: return "text-blue-500 font-semibold";
-        case 1: return "text-pink-500 font-semibold";
-        case 2: return "text-red-500 font-semibold";
-        case 3: return "text-green-500 font-semibold";
-        case 4: return "text-red-400 font-semibold";
+        case 0: return "text-[#92D808] font-semibold";
+        case 1: return "text-[#FBDE00] font-semibold";
+        case 2: return "text-[#FBA000] font-semibold";
+        case 3: return "text-[#fc4e03] font-semibold";
+        case 4: return "text-[#ff0000] font-semibold";
         default: return "text-black font-semibold";
     }
 };
 
-export function LevelBadge({ level }: {
+function LevelBadge({ level }: {
     level?: number
 }) {
     return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
@@ -43,37 +47,37 @@ export function LevelBadge({ level }: {
     </Badge>
 }
 
-export function StatusBadge({ status }: {
+function StatusBadge({ status }: {
     status: number
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{STUDENT_STATUS[status]}</Badge>
 }
 
-export const studentColumns: ColumnDef<Account>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && "indeterminate")
-                }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                variant={'theme'}
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
+export const studentClassColumns: ColumnDef<StudentClassWithStudent>[] = [
+    // {
+    //     id: "select",
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             variant={'theme'}
+    //             checked={
+    //                 table.getIsAllPageRowsSelected() ||
+    //                 (table.getIsSomePageRowsSelected() && "indeterminate")
+    //             }
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label="Chọn tất cả"
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox
+    //             variant={'theme'}
+    //             checked={row.getIsSelected()}
+    //             onCheckedChange={(value) => row.toggleSelected(!!value)}
+    //             aria-label="Chọn dòng"
+    //         />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    // },
     // {
     //     accessorKey: "Mã học viên",
     //     header: "Mã học viên",
@@ -85,35 +89,45 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Tên',
         header: 'Tên học viên',
         cell: ({ row }) => {
-            return <div>{row.original.fullName || row.original.userName}</div>
+            return <div>{row.original.student.fullName || row.original.student.userName}</div>
+        }
+    },
+    {
+        accessorKey: 'Ảnh',
+        header: 'Tên học viên',
+        cell: ({ row }) => {
+            return <Avatar  className="w-16 h-16" >
+            <AvatarImage src={row.original.student.avatarUrl} alt="avatar"/>
+            <AvatarFallback>Avatar</AvatarFallback>
+          </Avatar>
         }
     },
     {
         accessorKey: 'Email',
         header: () => <div className="flex flex-row gap-1 items-center"><Mail /> Email</div>,
         cell: ({ row }) => {
-            return <div>{row.original.email}</div>
+            return <div>{row.original.student.email}</div>
         }
     },
     {
         accessorKey: 'SĐT',
         header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
         cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
+            return <div>{row.original.student.phone}</div>
         }
     },
-    {
-        accessorKey: 'Level',
-        header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
-        cell: ({ row }) => {
-            return <LevelBadge level={row.original.level} />
-        }
-    },
+    // {
+    //     accessorKey: 'Level',
+    //     header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
+    //     cell: ({ row }) => {
+    //         return <LevelBadge level={row.original.level} />
+    //     }
+    // },
     {
         accessorKey: 'Trạng thái',
         header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.studentStatus || 0} />
+            return <StatusBadge status={row.original.student.studentStatus || 0} />
         }
     },
     {
@@ -127,7 +141,7 @@ export const studentColumns: ColumnDef<Account>[] = [
 
 
 function ActionsDropdown({ table }: {
-    table: Table<Account>
+    table: Table<StudentClassWithStudent>
 }) {
 
     const [arrangeDialogProps, setArrangeDialogProps] = useState<{
@@ -152,24 +166,13 @@ function ActionsDropdown({ table }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" disabled={table.getSelectedRowModel().rows.length === 0}
-                    onClick={() => {
-                        const selectedRows = table.getSelectedRowModel().rows;
-
-                        const studentIds = selectedRows.map((row) => row.original.accountFirebaseId);
-
-                        console.log({ studentIds });
-                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, studentIds });
-                    }}>
-                    <Calendar /> Xếp lịch thi
+                <DropdownMenuItem className="cursor-pointer">
+                    <Shuffle /> Chuyển lớp
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <BanIcon /> Vô hiệu hóa
+                    <Trash /> Xóa khỏi lớp
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        <ArrangeDialog isOpen={arrangeDialogProps.isOpen} setIsOpen={(openState) => {
-            setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
-        }} studentIds={arrangeDialogProps.studentIds} />
     </>
 }

@@ -102,6 +102,12 @@ interface MultiSelectProps
      * Optional, can be used to add custom styles.
      */
     className?: string;
+
+    /**
+     * Maximum number of items to be selected.
+     * Optional
+     */
+    maxItems?: number;
 }
 
 export const MultiSelect = React.forwardRef<
@@ -117,6 +123,7 @@ export const MultiSelect = React.forwardRef<
             placeholder = "Select options",
             animation = 0,
             maxCount = 3,
+            maxItems = null,
             modalPopover = false,
             asChild = false,
             className,
@@ -143,11 +150,18 @@ export const MultiSelect = React.forwardRef<
         };
 
         const toggleOption = (option: string) => {
-            const newSelectedValues = selectedValues.includes(option)
-                ? selectedValues.filter((value) => value !== option)
-                : [...selectedValues, option];
-            setSelectedValues(newSelectedValues);
-            onValueChange(newSelectedValues);
+            if (selectedValues.includes(option)) {
+                const newSelectedValues = selectedValues.filter((value) => value !== option);
+                setSelectedValues(newSelectedValues);
+                onValueChange(newSelectedValues);
+            } else {
+                // Prevent selecting beyond maxCount
+                if ((maxItems && selectedValues.length < maxItems) || !maxItems) {
+                    const newSelectedValues = [...selectedValues, option];
+                    setSelectedValues(newSelectedValues);
+                    onValueChange(newSelectedValues);
+                }
+            }
         };
 
         const handleClear = () => {
