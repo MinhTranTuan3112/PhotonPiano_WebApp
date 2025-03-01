@@ -20,8 +20,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { useState } from 'react';
-import { action, loader } from '~/routes/staff.entrance-tests.$id';
+import { useEffect, useState } from 'react';
+import { loader } from '~/routes/staff.entrance-tests.$id';
 import {
     Table,
     TableBody,
@@ -33,11 +33,13 @@ import {
 } from '../ui/table';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { useQuery } from '@tanstack/react-query';
-import { fetchAllMinimalCriterias, fetchCriterias } from '~/lib/services/criteria';
-import { Criteria, MinimalCriterias } from '~/lib/types/criteria/criteria';
-import { Skeleton } from '../ui/skeleton';
+import { fetchAllMinimalCriterias } from '~/lib/services/criteria';
+import { MinimalCriteria } from '~/lib/types/criteria/criteria';
+import { Level, Role } from '~/lib/types/account/account';
 import { ScrollArea } from '../ui/scroll-area';
-
+import { action } from '~/routes/update-entrance-test-results';
+import { LevelBadge } from '../staffs/table/student-columns';
+import { toast } from 'sonner';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -118,6 +120,7 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
 ]
 
 export default function ResultTable({ data }: Props) {
+
     return (
         <DataTable columns={resultTableColumns} data={data} />
     );
@@ -139,10 +142,10 @@ function ActionDropdown({ row }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+                <DropdownMenuItem className="cursor-pointer">
                     <User /> Xem thông tin
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
                     <Pencil /> Chỉnh sửa điểm số
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer">
@@ -161,14 +164,14 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     setIsOpen: (isOpen: boolean) => void;
 }) {
 
-    const { idToken } = useLoaderData<typeof loader>();
+    const { idToken, role } = useLoaderData<typeof loader>();
 
     const fetcher = useFetcher<typeof action>();
 
     const isSubmitting = fetcher.state === 'submitting';
 
     const { data, isLoading: isFetchingCriterias } = useQuery({
-        queryKey: ['criterias'],
+        queryKey: ['criterias', idToken],
         queryFn: async () => {
             const response = await fetchAllMinimalCriterias({
                 idToken
@@ -176,12 +179,13 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
             return await response.data;
         },
+        enabled: true,
         refetchOnWindowFocus: false
     });
 
-    const criterias: MinimalCriterias[] = data || [];
-
     const results = entranceTestStudent.entranceTestResults;
+
+    const criterias: MinimalCriteria[] = data || [];
 
     const { handleSubmit,
         formState: { errors },
@@ -193,23 +197,31 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         mode: 'onSubmit',
         resolver: zodResolver(updateEntranceTestResultsSchema),
         defaultValues: {
-            target: 'result',
+            id: entranceTestStudent.entranceTestId,
+            studentId: entranceTestStudent.studentFirebaseId,
             entranceTestStudentId: entranceTestStudent.id,
             bandScore: entranceTestStudent.bandScore,
             instructorComment: entranceTestStudent.instructorComment,
-            scores: results.length > 0 ? results.map(result => ({
+            theoraticalScore: entranceTestStudent.theoraticalScore,
+            scores: results.length > 0 || isFetchingCriterias ? results.map(result => ({
                 id: result.id,
                 criteriaId: result.criteriaId,
                 criteriaName: result.criteriaName,
+                weight: result.weight,
                 score: result.score
             })) : criterias.map(criteria => ({
-                id: '',
+                id: criteria.id,
                 criteriaId: criteria.id,
                 criteriaName: criteria.name,
-                score: 0
+                score: 0,
+                weight: criteria.weight
             }))
         },
-        fetcher
+        fetcher,
+        submitConfig: {
+            action: '/update-entrance-test-results'
+        },
+        stringifyAllValues: false
     });
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
@@ -220,46 +232,82 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         }
     });
 
+    // Update scores value when criterias are fetched successfully
+    useEffect(() => {
+        if (criterias.length > 0 && !isFetchingCriterias && results.length === 0) {
+            setValue('scores', criterias.map(criteria => ({
+                id: criteria.id,
+                criteriaId: criteria.id,
+                criteriaName: criteria.name,
+                score: 0,
+                weight: criteria.weight
+            })));
+        }
+    }, [criterias, isFetchingCriterias, setValue]);
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Cập nhật kết quả ca thi thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data?.error) {
+            toast.error(fetcher.data?.error, {
+                position: 'top-center',
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+
+    const practicalScore = getValues().scores.reduce((acc, result) => result.score * result.weight + acc, 0);
+
     return <>
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Chi tiết kết quả thi đầu vào</DialogTitle>
                     <DialogDescription>
-                        Thông tin chi tiết về kết quả thi đầu vào của học viên {entranceTestStudent.fullName}
-                        dựa trên nhiều tiêu chí khác nhau.
+                        Thông tin chi tiết về kết quả thi đầu vào của học viên <strong>{entranceTestStudent.fullName}</strong>.
                     </DialogDescription>
                 </DialogHeader>
-                <Form method='POST' className='flex flex-col gap-3' onSubmit={handleOpenModal}>
-
-                    <div className="">
+                <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
+                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' onSubmit={handleOpenModal} navigate={false}>
                         <div className="">
-                            <Label htmlFor='instructorComment'>Nhận xét của giảng viên</Label>
-                            <Textarea {...register('instructorComment')}
-                                id='instructorComment'
-                                placeholder='Nhập nhận xét của giảng viên...' />
+                            <div className="">
+                                <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét của giảng viên:</Label>
+                                {role === Role.Instructor ? <Textarea {...register('instructorComment')}
+                                    id='instructorComment'
+                                    placeholder='Nhập nhận xét của giảng viên...'
+                                    readOnly={role !== Role.Instructor} /> : <p>{entranceTestStudent.instructorComment}</p>}
+                            </div>
+                            {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
                         </div>
-                        {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
-                    </div>
-
-                    <div className="">
                         <div className="">
-                            <Label htmlFor='bandScore'>Điểm tổng</Label>
-                            <Input {...register('bandScore')}
-                                type='number'
-                                id='bandScore'
-                                placeholder='Nhập điểm tổng...' />
+                            <div className="">
+                                <Label htmlFor='theoraticalScore'>Điểm lý thuyết</Label>
+                                <Input {...register('theoraticalScore')}
+                                    type='number'
+                                    id='theoraticalScore'
+                                    placeholder='Nhập điểm lý thuyết...'
+                                    readOnly={role !== Role.Staff}
+                                    step={'any'} />
+                            </div>
+                            {errors.theoraticalScore && <div className="text-red-600">{errors.theoraticalScore.message}</div>}
                         </div>
-                        {errors.bandScore && <div className="text-red-600">{errors.bandScore.message}</div>}
-                    </div>
-
-                    <ScrollArea className='h-[200px]'>
                         <Table>
                             <TableCaption>Chi tiết điểm số.</TableCaption>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tiêu chí đánh giá</TableHead>
                                     <TableHead>Điểm số</TableHead>
+                                    <TableHead>Trọng số</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -267,33 +315,45 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     <TableCell colSpan={2}>
                                         <Loader2 className='h-full w-full animate-spin' />
                                     </TableCell>
-                                </TableRow> : getValues().scores.length > 0 ? getValues().scores.map((result) => (
+                                </TableRow> : getValues().scores.map((result, index) => (
                                     <TableRow key={result.id} className='w-full'>
                                         <TableCell>{result.criteriaName}</TableCell>
-                                        <TableCell className='font-bold'>{result.score}</TableCell>
-                                    </TableRow>
-                                )) : criterias.map((criteria, index) => (
-                                    <TableRow key={index} className='w-full'>
-                                        <TableCell>{criteria.name}</TableCell>
-                                        <TableCell className='font-bold'>0</TableCell>
+                                        <TableCell className='font-bold text-center'>
+                                            {role === Role.Instructor ? <Input defaultValue={0} type='number'
+                                                onChange={(e) => {
+                                                    const newScore = Number.parseInt(e.target.value);
+                                                    setValue(`scores.${index}.score`, newScore);
+                                                }}
+                                                readOnly={role !== Role.Instructor} /> : result.score}
+                                        </TableCell>
+                                        <TableCell className='text-center'>{result.weight * 100}%</TableCell>
                                     </TableRow>
                                 ))}
-                                <TableRow >
-                                    <TableCell colSpan={2} className='font-bold'>Điểm trung bình: {entranceTestStudent.bandScore}</TableCell>
+                                <TableRow>
+                                    <TableCell className='font-bold'>Điểm thực hành:</TableCell>
+                                    <TableCell colSpan={2} className='font-bold text-center'>{practicalScore}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className='font-bold text-red-600'>Điểm trung bình tổng:</TableCell>
+                                    <TableCell colSpan={2} className='font-bold text-center text-red-600'>{entranceTestStudent.bandScore || 'Chưa có'}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className='font-bold'>Level được xếp:</TableCell>
+                                    <TableCell colSpan={2}>
+                                        <LevelBadge level={entranceTestStudent.level} />
+                                    </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
-                    </ScrollArea>
-                    {errors.scores && <div className="text-red-600">{errors.scores.message}</div>}
-
-                    <DialogFooter>
-                        <Button type="submit" isLoading={isSubmitting}
-                            disabled={isSubmitting}>
-                            {isSubmitting ? 'Đang lưu...' : 'Lưu'}
-                        </Button>
-                    </DialogFooter>
-
-                </Form>
+                        {errors.scores && <div className="text-red-600">{errors.scores.message}</div>}
+                        <DialogFooter>
+                            <Button type="submit" isLoading={isSubmitting}
+                                disabled={isSubmitting}>
+                                {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                            </Button>
+                        </DialogFooter>
+                    </Form>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
         {confirmDialog}

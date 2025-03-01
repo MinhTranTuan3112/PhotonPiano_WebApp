@@ -76,7 +76,7 @@ const smapleEntranceTest: EntranceTestStudentDetail = {
     }
   ],
   bandScore: 7.5,
-  rank: 4,
+  level: 4,
   instructorComment: "Em thể hiện rất tốt tuy nhiên âm nhạc của em còn cứng quá! Em cần luyện tập thêm nhấn nhá các nốt và thả hồn mình vào bản nhạc!",
 }
 
@@ -239,7 +239,7 @@ export default function ExamDetail({ }: Props) {
                           </div>
                           <div className='font-bold text-lg'>
                             <span>Xếp hạng trình độ : </span>
-                            <span className='text-blue-500'>{entranceTestStudent.rank} ({LEVEL[(entranceTestStudent.rank ?? 1) - 1]})</span>
+                            <span className='text-blue-500'>{entranceTestStudent.level} ({LEVEL[(entranceTestStudent.level ?? 1) - 1]})</span>
                           </div>
                           <div className='mt-4 flex justify-start w-full'>
                             <span className='font-bold  '>Nhận xét của giảng viên chấm :

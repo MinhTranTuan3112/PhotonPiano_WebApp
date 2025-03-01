@@ -29,8 +29,8 @@ const getLevelStyle = (level?: number) => {
         case 0: return "text-blue-500 font-semibold";
         case 1: return "text-pink-500 font-semibold";
         case 2: return "text-red-500 font-semibold";
-        case 3: return "text-black font-semibold";
-        case 4: return "text-gray-400 font-semibold";
+        case 3: return "text-green-500 font-semibold";
+        case 4: return "text-red-400 font-semibold";
         default: return "text-black font-semibold";
     }
 };

@@ -8,7 +8,7 @@ export const ENTRANCE_TEST_STATUSES = ["Sắp bắt đầu", "Đang diễn ra", 
 
 export const LEVEL = ["Người mới học","Nghiệp dư","Trung cấp","Cao cấp","Bậc thầy"];
 
-export const STUDENT_STATUS = ["Chưa đăng ký","Thi đầu vào","Chờ xếp lớp","Đang học","Bị thôi học","Đã rời"];
+export const STUDENT_STATUS = ["Chưa đăng ký", "Chờ thi đầu vào","Thi đầu vào","Chờ xếp lớp","Đang học","Bị thôi học","Đã rời"];
 
 export const CLASS_STATUS = ["Sắp bắt đầu","Đang diễn ra","Đã kết thúc","Vô hiệu hóa"];
 
