@@ -201,7 +201,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             studentId: entranceTestStudent.studentFirebaseId,
             entranceTestStudentId: entranceTestStudent.id,
             bandScore: entranceTestStudent.bandScore,
-            instructorComment: entranceTestStudent.instructorComment,
+            instructorComment: entranceTestStudent.instructorComment || '(Chưa có)',
             theoraticalScore: entranceTestStudent.theoraticalScore,
             scores: results.length > 0 || isFetchingCriterias ? results.map(result => ({
                 id: result.id,
