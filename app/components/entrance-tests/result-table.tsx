@@ -40,6 +40,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
 import { LevelBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
+import { Controller } from 'react-hook-form';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -203,19 +204,13 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             bandScore: entranceTestStudent.bandScore,
             instructorComment: entranceTestStudent.instructorComment || '(Chưa có)',
             theoraticalScore: entranceTestStudent.theoraticalScore,
-            scores: results.length > 0 || isFetchingCriterias ? results.map(result => ({
+            scores: results.length > 0 ? results.map(result => ({
                 id: result.id,
                 criteriaId: result.criteriaId,
                 criteriaName: result.criteriaName,
                 weight: result.weight,
                 score: result.score
-            })) : criterias.map(criteria => ({
-                id: criteria.id,
-                criteriaId: criteria.id,
-                criteriaName: criteria.name,
-                score: 0,
-                weight: criteria.weight
-            }))
+            })) : []
         },
         fetcher,
         submitConfig: {
@@ -278,7 +273,11 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
-                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' onSubmit={handleOpenModal} navigate={false}>
+                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' onSubmit={(e) => {
+                        e.preventDefault();
+                        console.log(getValues());
+                        handleOpenModal();
+                    }} navigate={false}>
                         <div className="">
                             <div className="">
                                 <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét của giảng viên:</Label>
@@ -319,12 +318,16 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     <TableRow key={result.id} className='w-full'>
                                         <TableCell>{result.criteriaName}</TableCell>
                                         <TableCell className='font-bold text-center'>
-                                            {role === Role.Instructor ? <Input defaultValue={0} type='number'
+                                            {role === Role.Instructor ? <Input
+                                                defaultValue={result.score}
+                                                type='number'
+                                                step={'any'}
                                                 onChange={(e) => {
-                                                    const newScore = Number.parseInt(e.target.value);
+                                                    const newScore = Number.parseFloat(e.target.value);
                                                     setValue(`scores.${index}.score`, newScore);
                                                 }}
                                                 readOnly={role !== Role.Instructor} /> : result.score}
+
                                         </TableCell>
                                         <TableCell className='text-center'>{result.weight * 100}%</TableCell>
                                     </TableRow>

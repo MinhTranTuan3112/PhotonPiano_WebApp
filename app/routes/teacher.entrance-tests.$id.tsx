@@ -46,12 +46,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
         const { role, idToken } = await requireAuth(request);
 
-        if (role !== Role.Staff) {
+        if (role !== Role.Instructor) {
             return redirect('/');
         }
 
         if (!params.id) {
-            return redirect('/staff/entrance-tests');
+            return redirect('/teacher/entrance-tests');
         }
 
         const id = params.id as string;
@@ -87,7 +87,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
 }
 
-export default function StaffEntranceTestDetailsPage({ }: Props) {
+export default function TeacherEntranceTestDetailsPage({ }: Props) {
 
     const { promise, id } = useLoaderData<typeof loader>();
 
@@ -124,7 +124,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Staff) {
+        if (role !== Role.Instructor) {
             return redirect('/');
         }
 
@@ -182,7 +182,7 @@ const resolver = zodResolver(updateEntranceTestSchema);
 
 function EntranceTestDetailsContent() {
 
-    const { idToken } = useLoaderData<typeof loader>();
+    const { idToken, role } = useLoaderData<typeof loader>();
 
     const entranceTestValue = useAsyncValue();
 
@@ -195,7 +195,8 @@ function EntranceTestDetailsContent() {
     const { handleSubmit,
         formState: { errors },
         control,
-        register
+        register,
+        getValues
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
@@ -248,7 +249,7 @@ function EntranceTestDetailsContent() {
                     Tên bài thi
                 </Label>
                 <Input  {...register('name')} id="name" className="col-span-3"
-                    placeholder='Nhập tên đợt thi...' />
+                    placeholder='Nhập tên đợt thi...' readOnly={role !== Role.Staff} />
                 {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
             </div>
             <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full'>
@@ -261,7 +262,8 @@ function EntranceTestDetailsContent() {
                         name='shift'
                         render={({ field: { value, onChange } }) => (
                             <Select value={value}
-                                onValueChange={onChange}>
+                                onValueChange={onChange}
+                                disabled={role !== Role.Staff}>
                                 <SelectTrigger className='w-64'>
                                     <SelectValue placeholder="Chọn ca thi" />
                                 </SelectTrigger>
@@ -295,6 +297,7 @@ function EntranceTestDetailsContent() {
                                 onChange={onChange}
                                 placeholder='Chọn ngày thi'
                                 className='w-56'
+                                disabled={role !== Role.Staff}
                             />
                         )}
                     />
@@ -305,91 +308,103 @@ function EntranceTestDetailsContent() {
                     <Label className="w-32">
                         Phòng thi
                     </Label>
-                    <Controller
-                        name='roomId'
-                        control={control}
-                        render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <GenericCombobox<Room>
-                                idToken={idToken}
-                                queryKey='rooms'
-                                fetcher={async (query) => {
-                                    const response = await fetchRooms(query);
+                    {role === Role.Staff ? <>
+                        <Controller
+                            name='roomId'
+                            control={control}
+                            render={({ field: { onChange, onBlur, value, ref } }) => (
+                                <GenericCombobox<Room>
+                                    idToken={idToken}
+                                    queryKey='rooms'
+                                    fetcher={async (query) => {
+                                        const response = await fetchRooms(query);
 
-                                    const headers = response.headers;
+                                        const headers = response.headers;
 
-                                    const metadata: PaginationMetaData = {
-                                        page: parseInt(headers['x-page'] || '1'),
-                                        pageSize: parseInt(headers['x-page-size'] || '10'),
-                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                        totalCount: parseInt(headers['x-total-count'] || '0'),
-                                    };
+                                        const metadata: PaginationMetaData = {
+                                            page: parseInt(headers['x-page'] || '1'),
+                                            pageSize: parseInt(headers['x-page-size'] || '10'),
+                                            totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                            totalCount: parseInt(headers['x-total-count'] || '0'),
+                                        };
 
-                                    return {
-                                        data: response.data,
-                                        metadata
-                                    };
-                                }}
-                                mapItem={(item) => ({
-                                    label: item?.name,
-                                    value: item?.id
-                                })}
-                                placeholder='Chọn phòng thi'
-                                emptyText='Không tìm thấy phòng thi.'
-                                errorText='Lỗi khi tải danh sách phòng thi.'
-                                value={value}
-                                onChange={onChange}
-                                maxItemsDisplay={10}
-                            />
-                        )}
-                    />
-                    {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
+                                        return {
+                                            data: response.data,
+                                            metadata
+                                        };
+                                    }}
+                                    mapItem={(item) => ({
+                                        label: item?.name,
+                                        value: item?.id
+                                    })}
+                                    placeholder='Chọn phòng thi'
+                                    emptyText='Không tìm thấy phòng thi.'
+                                    errorText='Lỗi khi tải danh sách phòng thi.'
+                                    value={value}
+                                    onChange={onChange}
+                                    maxItemsDisplay={10}
+                                />
+                            )}
+                        />
+                        {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
+                    </> : <strong>
+                        {entranceTest.roomName}
+                    </strong>}
+
                 </div>
                 <div className='flex gap-2 items-center'>
                     {/*Người gác thi */}
-                    <Controller
-                        control={control}
-                        name='instructorId'
-                        render={({ field: { value, onChange } }) => (
-                            <GenericCombobox<Account>
-                                queryKey='accounts'
-                                fetcher={async (query) => {
-                                    const response = await fetchAccounts({
-                                        page: query.page,
-                                        pageSize: query.pageSize,
-                                        idToken,
-                                        roles: [Role.Instructor]
-                                    });
+                    {role === Role.Staff ?
+                        <>
+                            <Controller
+                                control={control}
+                                name='instructorId'
+                                render={({ field: { value, onChange } }) => (
+                                    <GenericCombobox<Account>
+                                        queryKey='accounts'
+                                        fetcher={async (query) => {
+                                            const response = await fetchAccounts({
+                                                page: query.page,
+                                                pageSize: query.pageSize,
+                                                idToken,
+                                                roles: [Role.Instructor]
+                                            });
 
-                                    const headers = response.headers;
+                                            const headers = response.headers;
 
-                                    const metadata: PaginationMetaData = {
-                                        page: parseInt(headers['x-page'] || '1'),
-                                        pageSize: parseInt(headers['x-page-size'] || '10'),
-                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                        totalCount: parseInt(headers['x-total-count'] || '0'),
-                                    };
+                                            const metadata: PaginationMetaData = {
+                                                page: parseInt(headers['x-page'] || '1'),
+                                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                                            };
 
-                                    return {
-                                        data: response.data,
-                                        metadata
-                                    };
+                                            return {
+                                                data: response.data,
+                                                metadata
+                                            };
 
-                                }}
-                                idToken={idToken}
-                                mapItem={(item) => ({
-                                    label: item?.fullName || item?.email,
-                                    value: item?.accountFirebaseId
-                                })}
-                                placeholder='Chọn người gác thi'
-                                emptyText='Không tìm thấy người gác thi.'
-                                errorText='Lỗi khi tải danh sách người gác thi.'
-                                maxItemsDisplay={10}
-                                value={value || ''}
-                                onChange={onChange}
+                                        }}
+                                        idToken={idToken}
+                                        mapItem={(item) => ({
+                                            label: item?.fullName || item?.email,
+                                            value: item?.accountFirebaseId
+                                        })}
+                                        placeholder='Chọn người gác thi'
+                                        emptyText='Không tìm thấy người gác thi.'
+                                        errorText='Lỗi khi tải danh sách người gác thi.'
+                                        maxItemsDisplay={10}
+                                        value={value || ''}
+                                        onChange={onChange}
+                                    />
+                                )}
                             />
-                        )}
-                    />
-                    {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
+                            {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
+                        </>
+                        : <strong className="">
+                            {entranceTest.instructorName}
+                        </strong>
+                    }
                 </div>
             </div>
             <div className='mt-4 grid grid-cols-1 lg:grid-cols-3'>
@@ -417,23 +432,10 @@ function EntranceTestDetailsContent() {
         </Form>
         <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
         <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
-        {/* <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' /> */}
         <div className="my-8">
             <ResultTable data={entranceTest.entranceTestStudents} />
         </div>
-        {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
         <div className='flex flex-col md:flex-row justify-center gap-4'>
-            {/* {
-                entranceTest.isOpen ? (
-                    <Button className='px-12'>
-                        <Lock className='mr-2' /> Khóa ca thi này
-                    </Button>
-                ) : (
-                    <Button className='px-12'>
-                        <Unlock className='mr-2' /> Mở khóa ca thi này
-                    </Button>
-                )
-            } */}
             {
                 (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
                     <Button className='px-12' variant={"destructive"}>
