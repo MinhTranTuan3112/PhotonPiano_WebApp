@@ -1,4 +1,5 @@
 import { Account } from "../account/account"
+import { StudentClassScoreWithCriteria } from "./student-class-score"
 
 export type StudentClass = {
     classId : string,
@@ -14,3 +15,8 @@ export type StudentClass = {
 export type StudentClassWithStudent = {
     student : Account,
 } & StudentClass
+
+
+export type StudentClassWithScore = {
+    studentClassScores : StudentClassScoreWithCriteria[],
+} & StudentClassWithStudent

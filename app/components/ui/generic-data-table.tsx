@@ -13,7 +13,8 @@ type Props<T> = {
     metadata: PaginationMetaData;
     resolvedData? : T[],
     pageParamName? : string,
-    sizeParamName? : string
+    sizeParamName? : string,
+    allowHideColumns? : boolean
 }
 
 export default function GenericDataTable<T>({ columns,
@@ -23,7 +24,8 @@ export default function GenericDataTable<T>({ columns,
     resolvedData = [],
     metadata,
     pageParamName = 'page',
-    sizeParamName = 'size'
+    sizeParamName = 'size',
+    allowHideColumns = true
 }: Props<T>) {
 
     const { totalCount, totalPages } = metadata;
@@ -39,6 +41,7 @@ export default function GenericDataTable<T>({ columns,
     return (
         <DataTable data={data} columns={columns}
             extraHeaderContent={extraHeaderContent}
+            enableColumnDisplayOptions={allowHideColumns}
             defaultPageSize={Number.parseInt(searchParams.get('size') || '10')}
             manualPagination={true}
             onPaginationChange={(newPage) => {
