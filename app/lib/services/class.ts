@@ -1,5 +1,6 @@
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
+import { getErrorDetailsInfo } from "../utils/error";
 
 export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     levels = [], statuses = [] 
@@ -27,11 +28,48 @@ export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id',
     return response;
 }
 
-export async function fetchClassDetail(id : string) {
+export async function fetchClassDetail(id : string, idToken : string) {
 
     let url = `/classes/${id}`;
 
-    const response = await axiosInstance.get(url);
+    const response = await axiosInstance.get(url, {
+        headers : {
+            Authorization : `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchClassScoreboard(id : string, idToken : string) {
+
+    let url = `/classes/${id}/scoreboard`;
+
+    const response = await axiosInstance.get(url, {
+        headers : {
+            Authorization : `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchAddStudentsToClass({ studentFirebaseIds, classId, isAutoFill = false, idToken }: {
+    studentFirebaseIds: string[],
+    classId : string,
+    isAutoFill? : boolean
+    idToken: string
+}) {
+
+    const response = await axiosInstance.post(`/classes/student-class`,{
+        classId : classId,
+        isAutoFill : isAutoFill,
+        studentFirebaseIds : studentFirebaseIds
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
 
     return response;
 }
@@ -47,7 +85,7 @@ export async function fetchDeleteStudentClass({ studentId, classId, isExpelled =
         headers: {
             Authorization: `Bearer ${idToken}`,
         }
-    });
+    })
 
     return response;
 }

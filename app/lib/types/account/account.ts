@@ -52,6 +52,7 @@ export enum Role {
 
 export enum StudentStatus {
     Unregistered,
+    WaitingForEntranceTest,
     AttemptingEntranceTest,
     WaitingForClass,
     InClass,

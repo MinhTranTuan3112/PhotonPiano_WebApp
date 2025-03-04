@@ -31,11 +31,8 @@ const daysOftheWeek = [
     {label : "Chủ Nhật",value : "6"},
 ]
 export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken, slotsPerWeek, totalSlots, level }: Props) {
-    const [selectedRoomId, setSelectedRoomId] = useState<string>()
     const [selectedDaysOfTheWeek, setSelectedDaysOfTheWeek] = useState<string[]>()
     const navigation = useNavigation();
-
-    const isSubmitting = navigation.state === 'submitting';
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -86,41 +83,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                                 </SelectGroup>
                             </Select>
                         </div>
-                        <div className='flex items-center'>Phòng học</div>
-                        <GenericCombobox<Room>
-                            className=''
-                            idToken={idToken}
-                            queryKey='rooms'
-                            fetcher={async (query) => {
-                                const response = await fetchRooms(query);
-
-                                const headers = response.headers;
-
-                                const metadata: PaginationMetaData = {
-                                    page: parseInt(headers['x-page'] || '1'),
-                                    pageSize: parseInt(headers['x-page-size'] || '10'),
-                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                    totalCount: parseInt(headers['x-total-count'] || '0'),
-                                };
-
-                                const data = response.data as Room[]
-
-                                return {
-                                    data: data,
-                                    metadata
-                                };
-                            }}
-                            mapItem={(item) => ({
-                                label: item?.name,
-                                value: item?.id
-                            })}
-                            placeholder='Chọn phòng học'
-                            emptyText='Không tìm thấy phòng học.'
-                            errorText='Lỗi khi tải danh sách phòng học.'
-                            value={selectedRoomId ?? undefined}
-                            onChange={setSelectedRoomId}
-                            maxItemsDisplay={10}
-                        />
+                        
                         <div className='flex flex-col'>Ngày học<div className='italic text-sm'>(Vui lòng chọn {slotsPerWeek})</div></div>
                         <MultiSelect options={daysOftheWeek}
                             value={selectedDaysOfTheWeek}

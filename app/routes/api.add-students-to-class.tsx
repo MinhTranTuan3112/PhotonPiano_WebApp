@@ -1,10 +1,12 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchDeleteStudentClass } from "~/lib/services/class";
+import { boolean } from "zod";
+import { fetchAddStudentsToClass, fetchDeleteStudentClass } from "~/lib/services/class";
+import { ErrorSimple } from "~/lib/types/error";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
-        if (request.method !== "DELETE") {
+        if (request.method !== "POST") {
             return {
                 success: false,
                 error: 'Method not allowed.',
@@ -13,9 +15,12 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const formData = await request.formData();
-        const studentId = formData.get("studentId")?.toString();
+        const studentIds = formData.getAll("studentFirebaseIds").toString().split(',');
         const classId = formData.get("classId")?.toString();
+        const isAutoFill = formData.get("isAutoFill")?.toString() === "true";
         const token = formData.get("idToken")?.toString();
+
+        console.log(isAutoFill)
 
         if (!token) {
             return {
@@ -25,7 +30,7 @@ export async function action({ request }: ActionFunctionArgs) {
             }
         }
 
-        if (!studentId || !classId) {
+        if (!classId) {
             return {
                 success: false,
                 error: 'Invalid data.',
@@ -33,22 +38,24 @@ export async function action({ request }: ActionFunctionArgs) {
             }
         }
 
-        const response = await fetchDeleteStudentClass({
+
+        const response = await fetchAddStudentsToClass({
             classId: classId,
-            studentId: studentId,
+            studentFirebaseIds: studentIds,
+            isAutoFill: isAutoFill,
             idToken: token
         });
 
         return {
             success: true
         }
-    } catch (err){
-        const error = getErrorDetailsInfo(err)
+    } catch (err) {
+        var error = getErrorDetailsInfo(err)
         return {
-            success : false,
-            error : error.message,
-            status : error.status
+            success: false,
+            error: error.message,
+            status: error.status
         }
     }
-    
-  };
+
+};

@@ -32,8 +32,8 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken }: Props) {
                 </DialogHeader>
                 <Form method='POST' action={`/`}>
                     <div className='grid grid-cols-2 gap-4'>
-                        <div className='flex items-center'>Tên lớp</div>
-                        <Input name='name' placeholder='Nhập tên lớp'/>
+                        {/* <div className='flex items-center'>Tên lớp</div>
+                        <Input name='name' placeholder='Nhập tên lớp'/> */}
                         <div className='flex items-center'>Level</div>
                         <div>
                             <Select>

@@ -11,21 +11,27 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { ClassDetail } from '~/lib/types/class/class-detail';
 import { Checkbox } from '~/components/ui/checkbox';
+import { ActionResult } from '~/lib/types/action-result';
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import useLoadingDialog from '~/hooks/use-loading-dialog';
 
 
 type Props = {
     isOpen: boolean,
     setIsOpen: (isOpen: boolean) => void,
     studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
-    classInfo: ClassDetail
+    classInfo: ClassDetail,
+    idToken: string
 
 }
 
-export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromise, classInfo }: Props) {
+export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromise, classInfo, idToken }: Props) {
     const navigation = useNavigation();
     const [searchParams, setSearchParams] = useSearchParams();
     const { selectedRowIds, toggleRowSelection, clearSelection } = useSelection(classInfo.capacity - classInfo.studentNumber);
     const columns = getStudentSimpleColumns({ selectedRowIds, toggleRowSelection });
+    const fetcher = useFetcher<ActionResult>()
+    const [isAutoFill, setIsAutoFill] = useState(false)
 
     const handleRefresh = () => {
         setSearchParams({
@@ -34,6 +40,34 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
             "q": ""
         })
         // clearSelection()
+    }
+
+    const { loadingDialog } = useLoadingDialog({
+        fetcher: fetcher,
+        action: () => {
+            setIsOpen(false)
+            clearSelection()
+            setSearchParams({
+                ...Object.fromEntries(searchParams.entries()),
+                studentClassDialog: "false",
+            })
+        }
+    })
+
+    const handleAdd = () => {
+        console.log(selectedRowIds)
+        fetcher.submit(
+            {
+                studentFirebaseIds: selectedRowIds,
+                classId: classInfo.id,
+                isAutoFill : isAutoFill,
+                idToken
+            },
+            {
+                method: "POST",
+                action: "/api/add-students-to-class",
+            }
+        );
     }
 
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
@@ -45,6 +79,14 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
         newSearchParams.set('q', name);
         setSearchParams(newSearchParams);
     };
+
+    const { open: handleOpenAddModel, dialog: confirmAddDialog } = useConfirmationDialog({
+        title: 'Xác nhận thêm học viên',
+        description: 'Bạn có chắc chắn muốn thêm các học viên này không?',
+        onConfirm: () => {
+            handleAdd();
+        }
+    })
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -91,14 +133,14 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                         </Suspense>
                     </div>
                     <div className='flex gap-2 items-center italic mt-2'>
-                        <Checkbox></Checkbox> Phân bổ ngẫu nhiên để đủ sĩ số
+                        <Checkbox checked={isAutoFill} onCheckedChange={() => setIsAutoFill(!isAutoFill)}></Checkbox> Phân bổ ngẫu nhiên để đủ sĩ số
                     </div>
                     <div className='flex gap-2 mt-2 '>
-                        <Button Icon={PlusCircle} iconPlacement='left' className='w-full'>Xác nhận thêm</Button>
+                        <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full'>Xác nhận thêm</Button>
                     </div>
-
                 </div>
-
+                {confirmAddDialog}
+                {loadingDialog}
             </DialogContent>
         </Dialog>
     )
