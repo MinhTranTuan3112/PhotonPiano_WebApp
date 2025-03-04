@@ -35,3 +35,19 @@ export async function fetchClassDetail(id : string) {
 
     return response;
 }
+
+export async function fetchDeleteStudentClass({ studentId, classId, isExpelled = false, idToken }: {
+    studentId: string,
+    classId : string,
+    isExpelled? : boolean
+    idToken: string
+}) {
+
+    const response = await axiosInstance.delete(`/classes/student-class?studentId=${studentId}&classId=${classId}&isExpelled=${isExpelled}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}

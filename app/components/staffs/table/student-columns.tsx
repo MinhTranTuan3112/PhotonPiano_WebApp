@@ -15,11 +15,12 @@ import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
 const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-gray-500 font-semibold";
-        case 1: return "text-orange-500 font-semibold";
-        case 2: return "text-blue-400 font-semibold";
-        case 3: return "text-green-400 font-semibold";
-        case 4: return "text-red-400 font-semibold";
-        case 5: return "text-gray-500 font-semibold";
+        case 1: return "text-blue-800 font-semibold";
+        case 2: return "text-orange-500 font-semibold";
+        case 3: return "text-blue-400 font-semibold";
+        case 4: return "text-green-400 font-semibold";
+        case 5: return "text-red-400 font-semibold";
+        case 6: return "text-gray-500 font-semibold";
         default: return "text-black font-semibold";
     }
 };

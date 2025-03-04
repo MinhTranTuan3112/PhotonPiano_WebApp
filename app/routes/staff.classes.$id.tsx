@@ -1,8 +1,9 @@
 import { Select } from '@radix-ui/react-select';
-import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { Await, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { CalendarDays, CheckIcon, Edit2Icon, Music2, PlusCircle, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
+import { useRemixForm } from 'remix-hook-form';
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
@@ -17,15 +18,19 @@ import { Label } from '~/components/ui/label';
 import { SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
-import { fetchClassDetail } from '~/lib/services/class';
+import { fetchClassDetail, fetchDeleteStudentClass } from '~/lib/services/class';
 import { fetchSlotById } from '~/lib/services/scheduler';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
+import { ActionResult } from '~/lib/types/action-result';
 import { ClassDetail } from '~/lib/types/class/class-detail';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { SlotDetail } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
+import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -251,26 +256,67 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
           </div>
         </div>
         <div className='mt-12'>
-          <div className='flex flex-col justify-center'>
-            <div className='font-bold text-xl text-center'>Vùng Nguy Hiểm</div>
-            <div className='flex gap-2 justify-center mt-4'>
-              <Button Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
-            </div>
-          </div>
+          {
+            !classInfo.isPublic && (
+              <div className='flex flex-col justify-center'>
+                <div className='font-bold text-xl text-center'>Vùng Nguy Hiểm</div>
+                <div className='flex gap-2 justify-center mt-4'>
+                  <Button Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
+                </div>
+              </div>
+            )
+          }
+
         </div>
       </CardContent>
     </Card>
   )
 }
 
-function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum }: {
+function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken }: {
   classInfo: ClassDetail,
   studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
   isOpenStudentClassDialog: boolean,
-  minimum: number
+  minimum: number,
+  idToken : string  
 }) {
   const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+
+  const fetcher = useFetcher<ActionResult>()
+
+  const {loadingDialog} = useLoadingDialog({
+    fetcher, 
+    action : () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const handleDelete = () => {
+    fetcher.submit(
+      { studentId : selectedStudentId, classId: classInfo.id, idToken },
+      {
+        method: "DELETE",
+        action: "/api/delete-student-class",
+      }
+    );
+  }
+
+  const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
+    title: 'Xác nhận xóa học viên',
+    description: 'Bạn có chắc chắn muốn xóa học viên này khỏi lớp không?',
+    onConfirm: () => {
+      handleDelete();
+    }
+  })
+
+  const handleDeleteConfirm = (studentId : string) => {
+    setSelectedStudentId(studentId);
+    handleOpenDeleteModal()
+  }
+
+  const columns = studentClassColumns({handleDeleteConfirm : handleDeleteConfirm})
 
   const onOpenChange = (isOpen: boolean) => {
     setIsOpenAddStudentDialog(isOpen)
@@ -295,7 +341,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
             <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
               <TriangleAlert size={100} />
               <div>
-                Lớp chưa đạt sĩ số học sinh như yêu cầu. Vui lòng thêm học viên để đạt điều kiện công bố lớp.<br></br>
+                Lớp chưa đạt sĩ số học sinh như yêu cầu.<br></br>
                 Bạn cần thêm {minimum - classInfo.studentNumber} học viên nữa
               </div>
             </div>
@@ -306,7 +352,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
             <PlusCircle className='mr-4' /> Thêm học viên mới
           </Button>
         </div>
-        <DataTable data={classInfo.studentClasses} columns={studentClassColumns}>
+        <DataTable data={classInfo.studentClasses} columns={columns}>
         </DataTable>
         {
           (classInfo.capacity > classInfo.studentClasses.length) && (
@@ -314,6 +360,8 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
               classInfo={classInfo} />
           )
         }
+        {confirmDeleteDialog}
+        {loadingDialog}
       </CardContent>
     </Card>
   )
@@ -397,7 +445,7 @@ function ClassScoreboard({ classInfo }: { classInfo: ClassDetail }) {
       </CardHeader>
       <CardContent>
         {
-          classInfo.isPublic && (
+          !classInfo.isPublic && (
             <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>
               <TriangleAlert size={100} />
               <div>
@@ -429,15 +477,20 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
-                <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2  items-center'>
-                  <div className='flex gap-2 items-center'>
-                    <TriangleAlert size={64} />
-                    <div>
-                      Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
+                {
+                  !data.classDetail.isPublic && (
+                    <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2  items-center'>
+                      <div className='flex gap-2 items-center'>
+                        <TriangleAlert size={64} />
+                        <div>
+                          Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
+                        </div>
+                      </div>
+                      <Button>CÔNG BỐ LỚP</Button>
                     </div>
-                  </div>
-                  <Button>CÔNG BỐ LỚP</Button>
-                </div>
+                  )
+                }
+
 
                 <Tabs defaultValue={tab}>
                   <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4">
@@ -471,7 +524,8 @@ export default function StaffClassDetailPage({ }: Props) {
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
-                      isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.classDetail.minimumStudents} />
+                      isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.classDetail.minimumStudents} 
+                      idToken={idToken}/>
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} />
