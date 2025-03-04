@@ -7,8 +7,8 @@ import { useRemixForm } from 'remix-hook-form';
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
+import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
-import { Badge } from '~/components/ui/badge';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
@@ -22,15 +22,12 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail, fetchClassScoreboard, fetchDeleteStudentClass } from '~/lib/services/class';
-import { fetchSlotById } from '~/lib/services/scheduler';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
-import { SlotDetail } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
-import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -438,86 +435,6 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   )
 }
 
-function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassDetail, scorePromise: Promise<{ classScore: ClassScoreDetail }> }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Bảng điểm</CardTitle>
-        <CardDescription>
-          Danh sách này hiển thị các cột điểm của từng học viên trong lớp
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {
-          !classInfo.isPublic ? (
-            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>
-              <TriangleAlert size={100} />
-              <div>
-                Bảng điểm của học viên sẽ được kích hoạt sau khi công bố lớp.
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className='flex flex-col lg:flex-row justify-start gap-4'>
-                <Button Icon={BellRing} iconPlacement='left'>Công bố điểm</Button>
-                <Button Icon={Sheet} iconPlacement='left' variant={'outline'}  >Xuất ra Excel</Button>
-              </div>
-              <Suspense fallback={<LoadingSkeleton />}>
-                <Await resolve={scorePromise}>
-                  {(data) => {
-                    const sortedCriteria = data.classScore.studentClasses[0]?.studentClassScores
-                      .map((score) => score.criteria)
-                      .sort((a, b) => a.name.localeCompare(b.name)) || [];
-
-                    return (
-                      <div className="mt-4 overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300">
-                          <thead>
-                            <tr className="bg-gray-200 text-gray-700">
-                              <th className="border border-gray-300 px-4 py-2">Học viên</th>
-                              {sortedCriteria.map((criteria) => (
-                                <th key={criteria.id} className="border border-gray-300 px-4 py-2">
-                                  {criteria.name}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.classScore.studentClasses.map((studentClass) => (
-                              <tr key={studentClass.student.accountFirebaseId} className="text-center">
-                                <td className="border border-gray-300 px-4 py-2">
-                                  {studentClass.student.fullName ?? studentClass.student.userName}
-                                </td>
-                                {sortedCriteria.map((criteria) => {
-                                  const score = studentClass.studentClassScores.find(
-                                    (s) => s.criteriaId === criteria.id
-                                  );
-                                  return (
-                                    <td key={criteria.id} className="border border-gray-300 px-4 py-2">
-                                      {score?.score ?? "-"}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    );
-                  }}
-                </Await>
-              </Suspense>
-            </>
-          )
-        }
-
-
-
-      </CardContent>
-    </Card>
-
-  )
-}
 
 export default function StaffClassDetailPage({ }: Props) {
 
