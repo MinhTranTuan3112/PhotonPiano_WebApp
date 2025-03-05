@@ -128,6 +128,7 @@ function StatusBadge({ status }: {
   return <div className={`${getStatusStyle(status)} uppercase w-5/6 text-center my-1 p-2 rounded-lg`}>{CLASS_STATUS[status]}</div>
 }
 
+
 function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetail, idToken: string }) {
   const [isEdit, setIsEdit] = useState(false)
   const [selectedInstructorId, setSelectedInstructorId] = useState(classInfo.instructor?.accountFirebaseId)
@@ -372,6 +373,15 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   const navigate = useNavigate()
   const [isOpenAddSlotDialog, setIsOpenAddSlotDialog] = useState(false)
   const [isOpenArrangeDialog, setIsOpenArrangeDialog] = useState(false)
+  classInfo.slots.sort((a, b) => {
+    // Compare dates first
+    const dateComparison = a.date.localeCompare(b.date);
+    if (dateComparison !== 0) {
+      return dateComparison; // Sorts by date in ascending order
+    }
+    // If dates are equal, compare shift numbers
+    return a.shift - b.shift; // Sorts shift in ascending order
+  });
 
   return (
     <Card>
@@ -427,7 +437,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             ))
           }
         </div>
-        <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} />
+        <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} />
       </CardContent>

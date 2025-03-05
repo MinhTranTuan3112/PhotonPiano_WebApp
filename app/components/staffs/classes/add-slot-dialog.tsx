@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog'
-import { Form, useFetcher, useNavigation } from '@remix-run/react'
+import { Form, useFetcher, useNavigation, useSearchParams } from '@remix-run/react'
 import { DatePickerInput } from '~/components/ui/date-picker-input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { SHIFT_TIME } from '~/lib/utils/constants';
@@ -9,19 +9,65 @@ import { Room } from '~/lib/types/room/room';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { fetchRooms } from '~/lib/services/rooms';
 import { Button } from '~/components/ui/button';
+import { ActionResult } from '~/lib/types/action-result';
+import useLoadingDialog from '~/hooks/use-loading-dialog';
+import { ActionFunctionArgs } from '@remix-run/node';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
+import { useRemixForm } from 'remix-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Controller } from 'react-hook-form';
 
 
 type Props = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
-    idToken: string
+    idToken: string,
+    classId: string
 }
 
-export default function AddSlotDialog({ isOpen, setIsOpen, idToken }: Props) {
-    const [selectedRoomId, setSelectedRoomId] = useState<string>()
-    const navigation = useNavigation();
+export const addSlotSchema = z.object({
+    shift: z.string({message : "Vui lòng chọn ca học"}),
+    room: z.string({message : "Vui lòng chọn phòng học"}),
+    date: z.coerce.date({ message: 'Ngày không hợp lệ.' }),
+    action : z.string(),
+    classId : z.string(),
+    idToken : z.string(),
+});
 
-    const isSubmitting = navigation.state === 'submitting';
+
+export type AddSlotSchema = z.infer<typeof addSlotSchema>;
+const resolver = zodResolver(addSlotSchema)
+
+export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: Props) {
+    const [selectedRoomId, setSelectedRoomId] = useState<string>()
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigation = useNavigation();
+    const fetcher = useFetcher<ActionResult>();
+
+    const { loadingDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setIsOpen(false)
+            setSearchParams([...searchParams])
+        }
+    })
+    
+    const {
+        handleSubmit,
+        formState: { errors },
+        control
+    } = useRemixForm<AddSlotSchema>({
+        mode: "onSubmit",
+        resolver,
+        submitConfig : {action : '/api/slots', method : 'POST', navigate : false},
+        fetcher,
+        defaultValues : {
+            action : "ADD",
+            classId : classId,
+            idToken : idToken
+        }
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -29,69 +75,107 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken }: Props) {
                 <DialogHeader>
                     <DialogTitle>Thêm buổi học mới</DialogTitle>
                 </DialogHeader>
-                <Form method='POST' action={`/`}>
+                {/* {errors.action && <div className='text-red-500'>{errors.action.message}</div>}
+                {errors.classId && <div className='text-red-500'>{errors.classId.message}</div>}
+                {errors.idToken && <div className='text-red-500'>{errors.idToken.message}</div>} */}
+
+                <Form method='POST' onSubmit={handleSubmit} >
                     <div className='grid grid-cols-2 gap-4'>
                         <div className='flex items-center'>Ngày học</div>
-                        <DatePickerInput className='' />
+                        <div>
+                            <Controller
+                                control={control}
+                                name='date'
+                                render={({ field: { onChange, onBlur, value, ref } }) => (
+                                    <DatePickerInput value={value} onChange={onChange}
+                                        ref={ref}
+                                        onBlur={onBlur}
+                                        className='w-full'
+                                        placeholder='Ngày học' />
+                                )}
+                            />
+                            {errors.date && <div className='text-red-500'>{errors.date.message}</div>}
+                        </div>
+
                         <div className='flex items-center'>Ca học</div>
                         <div>
-                            <Select>
-                                <SelectTrigger className="">
-                                    <SelectValue placeholder="Chọn ca học" />
-                                </SelectTrigger>
-                                <SelectGroup>
-                                    <SelectContent>
-                                        {
-                                            SHIFT_TIME.map((shift, index) => (
-                                                <SelectItem value={index.toString()} key={index}>Ca {index + 1} ({shift})</SelectItem>
-                                            ))
-                                        }
-                                    </SelectContent>
-                                </SelectGroup>
-                            </Select>
+                            <Controller
+                                control={control}
+                                name='shift'
+                                render={({ field: { onChange, onBlur, value, ref } }) => (
+                                    <Select name='shift' value={value} onValueChange={onChange}>
+                                        <SelectTrigger className="">
+                                            <SelectValue placeholder="Chọn ca học" />
+                                        </SelectTrigger>
+                                        <SelectGroup>
+                                            <SelectContent>
+                                                {
+                                                    SHIFT_TIME.map((shift, index) => (
+                                                        <SelectItem value={index.toString()} key={index}>Ca {index + 1} ({shift})</SelectItem>
+                                                    ))
+                                                }
+                                            </SelectContent>
+                                        </SelectGroup>
+                                    </Select>
+                                )}
+                            />
+
+                            {errors.shift && <div className='text-red-500'>{errors.shift.message}</div>}
+
                         </div>
+                        {/* <input type='hidden' name='roomId' value={selectedRoomId}></input> */}
                         <div className='flex items-center'>Phòng học</div>
-                        <GenericCombobox<Room>
-                            className=''
-                            idToken={idToken}
-                            queryKey='rooms'
-                            fetcher={async (query) => {
-                                const response = await fetchRooms(query);
+                        <div>
+                            <Controller
+                                control={control}
+                                name='room'
+                                render={({ field: { onChange, onBlur, value, ref } }) => (
+                                    <GenericCombobox<Room>
+                                        className=''
+                                        idToken={idToken}
+                                        queryKey='rooms'
+                                        fetcher={async (query) => {
+                                            const response = await fetchRooms(query);
 
-                                const headers = response.headers;
+                                            const headers = response.headers;
 
-                                const metadata: PaginationMetaData = {
-                                    page: parseInt(headers['x-page'] || '1'),
-                                    pageSize: parseInt(headers['x-page-size'] || '10'),
-                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                    totalCount: parseInt(headers['x-total-count'] || '0'),
-                                };
+                                            const metadata: PaginationMetaData = {
+                                                page: parseInt(headers['x-page'] || '1'),
+                                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                                            };
 
-                                const data = response.data as Room[]
+                                            const data = response.data as Room[]
 
-                                return {
-                                    data: data,
-                                    metadata
-                                };
-                            }}
-                            mapItem={(item) => ({
-                                label: item?.name,
-                                value: item?.id
-                            })}
-                            placeholder='Chọn phòng học'
-                            emptyText='Không tìm thấy phòng học.'
-                            errorText='Lỗi khi tải danh sách phòng học.'
-                            value={selectedRoomId ?? undefined}
-                            onChange={setSelectedRoomId}
-                            maxItemsDisplay={10}
-                        />
+                                            return {
+                                                data: data,
+                                                metadata
+                                            };
+                                        }}
+                                        mapItem={(item) => ({
+                                            label: item?.name,
+                                            value: item?.id
+                                        })}
+                                        placeholder='Chọn phòng học'
+                                        emptyText='Không tìm thấy phòng học.'
+                                        errorText='Lỗi khi tải danh sách phòng học.'
+                                        value={value}
+                                        onChange={onChange}
+                                        maxItemsDisplay={10}
+                                    />
+                                )}
+                            />
+                            {errors.room && <div className='text-red-500'>{errors.room.message}</div>}
+                        </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow'>Tạo buổi học</Button>
+                        <Button className='flex-grow' type='submit'>Tạo buổi học</Button>
                         <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Hủy bỏ</Button>
 
                     </div>
                 </Form>
+                {loadingDialog}
             </DialogContent>
         </Dialog>
     )
