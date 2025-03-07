@@ -40,7 +40,11 @@ export function useSelection(maxSelectionLimit?: number) {
         });
     };
 
-    return { selectedRowIds, toggleRowSelection };
+    const clearSelection = () => {
+        setSelectedRowIds([]); // Clears all selected rows
+    };
+
+    return { selectedRowIds, toggleRowSelection, clearSelection };
 }
 
 export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: {

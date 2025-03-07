@@ -2,10 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useLoaderData, useSearchParams } from '@remix-run/react';
 import { Music2, PlusCircle, Search, Shuffle, SortDescIcon } from 'lucide-react';
-import React, { Suspense } from 'react'
+import React, { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
+import AddClassDialog from '~/components/staffs/classes/add-class-dialog';
 import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { Button } from '~/components/ui/button';
@@ -36,8 +37,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const query = {
     page: Number.parseInt(searchParams.get('page') || '1'),
     pageSize: Number.parseInt(searchParams.get('size') || '10'),
-    sortColumn: searchParams.get('column') || 'Level',
-    orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+    sortColumn: searchParams.get('column') || 'CreatedAt',
+    orderByDesc: searchParams.get('desc') === 'true' ? false : true,
     levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(Number),
     statuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
   };
@@ -64,6 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     promise,
+    idToken,
     query: { ...query, idToken: undefined }
   }
 }
@@ -126,8 +128,9 @@ function SearchForm({ }) {
 }
 
 export default function StaffClassesPage({ }: Props) {
-  const { promise } = useLoaderData<typeof loader>()
+  const { promise, idToken } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isOpenAddClassDialog, setIsOpenAddClassDialog] = useState(false)
 
   return (
     <div>
@@ -139,7 +142,7 @@ export default function StaffClassesPage({ }: Props) {
         <div className='flex flex-col mt-8 gap-4'>
           <SearchForm />
           <div className='flex gap-4 justify-center mt-2'>
-            <Button variant={'outline'}><PlusCircle className='mr-4' /> Thêm lớp mới</Button>
+            <Button onClick={() => setIsOpenAddClassDialog(true)} variant={'outline'}><PlusCircle className='mr-4' /> Thêm lớp mới</Button>
             <Button Icon={Shuffle} iconPlacement='left'>Xếp lớp tự động</Button>
           </div>
         </div>
@@ -154,6 +157,7 @@ export default function StaffClassesPage({ }: Props) {
             )}
           </Await>
         </Suspense>
+        <AddClassDialog idToken={idToken} isOpen={isOpenAddClassDialog} setIsOpen={setIsOpenAddClassDialog} />
       </div>
     </div>
   )

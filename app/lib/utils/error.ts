@@ -2,26 +2,26 @@ import axios, { isAxiosError } from "axios";
 import { ErrorDetails } from "../types/error-details";
 
 export const getErrorDetailsInfo = (error: unknown) => {
-
-    let message: string;
-    let status: number = 500;
-
+    let errorInfo = {
+        message : "",
+        status : 500
+    }
     if (axios.isAxiosError(error)) {
         const errorResponse: ErrorDetails = error.response?.data;
         console.log({ errorResponse });
-        message = errorResponse ? errorResponse.detail : error.message;
-        status = errorResponse?.status || 500;
+        errorInfo.message = errorResponse ? errorResponse.detail : error.message;
+        errorInfo.status = errorResponse?.status || 500;
     } else if (error instanceof Error) {
-        message = error.message;
+        errorInfo.message = error.message;
     } else if (error && typeof error === "object" && "message" in error) {
-        message = String(error.message);
+        errorInfo.message = String(error.message);
     } else if (typeof error === "string") {
-        message = error;
+        errorInfo.message = error;
     } else {
-        message = "Something went wrong";
+        errorInfo.message = "Something went wrong";
     }
 
-    return { message, status };
+    return errorInfo;
 };
 
 export const isRedirectError = (error: unknown) => {

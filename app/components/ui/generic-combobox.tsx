@@ -63,7 +63,9 @@ export default function GenericCombobox<T>({
             queryFn: ({ pageParam = 1 }) =>
                 fetcher({ keyword: debouncedSearchTerm, page: pageParam, pageSize: maxItemsDisplay, idToken: idToken || '' }),
             getNextPageParam: (lastResult) =>
-                lastResult.metadata?.page < lastResult.metadata?.totalPages ? lastResult.metadata?.page + 1 : undefined,
+                lastResult.metadata && lastResult.metadata.page < lastResult.metadata.totalPages
+                    ? lastResult.metadata.page + 1
+                    : undefined,
             enabled: true, // Automatically fetch when the component is mounted
             initialPageParam: 1,
             refetchOnWindowFocus: false,
@@ -84,7 +86,7 @@ export default function GenericCombobox<T>({
         ...initialItems,
         ...(data?.pages
             .flatMap(item => item.data)
-            .filter(item => mapItem(item).value !== mapItem(prechosenItem!).value) || [])
+            .filter(item => prechosenItem ? mapItem(item).value !== mapItem(prechosenItem).value : true) || [])
     ];
 
     const items = fetchedData.map(mapItem) || [];

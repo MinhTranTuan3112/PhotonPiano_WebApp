@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
     totalPages = 1,
     totalCount = 0,
     pageParamName = 'page',
-    sizeParamName = 'size'
+    sizeParamName = 'size',
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
