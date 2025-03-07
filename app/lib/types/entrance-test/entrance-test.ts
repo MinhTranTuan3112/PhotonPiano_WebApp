@@ -15,7 +15,7 @@ export type EntranceTest = {
     date: string,
     status: number,
     registerStudents: number,
-    isAnnoucedScore: boolean,
+    isAnnouncedScore: boolean,
     isOpen: boolean
 }
 
@@ -32,6 +32,7 @@ export const updateEntranceTestSchema = z.object({
     shift: z.string({ message: 'Ca thi không được để trống.' }).nonempty({ message: 'Ca thi không được để trống.' }),
     date: z.date(),
     roomId: z.string().nonempty(),
+    isAnnouncedScore: z.boolean(),
     instructorId: z.string().optional().nullable(),
 });
 
@@ -55,7 +56,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         instructorName: "HungDepTrai",
         registerStudents: 20,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -69,7 +70,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 2,
         instructorName: "HungDepTrai",
         registerStudents: 10,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -82,7 +83,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-01",
         status: 0,
         registerStudents: 15,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -96,7 +97,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         instructorName: "Thien An",
         registerStudents: 5,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -110,7 +111,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         instructorName: "Thien An",
         registerStudents: 7,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -123,7 +124,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-02",
         status: 0,
         registerStudents: 8,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     },
     {
@@ -133,7 +134,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         date: "2025-02-02",
         status: 0,
         registerStudents: 5,
-        isAnnoucedScore: true,
+        isAnnouncedScore: true,
         isOpen: true
     }
 ]
