@@ -1,3 +1,4 @@
+import { Level } from "../types/account/account";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 import { getErrorDetailsInfo } from "../utils/error";
@@ -82,6 +83,53 @@ export async function fetchDeleteStudentClass({ studentId, classId, isExpelled =
 }) {
 
     const response = await axiosInstance.delete(`/classes/student-class?studentId=${studentId}&classId=${classId}&isExpelled=${isExpelled}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+
+export async function fetchCreateClass({ level, idToken }: {
+    level : Level,
+    idToken: string
+}) {
+    const response = await axiosInstance.post(`/classes/`,{
+        level : level
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+export async function fetchUpdateClass({ id, level, name, instructorId, idToken }: {
+    id : string,
+    name? : string,
+    instructorId? : string,
+    level? : Level,
+    idToken: string
+}) {
+    const response = await axiosInstance.put(`/classes/`,{
+        level : level,
+        id : id,
+        name : name,
+        instructorId : instructorId,
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+export async function fetchDeleteClass({id, idToken }: {
+    id : string
+    idToken: string
+}) {
+    const response = await axiosInstance.delete(`/classes/${id}`, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }

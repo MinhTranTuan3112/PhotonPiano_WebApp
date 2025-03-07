@@ -1,9 +1,12 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { Await, Form, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
+import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
+import { z } from 'zod';
 import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
@@ -28,6 +31,7 @@ import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
+import { formEntryToString } from '~/lib/utils/form';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -130,8 +134,80 @@ function StatusBadge({ status }: {
 
 
 function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetail, idToken: string }) {
+  const updateClassSchema = z.object({
+    level: z.string().optional(),
+    instructorId: z.string().optional(),
+    name: z.string().optional(),
+    id: z.string(),
+    idToken: z.string(),
+    action: z.string()
+  });
+
+  type UpdateSlotSchema = z.infer<typeof updateClassSchema>;
+  const resolver = zodResolver(updateClassSchema)
+
+  const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
-  const [selectedInstructorId, setSelectedInstructorId] = useState(classInfo.instructor?.accountFirebaseId)
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const updateFetcher = useFetcher<ActionResult>();
+  const deleteFetcher = useFetcher<ActionResult>();
+
+  const {
+    handleSubmit,
+    formState: { errors },
+    control
+  } = useRemixForm<UpdateSlotSchema>({
+    mode: "onSubmit",
+    resolver,
+    submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+    fetcher: updateFetcher,
+    defaultValues: {
+      action: "EDIT",
+      id: classInfo.id,
+      idToken: idToken
+    }
+  });
+
+  const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
+    title: 'Xác nhận sửa lớp học',
+    description: 'Bạn có chắc chắn muốn sửa lớp học này không?  Hành động này không thể hoàn tác!',
+    onConfirm: () => {
+      handleSubmit();
+    }
+  })
+
+  const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
+    title: 'Xác nhận xóa lớp học',
+    description: 'Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác!',
+    onConfirm: () => {
+      handleDelete();
+    }
+  })
+
+  const { loadingDialog: loadingEditDialog } = useLoadingDialog({
+    fetcher: updateFetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+  const { loadingDialog: loadingDeleteDialog } = useLoadingDialog({
+    fetcher: deleteFetcher,
+    action: () => {
+      navigate(`/staff/classes`)
+    }
+  })
+
+  const handleDelete = () => {
+    deleteFetcher.submit({
+      action: "DELETE",
+      id: classInfo.id,
+      idToken: idToken
+    }, {
+      action: "/api/classes",
+      method: "DELETE"
+    })
+  }
 
   return (
     <Card>
@@ -142,134 +218,163 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className='flex justify-end gap-2 mb-8'>
-          {
-            isEdit ? (
-              <>
-                <Button className='bg-green-500 hover:bg-green-300'><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
-                <Button className='bg-red-400 hover:bg-red-200' onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
-              </>
-            ) : (
-              <Button variant={'theme'} onClick={() => setIsEdit(true)}><Edit2Icon className='mr-4' /> Chỉnh sửa lớp</Button>
-            )
-          }
-        </div>
-        <div className="grid grid-cols-2 gap-4 text-sm text-gray-800">
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Tên lớp:</span>
+        <Form onSubmit={handleOpenEditModal}>
+          <div className='flex justify-end gap-2 mb-8'>
             {
               isEdit ? (
-                <div >
-                  <Input placeholder='Tên lớp' name='className' defaultValue={classInfo.name} />
-                </div>
+                <>
+                  <Button className='bg-green-500 hover:bg-green-300' type="submit"><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
+                  <Button className='bg-red-400 hover:bg-red-200'  type="button" onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
+                </>
               ) : (
-                <p className="text-gray-900">{classInfo.name}</p>
+                <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"><Edit2Icon className='mr-4' /> Chỉnh sửa lớp</Button>
               )
             }
           </div>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Giáo viên:</span>
-            <p className="text-gray-900">
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-800">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Tên lớp:</span>
               {
                 isEdit ? (
-                  <div>
-                    <GenericCombobox<Account>
-                      className=''
-                      idToken={idToken}
-                      queryKey='teachers'
-                      fetcher={async (query) => {
-                        const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
-
-                        const headers = response.headers;
-
-                        const metadata: PaginationMetaData = {
-                          page: parseInt(headers['x-page'] || '1'),
-                          pageSize: parseInt(headers['x-page-size'] || '10'),
-                          totalPages: parseInt(headers['x-total-pages'] || '1'),
-                          totalCount: parseInt(headers['x-total-count'] || '0'),
-                        };
-                        const data = response.data as Account[]
-                        return {
-                          data: data,
-                          metadata
-                        };
-                      }}
-                      mapItem={(item) => ({
-                        label: item?.fullName || item?.userName,
-                        value: item?.accountFirebaseId
-                      })}
-                      prechosenItem={classInfo.instructor}
-                      placeholder='Chọn giảng viên'
-                      emptyText='Không tìm thấy dữ liệu.'
-                      errorText='Lỗi khi tải danh sách giảng viên.'
-                      value={selectedInstructorId ?? undefined}
-                      onChange={setSelectedInstructorId}
-                      maxItemsDisplay={10}
+                  <div >
+                    <Controller
+                      control={control}
+                      name='name'
+                      defaultValue={classInfo.name}
+                      render={({ field: { onChange, onBlur, value, ref } }) => (
+                        <Input placeholder='Tên lớp' value={value} onChange={onChange} ref={ref} onBlur={onBlur} />
+                      )}
                     />
                   </div>
                 ) : (
-                  <p className="text-gray-900">{classInfo.instructor ? classInfo.instructor.fullName : "Chưa có"}</p>
+                  <p className="text-gray-900">{classInfo.name}</p>
+                )
+              }
+            </div>
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Giáo viên:</span>
+              <p className="text-gray-900">
+                {
+                  isEdit ? (
+                    <div>
+                      <Controller
+                        control={control}
+                        name='instructorId'
+                        defaultValue={classInfo.instructor?.accountFirebaseId}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <GenericCombobox<Account>
+                            className=''
+                            idToken={idToken}
+                            queryKey='teachers'
+                            fetcher={async (query) => {
+                              const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
+
+                              const headers = response.headers;
+
+                              const metadata: PaginationMetaData = {
+                                page: parseInt(headers['x-page'] || '1'),
+                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                              };
+                              const data = response.data as Account[]
+                              return {
+                                data: data,
+                                metadata
+                              };
+                            }}
+                            mapItem={(item) => ({
+                              label: item?.fullName || item?.userName,
+                              value: item?.accountFirebaseId
+                            })}
+                            prechosenItem={classInfo.instructor}
+                            placeholder='Chọn giảng viên'
+                            emptyText='Không tìm thấy dữ liệu.'
+                            errorText='Lỗi khi tải danh sách giảng viên.'
+                            value={value}
+                            onChange={onChange}
+                            maxItemsDisplay={10}
+                          />
+                        )}
+                      />
+
+                    </div>
+                  ) : (
+                    <p className="text-gray-900">{classInfo.instructor ? (classInfo.instructor.fullName ||  classInfo.instructor.userName) : "Chưa có"}</p>
+                  )
+                }
+
+              </p>
+            </div>
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Tổng số buổi học:</span>
+              <p className="text-gray-900">{classInfo.slots.length} / {classInfo.requiredSlots}</p>
+            </div>
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Số học viên:</span>
+              <p className="text-gray-900">{classInfo.studentNumber} / {classInfo.capacity}</p>
+            </div>
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Cấp độ:</span>
+              {
+                isEdit ? (
+                  <div >
+                    <Controller
+                      control={control}
+                      name='level'
+                      defaultValue={classInfo.level.toString()}
+                      render={({ field: { onChange, onBlur, value, ref } }) => (
+                        <Select value={value} onValueChange={onChange} >
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Chọn level" />
+                          </SelectTrigger>
+                          <SelectGroup>
+                            <SelectContent>
+                              {
+                                LEVEL.map((level, index) => (
+                                  <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
+                                ))
+                              }
+                            </SelectContent>
+                          </SelectGroup>
+                        </Select>
+                      )}
+                    />
+
+                  </div>
+                ) : (
+                  <div className='flex justify-center'>
+                    <LevelBadge level={classInfo.level} />
+                  </div>
                 )
               }
 
-            </p>
-          </div>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Tổng số buổi học:</span>
-            <p className="text-gray-900">{classInfo.slots.length} / {classInfo.requiredSlots}</p>
-          </div>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Số học viên:</span>
-            <p className="text-gray-900">{classInfo.studentNumber} / {classInfo.capacity}</p>
-          </div>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Cấp độ:</span>
-            {
-              isEdit ? (
-                <div >
-                  <Select defaultValue={classInfo.level.toString()} >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Chọn level" />
-                    </SelectTrigger>
-                    <SelectGroup>
-                      <SelectContent>
-                        {
-                          LEVEL.map((level, index) => (
-                            <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
-                          ))
-                        }
-                      </SelectContent>
-                    </SelectGroup>
-                  </Select>
-                </div>
-              ) : (
-                <div className='flex justify-center'>
-                  <LevelBadge level={classInfo.level} />
-                </div>
-              )
-            }
-
-          </div>
-          <div className="bg-gray-100 p-3 rounded-lg">
-            <span className="font-medium text-gray-700">Trạng thái:</span>
-            <div className='flex justify-center'>
-              <StatusBadge status={classInfo.status} />
+            </div>
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <span className="font-medium text-gray-700">Trạng thái:</span>
+              <div className='flex justify-center'>
+                <StatusBadge status={classInfo.status} />
+              </div>
             </div>
           </div>
-        </div>
+        </Form>
         <div className='mt-12'>
           {
             !classInfo.isPublic && (
               <div className='flex flex-col justify-center'>
                 <div className='font-bold text-xl text-center'>Vùng Nguy Hiểm</div>
                 <div className='flex gap-2 justify-center mt-4'>
-                  <Button Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
+                  <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
                 </div>
               </div>
             )
           }
 
         </div>
+        {confirmDeleteDialog}
+        {confirmEditDialog}
+        {loadingDeleteDialog}
+        {loadingEditDialog}
       </CardContent>
     </Card>
   )

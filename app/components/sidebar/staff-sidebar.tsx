@@ -46,9 +46,14 @@ const data = {
                     url: "/staff/classes",
                 },
                 {
+                    title: 'Xếp lớp tự động',
+                    url: '/staff/auto-arrange-class',
+                },
+                {
                     title: 'Danh sách đơn từ',
                     url: '/staff/applications',
-                }
+                },
+                
             ],
         }
     ]

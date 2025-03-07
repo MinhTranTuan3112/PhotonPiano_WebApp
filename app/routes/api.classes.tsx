@@ -1,0 +1,126 @@
+import { ActionFunctionArgs } from "@remix-run/node";
+import { fetchClasses, fetchCreateClass, fetchDeleteClass, fetchUpdateClass } from "~/lib/services/class";
+import { getErrorDetailsInfo } from "~/lib/utils/error";
+import { formEntryToNumber, formEntryToString } from "~/lib/utils/form";
+
+export async function action({ request }: ActionFunctionArgs) {
+    try {
+        const formData = await request.formData();
+        const action = formEntryToString(formData.get("action"));
+        // const { data, errors, receivedValues: defaultValues } =
+        //     await getValidatedFormData<ServerAddSlotSchema>(request, zodResolver(serverAddSlotSchema));
+
+        // console.log(data?.action)
+
+        if (!action) {
+            return {
+                success: false,
+                error: "Invalid action",
+                status: 405
+            }
+        }
+
+
+        if (action === "ADD") {
+            const level = formEntryToNumber(formData.get("level"));
+            const token = formEntryToString(formData.get("idToken"));
+
+            if (!level) {
+                return {
+                    success: false,
+                    error: 'Level là bắt buộc.',
+                    status: 400
+                }
+            }
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+
+            const body = {
+                level : level,
+                idToken: token
+            }
+            await fetchCreateClass(body);
+
+            return {
+                success: true
+            }
+        } else if (action === "EDIT") {
+            const level = formEntryToNumber(formData.get("level"));
+            const instructorId = formEntryToString(formData.get("instructorId"));
+            const name = formEntryToString(formData.get("name"));
+            const id = formEntryToString(formData.get("id"));
+            const token = formEntryToString(formData.get("idToken"));
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Không xác định lớp học.',
+                    status: 400
+                }
+            }
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+
+            const body = {
+                id: id,
+                level : level,
+                instructorId : instructorId,
+                name : name,
+                idToken: token
+            }
+            await fetchUpdateClass(body);
+
+            return {
+                success: true
+            }
+        } else if (action === "DELETE") {
+            const id = formEntryToString(formData.get("id"));
+            const token = formEntryToString(formData.get("idToken"));
+
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Không xác định lớp học.',
+                    status: 400
+                }
+            }
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+
+            await fetchDeleteClass({id,idToken : token});
+
+            return {
+                success: true
+            }
+        }
+        else {
+            return {
+                success: false,
+                error: "Action not found",
+                status: 405
+            }
+        }
+
+    } catch (err) {
+        var error = getErrorDetailsInfo(err)
+        return {
+            success: false,
+            error: error.message,
+            status: error.status
+        }
+    }
+};
