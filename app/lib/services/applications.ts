@@ -61,14 +61,15 @@ export async function fetchSendApplication({
 }
 
 export async function fetchUpdateApplicationStatus({
-    id, status, idToken
+    id, status, idToken, note
 }: {
     id: string,
     status: ApplicationStatus,
+    note?: string,
     idToken: string
 }) {
 
-    const response = await axiosInstance.put(`/applications/${id}/status`, { status }, {
+    const response = await axiosInstance.put(`/applications/${id}/status`, { status, note }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

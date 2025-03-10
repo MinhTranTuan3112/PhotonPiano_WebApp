@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Button } from "./ui/button";
 import { useImagesDialog } from "~/hooks/use-images-dialog";
 import { useEffect } from "react";
+import ImageResize from 'tiptap-extension-resize-image';
 
 type RichTextEditorProps = {
     placeholder: string;
@@ -50,7 +51,8 @@ const RichTextEditor = ({
             Placeholder.configure({
                 placeholder
             }),
-            Image
+            Image,
+            ImageResize
         ],
 
         content: value, // Set the initial content with the provided value
@@ -86,7 +88,8 @@ const RichTextEditorToolbar = ({ editor, allowImages }: RichTextEditorToolbarPro
             const url = imageUrls[0];
 
             editor.chain().focus().setImage({ src: url }).run()
-        }
+        },
+        requiresUpload: true
     });
 
     return (
