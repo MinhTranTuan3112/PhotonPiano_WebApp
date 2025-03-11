@@ -23,3 +23,5 @@ export const APPLICATION_TYPE = ["Đơn tạm nghỉ","Đơn tạm hoãn kì","�
 export const APPLICATION_STATUS = ["Chờ duyệt","Đã duyệt","Đã từ chối","Đã hủy"];
 
 export const API_NOTIFICATION_URL = import.meta.env.VITE_API_NOTIFICATION_URL as string;
+
+export const API_PROGRESS_URL = import.meta.env.VITE_API_PROGRESS_URL as string;

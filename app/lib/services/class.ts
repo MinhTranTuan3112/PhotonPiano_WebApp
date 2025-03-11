@@ -137,3 +137,42 @@ export async function fetchDeleteClass({id, idToken }: {
 
     return response;
 }
+export async function fetchSchduleAClass({ id, startWeek, shift, dayOfWeeks, idToken }: {
+    id : string,
+    startWeek : string,
+    dayOfWeeks : number[],
+    shift : number,
+    idToken: string
+}) {
+    const response = await axiosInstance.patch(`/classes/scheduling`,{
+        startWeek : startWeek,
+        id : id,
+        shift : shift,
+        dayOfWeeks : dayOfWeeks,
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+
+export async function fetchAutoArrange({ studentNumber, shifts, startWeek, idToken }: {
+    startWeek : string,
+    studentNumber? : number,
+    shifts : number[],
+    idToken: string
+}) {
+    const response = await axiosInstance.post(`/classes/auto-arrangement`,{
+        startWeek : startWeek,
+        studentNumber : studentNumber,
+        allowedShifts : shifts,
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}

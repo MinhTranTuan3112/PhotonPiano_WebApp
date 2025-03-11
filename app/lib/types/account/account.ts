@@ -20,6 +20,11 @@ export type Account = {
     role: Role;
 };
 
+export type AwaitingLevelCount = {
+    level? : Level,
+    count : number
+}
+
 export type SignUpRequest = {
 
 } & Omit<Account, 'level' | 'status' | 'avatarUrl' | 'address' | 'username' | 'accountFirebaseId'>;

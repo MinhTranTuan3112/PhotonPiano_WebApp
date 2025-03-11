@@ -1,7 +1,7 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchClasses, fetchCreateClass, fetchDeleteClass, fetchUpdateClass } from "~/lib/services/class";
+import { fetchClasses, fetchCreateClass, fetchDeleteClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
-import { formEntryToNumber, formEntryToString } from "~/lib/utils/form";
+import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from "~/lib/utils/form";
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -102,6 +102,40 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchDeleteClass({id,idToken : token});
+
+            return {
+                success: true
+            }
+        } else if (action === "SCHEDULE"){
+            const dayOfWeeks = formEntryToStrings(formData.getAll("dayOfWeeks").toString());
+            const startWeek = formEntryToDateOnly(formData.get("startWeek"));
+            const shift = formEntryToNumber(formData.get("shift"));
+            const token = formEntryToString(formData.get("idToken"));
+            const id = formEntryToString(formData.get("id"));
+
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+            console.log(dayOfWeeks,startWeek,shift,id)
+            if (dayOfWeeks.length === 0 || !startWeek || !shift || !id) {
+                return {
+                    success: false,
+                    error: 'Dữ liệu đã bị gửi thiếu.',
+                    status: 400
+                }
+            }
+
+            await fetchSchduleAClass({
+                dayOfWeeks : dayOfWeeks.map(Number),
+                id : id,
+                idToken : token,
+                shift : shift,
+                startWeek : startWeek
+            });
 
             return {
                 success: true

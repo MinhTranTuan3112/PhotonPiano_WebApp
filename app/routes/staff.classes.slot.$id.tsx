@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
 import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
@@ -146,7 +146,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     const { loadingDialog: loadingDeleteDialog } = useLoadingDialog({
         fetcher: deleteFetcher,
         action: () => {
-            navigate(`/staff/classes/${slot.classId}?tab=3`)
+            navigate(`/staff/classes/${slot.classId}?tab=timeTable`)
         }
     })
 
@@ -189,7 +189,8 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
             idToken: idToken
         }, {
             action: "/api/slots",
-            method: "DELETE"
+            method: "DELETE",
+
         })
     }
 
@@ -372,6 +373,8 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
             {confirmEditDialog}
         </div>
     );
+
+    
 }
 
 function DetailItem({ label, value, labelIcon }: { label: string; value: ReactNode, labelIcon?: ReactNode }) {

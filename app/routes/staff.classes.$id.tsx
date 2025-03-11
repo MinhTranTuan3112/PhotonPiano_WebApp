@@ -78,11 +78,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       return {
         students, metadata
       }
-    });
+    })
     return {
       classDetail, studentPromise
     }
-  });
+  })
 
   const tab = (searchParams.get('tab') || 'general')
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
@@ -220,6 +220,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
       <CardContent>
         <Form onSubmit={handleOpenEditModal}>
           <div className='flex justify-end gap-2 mb-8'>
+            <input type='submit' className='hidden' />
             {
               isEdit ? (
                 <>
@@ -516,7 +517,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             </Button>
             <Button disabled={(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Xếp lịch tự động</Button>
           </div>
-          <Button Icon={CalendarDays} iconPlacement='left'>Xem dạng lịch</Button>
+          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate('/scheduler')}>Xem dạng lịch</Button>
         </div>
 
         <div className='text-center text-xl mt-4'>
@@ -544,7 +545,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         </div>
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
-          slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} />
+          slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
       </CardContent>
     </Card>
   )

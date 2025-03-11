@@ -4,6 +4,10 @@ export const formEntryToString = (formEntry?: FormDataEntryValue | null, default
     return formEntry?.toString().replace(/"/g, "").trim() ?? (defaultValue ?? undefined)
 }
 
+export const formEntryToStrings = (formEntry?: FormDataEntryValue | null, defaultValue?: string[]) => {
+    return formEntry?.toString().replace(/[\[\]"]/g, "").trim().split(',') ?? (defaultValue ?? [])
+}
+
 export const formEntryToDateOnly = (formEntry?: FormDataEntryValue | null, defaultValue?: string) => {
     if (!formEntry) return defaultValue ?? undefined;
 

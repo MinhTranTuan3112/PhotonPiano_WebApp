@@ -11,7 +11,8 @@ export type Class = {
     level : number,
     status : number,
     isPublic : boolean,
-    minimumStudents : number
+    minimumStudents : number,
+    startDate? : string
 }
 const teacher = {
     accountFirebaseId : "abc",

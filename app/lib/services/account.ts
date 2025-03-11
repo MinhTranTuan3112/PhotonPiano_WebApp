@@ -66,3 +66,14 @@ export async function fetchUpdateAccountInfo({
 
     return response;
 }
+
+export async function fetchWaitingStudentsOfAllLevel({idToken} : {idToken : string}) {
+
+    const response = await axiosInstance.get("/accounts/class-waiting", {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}

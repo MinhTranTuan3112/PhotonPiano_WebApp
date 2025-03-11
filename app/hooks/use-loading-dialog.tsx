@@ -57,6 +57,7 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
 
     const loadingDialog =
         <Dialog onOpenChange={onOpenChange} open={isOpen}>
+            <DialogTitle />
             <DialogContent className=''>
                 {result === null ? (
                     <div className="text-center">
