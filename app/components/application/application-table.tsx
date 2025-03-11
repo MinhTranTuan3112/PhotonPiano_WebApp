@@ -4,7 +4,7 @@ import { Application, ApplicationStatus } from "~/lib/types/application/applicat
 import { Badge } from "../ui/badge";
 import { APPLICATION_STATUS, APPLICATION_TYPE } from "~/lib/utils/constants";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
-import { CircleX, Clock, Download, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
+import { CircleX, Clock, Download, Eye, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
 import { Form, Link, useFetcher } from "@remix-run/react";
 import { Button, buttonVariants } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -65,13 +65,6 @@ export const columns: ColumnDef<Application>[] = [
         }
     },
     {
-        accessorKey: 'Ghi chú',
-        header: 'Ghi chú',
-        cell: ({ row }) => {
-            return <div>{row.original.staffConfirmNote}</div>
-        }
-    },
-    {
         accessorKey: 'File đính kèm',
         header: () => {
             return <div className="flex flex-row items-center">
@@ -121,7 +114,8 @@ function ActionDropdown({ row }: {
         description: '',
         id: row.original.id,
         isOpen: false,
-        status: row.original.status
+        status: row.original.status,
+        note: row.original.staffConfirmNote
     });
 
     return <>
@@ -138,6 +132,20 @@ function ActionDropdown({ row }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     setDialogProps({
                         ...dialogProps,
+                        isDetails: true,
+                        status: ApplicationStatus.Rejected,
+                        isOpen: true,
+                        title: 'Chi tiết đơn',
+                        description: `Chi tiết thông tin đơn ${row.original.id}`,
+                    })
+                }}>
+                    <Eye />
+                    Xem
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                    setDialogProps({
+                        ...dialogProps,
+                        isDetails: false,
                         status: ApplicationStatus.Approved,
                         isOpen: true,
                         title: 'Xác nhận duyệt đơn',
@@ -150,6 +158,7 @@ function ActionDropdown({ row }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     setDialogProps({
                         ...dialogProps,
+                        isDetails: false,
                         status: ApplicationStatus.Rejected,
                         isOpen: true,
                         title: 'Xác nhận từ chối đơn',
@@ -176,21 +185,22 @@ const updateApplicationSchema = z.object({
 type ApplicationStatusFormData = z.infer<typeof updateApplicationSchema>;
 
 type DialogProps = {
+    isDetails?: boolean;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     title: string;
-    id: string;
     description: string;
-    status: ApplicationStatus;
-}
+} & ApplicationStatusFormData;
 
 function ActionDialog({
+    isDetails = false,
     isOpen,
     setIsOpen,
     title,
     description,
     id,
-    status: defaultStatus
+    status: defaultStatus,
+    note: defaultNote
 }: DialogProps) {
 
     const fetcher = useFetcher<typeof action>();
@@ -202,7 +212,8 @@ function ActionDialog({
         formState: { errors },
         register,
         control,
-        getValues,
+        getValues: getFormValues,
+        setValue: setFormValue,
         reset
     } = useRemixForm<ApplicationStatusFormData>({
         mode: 'onSubmit',
@@ -213,6 +224,8 @@ function ActionDialog({
         },
         fetcher
     });
+
+    const { status: currentStatus } = getFormValues();
 
     useEffect(() => {
 
@@ -248,17 +261,39 @@ function ActionDialog({
                     name='note'
                     control={control}
                     render={({ field: { value, onChange } }) => (
-                        <RichTextEditor value={value || ''} onChange={onChange} placeholder='Nhập ghi chú' />
+                        <RichTextEditor value={value || defaultNote || ''} onChange={onChange} placeholder='Nhập ghi chú' />
                     )}
                 />
                 {errors.note && <div className="text-red-500">{errors.note.message}</div>}
                 <DialogFooter className='my-2'>
-                    <Button type='button' variant="ghost" onClick={() => setIsOpen(false)}
-                        disabled={isSubmitting}>Hủy</Button>
-                    <Button type="submit"
-                        disabled={isSubmitting}
-                        isLoading={isSubmitting}>{defaultStatus === ApplicationStatus.Approved ? 'Duyệt' : 'Từ chối'}
-                    </Button>
+                    {!isDetails ? <>
+                        <Button type='button' variant="ghost" onClick={() => setIsOpen(false)}
+                            disabled={isSubmitting}>Hủy</Button>
+                        <Button type="submit"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting}>{defaultStatus === ApplicationStatus.Approved ? 'Duyệt' : 'Từ chối'}
+                        </Button>
+                    </> : <>
+                        <Button type="button"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting && currentStatus === ApplicationStatus.Approved}
+                            onClick={() => {
+                                setFormValue('status', ApplicationStatus.Approved);
+                                handleSubmit();
+                            }}>
+                            Duyệt
+                        </Button>
+                        <Button type="button"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting && currentStatus === ApplicationStatus.Rejected}
+                            variant={'destructive'}
+                            onClick={() => {
+                                setFormValue('status', ApplicationStatus.Rejected);
+                                handleSubmit();
+                            }}>
+                            Từ chối
+                        </Button>
+                    </>}
                 </DialogFooter>
             </Form>
         </DialogContent>
