@@ -23,6 +23,7 @@ export type StudentClass = {
     id: string;
     classId: string;
     studentFirebaseId: string;
+    studentFullName: string;
     certificateUrl: string;
     isPassed: boolean;
     className: string;

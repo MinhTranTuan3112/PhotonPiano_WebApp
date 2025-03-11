@@ -5,6 +5,12 @@ export enum SlotStatus
     Finished
 }
 
+export const SlotStatusText = {
+    [SlotStatus.NotStarted] : "Chưa Bắt Đầu",
+    [SlotStatus.Ongoing] : "Đang Diễn Ra",
+    [SlotStatus.Finished] : "Đã Kết Thúc"
+}
+
 export enum AttendanceStatus {
     NotYet,
     Attended,
@@ -21,6 +27,12 @@ export enum Shift {
     Shift7_18h_19h30,
     Shift8_19h45_21h15
 }
+
+export const AttendanceStatusText = {
+    [AttendanceStatus.NotYet]: "Chưa Bắt Đầu",
+    [AttendanceStatus.Attended]: "Có mặt",
+    [AttendanceStatus.Absent]: "Vắng mặt"
+};
 
 export type Slot = {
     id: string;

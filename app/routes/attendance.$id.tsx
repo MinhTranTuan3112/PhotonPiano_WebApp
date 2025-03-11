@@ -1,16 +1,16 @@
 "use client"
 
-import { useLoaderData, useNavigate } from "@remix-run/react"
 import type { LoaderFunctionArgs } from "@remix-run/node"
-import { fetchSlotById, fetchUpdateAttendanceStatus} from "~/lib/services/scheduler"
-import { requireAuth } from "~/lib/utils/auth"
-import type { SlotDetail, SlotStudentModel } from "~/lib/types/Scheduler/slot"
-import React, { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Users, UserX, Check, X, Circle, AlertTriangle } from "lucide-react"
+import { useLoaderData, useNavigate } from "@remix-run/react"
 import { Button } from "app/components/ui/button"
+import { AnimatePresence, motion } from "framer-motion"
+import { AlertTriangle, Check, Circle, Users, UserX, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { fetchSlotById, fetchUpdateAttendanceStatus } from "~/lib/services/scheduler"
+import type { SlotDetail, SlotStudentModel } from "~/lib/types/Scheduler/slot"
+import { requireAuth } from "~/lib/utils/auth"
 
-import Modal from "~/components/scheduler/modal-props";
+import Modal from "~/components/scheduler/modal-props"
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
@@ -25,10 +25,9 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
         const slotStudent: SlotStudentModel[] | null = slotDetail.slotStudents!.map(student => ({
             ...student,
-            attendanceStatus: student.attendanceStatus ?? 0, // 0 means not marked yet
+            attendanceStatus: student.attendanceStatus ?? 0, 
         }));
-
-
+        
         return { slotStudent, idToken, id }
     } catch (error) {
         console.error("Failed to load attendance details:", error)
@@ -37,11 +36,11 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 }
 
 const AttendancePage = () => {
-    const {slotStudent, idToken, id } = useLoaderData<typeof loader>()
+    const { slotStudent, idToken, id } = useLoaderData<typeof loader>()
     const [attendanceData, setAttendanceData] = useState<SlotStudentModel[]>(slotStudent || [])
     const [showAbsentees, setShowAbsentees] = useState(false)
-    const [flashingStudent, setFlashingStudent] = useState<number | null>(null)
-    const [highlightedStudent, setHighlightedStudent] = useState<number | null>(null)
+    const [flashingStudentId, setFlashingStudentId] = useState<string | null>(null)
+    const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null)
     const [showConfirmDialog, setShowConfirmDialog] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const navigate = useNavigate()
@@ -50,29 +49,37 @@ const AttendancePage = () => {
         setAttendanceData(slotStudent || [])
     }, [slotStudent])
 
-    const handleAttendanceChange = (index: number, status: number) => {
+    // Sort attendanceData by fullName
+    const sortedAttendanceData = [...attendanceData].sort((a, b) =>
+        a.studentAccount.fullName!.localeCompare(b.studentAccount.fullName!)
+    )
+
+    const handleAttendanceChange = (studentId: string, status: number) => {
         setAttendanceData((prev) =>
-            prev.map((student, i) => (i === index ? { ...student, attendanceStatus: status } : student)),
+            prev.map((student) =>
+                student.studentFirebaseId === studentId
+                    ? { ...student, attendanceStatus: status }
+                    : student
+            )
         )
-        setFlashingStudent(null)
-        setHighlightedStudent(null)
+        setFlashingStudentId(null)
+        setHighlightedStudentId(null)
     }
 
-    const absentStudents = attendanceData.filter((student) => student.attendanceStatus === 2)
-
+    const absentStudents = sortedAttendanceData.filter((student) => student.attendanceStatus === 2)
+    
     const handleSubmit = () => {
         setShowConfirmDialog(true)
     }
 
     const prepareAttendanceRequest = () => {
-        const studentAttentIds = attendanceData
+        const studentAttentIds = sortedAttendanceData
             .filter((student) => student.attendanceStatus === 1)
             .map((student) => student.studentFirebaseId)
 
-        const studentAbsentIds = attendanceData
+        const studentAbsentIds = sortedAttendanceData
             .filter((student) => student.attendanceStatus === 2)
             .map((student) => student.studentFirebaseId)
-
 
         return {
             SlotId: id,
@@ -84,7 +91,7 @@ const AttendancePage = () => {
     const confirmSubmit = async () => {
         setIsSubmitting(true)
         try {
-            const attendanceRequest = prepareAttendanceRequest();
+            const attendanceRequest = prepareAttendanceRequest()
 
             const response = await fetchUpdateAttendanceStatus(attendanceRequest.SlotId, attendanceRequest.StudentAttentIds, attendanceRequest.StudentAbsentIds, idToken)
 
@@ -92,23 +99,20 @@ const AttendancePage = () => {
                 throw new Error("Failed to update attendance")
             }
 
+            navigate("/scheduler")
 
-            navigate("/scheduler");
-
-        } catch (error : any) {
+        } catch (error: unknown) {
             console.error("Error updating attendance:", error)
-            alert("Failed to update attendance. Please try again. Error: " + error.message);
+            alert("Failed to update attendance. Please try again. Error: " + error.message)
         } finally {
             setIsSubmitting(false)
             setShowConfirmDialog(false)
         }
     }
-
-
+    
     return (
         <div className="attendance-page p-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
             <div className="max-w-7xl mx-auto">
-
                 <button
                     onClick={() => navigate('/scheduler')}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -128,7 +132,7 @@ const AttendancePage = () => {
                         {showAbsentees ? "Ẩn" : "Hiển thị"} Vắng mặt
                     </button>
                     <div className="text-right">
-                        <p className="text-lg font-semibold">Tổng số học sinh: {attendanceData.length}</p>
+                        <p className="text-lg font-semibold">Tổng số học sinh: {sortedAttendanceData.length}</p>
                         <p className="text-lg font-semibold">Số học sinh vắng mặt: {absentStudents.length}</p>
                     </div>
                 </div>
@@ -150,20 +154,22 @@ const AttendancePage = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {absentStudents.map((student, index) => (
-                                    <tr key={index} className="hover:bg-red-50 transition-colors duration-150">
+                                {absentStudents.map((student) => (
+                                    <tr key={student.studentFirebaseId} className="hover:bg-red-50 transition-colors duration-150">
                                         <td className="py-4 px-2 border-b border-red-100">{student.studentAccount.email}</td>
                                         <td className="py-4 px-2 border-b border-red-100">{student.studentAccount.userName}</td>
                                         <td className="py-4 px-2 border-b border-red-100">
                                             <button
                                                 onClick={() => {
-                                                    const studentIndex = attendanceData.findIndex(
-                                                        (s) => s.studentAccount.email === student.studentAccount.email,
-                                                    )
-                                                    setFlashingStudent(studentIndex)
-                                                    setHighlightedStudent(studentIndex)
-                                                    navigate(`#student-${studentIndex}`)
-                                                    setTimeout(() => setFlashingStudent(null), 2000) // Reset flashing after 2 seconds
+                                                    const studentId = student.studentFirebaseId;
+                                                    setFlashingStudentId(studentId);
+                                                    setHighlightedStudentId(studentId);
+
+                                                    // Find index in sorted array for scrolling
+                                                    const index = sortedAttendanceData.findIndex(s => s.studentFirebaseId === studentId);
+                                                    navigate(`#student-${index}`);
+
+                                                    setTimeout(() => setFlashingStudentId(null), 2000);
                                                 }}
                                                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
                                             >
@@ -181,37 +187,37 @@ const AttendancePage = () => {
                     <table className="attendance-table w-full border-collapse bg-white shadow-lg rounded-lg overflow-hidden">
                         <thead>
                         <tr className="bg-blue-600 text-white">
-                            <th className="py-3 px-4 border-b border-blue-500">Status</th>
+                            <th className="py-3 px-4 border-b border-blue-500">Trạng thái</th>
                             <th className="py-3 px-4 border-b border-blue-500">Email</th>
-                            <th className="py-3 px-4 border-b border-blue-500">User Name</th>
-                            <th className="py-3 px-4 border-b border-blue-500">Attendance Status</th>
-                            <th className="py-3 px-4 border-b border-blue-500">Image</th>
+                            <th className="py-3 px-4 border-b border-blue-500">Họ và tên</th>
+                            <th className="py-3 px-4 border-b border-blue-500">Điểm danh</th>
+                            <th className="py-3 px-4 border-b border-blue-500">Ảnh</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {attendanceData.map((detail, index) => (
+                        {sortedAttendanceData.map((detail, index) => (
                             <motion.tr
-                                key={index}
+                                key={detail.studentFirebaseId}
                                 id={`student-${index}`}
                                 className={`hover:bg-blue-50 transition-colors duration-150 ${
                                     index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                                } ${flashingStudent === index ? "animate-flash" : ""}`}
+                                } ${flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""}`}
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
                             >
                                 <td className="py-4 px-2 border-b border-blue-100">
                                     <Circle
-                                        className={`w-4 h-4 ${highlightedStudent === index ? "text-green-500" : "text-gray-300"}`}
-                                        fill={highlightedStudent === index ? "currentColor" : "none"}
+                                        className={`w-4 h-4 ${highlightedStudentId === detail.studentFirebaseId ? "text-green-500" : "text-gray-300"}`}
+                                        fill={highlightedStudentId === detail.studentFirebaseId ? "currentColor" : "none"}
                                     />
                                 </td>
                                 <td className="py-4 px-2 border-b border-blue-100">{detail.studentAccount.email}</td>
-                                <td className="py-4 px-2 border-b border-blue-100">{detail.studentAccount.userName}</td>
+                                <td className="py-4 px-2 border-b border-blue-100">{detail.studentAccount.fullName}</td>
                                 <td className="py-4 px-2 border-b border-blue-100">
                                     <div className="flex items-center space-x-4">
                                         <button
-                                            onClick={() => handleAttendanceChange(index, 1)}
+                                            onClick={() => handleAttendanceChange(detail.studentFirebaseId, 1)}
                                             className={`flex items-center space-x-2 px-3 py-1 rounded ${
                                                 detail.attendanceStatus === 1
                                                     ? "bg-green-500 text-white"
@@ -222,7 +228,7 @@ const AttendancePage = () => {
                                             <span>Có mặt</span>
                                         </button>
                                         <button
-                                            onClick={() => handleAttendanceChange(index, 2)}
+                                            onClick={() => handleAttendanceChange(detail.studentFirebaseId, 2)}
                                             className={`flex items-center space-x-2 px-3 py-1 rounded ${
                                                 detail.attendanceStatus === 2
                                                     ? "bg-red-500 text-white"
@@ -292,4 +298,5 @@ const AttendancePage = () => {
 }
 
 export default AttendancePage
+
 
