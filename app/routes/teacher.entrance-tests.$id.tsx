@@ -443,9 +443,9 @@ function EntranceTestDetailsContent() {
                     </Button>
                 )
             }
-            <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+            <Button className={`font-bold px-12 ${entranceTest.isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}>
                 {
-                    entranceTest.isAnnoucedScore ? (
+                    entranceTest.isAnnouncedScore ? (
                         <>
                             <Delete className='mr-4' />
                             Hủy công bố điểm số

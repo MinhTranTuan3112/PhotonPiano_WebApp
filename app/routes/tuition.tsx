@@ -16,20 +16,22 @@ import { Checkbox } from "~/components/ui/checkbox"
 import { Badge } from "~/components/ui/badge"
 import DateRangePicker from "~/components/ui/date-range-picker"
 
-export function formatDate(dateString: string | undefined): string {
+export function formatDate(dateString: string | undefined) {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    }).split('/').join('-');
+    
+    const datePart = dateString.split(' ')[0].split('T')[0];
+    if (datePart && datePart.includes('-')) {
+        // Convert from YYYY-MM-DD to DD-MM-YYYY
+        const [year, month, day] = datePart.split('-');
+        return `${day}-${month}-${year}`;
+    }
+    
 }
 
 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const { idToken } = await requireAuth(request)
+    const { idToken, role } = await requireAuth(request)
     const url = new URL(request.url)
     const studentClassIds = url.searchParams.getAll("student-class-ids")
     const startTime = url.searchParams.get("start-date")
@@ -44,11 +46,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         paymentStatuses,
     })
     const tuition: Tuition[] = response.data
-    return { tuition, idToken }
+    return { tuition, idToken, role }
 }
 
 export default function TuitionPage() {
-    const { tuition, idToken } = useLoaderData<typeof loader>()
+    const { tuition, idToken, role } = useLoaderData<typeof loader>()
     const [searchParams, setSearchParams] = useSearchParams()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -150,6 +152,7 @@ export default function TuitionPage() {
                             {formatDate(fee.startDate)} đến {formatDate(fee.endDate)}
                         </div>
                         <div className="text-sm font-medium mb-2">Lớp: {fee.studentClass.className}</div>
+                        <div className="text-sm text-gray-600 mb-2">Học viên: {fee.studentClass.studentFullName}</div>
                         <div className="flex justify-between items-center">
               <span className="text-sm">
                 Trạng thái thanh toán:
@@ -164,7 +167,12 @@ export default function TuitionPage() {
                             {fee.paymentStatus !== PaymentStatus.Successed && !fee.isPassed && (
                                 <Button
                                     onClick={() => handlePayNowClick(fee)}
-                                    className="bg-black text-white hover:bg-gray-800 transition-colors"
+                                    disabled={role === 4}
+                                    className={`${
+                                        role === 4
+                                            ? "bg-gray-400 cursor-not-allowed"
+                                            : "bg-black hover:bg-gray-800"
+                                    } text-white transition-colors`}
                                 >
                                     Trả ngay
                                 </Button>
@@ -197,9 +205,10 @@ export default function TuitionPage() {
                             Số tiền: {selectedFee?.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                         </p>
                         <p className="mb-2 text-sm text-gray-600">
-                            Thời gian: {formatDate(selectedFee?.startDate)} - {formatDate(selectedFee?.endDate)}
+                            Thời gian: {formatDate(selectedFee?.startDate)} đến {formatDate(selectedFee?.endDate)}
                         </p>
                         <p className="mb-4 text-sm font-medium">Lớp: {selectedFee?.studentClass.className}</p>
+                        
                         <Button
                             type="submit"
                             className="w-full bg-black text-white hover:bg-gray-800 transition-colors py-2 px-4 rounded"

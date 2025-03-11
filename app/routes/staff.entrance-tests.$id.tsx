@@ -112,7 +112,9 @@ const serverSchema = updateEntranceTestSchema.pick({
     name: true,
     shift: true,
     instructorId: true,
-    roomId: true
+    roomId: true,
+    isAnnouncedScore: true
+
 }).extend({
     date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
 });
@@ -195,7 +197,9 @@ function EntranceTestDetailsContent() {
     const { handleSubmit,
         formState: { errors },
         control,
-        register
+        register,
+        setValue: setFormValue,
+        getValues: getFormValues
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
@@ -204,6 +208,7 @@ function EntranceTestDetailsContent() {
                 name: entranceTest.name,
                 shift: entranceTest.shift.toString(),
                 instructorId: entranceTest.instructorId,
+                isAnnouncedScore: entranceTest.isAnnouncedScore,
                 roomId: entranceTest.roomId,
                 date: new Date(entranceTest.date)
             },
@@ -423,17 +428,6 @@ function EntranceTestDetailsContent() {
         </div>
         {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
         <div className='flex flex-col md:flex-row justify-center gap-4'>
-            {/* {
-                entranceTest.isOpen ? (
-                    <Button className='px-12'>
-                        <Lock className='mr-2' /> Khóa ca thi này
-                    </Button>
-                ) : (
-                    <Button className='px-12'>
-                        <Unlock className='mr-2' /> Mở khóa ca thi này
-                    </Button>
-                )
-            } */}
             {
                 (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
                     <Button className='px-12' variant={"destructive"}>
@@ -441,11 +435,16 @@ function EntranceTestDetailsContent() {
                     </Button>
                 )
             }
-            <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+            <Button className={`font-bold px-12 ${entranceTest.isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
+                type='button' onClick={() => {
+                    setFormValue('isAnnouncedScore', !entranceTest.isAnnouncedScore);
+                    handleSubmit();
+                }}>
                 {
-                    entranceTest.isAnnoucedScore ? (
+                    entranceTest.isAnnouncedScore === true ? (
                         <>
-                            <Delete className='mr-4' />
+                            <Delete className='mr-4'
+                            />
                             Hủy công bố điểm số
                         </>
                     ) : (
