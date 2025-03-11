@@ -11,13 +11,13 @@ import {
     type Slot,
     Shift,
     type SlotDetail,
-    AttendanceStatus,
     type StudentAttendanceModel,
     SlotStatus,
+    AttendanceStatusText, SlotStatusText,
 } from "~/lib/types/Scheduler/slot"
 import { requireAuth } from "~/lib/utils/auth"
 import { fetchCurrentAccountInfo } from "~/lib/services/auth"
-import { PubSub, type IPubSubMessage } from "~/lib/services/pub-sub"
+import { type IPubSubMessage, pubSubService} from "~/lib/services/pub-sub"
  import {Button} from "~/components/ui/button";
  import {Checkbox} from "~/components/ui/checkbox";
  import {Dialog, DialogContent, DialogHeader, DialogTitle} from "~/components/ui/dialog"
@@ -151,38 +151,29 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
      const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]))
 
      useEffect(() => {
-         const pubSubService = new PubSub()
          const subscription = pubSubService.receiveMessage().subscribe((message: IPubSubMessage) => {
-             console.log("[Pub Sub] Message received in Student screen:", message)
-
              if (message.content.includes("changed") && message.topic.includes("scheduler_attendance")) {
-                 console.log("[Pub Sub] Attendance updated. Fetching latest data...")
+                 console.log("[Pub Sub] Attendance updated. Fetching latest data...");
                  Promise.all(
                      slots.map(async (slot) => {
                          try {
-                             const attendanceStatusResponse = await fetchAttendanceStatus(slot.id, idToken)
-                             const studentAttendanceModel: StudentAttendanceModel[] = attendanceStatusResponse.data
+                             const response = await fetchAttendanceStatus(slot.id, idToken);
+                             const studentAttendanceModel: StudentAttendanceModel[] = response.data;
                              const rs = studentAttendanceModel.find(
-                                 (studentAttendanceModel) =>
-                                     studentAttendanceModel.studentFirebaseId?.toLowerCase() ===
-                                     currentAccount.accountFirebaseId?.toLowerCase(),
-                             )
-                             return { ...slot, attendanceStatus: rs?.attendanceStatus }
+                                 (sm) => sm.studentFirebaseId?.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase()
+                             );
+                             return { ...slot, attendanceStatus: rs?.attendanceStatus };
                          } catch (error) {
-                             console.error(`Failed to fetch attendance status for slot ${slot.id}:`, error)
-                             return slot
+                             console.error(`Failed to fetch attendance for slot ${slot.id}:`, error);
+                             return slot;
                          }
-                     }),
-                 ).then((updatedSlots) => {
-                     setSlots(updatedSlots)
-                 })
+                     })
+                 ).then((updatedSlots) => setSlots(updatedSlots));
              }
-         })
+         });
 
-         return () => {
-             subscription.unsubscribe()
-         }
-     }, [year, weekNumber])
+         return () => subscription.unsubscribe();
+     }, [slots, idToken, currentAccount.accountFirebaseId]); // Chỉ chạy lại khi slots hoặc auth thay đổi
 
      const fetchSlotsForWeek = async (year: number, week: number) => {
          try {
@@ -350,7 +341,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                      <table className="schedule-table w-full border-collapse bg-white shadow-lg rounded-lg overflow-hidden">
                          <thead>
                          <tr className="bg-blue-600 text-white">
-                             <th className="py-3 px-4 border-b border-blue-500">Time Slot</th>
+                             <th className="py-3 px-4 border-b border-blue-500">Ca Học</th>
                              {Array.from({ length: 7 }, (_, i) => {
                                  const currentDay = new Date(startDate)
                                  currentDay.setDate(currentDay.getDate() + i)
@@ -408,9 +399,9 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                                                          <div className="slot-class text-md">{slot.class?.name}</div>
 
                                                          <div className="slot-status text-sm mt-1 text-blue-500">
-                                                             {role === 1 && slot.status !== undefined
-                                                                 ? AttendanceStatus[slot.attendanceStatus!]
-                                                                 : SlotStatus[slot.status]}
+                                                             {role === 1 && slot.attendanceStatus !== undefined
+                                                                 ? AttendanceStatusText[slot.attendanceStatus]
+                                                                 : SlotStatusText[slot.status]}
                                                          </div>
                                                      </motion.div>
                                                  ))
@@ -456,7 +447,7 @@ const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
                                              onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
                                              disabled={!isCurrentDatePastSlotDate(selectedSlot.date)}
                                          >
-                                             Check Attendance
+                                             Điểm danh
                                          </Button>
                                      )}
                                  </div>

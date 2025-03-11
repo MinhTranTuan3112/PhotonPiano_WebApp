@@ -1,4 +1,4 @@
-import { HttpTransportType, HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { API_NOTIFICATION_URL } from '../utils/constants';
 import { QueryPagedRequest } from '../types/query/query-paged-request';
@@ -23,7 +23,6 @@ export class NotificationService {
         this.hub = new HubConnectionBuilder()
             .withUrl(`${API_NOTIFICATION_URL}?firebaseId=${firebaseId}`, {
                 skipNegotiation: true,
-                transport: HttpTransportType.WebSockets
             })
             .withAutomaticReconnect()
             .configureLogging(LogLevel.Information)
@@ -34,7 +33,7 @@ export class NotificationService {
             .then(() => {
                 console.info('[Notification] Connection started');
             })
-            .catch((err: any) => console.error('[Notification] Error while starting connection: ' + err));
+            .catch((err: unknown) => console.error('[Notification] Error while starting connection: ' + err));
     }
 
     private initMessageReceiver() {
