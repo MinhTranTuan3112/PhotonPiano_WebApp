@@ -5,14 +5,15 @@ import { requireAuth } from "~/lib/utils/auth"
 import { Role } from "~/lib/types/account/account"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 import { fetchClassDetails, fetchGradeTemplate } from "~/lib/services/class"
-import type React from "react"
+import React, { Suspense } from "react"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { Input } from "~/components/ui/input"
 import { Badge } from "~/components/ui/badge"
 import { useCallback } from "react"
-
+import { Skeleton } from "~/components/ui/skeleton"
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 type Student = {
     accountFirebaseId: string
@@ -54,7 +55,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         throw new Response("Class ID is required", { status: 400 })
     }
 
-    try {   
+    try {
         const response = await fetchClassDetails({
             id: params.id,
             idToken,
@@ -81,7 +82,7 @@ export default function ClassDetailsPage() {
             // Add logic to handle the file upload
         }
     }
-
+    console.log(classDetails.studentClasses.classId);
     const handleDownloadTemplate = useCallback(async () => {
         try {
             const response = await fetchGradeTemplate({
@@ -95,7 +96,7 @@ export default function ClassDetailsPage() {
             const url = window.URL.createObjectURL(blob)
             const link = document.createElement("a")
             link.href = url
-            link.download = `grade_template.xlsx` 
+            link.download = `grade_template.xlsx`
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
@@ -115,33 +116,39 @@ export default function ClassDetailsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Capacity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-2xl font-semibold">{classDetails.capacity} students</p>
-                        <p className="text-sm text-muted-foreground">Current: {classDetails.studentNumber}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Level</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-2xl font-semibold">Level {classDetails.level}</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Badge variant={classDetails.status === 1 ? "success" : "destructive"}>
-                            {classDetails.status === 1 ? "Active" : "Inactive"}
-                        </Badge>
-                    </CardContent>
-                </Card>
+                <Suspense fallback={<CardSkeleton title="Capacity" />}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Capacity</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">{classDetails.capacity} students</p>
+                            <p className="text-sm text-muted-foreground">Current: {classDetails.studentNumber}</p>
+                        </CardContent>
+                    </Card>
+                </Suspense>
+                <Suspense fallback={<CardSkeleton title="Level" />}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Level</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">Level {classDetails.level}</p>
+                        </CardContent>
+                    </Card>
+                </Suspense>
+                <Suspense fallback={<CardSkeleton title="Status" />}>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Status</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <Badge variant={classDetails.status === 1 ? "success" : "destructive"}>
+                                {classDetails.status === 1 ? "Active" : "Inactive"}
+                            </Badge>
+                        </CardContent>
+                    </Card>
+                </Suspense>
             </div>
 
             <Card className="mb-6">
@@ -187,33 +194,11 @@ export default function ClassDetailsPage() {
                     <CardTitle>Student List ({classDetails.studentNumber})</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Level</TableHead>
-                                <TableHead>Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {classDetails.studentClasses.map((studentClass: StudentClass) => (
-                                <TableRow key={studentClass.id}>
-                                    <TableCell>{studentClass.student.userName}</TableCell>
-                                    <TableCell>{studentClass.student.email}</TableCell>
-                                    <TableCell>{studentClass.student.level}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={studentClass.isPassed ? "success" : "secondary"}>
-                                            {studentClass.isPassed ? "Passed" : "Not Passed"}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <Suspense fallback={<StudentListSkeleton />}>
+                        <VirtualizedStudentList studentClasses={classDetails.studentClasses} />
+                    </Suspense>
                 </CardContent>
             </Card>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card>
                     <CardHeader>
@@ -292,3 +277,120 @@ export function ErrorBoundary() {
     }
 }
 
+function StudentListSkeleton() {
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center gap-4 py-2">
+                <Skeleton className="h-5 w-1/4" />
+                <Skeleton className="h-5 w-1/4" />
+                <Skeleton className="h-5 w-1/4" />
+                <Skeleton className="h-5 w-1/4" />
+            </div>
+            {Array(5)
+                .fill(0)
+                .map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 py-2">
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-5 w-1/4" />
+                    </div>
+                ))}
+        </div>
+    );
+}
+
+function VirtualizedStudentList({ studentClasses }: { studentClasses: StudentClass[] }) {
+    const [isClient, setIsClient] = React.useState(false)
+
+    React.useEffect(() => {
+        setIsClient(true)
+    }, [])
+
+    // Create a container ref
+    const parentRef = React.useRef<HTMLDivElement>(null)
+
+    const rowVirtualizer = useVirtualizer({
+        count: studentClasses.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 50, // estimated row height
+        overscan: 5,
+    })
+
+    if (!isClient) {
+        return <StudentListSkeleton />
+    }
+
+    return (
+        <div className="border rounded-md">
+            {/* Fixed width table header that matches the layout of rows */}
+            <div className="grid grid-cols-4 border-b bg-muted">
+                <div className="p-4 font-medium">Name</div>
+                <div className="p-4 font-medium">Email</div>
+                <div className="p-4 font-medium">Level</div>
+                <div className="p-4 font-medium">Status</div>
+            </div>
+
+            {/* Scrollable container for virtualized rows */}
+            <div
+                ref={parentRef}
+                className="max-h-[400px] overflow-auto"
+                style={{
+                    height: `400px`,
+                    width: `100%`,
+                }}
+            >
+                <div
+                    style={{
+                        height: `${rowVirtualizer.getTotalSize()}px`,
+                        width: "100%",
+                        position: "relative",
+                    }}
+                >
+                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                        const studentClass = studentClasses[virtualRow.index]
+                        return (
+                            <div
+                                key={studentClass.id}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: `${virtualRow.size}px`,
+                                    transform: `translateY(${virtualRow.start}px)`,
+                                }}
+                                className="border-b hover:bg-gray-50"
+                            >
+                                <div className="grid grid-cols-4 h-full items-center">
+                                    <div className="p-4">{studentClass.student.userName}</div>
+                                    <div className="p-4">{studentClass.student.email}</div>
+                                    <div className="p-4">{studentClass.student.level}</div>
+                                    <div className="p-4">
+                                        <Badge variant={studentClass.isPassed ? "success" : "secondary"}>
+                                            {studentClass.isPassed ? "Passed" : "Not Passed"}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function CardSkeleton({ title }: { title: string }) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-8 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+            </CardContent>
+        </Card>
+    )
+}

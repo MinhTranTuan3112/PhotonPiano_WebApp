@@ -28,7 +28,7 @@ export default function DashboardLayout() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col">
                 <Navbar onMenuClick={() => setIsCollapsed(!isCollapsed)} />
-                <div className="flex-1 bg-[#F7F8FA] p-4 overflow-auto">
+                <div className="flex-1 bg-[#F7F8FA] p-2 overflow-auto">
                     <Outlet />
                 </div>
             </div>

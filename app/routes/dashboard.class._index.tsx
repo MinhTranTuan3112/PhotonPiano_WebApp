@@ -1,7 +1,7 @@
 import React from "react"
 import { json, redirect, type LoaderFunction } from "@remix-run/node"
 import { Link, useLoaderData } from "@remix-run/react"
-import { Users, MapPin, Clock, Filter, SortDesc, Eye, BookOpen, GraduationCap, SortDescIcon } from "lucide-react"
+import { Users, MapPin, Clock, Filter, SortDesc, Eye, BookOpen, GraduationCap, SortDescIcon, Search, User, Award } from "lucide-react"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { getAuth, requireAuth } from "~/lib/utils/auth"
@@ -12,6 +12,7 @@ import { Badge } from "~/components/ui/badge"
 import { Progress } from "~/components/ui/progress"
 import { Role } from "~/lib/types/account/account"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs"
 
 type Class = {
     id: string
@@ -62,137 +63,210 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 }
 
+const getClassColor = (level: number) => {
+    switch (level) {
+        case 1:
+            return "#ca8a04" // yellow-600
+        case 2:
+            return "#0891b2" // cyan-600
+        case 3:
+            return "#4f46e5" // indigo-600
+        default:
+            return "#64748b" // slate-500
+    }
+}
+
+const getScoreColor = (isScorePublished: boolean) => {
+    return isScorePublished ? "text-emerald-600" : "text-amber-600"
+}
+
 export default function TeacherClassListPage() {
     const { classes } = useLoaderData<LoaderData>()
+
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const [selectedFilter, setSelectedFilter] = React.useState("Các Levels");
+    const [activeTab, setActiveTab] = React.useState("all");
 
     const totalStudents = classes.reduce((sum, cls) => sum + cls.studentNumber, 0)
     const averageCapacity = classes.length > 0 ? classes.reduce((sum, cls) => sum + cls.capacity, 0) / classes.length : 0
     const fullClasses = classes.filter((cls) => cls.studentNumber === cls.capacity).length
 
+    const filteredClasses = classes.filter(cls =>
+        cls.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        (selectedFilter === "All Levels" ||
+            selectedFilter === `Level ${cls.level}`)
+    );
+
     return (
-        <div className="container mx-auto py-10">
-            <h1 className="text-3xl font-bold mb-8">My Classes</h1>
+        <div className="bg-white min-h-screen">
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {/* Page header */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
+                    <div>
+                        <h1 className="text-3xl font-medium text-neutral-900">Danh Sách Lớp</h1>
+                        <p className="text-neutral-500 mt-1">Quản lý lớp học của bạn</p>
+                    </div>
 
-            <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{classes.length}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{totalStudents}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Full Classes</CardTitle>
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{fullClasses}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Capacity</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{averageCapacity.toFixed(1)}</div>
-                    </CardContent>
-                </Card>
-            </div>
+                    <div className="mt-6 md:mt-0 flex items-center space-x-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                            <Input placeholder="Tìm kiếm lớp ... "
+                                className="pl-10 w-full md:w-64 bg-white border-neutral-200 rounded-full"
+                                value={searchQuery}
+                                onChange={(q) => setSearchQuery(q.target.value)}
+                                name="search"
+                                type="search">
+                            </Input>
+                        </div>
 
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center space-x-2">
-                    <Input placeholder="Search classes..." name="search" type="search" className="w-[300px]" />
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="ml-auto">
-                                <Filter className="mr-2 h-4 w-4" /> Filter
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by Level</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>All Levels</DropdownMenuItem>
-                            <DropdownMenuItem>Level 1</DropdownMenuItem>
-                            <DropdownMenuItem>Level 2</DropdownMenuItem>
-                            <DropdownMenuItem>Level 3</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-neutral-200 text-neutral-600 rounded-full">
+                                    <Filter className="mr-2 h-4 w-4" /> {selectedFilter}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem onClick={() => setSelectedFilter("All Levels")}>Tất cả</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedFilter("Level 1")}>Level 1</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedFilter("Level 2")}>Level 2</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSelectedFilter("Level 3")}>Level 3</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="border-neutral-200 text-neutral-600 rounded-full">
+                                    <SortDesc className="mr-2 h-4 w-4" /> Sort
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Sort by Name</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by Date</DropdownMenuItem>
+                                <DropdownMenuItem>Sort by Capacity</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            <SortDescIcon className="mr-2 h-4 w-4" /> Sort
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Sort by Name</DropdownMenuItem>
-                        <DropdownMenuItem>Sort by Date</DropdownMenuItem>
-                        <DropdownMenuItem>Sort by Capacity</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {classes.map((cls) => (
-                    <Card key={cls.id}>
-                        <CardHeader>
-                            <CardTitle>{cls.name}</CardTitle>
-                            <Badge variant={cls.isPublic ? "default" : "secondary"}>{cls.isPublic ? "Public" : "Private"}</Badge>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <span>Level:</span>
-                                    <Badge variant="outline">Level {cls.level}</Badge>
+                {/*Stat Card*/}
+                <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="bg-white border-neutral-100">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium text-neutral-500">Total Classes</p>
+                                    <h3 className="text-3xl font-bold mt-1 text-neutral-900">{classes.length}</h3>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span>Students:</span>
-                                    <span>
-                                        {cls.studentNumber} / {cls.capacity}
-                                    </span>
-                                </div>
-                                <Progress value={(cls.studentNumber / cls.capacity) * 100} className="w-full" />
-                                <div className="flex justify-between">
-                                    <span>Created:</span>
-                                    <span>{new Date(cls.createdAt).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>Scores Published:</span>
-                                    <Badge variant={cls.isScorePublished ? "success" : "destructive"}>
-                                        {cls.isScorePublished ? "Yes" : "No"}
-                                    </Badge>
+                                <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center">
+                                    <BookOpen className="h-5 w-5 text-neutral-600" />
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="flex justify-between">
-                            <Button asChild variant="outline">
-                                <Link to={`/dashboard/class/${cls.id}/students`}>
-                                    <Users className="mr-2 h-4 w-4" /> Students
-                                </Link>
-                            </Button>
-                            <Button asChild>
-                                <Link to={`/dashboard/class/${cls.id}`}>
-                                    <Eye className="mr-2 h-4 w-4" /> View Class
-                                </Link>
-                            </Button>
-                        </CardFooter>
                     </Card>
-                ))}
+
+                    <Card className="bg-white border-neutral-100">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium text-neutral-500">Total Students</p>
+                                    <h3 className="text-3xl font-bold mt-1 text-neutral-900">{totalStudents}</h3>
+                                </div>
+                                <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center">
+                                    <Users className="h-5 w-5 text-neutral-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white border-neutral-100">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium text-neutral-500">Full Classes</p>
+                                    <h3 className="text-3xl font-bold mt-1 text-neutral-900">{fullClasses}</h3>
+                                </div>
+                                <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center">
+                                    <GraduationCap className="h-5 w-5 text-neutral-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white border-neutral-100">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium text-neutral-500">Average Capacity</p>
+                                    <h3 className="text-3xl font-bold mt-1 text-neutral-900">{averageCapacity.toFixed(1)}</h3>
+                                </div>
+                                <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center">
+                                    <Users className="h-5 w-5 text-neutral-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Tabs */}
+                <Tabs defaultValue="all" className="mb-10">
+                    <TabsList className="bg-neutral-50 p-1 rounded-full w-auto inline-flex">
+                        <TabsTrigger
+                            value="all"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                            onClick={() => setActiveTab("all")}
+                        >
+                            All Classes
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="active"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                            onClick={() => setActiveTab("active")}
+                        >
+                            Active
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="upcoming"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                            onClick={() => setActiveTab("upcoming")}
+                        >
+                            Upcoming
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
+                {/* Class Cards */}
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredClasses.map((cls) => {
+                        const classColor = getClassColor(cls.level);
+                        return (
+                            <Card
+                                key={cls.id}
+                                className="overflow-hidden hover:shadow-lg transition-all duration-300 border-neutral-100"
+                            >
+                                <div className="relative h-48 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br" style={{
+                                        backgroundImage: `linear-gradient(to bottom right, ${classColor}33, ${classColor}66)`,
+                                    }}>
+                                    </div>
+
+                                    <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                                        <Badge variant="outline" className="bg-white/90 backdrop-blur-sm border-0 font-medium">
+                                            Level {cls.level}
+                                        </Badge>
+                                        <Badge
+                                            variant={cls.isPublic ? "default" : "secondary"}
+                                            className={`${cls.isPublic ? "bg-white/90 text-neutral-800" : "bg-neutral-800/80 text-white"} backdrop-blur-sm border-0`}
+                                        >
+                                            {cls.isPublic ? "Public" : "Private"}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </Card>
+                        );
+                    })}
+                </div>
             </div>
         </div>
-    )
+    );
 }
 
