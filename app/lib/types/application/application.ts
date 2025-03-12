@@ -23,12 +23,16 @@ export const sendApplicationSchema = z.object({
     reason: z.string({ message: 'Vui lòng nhập lý do.' }).nonempty({ message: 'Vui lòng nhập lý do.' }),
     file: (z.unknown().transform(value => {
         return value as File
-    })).optional()
+    })).optional(),
+    bankName: z.string().optional(),
+    bankAccountName: z.string().optional(),
+    bankAccountNumber: z.string().optional(),
 });
 
 export type SendApplicationFormData = z.infer<typeof sendApplicationSchema>;
 
-export enum ApplicationType {
+export enum ApplicationType
+{
     LeaveOfAbsence, // Đơn tạm nghỉ
     TemporarySuspensionOfTerm, // Đơn tạm hoãn kì
     ReexamineEntranceScore, // Đơn xin phúc tra điểm đầu vào
@@ -36,6 +40,7 @@ export enum ApplicationType {
     ClassTransfer, // Đơn xin chuyển lớp
     TeacherComplaint, // Đơn khiếu nại giáo viên
     ServiceComplaint, // Đơn khiếu nại csvc
+    RefundTuition, // Đơn hoàn học phí
     Other, // Các loại đơn khác
     CertificateErrorReport // Báo cáo sai sót chứng chỉ
 }
