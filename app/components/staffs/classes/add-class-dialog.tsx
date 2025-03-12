@@ -1,0 +1,124 @@
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog'
+import { Form, useFetcher, useNavigation, useSearchParams } from '@remix-run/react'
+import { DatePickerInput } from '~/components/ui/date-picker-input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+import { LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
+import GenericCombobox from '~/components/ui/generic-combobox';
+import { Room } from '~/lib/types/room/room';
+import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
+import { fetchRooms } from '~/lib/services/rooms';
+import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
+import { useRemixForm } from 'remix-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ActionResult } from '~/lib/types/action-result';
+import { Controller } from 'react-hook-form';
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import useLoadingDialog from '~/hooks/use-loading-dialog';
+
+
+type Props = {
+    isOpen: boolean,
+    setIsOpen: Dispatch<SetStateAction<boolean>>,
+    idToken: string
+}
+
+const addClassSchema = z.object({
+    level: z.string({ message: "Phải chọn 1 level" }),
+    idToken: z.string(),
+    action: z.string()
+});
+
+type AddSlotSchema = z.infer<typeof addClassSchema>;
+const resolver = zodResolver(addClassSchema)
+
+export default function AddClassDialog({ isOpen, setIsOpen, idToken }: Props) {
+    // const [selectedRoomId, setSelectedRoomId] = useState<string>()
+    const navigation = useNavigation();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const fetcher = useFetcher<ActionResult>();
+
+    const {
+        handleSubmit,
+        formState: { errors },
+        control
+    } = useRemixForm<AddSlotSchema>({
+        mode: "onSubmit",
+        resolver,
+        submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+        fetcher,
+        defaultValues: {
+            action: "ADD",
+            idToken: idToken
+        }
+    });
+
+    const { open: handleOpenAddModal, dialog: confirmAddModal } = useConfirmationDialog({
+        title: 'Xác nhận thêm lớp học',
+        description: 'Bạn có chắc chắn muốn thêm lớp học này không?',
+        onConfirm: () => {
+            handleSubmit();
+        }
+    })
+
+    const { loadingDialog: loadingAddDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setIsOpen(false)
+            setSearchParams([...searchParams])
+        }
+    })
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent className=''>
+                <DialogHeader>
+                    <DialogTitle>Thêm lớp mới</DialogTitle>
+                </DialogHeader>
+                <Form onSubmit={handleOpenAddModal}>
+                    <div className='grid grid-cols-2 gap-4'>
+                        {/* <div className='flex items-center'>Tên lớp</div>
+                        <Input name='name' placeholder='Nhập tên lớp'/> */}
+                        <div className='flex items-center'>Level</div>
+                        <div>
+                            <Controller
+                                control={control}
+                                name='level'
+                                render={({ field: { onChange, onBlur, value, ref } }) => (
+                                    <div>
+                                        <Select value={value} onValueChange={onChange}>
+                                            <SelectTrigger className="mt-2">
+                                                <SelectValue placeholder="Chọn level" />
+                                            </SelectTrigger>
+                                            <SelectGroup>
+                                                <SelectContent>
+                                                    {
+                                                        LEVEL.map((level, index) => (
+                                                            <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
+                                                        ))
+                                                    }
+                                                </SelectContent>
+                                            </SelectGroup>
+                                        </Select>
+                                        {errors.level && <div className='text-red-500'>{errors.level.message}</div>}
+                                    </div>
+
+                                )}
+                            />
+
+                        </div>
+                    </div>
+                    <div className='flex mt-8 gap-4'>
+                        <Button className='flex-grow'>Tạo lớp học</Button>
+                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Hủy bỏ</Button>
+
+                    </div>
+                </Form>
+                {confirmAddModal}
+                {loadingAddDialog}
+            </DialogContent>
+        </Dialog>
+    )
+}

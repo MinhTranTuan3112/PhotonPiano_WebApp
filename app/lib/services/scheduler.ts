@@ -132,3 +132,56 @@ export async function fetchUpdateAttendanceStatus(slotId: string, StudentAttentI
         }
     }
 }
+
+export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }: {
+    shift : number,
+    date : string,
+    roomId : string,
+    classId : string,
+    idToken : string
+}) {
+    const response = await axiosInstance.post(`/scheduler`, {
+        shift : shift,
+        date : date,
+        roomId : roomId,
+        classId : classId,
+        idToken : idToken
+    },{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}
+
+export async function fetchUpdateSlot({ id, shift, date, roomId, idToken }: {
+    id : string,
+    shift? : number,
+    date? : string,
+    roomId? : string,
+    idToken : string
+}) {
+    const response = await axiosInstance.put(`/scheduler`, {
+        id : id,
+        shift : shift,
+        date : date,
+        roomId : roomId,
+    },{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}
+
+export async function fetchDeleteSlot({ id, idToken }: {
+    id : string,
+    idToken : string
+}) {
+    const response = await axiosInstance.delete(`/scheduler/${id}`,{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}

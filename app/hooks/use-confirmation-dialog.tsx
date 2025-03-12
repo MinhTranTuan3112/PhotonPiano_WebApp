@@ -28,7 +28,7 @@ export function useConfirmationDialog({ title = 'Xác nhận', description, onCo
     cancelText = 'Hủy',
     confirmText = 'Xác nhận',
     cancelButtonClassname,
-    confirmButtonClassname
+    confirmButtonClassname,
 }: Props) {
 
     const [isOpen, setIsOpen] = useState(defaultOpen);

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Delete, Lock, Pencil, Save, Trash, Unlock } from 'lucide-react'
+import { Delete, Pencil, Save, Trash } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -17,11 +17,9 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Skeleton } from '~/components/ui/skeleton'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { fetchAccounts } from '~/lib/services/account'
-import { fetchCriterias } from '~/lib/services/criteria'
 import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { fetchRooms } from '~/lib/services/rooms'
 import { Account, Role } from '~/lib/types/account/account'
-import { Criteria } from '~/lib/types/criteria/criteria'
 import { UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
@@ -66,10 +64,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
                 entranceTestDetailsPromise
             }
         });
-        
+
+
         return {
             promise,
             idToken,
+            role,
             id
         }
 
@@ -87,7 +87,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
 }
 
-export default function StaffEntranceTestsPage({ }: Props) {
+export default function StaffEntranceTestDetailsPage({ }: Props) {
 
     const { promise, id } = useLoaderData<typeof loader>();
 
@@ -112,9 +112,10 @@ const serverSchema = updateEntranceTestSchema.pick({
     name: true,
     shift: true,
     instructorId: true,
-    roomId: true
+    roomId: true,
+    isAnnouncedScore: true
+
 }).extend({
-    target: z.string({ message: 'Action target cannot be empty.' }).nonempty({ message: 'Action target cannot be empty.' }),
     date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
 });
 
@@ -147,27 +148,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const id = params.id as string;
 
-        const target = data.target;
+        const updateRequest = {
+            ...data,
+            date: data.date.toString(),
+            shift: parseInt(data.shift),
+            id,
+            instructorId: data.instructorId || undefined,
+            idToken
+        };
+        const response = await fetchUpdateEntranceTest(updateRequest);
 
-        if (target === 'info') {
-            const updateRequest = {
-                ...data,
-                date: data.date.toString(),
-                shift: parseInt(data.shift),
-                id,
-                instructorId: data.instructorId || undefined,
-                idToken
-            };
-            const response = await fetchUpdateEntranceTest(updateRequest);
-
-            return {
-                success: response.status === 204
-            }
-        } else {
-            return {
-                success: false,
-                error: 'Action target is invalid.'
-            }
+        return {
+            success: response.status === 204
         }
 
     } catch (error) {
@@ -205,16 +197,18 @@ function EntranceTestDetailsContent() {
     const { handleSubmit,
         formState: { errors },
         control,
-        register
+        register,
+        setValue: setFormValue,
+        getValues: getFormValues
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
             resolver,
             defaultValues: {
-                target: 'info',
                 name: entranceTest.name,
                 shift: entranceTest.shift.toString(),
                 instructorId: entranceTest.instructorId,
+                isAnnouncedScore: entranceTest.isAnnouncedScore,
                 roomId: entranceTest.roomId,
                 date: new Date(entranceTest.date)
             },
@@ -435,28 +429,22 @@ function EntranceTestDetailsContent() {
         {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
         <div className='flex flex-col md:flex-row justify-center gap-4'>
             {
-                entranceTest.isOpen ? (
-                    <Button className='px-12'>
-                        <Lock className='mr-2' /> Khóa ca thi này
-                    </Button>
-                ) : (
-                    <Button className='px-12'>
-                        <Unlock className='mr-2' /> Mở khóa ca thi này
-                    </Button>
-                )
-            }
-            {
                 (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
                     <Button className='px-12' variant={"destructive"}>
                         <Trash className='mr-2' /> Xóa ca thi này
                     </Button>
                 )
             }
-            <Button className={`font-bold px-12 ${entranceTest.isAnnoucedScore ? "bg-red-700" : "bg-gray-700"} `}>
+            <Button className={`font-bold px-12 ${entranceTest.isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
+                type='button' onClick={() => {
+                    setFormValue('isAnnouncedScore', !entranceTest.isAnnouncedScore);
+                    handleSubmit();
+                }}>
                 {
-                    entranceTest.isAnnoucedScore ? (
+                    entranceTest.isAnnouncedScore === true ? (
                         <>
-                            <Delete className='mr-4' />
+                            <Delete className='mr-4'
+                            />
                             Hủy công bố điểm số
                         </>
                     ) : (

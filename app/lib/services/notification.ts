@@ -1,4 +1,4 @@
-import { HttpTransportType, HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 import { API_NOTIFICATION_URL } from '../utils/constants';
 import { QueryPagedRequest } from '../types/query/query-paged-request';
@@ -23,7 +23,6 @@ export class NotificationService {
         this.hub = new HubConnectionBuilder()
             .withUrl(`${API_NOTIFICATION_URL}?firebaseId=${firebaseId}`, {
                 skipNegotiation: true,
-                transport: HttpTransportType.WebSockets
             })
             .withAutomaticReconnect()
             .configureLogging(LogLevel.Information)
@@ -34,7 +33,7 @@ export class NotificationService {
             .then(() => {
                 console.info('[Notification] Connection started');
             })
-            .catch((err: any) => console.error('[Notification] Error while starting connection: ' + err));
+            .catch((err: unknown) => console.error('[Notification] Error while starting connection: ' + err));
     }
 
     private initMessageReceiver() {
@@ -66,7 +65,7 @@ export async function fetchNotifications({
     if (isViewed) {
         url += `&view=${isViewed}`;
     }
-    
+
     const response = await axiosInstance.get(url, {
         headers: {
             Authorization: `Bearer ${idToken}`
@@ -84,6 +83,23 @@ export async function toggleNotificationStatus({
 }) {
 
     const response = await axiosInstance.put(`/notifications/${id}/view-status`, null, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchToggleBatchNotificationsStatus({
+    notificationIds,
+    idToken
+}: {
+    notificationIds: string[],
+    idToken: string
+}) {
+
+    const response = await axiosInstance.put(`/notifications/view-status`, { notificationIds }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

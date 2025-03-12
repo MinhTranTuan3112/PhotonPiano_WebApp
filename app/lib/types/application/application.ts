@@ -7,6 +7,7 @@ export type Application = {
     reason: string;
     fileUrl?: string;
     status: ApplicationStatus;
+    staffConfirmNote?: string;
     createdByEmail: string;
     updatedByEmail?: string;
     approvedByEmail?: string;

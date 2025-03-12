@@ -30,7 +30,12 @@ const getSampleAccount = async (): Promise<Account | undefined> => {
         address: "Thong Nhat, Dong Nai",
         email: "nguynan001@gmail.com",
         phone: "0987654321",
-        username: "Ng Ân",
+        userName: "Ng Ân",
+        fullName: "Ân",
+        accountFirebaseId : "abc",
+        desiredTargets : [] ,
+        favoriteMusicGenres : [],
+        preferredLearningMethods : [],
         status: 0,
         avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
     }

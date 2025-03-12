@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
-import { isAxiosError } from "axios";
 import { RotateCcw } from "lucide-react";
 import { Suspense } from "react";
 import { getValidatedFormData } from "remix-hook-form";
@@ -92,6 +91,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 const schema = z.object({
     id: z.string().nonempty({ message: 'Id không được để trống' }),
+    note: z.string().optional(),
     status: z.number()
 });
 
@@ -114,7 +114,7 @@ export async function action({ request }: ActionFunctionArgs) {
             return { success: false, errors, defaultValues };
         }
 
-        const response = await fetchUpdateApplicationStatus({ idToken, id: data.id, status: data.status });
+        const response = await fetchUpdateApplicationStatus({ idToken, id: data.id, status: data.status, note: data.note });
 
         return {
             success: response.status === 204
@@ -164,7 +164,6 @@ export default function StaffApplicationsPage({ }: Props) {
                     )}
                 </Await>
             </Suspense>
-
         </article>
     );
 };

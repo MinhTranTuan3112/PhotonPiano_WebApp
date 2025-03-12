@@ -127,3 +127,26 @@ export async function fetchDeleteEntranceTest({ id, idToken }: {
 
     return response;
 }
+
+export async function fetchUpdateEntranceTestResults({
+    idToken, id, studentId, ...requestData
+}: {
+    idToken: string,
+    id: string,
+    studentId: string,
+    instructorComment?: string,
+    theoraticalScore?: number,
+    updateScoreRequests?: {
+        criteriaId: string,
+        score: number  
+    }[]
+}) {
+
+    const response = await axiosInstance.put(`/entrance-tests/${id}/students/${studentId}/results`, { ...requestData }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}

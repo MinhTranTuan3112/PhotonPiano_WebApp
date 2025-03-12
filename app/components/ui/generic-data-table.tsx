@@ -11,20 +11,28 @@ type Props<T> = {
     enableRefresh?: boolean;
     extraHeaderContent?: React.ReactNode;
     metadata: PaginationMetaData;
+    resolvedData? : T[],
+    pageParamName? : string,
+    sizeParamName? : string,
+    allowHideColumns? : boolean
 }
 
 export default function GenericDataTable<T>({ columns,
     extraHeaderContent,
     emptyText = 'Không có kết quả.',
     enableRefresh = true,
-    metadata
+    resolvedData = [],
+    metadata,
+    pageParamName = 'page',
+    sizeParamName = 'size',
+    allowHideColumns = true
 }: Props<T>) {
 
     const { totalCount, totalPages } = metadata;
 
     const resolvedValues = useAsyncValue();
 
-    const data = resolvedValues as T[];
+    const data = resolvedData.length > 0 ? resolvedData : resolvedValues as T[];
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -33,20 +41,23 @@ export default function GenericDataTable<T>({ columns,
     return (
         <DataTable data={data} columns={columns}
             extraHeaderContent={extraHeaderContent}
+            enableColumnDisplayOptions={allowHideColumns}
             defaultPageSize={Number.parseInt(searchParams.get('size') || '10')}
             manualPagination={true}
             onPaginationChange={(newPage) => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                newSearchParams.set('page', newPage.toString());
+                newSearchParams.set(pageParamName, newPage.toString());
                 setSearchParams(newSearchParams);
             }}
             onPageSizeChange={(newPageSize) => {
                 const newSearchParams = new URLSearchParams(searchParams);
-                newSearchParams.set('size', newPageSize.toString());
+                newSearchParams.set(sizeParamName, newPageSize.toString());
                 setSearchParams(newSearchParams);
             }}
             totalCount={totalCount}
             totalPages={totalPages}
+            pageParamName={pageParamName}
+            sizeParamName={sizeParamName}
             emptyContent={<div className='flex flex-col gap-5 justify-center items-center'>
                 <SearchX className="size-24" />
                 <p className="text-center text-xl">{emptyText}</p>
