@@ -21,11 +21,9 @@ export class NotificationService {
 
     private init(firebaseId: string) {
         this.hub = new HubConnectionBuilder()
-            .withUrl(`${API_NOTIFICATION_URL}?firebaseId=${firebaseId}`, {
-                skipNegotiation: true,
-            })
+            .withUrl(`${API_NOTIFICATION_URL}?firebaseId=${firebaseId}`)
             .withAutomaticReconnect()
-            .configureLogging(LogLevel.Information)
+            .configureLogging(LogLevel.Error)
             .build();
 
         this.hub
