@@ -77,3 +77,19 @@ export async function fetchUpdateApplicationStatus({
 
     return response;
 }
+
+export async function fetchSendRefundApplication({ 
+    idToken, formData
+}: {
+    idToken: string,
+    formData: FormData;
+}) {
+    const response = await axiosInstance.post('/applications/refund', formData, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": 'multipart/form-data'
+        }
+    });
+
+    return response;
+}

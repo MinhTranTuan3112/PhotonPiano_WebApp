@@ -8,7 +8,7 @@ import { cn } from '~/lib/utils';
 type Props = {
     items: {
         value: string;
-        label: string;
+        label: string | React.ReactNode;
     }[];
     className?: string;
     onChange?: (value: string) => void;
@@ -17,7 +17,6 @@ type Props = {
     emptyText?: string;
 
 }
-
 
 export default function Combobox({ items, onChange, className, placeholder = 'Chọn', emptyText = 'Không tìm thấy.', value: controlledValue,
 }: Props) {
@@ -50,10 +49,10 @@ export default function Combobox({ items, onChange, className, placeholder = 'Ch
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0 popover-content-width-full">
+            <PopoverContent className="w-full p-0 max-h-72 overflow-y-auto  popover-content-width-full">
                 <Command className={className}>
                     <CommandInput placeholder={placeholder} onValueChange={onChange} />
-                    <CommandList>
+                    <CommandList className="max-h-60 overflow-y-auto">
                         {items?.length ? (
                             items.map((item) => (
                                 <CommandItem
@@ -63,7 +62,6 @@ export default function Combobox({ items, onChange, className, placeholder = 'Ch
                                         onChange?.(item.value);
                                         setOpen(false);
                                     }}
-
                                 >
                                     {item.label}
                                 </CommandItem>

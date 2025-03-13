@@ -11,9 +11,9 @@ import SendApplicationDialog from "~/components/application/send-application-dia
 import { Button, buttonVariants } from "~/components/ui/button";
 import GenericDataTable from "~/components/ui/generic-data-table";
 import { Skeleton } from "~/components/ui/skeleton";
-import { fetchApplications, fetchSendApplication } from "~/lib/services/applications";
+import { fetchApplications, fetchSendApplication, fetchSendRefundApplication } from "~/lib/services/applications";
 import { Role } from "~/lib/types/account/account";
-import { Application, sampleApplications, SendApplicationFormData, sendApplicationSchema } from "~/lib/types/application/application"
+import { Application, ApplicationType, sampleApplications, SendApplicationFormData, sendApplicationSchema } from "~/lib/types/application/application"
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
@@ -130,11 +130,16 @@ export async function action({ request }: ActionFunctionArgs) {
 
         console.log({ formData });
 
-        const response = await fetchSendApplication({ idToken, formData });
+        const type = Number.parseInt(formData.get('type') as string);
+
+        const response = type === ApplicationType.RefundTuition
+            ? await fetchSendRefundApplication({ idToken, formData }) :
+            await fetchSendApplication({ idToken, formData });
 
         return {
-            success: response.status === 201
+            success: response.status === 201,
         }
+
 
     } catch (error) {
         console.error({ error });
