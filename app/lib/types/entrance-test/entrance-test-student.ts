@@ -1,5 +1,6 @@
 import { Level } from "../account/account";
 import { Criteria } from "../criteria/criteria";
+import { EntranceTest } from "./entrance-test";
 import { EntranceTestResult } from "./entrance-test-result"
 
 export type EntranceTestStudent = {
@@ -14,5 +15,11 @@ export type EntranceTestStudent = {
 }
 
 export type EntranceTestStudentWithResults = {
+    entranceTestResults: EntranceTestResult[];
+} & EntranceTestStudent;
+
+export type EntranceTestStudentDetail = {
+    entranceTest: EntranceTest;
+    student: EntranceTestStudent;
     entranceTestResults: EntranceTestResult[];
 } & EntranceTestStudent;
