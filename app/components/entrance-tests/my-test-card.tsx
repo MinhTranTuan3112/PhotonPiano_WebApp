@@ -1,7 +1,7 @@
 import React from 'react'
 import { EntranceTest } from '~/lib/types/entrance-test/entrance-test'
 import { Button } from '../ui/button'
-import { CircleArrowRight } from 'lucide-react'
+import { ArrowRight, CircleArrowRight } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
 import { Separator } from '../ui/separator'
 import { useNavigate } from '@remix-run/react'
@@ -18,7 +18,8 @@ const getStatusStyle = (status: number) => {
         default: return "text-black font-bold";
     }
 };
-export default function MyTestCard({ entranceTest }: Props) {1
+export default function MyTestCard({ entranceTest }: Props) {
+    1
     const navigate = useNavigate()
 
     return (
@@ -36,7 +37,7 @@ export default function MyTestCard({ entranceTest }: Props) {1
                     <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 mt-4'>
                         <div>
                             <span className='font-bold'>Ca thi : </span>
-                            <span>{entranceTest.shift} ({SHIFT_TIME[entranceTest.shift - 1]})</span>
+                            <span>{entranceTest.shift + 1} ({SHIFT_TIME[entranceTest.shift]})</span>
                         </div>
                         <div>
                             <span className='font-bold'>Ngày thi : </span>
@@ -53,7 +54,10 @@ export default function MyTestCard({ entranceTest }: Props) {1
                     </div>
                 </div>
                 <div>
-                    <Button variant={'ghost'}><CircleArrowRight size={40} onClick={() => navigate(`/account/my-exams/${entranceTest.id}`)}/></Button>
+                    <Button variant={'expandIcon'} onClick={() => navigate(`/account/my-exams/${entranceTest.id}`)}
+                        Icon={ArrowRight} iconPlacement='right'>
+                        Xem
+                    </Button>
                 </div>
             </div>
         </div>

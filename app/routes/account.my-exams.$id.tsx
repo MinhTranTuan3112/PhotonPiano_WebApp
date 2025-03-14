@@ -150,7 +150,7 @@ export default function ExamDetail({ }: Props) {
                     <div>Thi xếp lớp đầu vào</div>
                   </div>
                 </div>
-                {
+                {/* {
                   entranceTestStudent.entranceTest.status === 0 && (
                     <div className='flex justify-center my-4'>
                       <Button className='px-32 font-bold' onClick={() => setIsOpenSwitchShiftDialog(true)}>Đổi ca thi</Button>
@@ -158,7 +158,7 @@ export default function ExamDetail({ }: Props) {
                         entranceTestPromise={loaderData.entranceTestsPromise}/>
                     </div>
                   )
-                }
+                } */}
               </div>
               <div className='mt-8'>
                 <div className='flex gap-4 text-xl font-bold'>
