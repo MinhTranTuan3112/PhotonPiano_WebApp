@@ -5,7 +5,7 @@ import type { LoaderFunctionArgs } from "@remix-run/node"
 import { getWeekRange } from "~/lib/utils/datetime"
 import {fetchAttendanceStatus, fetchSlotById, fetchSlots} from "~/lib/services/scheduler"
 import { motion } from "framer-motion"
-import {Piano, Calendar, Music, Filter, ChevronLeft, ChevronRight} from "lucide-react"
+import {Calendar, Music, Filter, ChevronLeft, ChevronRight} from "lucide-react"
 import { getWeek } from "date-fns"
 import {
     type Slot,
@@ -14,6 +14,8 @@ import {
     AttendanceStatus,
     type StudentAttendanceModel,
     SlotStatus,
+    AttendanceStatusText,
+    SlotStatusText,
 } from "~/lib/types/Scheduler/slot"
 import { requireAuth } from "~/lib/utils/auth"
 import { fetchCurrentAccountInfo } from "~/lib/services/auth"
@@ -262,7 +264,15 @@ const SchedulerPage: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="scheduler-page p-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+        <div
+            className="scheduler-page p-6 bg-gradient-to-b from-indigo-50 to-white min-h-screen"
+            style={{
+                backgroundImage: "url(/piano-keys-pattern.png)",
+                backgroundSize: "cover",
+                backgroundPosition: "bottom",
+                backgroundOpacity: "0.1",
+            }}
+        >
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -272,30 +282,31 @@ const SchedulerPage: React.FC = () => {
                 <div className="flex justify-between items-center mb-6">
                     <button
                         onClick={() => navigate('/')}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                     >
                         Quay lại
                     </button>
 
-                    <h1 className="title text-4xl font-bold text-center text-blue-800 flex items-center">
-                        <Piano className="mr-2" /> Lịch học của Trung tâm học Piano
+                    <h1 className="title text-4xl font-bold text-center text-indigo-900 flex items-center">
+                        <Music className="w-8 h-8 mr-2 text-indigo-800" /> Lịch học của Trung tâm học Piano
                     </h1>
 
-                    <div className="current-user bg-gray-100 p-2 rounded shadow-md">
-                        <p className="text-sm font-semibold">{currentAccount.email}</p>
-                        <p className="text-xs text-gray-600">{currentAccount.fullName}</p>
+                    <div className="current-user bg-white/90 p-3 rounded-lg shadow-md backdrop-blur-sm">
+                        <p className="text-sm font-semibold text-indigo-800">{currentAccount.email}</p>
+                        <p className="text-xs text-indigo-600">{currentAccount.fullName}</p>
                     </div>
                 </div>
+
                 <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
                     <div className="control flex flex-col mb-4 sm:mb-0">
-                        <span className="mb-1 font-semibold text-blue-700">Năm:</span>
+                        <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
                         <Select value={year.toString()} onValueChange={handleYearChange}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-[180px] bg-white/90 border-indigo-300 text-indigo-800 rounded-full shadow-sm focus:ring-indigo-500">
                                 <SelectValue placeholder="Select year" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
                                 {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
-                                    <SelectItem key={year} value={year.toString()}>
+                                    <SelectItem key={year} value={year.toString()} className="text-indigo-800 hover:bg-indigo-50">
                                         {year}
                                     </SelectItem>
                                 ))}
@@ -303,14 +314,14 @@ const SchedulerPage: React.FC = () => {
                         </Select>
                     </div>
                     <div className="control flex flex-col">
-                        <span className="mb-1 font-semibold text-blue-700">Tuần:</span>
+                        <span className="mb-1 font-semibold text-indigo-800">Tuần:</span>
                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className="w-[180px] bg-white/90 border-indigo-300 text-indigo-800 rounded-full shadow-sm focus:ring-indigo-500">
                                 <SelectValue placeholder="Select week" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
                                 {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
-                                    <SelectItem key={week} value={week.toString()}>
+                                    <SelectItem key={week} value={week.toString()} className="text-indigo-800 hover:bg-indigo-50">
                                         Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
                                         {formatDateForDisplay(getWeekRange(year, week).endDate)}
                                     </SelectItem>
@@ -319,22 +330,28 @@ const SchedulerPage: React.FC = () => {
                         </Select>
                     </div>
                     {role === 4 && (
-                        <Button variant="outline" onClick={() => setIsFilterModalOpen(true)}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsFilterModalOpen(true)}
+                            className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                        >
                             <Filter className="mr-2 h-4 w-4" /> Bộ lọc
                         </Button>
                     )}
                 </div>
+
                 <div className="week-info flex justify-center items-center mb-4 space-x-2">
                     <Button
                         variant="outline"
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber - 1)}
                         disabled={weekNumber <= 1}
+                        className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-5 w-5" />
                     </Button>
-                    <p className="text-lg font-medium text-blue-700 flex items-center justify-center">
-                        <Calendar className="mr-2" />
+                    <p className="text-lg font-medium text-indigo-800 flex items-center justify-center">
+                        <Calendar className="mr-2 w-5 h-5" />
                         {formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}
                     </p>
                     <Button
@@ -342,58 +359,60 @@ const SchedulerPage: React.FC = () => {
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber + 1)}
                         disabled={weekNumber >= 52}
+                        className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
                     >
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-5 w-5" />
                     </Button>
                 </div>
+
                 <div className="overflow-x-auto">
-                    <table className="schedule-table w-full border-collapse bg-white shadow-lg rounded-lg overflow-hidden">
+                    <table className="schedule-table w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden backdrop-blur-sm">
                         <thead>
-                        <tr className="bg-blue-600 text-white">
-                            <th className="py-3 px-4 border-b border-blue-500">Time Slot</th>
+                        <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                            <th className="py-3 px-4 border-b border-indigo-500 w-24 text-center">Time Slot</th>
                             {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(startDate)
-                                currentDay.setDate(currentDay.getDate() + i)
+                                const currentDay = new Date(startDate);
+                                currentDay.setDate(currentDay.getDate() + i);
                                 return (
-                                    <th key={i} className="py-3 px-4 border-b border-blue-500 relative">
+                                    <th key={i} className="py-3 px-4 border-b border-indigo-500 min-w-[150px] text-center relative">
                                         {getVietnameseWeekday(currentDay)}
-                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-400"></div>}
+                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-400"></div>}
                                     </th>
-                                )
+                                );
                             })}
                         </tr>
-                        <tr className="bg-blue-100 text-blue-800">
-                            <th className="py-2 px-4 border-b border-blue-200"></th>
+                        <tr className="bg-indigo-100 text-indigo-800">
+                            <th className="py-2 px-4 border-b border-indigo-200"></th>
                             {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(startDate)
-                                currentDay.setDate(currentDay.getDate() + i)
+                                const currentDay = new Date(startDate);
+                                currentDay.setDate(currentDay.getDate() + i);
                                 return (
-                                    <th key={i} className="py-2 px-4 border-b border-blue-200 text-sm relative">
+                                    <th key={i} className="py-2 px-4 border-b border-indigo-200 text-sm text-center relative">
                                         {formatDateForDisplay(currentDay)}
-                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-300"></div>}
+                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-300"></div>}
                                     </th>
-                                )
+                                );
                             })}
                         </tr>
                         </thead>
                         <tbody>
-                        {shiftTimes.map((time: string, index: number) => (
-                            <tr key={index} className="hover:bg-blue-50 transition-colors duration-150">
-                                <td className="time-slot py-4 px-2 font-semibold border-b border-blue-100">{time}</td>
+                        {shiftTimes.map((time, index) => (
+                            <tr key={index} className="hover:bg-indigo-50/50 transition-colors duration-150">
+                                <td className="time-slot py-4 px-4 font-semibold border-b border-indigo-100 text-center">{time}</td>
                                 {Array.from({ length: 7 }, (_, i) => {
-                                    const currentDay = new Date(startDate)
-                                    currentDay.setDate(currentDay.getDate() + i)
-                                    const currentDayString = formatDateForAPI(currentDay)
-                                    const slotForDateAndShift = slots.filter((slot: Slot) => {
-                                        return slot.date === currentDayString && shiftTimesMap[slot.shift] === time
-                                    })
+                                    const currentDay = new Date(startDate);
+                                    currentDay.setDate(currentDay.getDate() + i);
+                                    const currentDayString = formatDateForAPI(currentDay);
+                                    const slotForDateAndShift = slots.filter((slot) => {
+                                        return slot.date === currentDayString && shiftTimesMap[slot.shift] === time;
+                                    });
                                     return (
-                                        <td key={i} className="slot-cell border-b border-blue-100 p-2 relative">
+                                        <td key={i} className="slot-cell border-b border-indigo-100 p-4 relative min-h-[120px]">
                                             {slotForDateAndShift.length > 0 ? (
-                                                slotForDateAndShift.map((slot: Slot, idx: number) => (
+                                                slotForDateAndShift.map((slot, idx) => (
                                                     <motion.div
                                                         key={idx}
-                                                        className="slot bg-white rounded-lg shadow-md p-3 mb-2 cursor-pointer hover:shadow-lg transition-all duration-200"
+                                                        className="slot bg-white/95 rounded-lg shadow-md p-3 mb-2 cursor-pointer hover:shadow-lg transition-all duration-200 backdrop-blur-sm"
                                                         onClick={() => handleSlotClick(slot.id)}
                                                         role="button"
                                                         tabIndex={0}
@@ -402,59 +421,59 @@ const SchedulerPage: React.FC = () => {
                                                         whileTap={{ scale: 0.95 }}
                                                     >
                                                         <div className="slot-room text-lg font-bold text-indigo-600 flex items-center">
-                                                            <Music className="mr-1" size={16} />
+                                                            <Music className="mr-1 w-5 h-5" />
                                                             {slot.room?.name}
                                                         </div>
-                                                        <div className="slot-class text-md">{slot.class?.name}</div>
-
-                                                        <div className="slot-status text-sm mt-1 text-blue-500">
+                                                        <div className="slot-class text-md text-indigo-800">{slot.class?.name}</div>
+                                                        <div className="slot-status text-sm mt-1 text-indigo-500">
                                                             {role === 1 && slot.status !== undefined
-                                                                ? AttendanceStatus[slot.attendanceStatus!]
-                                                                : SlotStatus[slot.status]}
+                                                                ? AttendanceStatusText[slot.attendanceStatus]
+                                                                : SlotStatusText[slot.status]}
                                                         </div>
                                                     </motion.div>
                                                 ))
                                             ) : (
                                                 <div className="h-16 flex items-center justify-center text-gray-400">-</div>
                                             )}
-                                            {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-blue-100"></div>}
+                                            {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-100"></div>}
                                         </td>
-                                    )
+                                    );
                                 })}
                             </tr>
                         ))}
                         </tbody>
                     </table>
                 </div>
+
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                         <DialogHeader>
-                            <DialogTitle>Chi tiết tiết học</DialogTitle>
+                            <DialogTitle className="text-indigo-900">Chi tiết tiết học</DialogTitle>
                         </DialogHeader>
                         {selectedSlot && (
-                            <div className="p-6 bg-white rounded-lg">
+                            <div className="p-6">
                                 <div className="space-y-3">
-                                    <p className="flex items-center">
+                                    <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Phòng:</strong>{" "}
                                         <span className="text-indigo-600">{selectedSlot.room?.name}</span>
                                     </p>
-                                    <p className="flex items-center">
+                                    <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Lớp:</strong>{" "}
-                                        <span className="text-green-600">{selectedSlot.class?.name}</span>
+                                        <span className="text-indigo-600">{selectedSlot.class?.name}</span>
                                     </p>
-                                    <p className="flex items-center">
+                                    <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Tên giáo viên:</strong>{" "}
-                                        <span className="text-green-600">{selectedSlot.class.instructorName}</span>
+                                        <span className="text-indigo-600">{selectedSlot.class.instructorName}</span>
                                     </p>
-                                    <p className="flex items-center">
+                                    <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Sĩ số học sinh:</strong>{" "}
-                                        <span className="text-orange-600">{selectedSlot.numberOfStudents}</span>
+                                        <span className="text-indigo-600">{selectedSlot.numberOfStudents}</span>
                                     </p>
-
                                     {role === 2 && (
                                         <Button
                                             onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
                                             disabled={!isCurrentDatePastSlotDate(selectedSlot.date)}
+                                            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                                         >
                                             Check Attendance
                                         </Button>
@@ -464,14 +483,15 @@ const SchedulerPage: React.FC = () => {
                         )}
                     </DialogContent>
                 </Dialog>
+
                 <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
-                    <DialogContent>
+                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                         <DialogHeader>
-                            <DialogTitle>Filter Options</DialogTitle>
+                            <DialogTitle className="text-indigo-900">Tùy chọn bộ lọc</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                             <div>
-                                <h3 className="font-semibold mb-2">Shifts</h3>
+                                <h3 className="font-semibold mb-2 text-indigo-800">Ca</h3>
                                 {uniqueShifts.map((value) => (
                                     <div key={value} className="flex items-center space-x-2">
                                         <Checkbox
@@ -483,13 +503,14 @@ const SchedulerPage: React.FC = () => {
                                                     checked ? [...filters.shifts, value] : filters.shifts.filter((s) => s !== value),
                                                 )
                                             }
+                                            className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`shift-${value}`}>{shiftTimesMap[value as Shift]}</label>
+                                        <label htmlFor={`shift-${value}`} className="text-indigo-800">{shiftTimesMap[value]}</label>
                                     </div>
                                 ))}
                             </div>
                             <div>
-                                <h3 className="font-semibold mb-2">Slot Statuses</h3>
+                                <h3 className="font-semibold mb-2 text-indigo-800">Trạng thái tiết học</h3>
                                 {uniqueSlotStatuses.map((value) => (
                                     <div key={value} className="flex items-center space-x-2">
                                         <Checkbox
@@ -501,13 +522,14 @@ const SchedulerPage: React.FC = () => {
                                                     checked ? [...filters.slotStatuses, value] : filters.slotStatuses.filter((s) => s !== value),
                                                 )
                                             }
+                                            className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`status-${value}`}>{SlotStatus[value as SlotStatus]}</label>
+                                        <label htmlFor={`status-${value}`} className="text-indigo-800">{SlotStatusText[value]}</label>
                                     </div>
                                 ))}
                             </div>
                             <div>
-                                <h3 className="font-semibold mb-2">Instructor Names</h3>
+                                <h3 className="font-semibold mb-2 text-indigo-800">Tên giảng viên</h3>
                                 {uniqueInstructorIds.map((id) => (
                                     <div key={id} className="flex items-center space-x-2">
                                         <Checkbox
@@ -521,13 +543,16 @@ const SchedulerPage: React.FC = () => {
                                                         : filters.instructorFirebaseIds.filter((i) => i !== id),
                                                 )
                                             }
+                                            className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`instructor-${id}`}>{instructorMap.get(id) || "Unknown Instructor"}</label>
+                                        <label htmlFor={`instructor-${id}`} className="text-indigo-800">
+                                            {instructorMap.get(id) || "Unknown Instructor"}
+                                        </label>
                                     </div>
                                 ))}
                             </div>
                             <div>
-                                <h3 className="font-semibold mb-2">Class Names</h3>
+                                <h3 className="font-semibold mb-2 text-indigo-800">Tên lớp</h3>
                                 {uniqueClassIds.map((id) => (
                                     <div key={id} className="flex items-center space-x-2">
                                         <Checkbox
@@ -539,26 +564,42 @@ const SchedulerPage: React.FC = () => {
                                                     checked ? [...filters.classIds, id] : filters.classIds.filter((c) => c !== id),
                                                 )
                                             }
+                                            className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`class-${id}`}>{classMap.get(id) || "Unknown Class"}</label>
+                                        <label htmlFor={`class-${id}`} className="text-indigo-800">
+                                            {classMap.get(id) || "Unknown Class"}
+                                        </label>
                                     </div>
                                 ))}
                             </div>
                             <div className="flex justify-end space-x-2">
-                                <Button variant="outline" onClick={resetFilters}>
-                                    Reset Filters
+                                <Button
+                                    variant="outline"
+                                    onClick={resetFilters}
+                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
+                                >
+                                    Thiết lập lại
                                 </Button>
-                                <Button variant="outline" onClick={() => setIsFilterModalOpen(false)}>
-                                    Cancel
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsFilterModalOpen(false)}
+                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
+                                >
+                                    Hủy
                                 </Button>
-                                <Button onClick={applyFilters}>Apply Filters</Button>
+                                <Button
+                                    onClick={applyFilters}
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                                >
+                                    Xác nhận 
+                                </Button>
                             </div>
                         </div>
                     </DialogContent>
                 </Dialog>
             </motion.div>
         </div>
-    )
-}
+    );
+};
 
-export default SchedulerPage
+export default SchedulerPage;
