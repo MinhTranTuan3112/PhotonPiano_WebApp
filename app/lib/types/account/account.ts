@@ -39,13 +39,25 @@ export enum Gender {
     Female
 }
 
-export enum Level {
-    Beginner,
-    Novice,
-    Intermediate,
-    Advanced,
-    Virtuoso
+export type Level = {
+   name: string;
+   description: string;
+   skillsEarned: string[];
+   slotPerWeek: number;
+   totalSlots: number;
+   pricePerSlot: number;
+   minimumScore: number;
+   isGenreDivided: boolean;
+   nextLevelId?: string;
 }
+
+// export enum Level {
+//     Beginner,
+//     Novice,
+//     Intermediate,
+//     Advanced,
+//     Virtuoso
+// }
 
 export enum Role {
     Guest,

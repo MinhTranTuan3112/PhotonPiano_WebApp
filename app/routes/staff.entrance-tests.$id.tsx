@@ -124,10 +124,19 @@ type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
 export async function action({ request, params }: ActionFunctionArgs) {
     try {
 
+        if (!params.id) {
+            return {
+                success: false,
+                error: 'Không có mã đợt thi',
+            }
+        }
+
+        const id = params.id as string;
+
         const { idToken, role } = await requireAuth(request);
 
         if (role !== Role.Staff) {
-            return redirect('/');
+            return redirect(role === Role.Instructor ? `/teacher/entrance-tests/${id}` : '/');
         }
 
         const { data, errors, receivedValues: defaultValues } =
@@ -138,15 +147,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
             return { success: false, errors, defaultValues };
         }
-
-        if (!params.id) {
-            return {
-                success: false,
-                error: 'Không có mã đợt thi',
-            }
-        }
-
-        const id = params.id as string;
+           
 
         const updateRequest = {
             ...data,

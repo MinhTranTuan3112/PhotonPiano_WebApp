@@ -2,7 +2,6 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData } from '@remix-run/react';
 import { Music2 } from 'lucide-react';
 import { Suspense, useState } from 'react';
-import ExamSwitchingDialog from '~/components/entrance-tests/exam-switching-dialog';
 import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
 import { Skeleton } from '~/components/ui/skeleton';
@@ -287,7 +286,7 @@ function EntranceTestStudentContent() {
                 </div>
                 <div className='font-bold text-lg'>
                   <span>Xếp hạng trình độ : </span>
-                  <span className='text-blue-500'>{entranceTestStudent.level} ({LEVEL[(entranceTestStudent.level ?? 1) - 1]})</span>
+                  <span className='text-blue-500'>{entranceTestStudent.level?.name}</span>
                 </div>
                 <div className='mt-4 flex justify-start w-full'>
                   <span className='font-bold  '>Nhận xét của giảng viên chấm :

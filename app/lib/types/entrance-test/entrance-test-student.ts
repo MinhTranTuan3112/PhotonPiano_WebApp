@@ -4,11 +4,12 @@ import { EntranceTest } from "./entrance-test";
 import { EntranceTestResult } from "./entrance-test-result"
 
 export type EntranceTestStudent = {
-    id: string
-    studentFirebaseId: string,
-    entranceTestId: string,
+    id: string;
+    studentFirebaseId: string;
+    entranceTestId: string;
     fullName?: string;
-    bandScore?: number,
+    bandScore?: number;
+    levelId?: string;
     level?: Level;
     theoraticalScore?: number;
     instructorComment?: string;

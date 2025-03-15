@@ -8,9 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "~/components/ui/button";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { toast } from "sonner";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import { Role } from "~/lib/types/account/account";
-import { loader } from "~/routes/staff.entrance-tests.$id";
+import { useNavigate } from "@remix-run/react";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -123,8 +121,6 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
         confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
     });
 
-    const { role } = useLoaderData<typeof loader>();
-
     const navigate = useNavigate();
 
     return <>
@@ -139,7 +135,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(`/${role === Role.Staff ? 'staff' : 'teacher'}/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
+                    onClick={() => navigate(`staff/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}>
                     <Trash2 /> Xóa
                 </DropdownMenuItem>
