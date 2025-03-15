@@ -402,7 +402,7 @@ function EntranceTestDetailsContent() {
                             {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
                         </>
                         : <strong className="">
-                            {entranceTest.instructorName}
+                            Gv: {entranceTest.instructorName}
                         </strong>
                     }
                 </div>

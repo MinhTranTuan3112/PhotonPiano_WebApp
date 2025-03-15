@@ -44,17 +44,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     try {
 
-        const { role, idToken } = await requireAuth(request);
-
-        if (role !== Role.Staff) {
-            return redirect('/');
-        }
-
         if (!params.id) {
             return redirect('/staff/entrance-tests');
         }
 
         const id = params.id as string;
+
+        const { role, idToken } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect(role === Role.Instructor ? `/teacher/entrance-tests/${id}` : '/');
+        }
+
 
         const promise = fetchAnEntranceTest({ id, idToken }).then((response) => {
 
@@ -147,7 +148,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
             return { success: false, errors, defaultValues };
         }
-           
+
 
         const updateRequest = {
             ...data,

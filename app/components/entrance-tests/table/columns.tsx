@@ -135,7 +135,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(`staff/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
+                    onClick={() => navigate(`/staff/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}>
                     <Trash2 /> Xóa
                 </DropdownMenuItem>
