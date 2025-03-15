@@ -1,5 +1,3 @@
-"use client"
-
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useNavigate } from "@remix-run/react"
 import { Button } from "app/components/ui/button"
@@ -101,7 +99,7 @@ const AttendancePage = () => {
 
             navigate("/scheduler")
 
-        } catch (error: unknown) {
+        } catch (error: any) {
             console.error("Error updating attendance:", error)
             alert("Failed to update attendance. Please try again. Error: " + error.message)
         } finally {
