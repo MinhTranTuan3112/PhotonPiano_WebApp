@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Mail, Music2 } from 'lucide-react';
-import { Account } from "~/lib/types/account/account";
+import { Account, Level } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
 
 const getLevelStyle = (level?: number) => {
@@ -16,9 +16,9 @@ const getLevelStyle = (level?: number) => {
     }
 };
 
-function LevelBadge({ level }: { level?: number }) {
-    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
-        {level !== null ? `LEVEL ${(level || 0) + 1}` : 'Chưa xếp'}
+function LevelBadge({ level }: { level?: Level }) {
+    return <Badge variant={'outline'} className={`uppercase`}>
+        {level ? `${level.name.split('(')[0]}` : 'Chưa xếp'}
     </Badge>;
 }
 
