@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionResult } from '~/lib/types/action-result';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
+import { Level } from '~/lib/types/account/account';
 
 
 type Props = {
@@ -26,7 +27,7 @@ type Props = {
     idToken: string,
     slotsPerWeek: number,
     totalSlots: number,
-    level: number,
+    level: Level,
     classId: string
 }
 
@@ -111,7 +112,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                     <div className='grid grid-cols-2 gap-2 mt-4'>
                         <div>
                             <span className='mr-4 font-semibold'>Level : </span>
-                            <span>{level + 1}</span>
+                            <span>{level.name.split('(')[0]}</span>
                         </div>
                         <div>
                             <span className='mr-4 font-semibold'>Số buổi 1 tuần : </span>

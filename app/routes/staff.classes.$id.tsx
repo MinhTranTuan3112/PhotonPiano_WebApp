@@ -122,9 +122,9 @@ const getStatusStyle = (status: number) => {
   }
 };
 function LevelBadge({ level }: {
-  level: number
+  level: Level
 }) {
-  return <div className={`${getLevelStyle(level)} uppercase w-5/6 text-center my-1 p-2 rounded-lg`}>LEVEL {level + 1} - {LEVEL[level]}</div>
+  return <div className={`uppercase w-5/6 text-center my-1 p-2 rounded-lg`}>{level.name.split('(')[0]}</div>
 }
 function StatusBadge({ status }: {
   status: number
