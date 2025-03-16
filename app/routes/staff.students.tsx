@@ -13,7 +13,7 @@ import { Input } from '~/components/ui/input';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccounts } from '~/lib/services/account';
-import { Account, Role, sampleStudents } from '~/lib/types/account/account';
+import { Account, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
@@ -21,12 +21,6 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
 type Props = {}
-
-async function getSampleStudents() {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  return sampleStudents;
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -46,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       sortColumn: searchParams.get('column') || 'Id',
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       roles: [Role.Student],
-      levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(Number),
+      levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
       studentStatuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
       idToken
@@ -72,7 +66,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     });
 
-     return{
+    return {
       promise,
       query: { ...query, idToken: undefined }
     }
