@@ -40,6 +40,7 @@ export enum Gender {
 }
 
 export type Level = {
+   id: string;
    name: string;
    description: string;
    skillsEarned: string[];
@@ -50,6 +51,68 @@ export type Level = {
    isGenreDivided: boolean;
    nextLevelId?: string;
 }
+
+export const sampleLevels: Level[] = [
+    {
+        id: "1",
+        name: "Beginner",
+        description: "For those who have never played the piano before.",
+        skillsEarned: ["Basic knowledge of piano", "Basic knowledge of music theory"],
+        slotPerWeek: 1,
+        totalSlots: 10,
+        pricePerSlot: 100000,
+        minimumScore: 0,
+        isGenreDivided: false,
+        nextLevelId: "2"
+    },
+    {
+        id: "2",
+        name: "Novice",
+        description: "For those who have played the piano for a few months.",
+        skillsEarned: ["Intermediate knowledge of piano", "Intermediate knowledge of music theory"],
+        slotPerWeek: 1,
+        totalSlots: 10,
+        pricePerSlot: 100000,
+        minimumScore: 100,
+        isGenreDivided: false,
+        nextLevelId: "3"
+    },
+    {
+        id: "3",
+        name: "Intermediate",
+        description: "For those who have played the piano for a few years.",
+        skillsEarned: ["Advanced knowledge of piano", "Advanced knowledge of music theory"],
+        slotPerWeek: 1,
+        totalSlots: 10,
+        pricePerSlot: 100000,
+        minimumScore: 200,
+        isGenreDivided: false,
+        nextLevelId: "4"
+    },
+    {
+        id: "4",
+        name: "Advanced",
+        description: "For those who have played the piano for many years.",
+        skillsEarned: ["Virtuoso knowledge of piano", "Virtuoso knowledge of music theory"],
+        slotPerWeek: 1,
+        totalSlots: 10,
+        pricePerSlot: 100000,
+        minimumScore: 300,
+        isGenreDivided: false,
+        nextLevelId: "5"
+    },
+    {
+        id: "5",
+        name: "Virtuoso",
+        description: "For those who have played the piano for many years.",
+        skillsEarned: ["Virtuoso knowledge of piano", "Virtuoso knowledge of music theory"],
+        slotPerWeek: 1,
+        totalSlots: 10,
+        pricePerSlot: 100000,
+        minimumScore: 400,
+        isGenreDivided: false
+    }
+]
 
 // export enum Level {
 //     Beginner,
