@@ -1,18 +1,14 @@
-import { ColumnDef, Row, Table } from "@tanstack/react-table";
-import { Checkbox } from "~/components/ui/checkbox";
+import { ColumnDef, Table } from "@tanstack/react-table";
 import {
-    MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
-    Calendar,
+    MoreHorizontal, Mail, Phone, User,
     Trash,
     Shuffle
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account, Level } from "~/lib/types/account/account";
+import { Level } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
-import { useState } from "react";
-import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
+import {STUDENT_STATUS } from "~/lib/utils/constants";
 import { StudentClassWithStudent } from "~/lib/types/class/student-class";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
@@ -41,10 +37,10 @@ const getLevelStyle = (level?: number) => {
 };
 
 function LevelBadge({ level }: {
-    level?: number
+    level?: Level
 }) {
-    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
-        {level !== null ? `LEVEL ${(level || 0) + 1} - ${Level[level || 0]}` : 'Chưa xếp'}
+    return <Badge variant={'outline'} className={`uppercase`}>
+        {level ? level.name : 'Chưa xếp'}
     </Badge>
 }
 

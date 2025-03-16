@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useEffect } from "react"
 import type { LoaderFunctionArgs } from "@remix-run/node"
@@ -9,7 +7,7 @@ import { Button } from "~/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import { useState } from "react"
 import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react"
-import { PaymentStatus, type Tuition } from "~/lib/types/tuition/tuition"
+import { PaymentStatus, PaymentStatusText, type Tuition } from "~/lib/types/tuition/tuition"
 import { ArrowLeft, Download, Filter } from "lucide-react"
 import { Label } from "~/components/ui/label"
 import { Checkbox } from "~/components/ui/checkbox"
@@ -161,7 +159,7 @@ export default function TuitionPage() {
                         fee.paymentStatus === PaymentStatus.Successed ? "text-green-600" : "text-gray-600"
                     }`}
                 >
-                  {PaymentStatus[fee.paymentStatus] || "Không xác định"}
+                  {PaymentStatusText[fee.paymentStatus] || "Không xác định"}
                 </span>
               </span>
                             {fee.paymentStatus !== PaymentStatus.Successed && !fee.isPassed && (

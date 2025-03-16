@@ -25,22 +25,22 @@ const getStatusStyle = (status: number) => {
     }
 };
 
-const getLevelStyle = (level?: number) => {
-    switch (level) {
-        case 0: return "text-blue-500 font-semibold";
-        case 1: return "text-pink-500 font-semibold";
-        case 2: return "text-red-500 font-semibold";
-        case 3: return "text-green-500 font-semibold";
-        case 4: return "text-red-400 font-semibold";
-        default: return "text-black font-semibold";
-    }
-};
+// const getLevelStyle = (level?: Level) => {
+//     switch (level) {
+//         case 0: return "text-blue-500 font-semibold";
+//         case 1: return "text-pink-500 font-semibold";
+//         case 2: return "text-red-500 font-semibold";
+//         case 3: return "text-green-500 font-semibold";
+//         case 4: return "text-red-400 font-semibold";
+//         default: return "text-black font-semibold";
+//     }
+// };
 
 export function LevelBadge({ level }: {
-    level?: number
+    level?: Level
 }) {
-    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>
-        {level !== null ? `LEVEL ${(level || 0) + 1} - ${Level[level || 0]}` : 'Chưa xếp'}
+    return <Badge variant={'outline'} className={`uppercase`}>
+        {level ? level.name : 'Chưa xác định'}
     </Badge>
 }
 

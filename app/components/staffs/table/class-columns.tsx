@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { CLASS_STATUS, STUDENT_STATUS } from "~/lib/utils/constants";
 import { Class } from "~/lib/types/class/class";
+import { Level } from "~/lib/types/account/account";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -28,9 +29,9 @@ const getLevelStyle = (level: number) => {
     }
 };
 function LevelBadge({ level }: {
-    level: number
+    level: Level
 }) {
-    return <Badge variant={'outline'} className={`${getLevelStyle(level)} uppercase`}>LEVEL {level + 1}</Badge>
+    return <Badge variant={'outline'} className={`uppercase`}>{level.name.split('(')[0]}</Badge>
 }
 function StatusBadge({ status }: {
     status: number
@@ -73,7 +74,7 @@ export const classColums: ColumnDef<Class>[] = [
         accessorKey: 'Level',
         header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
         cell: ({ row }) => {
-            return row.original.level >= 0 && <LevelBadge level={row.original.level} />
+            return row.original.level && <LevelBadge level={row.original.level} />
         }
     },
     {

@@ -32,23 +32,23 @@ type ProfileFormData = z.infer<typeof accountInfoSchema>;
 
 const resolver = zodResolver(accountInfoSchema);
 
-async function getSampleProfileInfo() {
+// async function getSampleProfileInfo() {
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+//     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    return {
-        userName: 'abc',
-        email: 'abc@gmail.com',
-        fullName: 'Nguyễn Văn A',
-        address: '123 abc',
-        phone: '0123456789',
-        shortDescription: '...',
-        level: Level.Beginner,
-        role: Role.Student,
-        studentStatus: StudentStatus.AttemptingEntranceTest,
-        gender: Gender.Male
-    } as Account;
-}
+//     return {
+//         userName: 'abc',
+//         email: 'abc@gmail.com',
+//         fullName: 'Nguyễn Văn A',
+//         address: '123 abc',
+//         phone: '0123456789',
+//         shortDescription: '...',
+//         level: Level.Beginner,
+//         role: Role.Student,
+//         studentStatus: StudentStatus.AttemptingEntranceTest,
+//         gender: Gender.Male
+//     } as Account;
+// }
 
 export async function loader({ request }: LoaderFunctionArgs) {
 

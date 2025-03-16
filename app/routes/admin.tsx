@@ -1,6 +1,9 @@
 import { Outlet, useLocation } from "@remix-run/react";
+import { CircleUserRound, LayoutDashboard, Settings } from "lucide-react";
 import React from "react";
-import { StaffSidebar } from "~/components/sidebar/staff-sidebar";
+import { NavMain } from "~/components/sidebar/nav-main";
+import { NavUser } from "~/components/sidebar/nav-user";
+import TopNav from "~/components/sidebar/top-nav";
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -12,8 +15,13 @@ import {
 import { buttonVariants } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
     SidebarInset,
     SidebarProvider,
+    SidebarRail,
     SidebarTrigger
 } from "~/components/ui/sidebar";
 import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
@@ -23,76 +31,28 @@ function getBreadcrumbPageName({ pathname }: {
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
         name: "Quản lý",
-        url: "/staff/dashboard",
+        url: "/admin",
     };
+
     let otherNavItems: BreadcumbNavItem[] = []
     switch (true) {
-        case pathname === '/staff/entrance-tests/create':
+        case pathname === '/admin/settings':
             otherNavItems = [
                 {
-                    name: "Quản lý thi đầu vào",
-                    url: '/staff/entrance-tests',
-                    isCurrentPage: false
+                    name: "Cấu hình hệ thống",
+                    url: '/admin/settings',
+                    isCurrentPage: true
                 },
-                {
-                    name: "Tạo ca thi",
-                    url: pathname,
-                    isCurrentPage: true
-                }
             ]
             break;
-        case pathname === '/staff/profile':
+        case pathname === '/admin/levels':
             otherNavItems = [
                 {
-                    name: "Thông tin cá nhân",
-                    url: pathname,
+                    name: "Quản lý level đào tạo",
+                    url: '/admin/levels',
                     isCurrentPage: true
-                }
+                },
             ]
-            break;
-        case pathname === '/staff/students':
-            otherNavItems = [
-                {
-                    name: "Danh sách học viên",
-                    url: pathname,
-                    isCurrentPage: true
-                }
-            ]
-            break;
-        case pathname === '/staff/classes':
-            otherNavItems = [
-                {
-                    name: "Danh sách lớp",
-                    url: pathname,
-                    isCurrentPage: true
-                }
-            ]
-            break;
-        case pathname === '/staff/applications':
-            otherNavItems = [
-                {
-                    name: "Danh sách đơn từ",
-                    url: pathname,
-                    isCurrentPage: true
-                }
-            ]
-            break;
-        case pathname.startsWith('/staff/entrance-tests'):
-            const param = pathname.replace('/staff/entrance-tests', "")
-            otherNavItems = [
-                {
-                    name: "Quản lý thi đầu vào",
-                    url: '/staff/entrance-tests',
-                    isCurrentPage: param.length === 0
-                }
-            ]
-            if (param.length > 1) {
-                otherNavItems.push({
-                    name: "Chi tiết ca thi " + param.replace("/", ""),
-                    url: pathname,
-                    isCurrentPage: true
-                })
-            }
             break;
         default:
             break;
@@ -104,13 +64,13 @@ function getBreadcrumbPageName({ pathname }: {
     ]
 }
 
-export default function StaffLayout() {
+export default function AdminLayout() {
 
     const { pathname } = useLocation();
 
     return (
         <SidebarProvider>
-            <StaffSidebar />
+            <AdminSidebar />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
                     <div className="flex items-center gap-2 px-4">
@@ -153,5 +113,62 @@ export default function StaffLayout() {
                 </div>
             </SidebarInset>
         </SidebarProvider>
+    )
+}
+
+const data = {
+    navMain: [
+        {
+            title: "Thông tin chung",
+            url: "",
+            icon: CircleUserRound,
+            isActive: true,
+            items: [
+                {
+                    title: "Thông tin cá nhân",
+                    url: "/admin/profile",
+                }
+            ],
+        },
+        {
+            title: "Thống kê",
+            url: "/admin/dashboard",
+            icon: LayoutDashboard,
+            isActive: true,
+        },
+        {
+            title: "Cấu hình hệ thống",
+            url: "/admin/settings",
+            icon: Settings,
+            isActive: true,
+        },
+        {
+            title: "Quản lý level đào tạo",
+            url: "/admin/levels",
+            icon: Settings,
+            isActive: true,
+        }
+    ]
+}
+
+type AdminSidebarProps = {
+
+} & React.ComponentProps<typeof Sidebar>;
+
+function AdminSidebar({ ...props }: AdminSidebarProps) {
+
+    return (
+        <Sidebar collapsible="icon" {...props}>
+            <SidebarHeader>
+                <TopNav />
+            </SidebarHeader>
+            <SidebarContent>
+                <NavMain items={data.navMain} />
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser />
+            </SidebarFooter>
+            <SidebarRail />
+        </Sidebar>
     )
 }

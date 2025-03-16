@@ -208,10 +208,10 @@ export default function StaffAutoArrangeClass({ }: Props) {
 
                                     {/* Level Breakdown */}
                                     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-                                        {LEVEL.map((level, index) => (
+                                        {data.awaitingLevelCounts.map((breakdown, index) => breakdown.level && (
                                             <div className='flex flex-col items-center p-4 border rounded-lg shadow-md bg-white' key={index}>
-                                                <div className='text-center font-bold'>LEVEL {index + 1}</div>
-                                                <div className='text-center text-lg text-gray-600'>{data.awaitingLevelCounts.find(a => a.level === index)?.count ?? 0}</div>
+                                                <div className='text-center font-bold'>{breakdown.level.name?.split('(')[0]}</div>
+                                                <div className='text-center text-lg text-gray-600'>{breakdown.count ?? 0}</div>
                                             </div>
                                         ))}
                                     </div>

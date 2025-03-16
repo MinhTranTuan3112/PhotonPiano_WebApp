@@ -150,3 +150,20 @@ export async function fetchUpdateEntranceTestResults({
 
     return response;
 }
+
+export async function fetchEntranceTestStudentDetails({
+    idToken, id, studentId
+}: {
+    id: string,
+    studentId: string,
+    idToken: string
+}) {
+    
+    const response = await axiosInstance.get(`/entrance-tests/${id}/students/${studentId}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
