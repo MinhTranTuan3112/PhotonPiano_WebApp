@@ -135,6 +135,8 @@ const SchedulerPage: React.FC = () => {
     const [selectedSlot, setSelectedSlot] = useState<SlotDetail | null>(null)
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
     const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false)
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+    const [isLoading, setIsLoading] = useState(false);
     const [filters, setFilters] = useState({
         shifts: [] as Shift[],
         slotStatuses: [] as SlotStatus[],
@@ -218,7 +220,8 @@ const SchedulerPage: React.FC = () => {
             console.error("Failed to fetch slot details:", error)
         }
     }
-
+    
+    
     const handleWeekChange = (newWeekNumber: number) => {
         setWeekNumber(newWeekNumber)
         fetchSlotsForWeek(year, newWeekNumber)
@@ -291,9 +294,11 @@ const SchedulerPage: React.FC = () => {
                         <Music className="w-8 h-8 mr-2 text-indigo-800" /> Lịch học của Trung tâm học Piano
                     </h1>
 
-                    <div className="current-user bg-white/90 p-3 rounded-lg shadow-md backdrop-blur-sm">
-                        <p className="text-sm font-semibold text-indigo-800">{currentAccount.email}</p>
-                        <p className="text-xs text-indigo-600">{currentAccount.fullName}</p>
+                    <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+                        <div className="current-user bg-white/90 p-3 rounded-lg shadow-md backdrop-blur-sm w-full md:w-auto text-center">
+                            <p className="text-sm font-semibold text-indigo-800">{currentAccount.email}</p>
+                            <p className="text-xs text-indigo-600">{currentAccount.fullName}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -345,7 +350,7 @@ const SchedulerPage: React.FC = () => {
                         variant="outline"
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber - 1)}
-                        disabled={weekNumber <= 1}
+                        disabled={weekNumber <= 1 || isLoading}
                         className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
                     >
                         <ChevronLeft className="h-5 w-5" />
@@ -358,7 +363,7 @@ const SchedulerPage: React.FC = () => {
                         variant="outline"
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber + 1)}
-                        disabled={weekNumber >= 52}
+                        disabled={weekNumber >= 52 || isLoading}
                         className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
                     >
                         <ChevronRight className="h-5 w-5" />
@@ -469,6 +474,38 @@ const SchedulerPage: React.FC = () => {
                                         <strong className="mr-2">Sĩ số học sinh:</strong>{" "}
                                         <span className="text-indigo-600">{selectedSlot.numberOfStudents}</span>
                                     </p>
+                                    {role === 1 && selectedSlot.slotStudents && (
+                                        <>
+                                            {selectedSlot.slotStudents
+                                                .filter(
+                                                    (student) =>
+                                                        student.studentFirebaseId.toLowerCase() ===
+                                                        currentAccount.accountFirebaseId?.toLowerCase()
+                                                )
+                                                .map((student, index) => (
+                                                    <div key={index} className="space-y-2">
+                                                        {student.gestureComment && (
+                                                            <p className="flex items-center text-indigo-800">
+                                                                <strong className="mr-2">Nhận xét cử chỉ:</strong>{" "}
+                                                                <span className="text-indigo-600">{student.gestureComment}</span>
+                                                            </p>
+                                                        )}
+                                                        {student.fingerNoteComment && (
+                                                            <p className="flex items-center text-indigo-800">
+                                                                <strong className="mr-2">Nhận xét nốt ngón:</strong>{" "}
+                                                                <span className="text-indigo-600">{student.fingerNoteComment}</span>
+                                                            </p>
+                                                        )}
+                                                        {student.pedalComment && (
+                                                            <p className="flex items-center text-indigo-800">
+                                                                <strong className="mr-2">Nhận xét bàn đạp:</strong>{" "}
+                                                                <span className="text-indigo-600">{student.pedalComment}</span>
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                        </>
+                                    )}
                                     {role === 2 && (
                                         <Button
                                             onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
