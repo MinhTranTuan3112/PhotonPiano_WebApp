@@ -41,13 +41,6 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     }
 };
 
-interface IApiResult<T> {
-    Status?: string;
-    Op?: string;
-    Data?: T;
-    message?: string; // Thêm trường message
-}
-
 const AttendancePage = () => {
     const { slotStudent, idToken, id } = useLoaderData<typeof loader>();
     const [attendanceData, setAttendanceData] = useState<SlotStudentModel[]>(slotStudent || []);
@@ -335,14 +328,14 @@ const AttendancePage = () => {
                     </DialogHeader>
                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails) && (
                         <div className="space-y-4">
-                            <p className="text-indigo-800 text-sm">
-                                <strong>Email:</strong>{" "}
-                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount.email}
-                            </p>
-                            <p className="text-indigo-800 text-sm">
-                                <strong>Tên:</strong>{" "}
-                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount.fullName}
-                            </p>
+                            {/*<p className="text-indigo-800 text-sm">*/}
+                            {/*    <strong>Email:</strong>{" "}*/}
+                            {/*    {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount.email}*/}
+                            {/*</p>*/}
+                            {/*<p className="text-indigo-800 text-sm">*/}
+                            {/*    <strong>Tên:</strong>{" "}*/}
+                            {/*    {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount.fullName}*/}
+                            {/*</p>*/}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-indigo-800">Ghi chú điểm danh:</label>
                                 <Textarea
@@ -354,7 +347,7 @@ const AttendancePage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-indigo-800">Gesture (URL hình ảnh):</label>
+                                <label className="text-sm font-medium text-indigo-800">Tư thế (URL hình ảnh):</label>
                                 <div className="mt-2">
                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)?.gestureUrl && (
                                         <div className="mb-2 flex items-center gap-2">
@@ -386,7 +379,7 @@ const AttendancePage = () => {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-indigo-800">Gesture Comment:</label>
+                                <label className="text-sm font-medium text-indigo-800">Tư thế:</label>
                                 <Textarea
                                     value={
                                         sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureComment || ""
@@ -396,7 +389,7 @@ const AttendancePage = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-indigo-800">Finger Note:</label>
+                                <label className="text-sm font-medium text-indigo-800">Ngón tay:</label>
                                 <Textarea
                                     value={
                                         sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.fingerNoteComment || ""

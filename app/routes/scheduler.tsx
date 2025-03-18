@@ -486,19 +486,19 @@ const SchedulerPage: React.FC = () => {
                                                     <div key={index} className="space-y-2">
                                                         {student.gestureComment && (
                                                             <p className="flex items-center text-indigo-800">
-                                                                <strong className="mr-2">Nhận xét cử chỉ:</strong>{" "}
+                                                                <strong className="mr-2">Nhận xét tư thế:</strong>{" "}
                                                                 <span className="text-indigo-600">{student.gestureComment}</span>
                                                             </p>
                                                         )}
                                                         {student.fingerNoteComment && (
                                                             <p className="flex items-center text-indigo-800">
-                                                                <strong className="mr-2">Nhận xét nốt ngón:</strong>{" "}
+                                                                <strong className="mr-2">Nhận xét ngón tay:</strong>{" "}
                                                                 <span className="text-indigo-600">{student.fingerNoteComment}</span>
                                                             </p>
                                                         )}
                                                         {student.pedalComment && (
                                                             <p className="flex items-center text-indigo-800">
-                                                                <strong className="mr-2">Nhận xét bàn đạp:</strong>{" "}
+                                                                <strong className="mr-2">Nhận xét pedal:</strong>{" "}
                                                                 <span className="text-indigo-600">{student.pedalComment}</span>
                                                             </p>
                                                         )}
