@@ -98,7 +98,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                     <div className='flex place-content-between'>
                         <div className='flex gap-2'>
                             <span className='font-bold'>LEVEL : </span>
-                            <span>{classInfo.level + 1}</span>
+                            <span>{classInfo.level.name.split('(')[0]}</span>
                         </div>
                         <div className='flex gap-2'>
                             <span className='font-bold'>Tối đa : </span>

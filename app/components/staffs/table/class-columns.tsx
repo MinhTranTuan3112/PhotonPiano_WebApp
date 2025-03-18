@@ -122,27 +122,29 @@ export const classColums: ColumnDef<Class>[] = [
     },
     {
         id: "actions",
-        header: "Hành động",
         cell: ({ row }) => {
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Thao tác</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
-                            <UsersRound /> Xem thông tin lớp
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                            <BanIcon /> Vô hiệu hóa
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <Button Icon={Eye} iconPlacement="left" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
+                    Chi tiết
+                </Button>
+                // <DropdownMenu>
+                //     <DropdownMenuTrigger asChild>
+                //         <Button variant="ghost" className="h-8 w-8 p-0">
+                //             <span className="sr-only">Thao tác</span>
+                //             <MoreHorizontal className="h-4 w-4" />
+                //         </Button>
+                //     </DropdownMenuTrigger>
+                //     <DropdownMenuContent align="end">
+                //         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                //         <DropdownMenuSeparator />
+                //         <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
+                //             <UsersRound /> Xem thông tin lớp
+                //         </DropdownMenuItem>
+                //         <DropdownMenuItem className="text-red-600 cursor-pointer">
+                //             <BanIcon /> Vô hiệu hóa
+                //         </DropdownMenuItem>
+                //     </DropdownMenuContent>
+                // </DropdownMenu>
             )
         }
     }

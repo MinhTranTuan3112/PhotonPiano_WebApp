@@ -62,7 +62,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       studentStatuses: [StudentStatus.WaitingForClass],
       q: searchParams.get('q') || '',
-      levels: [classDetail.level],
+      levels: [classDetail.levelId],
       idToken
     };
 
