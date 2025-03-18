@@ -8,7 +8,7 @@ export async function fetchAccounts({
     idToken
 }:
     Partial<QueryPagedRequest & {
-        levels: Level[];
+        levels: string[];
         roles: Role[];
         q?: string;
         studentStatuses: StudentStatus[];

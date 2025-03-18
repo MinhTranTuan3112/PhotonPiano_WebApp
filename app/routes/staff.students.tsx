@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react';
-import { Search, CalendarSync, RotateCcw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Search, CalendarSync, RotateCcw, Loader2 } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -13,7 +14,6 @@ import { Input } from '~/components/ui/input';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccounts } from '~/lib/services/account';
-import { Account, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
@@ -21,12 +21,6 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
 type Props = {}
-
-// async function getSampleStudents() {
-//   await new Promise(resolve => setTimeout(resolve, 1000));
-//
-//   return sampleStudents;
-// }
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -46,7 +40,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       sortColumn: searchParams.get('column') || 'Id',
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       roles: [Role.Student],
-      levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(Number),
+      levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
       studentStatuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
       idToken
@@ -72,7 +66,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     });
 
-     return{
+    return {
       promise,
       query: { ...query, idToken: undefined }
     }
@@ -128,12 +122,31 @@ function SearchForm() {
     resolver
   });
 
+  const { data, isLoading: isLoadingLevels } = useQuery({
+    queryKey: ['levels'],
+    queryFn: async () => {
+      const response = await fetchLevels();
+
+      return await response.data;
+    }
+  });
+
+  const levels = data ? data as Level[] : [];
+
+  const levelOptions = levels.map((level, index) => {
+    return {
+      label: level.name,
+      value: level.id.toString(),
+      icon: undefined
+    }
+  })
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
     className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
-    <Controller
+    {isLoadingLevels ? <Skeleton className='w-full'/> : <Controller
       name='levels'
       control={control}
       render={({ field: { onChange, onBlur, value, ref } }) => (
@@ -145,7 +158,8 @@ function SearchForm() {
           className='w-full'
           onValueChange={onChange} />
       )}
-    />
+    />}
+
     <Controller
       name='statuses'
       control={control}

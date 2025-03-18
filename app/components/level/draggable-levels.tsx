@@ -1,0 +1,110 @@
+import * as React from "react"
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { ChevronDown, GripVertical } from "lucide-react"
+import { Card, CardContent } from "../ui/card"
+import { cn } from "~/lib/utils"
+import { Level } from "~/lib/types/account/account"
+
+type SortableLevelProps = {
+    level: Level;
+}
+
+const SortableLevel = ({ level }: SortableLevelProps) => {
+
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: level.id })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    }
+
+    return (
+        <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
+            <Card className={cn("border", isDragging ? "ring-2 ring-primary shadow-lg" : "")}>
+                <CardContent className="p-4 flex items-center gap-3">
+                    <div
+                        {...attributes}
+                        {...listeners}
+                        className="cursor-grab touch-none flex items-center justify-center p-1 rounded-md hover:bg-muted"
+                    >
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-medium">Level <strong>{level.name}</strong></h3>
+                        <p className="text-sm text-muted-foreground">{level.description}</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+type DraggableLevelsProps = {
+    inititalLevels: Level[]
+    onLevelsChange?: (levels: Level[]) => void
+}
+
+export function DraggableLevels({ inititalLevels, onLevelsChange }: DraggableLevelsProps) {
+
+    const [levels, setLevels] = React.useState<Level[]>(inititalLevels);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+    )
+
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event
+
+        if (over && active.id !== over.id) {
+            setLevels((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id)
+                const newIndex = items.findIndex((item) => item.id === over.id)
+
+                const newLevels = arrayMove(items, oldIndex, newIndex)
+                onLevelsChange?.(newLevels)
+                return newLevels
+            })
+        }
+    }
+
+    return (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={levels.map((level) => level.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-1">
+                    {levels.map((level, index) => (
+                        <React.Fragment key={level.id}>
+                            <SortableLevel level={level} />
+                            {index !== levels.length - 1 && <div className="flex justify-center">
+                                <ChevronDown className="animate-bounce" />
+                            </div>}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </SortableContext>
+        </DndContext>
+    )
+}
+
