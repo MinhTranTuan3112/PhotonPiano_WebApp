@@ -1,5 +1,5 @@
 import axiosInstance from "~/lib/utils/axios-instance";
-import {Shift, SlotStatus} from "~/lib/types/Scheduler/slot";
+import {Shift, SlotDetail, SlotStatus} from "~/lib/types/Scheduler/slot";
 import axios from "axios";
 
 export type FetchSlotsParams = {
@@ -12,6 +12,7 @@ export type FetchSlotsParams = {
     classIds?: string[];
     idToken: string;
 };
+
 
 export async function fetchSlots({
                                      startTime,
@@ -106,32 +107,49 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
 }
 
 
-export async function fetchUpdateAttendanceStatus(slotId: string, StudentAttentIds: string[], StudentAbsentIds: string[],  idToken: string) {
-
+export async function fetchUpdateAttendanceStatus(
+    slotId: string,
+    slotStudentInfoModels: {
+        StudentId: string;
+        AttendanceComment: string | undefined;
+        GestureComment: string | undefined;
+        GestureUrl: string | undefined;
+        FingerNoteComment: string | undefined;
+        PedalComment: string | undefined;
+        AttendanceStatus: number; // 0: NotYet, 1: Attended, 2: Absent
+    }[],
+    idToken: string
+) {
     try {
         const url = `/scheduler/update-attendance`;
-
-        console.log(slotId);
-
         const response = await axiosInstance.post(url, {
-            slotId,
-            StudentAttentIds,
-            StudentAbsentIds
+            SlotId: slotId,
+            SlotStudentInfoRequests: slotStudentInfoModels.length > 0 ? slotStudentInfoModels : undefined,
         }, {
             headers: {
-                Authorization: `Bearer ${idToken}`
+                "Authorization": `Bearer ${idToken}`,
+                "Content-Type": "application/json",
             },
         });
 
+        if (response.status !== 200) {
+            throw new Error(`API Error: Status ${response.status} - ${response.statusText}`);
+        }
+        
         return response;
-    }catch (error: any) {
-        if (error.response) {
+    } catch (error: unknown) {
+        console.error("Error in fetchUpdateAttendanceStatus:", error);
+        if (axios.isAxiosError(error) && error.response) {
+            console.log("Error response data:", error.response.data);
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
-            throw new Error(`Unexpected Error: ${error.message}`);
+            throw new Error(`Unexpected Error: ${(error as Error).message}`);
         }
     }
 }
+
+
+
 
 export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }: {
     shift : number,

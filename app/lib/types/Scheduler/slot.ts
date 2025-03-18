@@ -57,13 +57,19 @@ export type Slot = {
 export type SlotStudentModel = {
     slotId : string;
     studentFirebaseId: string;
-    attendanceStatus: number;
+    attendanceStatus: AttendanceStatus;
+    attendanceComment?: string;
+    gestureComment?: string;
+    gestureUrl?: string;
+    fingerNoteComment?: string;
+    pedalComment?: string;
     studentAccount: {
         userName: string | null;
         fullName: string | null;
         email: string
         avatarUrl : string | null
-    }
+    },
+    
 };
 
 export type StudentAttendanceModel =  {

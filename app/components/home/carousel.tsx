@@ -4,17 +4,18 @@ import EnrollDialog from '../entrance-tests/enroll-dialog';
 
 const slides = [
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
+        // ?height=1000&width=1200
+        url: "/images/placeholder.jpg?height=1000&width=1200",
         title: "THI ĐẦU VÀO 2025",
         description: "Trung tâm Photon Piano trân trọng thông báo lịch thi đầu vào mới nhất 2025",
     },
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
+        url: "/images/placeholder.jpg?height=1000&width=1200",
         title: "Learn from the Best",
         description: "Expert instructors dedicated to your musical growth",
     },
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
+        url: "/images/placeholder.jpg?height=1000&width=1200",
         title: "Unlock Your Potential",
         description: "Personalized lessons to help you achieve your musical goals",
     }
