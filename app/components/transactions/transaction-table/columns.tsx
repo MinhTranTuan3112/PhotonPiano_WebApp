@@ -99,7 +99,7 @@ export const columns: ColumnDef<Transaction>[] = [
         accessorKey: 'Mã giao dịch',
         header: 'Mã giao dịch',
         cell: ({ row }) => {
-            return <div className="">{row.original.id}</div>
+            return <div className="font-bold">{row.original.transactionCode}</div>
         }
     },
     {
@@ -179,7 +179,7 @@ export const columns: ColumnDef<Transaction>[] = [
                         <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                         <DropdownMenuItem className="cursor-pointer"
                             onClick={() => {
-                                navigator.clipboard.writeText(transaction.id);
+                                navigator.clipboard.writeText(transaction.transactionCode || transaction.id);
                                 toast.success('Đã sao chép mã giao dịch!');
                             }}
                         >
