@@ -8,19 +8,19 @@ const events = [
         category: 'Bí quyết học Piano',
         title: 'Khóa học piano cho sinh viên chất lượng với học phí hợp lý',
         description: 'Khám phá các khóa học piano cho sinh viên chất lượng với học phí hợp lý, lịch học linh hoạt và giáo trình chuẩn quốc tế.',
-        image: 'app/lib/assets/images/placeholder.jpg?height=200&width=400'
+        image: '/images/placeholder.jpg?height=200&width=400'
     },
     {
         category: 'Bí quyết học Piano',
         title: 'Tiêu chí chọn giáo trình piano cơ bản chất lượng',
         description: 'Một giáo trình piano phù hợp không chỉ cung cấp cho bạn các kiến thức cần thiết mà còn giúp phát triển kỹ năng toàn diện.',
-        image: 'app/lib/assets/images/placeholder.jpg?height=200&width=400'
+        image: '/images/placeholder.jpg?height=200&width=400'
     },
     {
         category: 'Bí quyết học Piano',
         title: 'Học piano cổ điển có khó không? Cách tự học piano cổ điển',
         description: 'Cùng tìm hiểu cách học piano cổ điển để chinh phục những giai điệu bất hủ và nâng cao kỹ năng chơi đàn của bạn.',
-        image: 'app/lib/assets/images/placeholder.jpg?height=200&width=400'
+        image: '/images/placeholder.jpg?height=200&width=400'
     }
 ]
 
