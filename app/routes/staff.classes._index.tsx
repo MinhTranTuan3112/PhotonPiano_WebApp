@@ -16,7 +16,9 @@ import { MultiSelect } from '~/components/ui/multi-select';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchClasses } from '~/lib/services/class';
-import { Class, sampleClasses } from '~/lib/types/class/class';
+import { fetchLevels } from '~/lib/services/level';
+import { Level } from '~/lib/types/account/account';
+import { Class } from '~/lib/types/class/class';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS, LEVEL } from '~/lib/utils/constants';
@@ -63,9 +65,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   });
 
+  const levelPromise = fetchLevels().then((res) => {
+    return res.data as Level[]
+  });
+  
   return {
     promise,
     idToken,
+    levelPromise,
     query: { ...query, idToken: undefined }
   }
 }
@@ -128,7 +135,7 @@ function SearchForm({ }) {
 }
 
 export default function StaffClassesPage({ }: Props) {
-  const { promise, idToken } = useLoaderData<typeof loader>()
+  const { promise, idToken, levelPromise } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
   const [isOpenAddClassDialog, setIsOpenAddClassDialog] = useState(false)
 
@@ -149,15 +156,15 @@ export default function StaffClassesPage({ }: Props) {
         <Suspense fallback={<LoadingSkeleton />}>
           <Await resolve={promise}>
             {(data) => (
-              <GenericDataTable 
+              <GenericDataTable
                 columns={classColums}
                 metadata={data.metadata}
                 resolvedData={data.classes}
-                />
+              />
             )}
           </Await>
         </Suspense>
-        <AddClassDialog idToken={idToken} isOpen={isOpenAddClassDialog} setIsOpen={setIsOpenAddClassDialog} />
+        <AddClassDialog idToken={idToken} isOpen={isOpenAddClassDialog} setIsOpen={setIsOpenAddClassDialog} levelPromise={levelPromise}/>
       </div>
     </div>
   )

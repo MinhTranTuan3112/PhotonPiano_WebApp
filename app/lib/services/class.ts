@@ -92,11 +92,11 @@ export async function fetchDeleteStudentClass({ studentId, classId, isExpelled =
 }
 
 export async function fetchCreateClass({ level, idToken }: {
-    level : Level,
+    level : string,
     idToken: string
 }) {
     const response = await axiosInstance.post(`/classes/`,{
-        level : level
+        levelId : level
     }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -109,11 +109,11 @@ export async function fetchUpdateClass({ id, level, name, instructorId, idToken 
     id : string,
     name? : string,
     instructorId? : string,
-    level? : Level,
+    level? : string,
     idToken: string
 }) {
     const response = await axiosInstance.put(`/classes/`,{
-        level : level,
+        levelId : level,
         id : id,
         name : name,
         instructorId : instructorId,
@@ -169,6 +169,18 @@ export async function fetchAutoArrange({ studentNumber, shifts, startWeek, idTok
         studentNumber : studentNumber,
         allowedShifts : shifts,
     }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+export async function fetchClearScheduleClass({id, idToken }: {
+    id : string
+    idToken: string
+}) {
+    const response = await axiosInstance.delete(`/classes/${id}/schedule`, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }

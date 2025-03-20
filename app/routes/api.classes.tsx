@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchClasses, fetchCreateClass, fetchDeleteClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
+import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDeleteClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from "~/lib/utils/form";
 
@@ -22,7 +22,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 
         if (action === "ADD") {
-            const level = formEntryToNumber(formData.get("level"));
+            const level = formEntryToString(formData.get("level"));
             const token = formEntryToString(formData.get("idToken"));
 
             if (!level) {
@@ -50,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 success: true
             }
         } else if (action === "EDIT") {
-            const level = formEntryToNumber(formData.get("level"));
+            const level = formEntryToString(formData.get("level"));
             const instructorId = formEntryToString(formData.get("instructorId"));
             const name = formEntryToString(formData.get("name"));
             const id = formEntryToString(formData.get("id"));
@@ -102,6 +102,30 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchDeleteClass({id,idToken : token});
+
+            return {
+                success: true
+            }
+        } else if (action === "DELETE_SCHEDULE") {
+            const id = formEntryToString(formData.get("id"));
+            const token = formEntryToString(formData.get("idToken"));
+
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Không xác định lớp học.',
+                    status: 400
+                }
+            }
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+
+            await fetchClearScheduleClass({id,idToken : token});
 
             return {
                 success: true
