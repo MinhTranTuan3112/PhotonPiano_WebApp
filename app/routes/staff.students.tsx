@@ -14,6 +14,8 @@ import { Input } from '~/components/ui/input';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccounts } from '~/lib/services/account';
+import { fetchLevels } from '~/lib/services/level';
+import { Account, Level, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
@@ -146,7 +148,7 @@ function SearchForm() {
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
     className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
-    {isLoadingLevels ? <Skeleton className='w-full'/> : <Controller
+    {isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
       name='levels'
       control={control}
       render={({ field: { onChange, onBlur, value, ref } }) => (
