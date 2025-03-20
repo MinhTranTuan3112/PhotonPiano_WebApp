@@ -26,6 +26,11 @@ export function formatDate(dateString: string | undefined) {
     
 }
 
+function calculateTotalDebt(tuition: Tuition[]): number {
+    return tuition
+        .filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
+        .reduce((sum, fee) => sum + fee.amount, 0);
+}
 
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -43,7 +48,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         endTime,
         paymentStatuses,
     })
-    const tuition: Tuition[] = response.data
+    let tuition: Tuition[] = response.data
+
+    if (!paymentStatuses.length) { // Chỉ áp dụng khi không có filter cụ thể
+        tuition = tuition.filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
+    }
+    
     return { tuition, idToken, role }
 }
 
@@ -55,6 +65,8 @@ export default function TuitionPage() {
     const [selectedFee, setSelectedFee] = useState<Tuition | null>(null)
     const navigate = useNavigate()
 
+    const totalDebt = calculateTotalDebt(tuition);
+    
     const [filters, setFilters] = useState({
         studentClassIds: searchParams.getAll("student-class-ids"),
         dateRange: {
@@ -126,7 +138,7 @@ export default function TuitionPage() {
                         onClick={() => navigate("/")}
                         className="bg-transparent text-black hover:bg-gray-100 transition-colors"
                     >
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Trở lại
                     </Button>
                     <Button
                         onClick={() => setIsFilterModalOpen(true)}
@@ -136,6 +148,31 @@ export default function TuitionPage() {
                     </Button>
                 </div>
                 <h1 className="text-3xl font-serif font-bold mb-8 text-center">Bảng học phí</h1>
+
+                <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                    <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold">Tổng nợ:</span>
+                        <span className="text-lg font-bold text-red-600">
+                            {totalDebt.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND"
+                            })}
+                        </span>
+                    </div>
+                </div>
+
+                {tuition.length > 0 ? (
+                    tuition.map((fee) => (
+                        <div key={fee.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
+                            {/* ... (giữ nguyên phần hiển thị chi tiết từng fee) */}
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center text-gray-600">
+                        Không có khoản học phí nào cần thanh toán
+                    </div>
+                )}
+                
                 {tuition.map((fee) => (
                     <div key={fee.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
                         <div className="flex justify-between items-center mb-2">
