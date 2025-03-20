@@ -107,6 +107,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             slot.attendanceStatus = rs?.attendanceStatus
 
         }
+        
+        console.log("Slot Data: " ,slots);
 
         return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
     } catch (error) {
@@ -157,7 +159,7 @@ const SchedulerPage: React.FC = () => {
     useEffect(() => {
         const pubSubService = new PubSub()
         const subscription = pubSubService.receiveMessage().subscribe((message: IPubSubMessage) => {
-            console.log("[Pub Sub] Message received in Student screen:", message)
+            // console.log("[Pub Sub] Message received in Student screen:", message)
 
             if (message.content.includes("changed") && message.topic.includes("scheduler_attendance")) {
                 console.log("[Pub Sub] Attendance updated. Fetching latest data...")
@@ -202,6 +204,9 @@ const SchedulerPage: React.FC = () => {
                 ...filters,
             })
 
+
+            console.log("Slot Data: " ,response.data);
+            
             setSlots(response.data)
             setStartDate(startDate)
             setEndDate(endDate)
