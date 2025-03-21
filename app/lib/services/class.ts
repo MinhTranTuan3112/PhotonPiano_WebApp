@@ -6,7 +6,7 @@ import { getErrorDetailsInfo } from "../utils/error";
 export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     levels = [], statuses = [] 
 }: Partial<QueryPagedRequest & {
-    levels: number[],
+    levels: string[],
     statuses: number[]
 }>) {
 

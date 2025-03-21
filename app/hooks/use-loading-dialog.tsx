@@ -10,10 +10,11 @@ type Props = {
     loadingMessage?: string,
     successMessage?: string
     fetcher: FetcherWithComponents<ActionResult>,
+    preventEscape? : boolean,
     action?: () => void
 }
 
-export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ...", fetcher, successMessage = "Thành công!", action }: Props) {
+export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ...", fetcher, successMessage = "Thành công!", action, preventEscape = false }: Props) {
     const [result, setResult] = useState<boolean | null>(null)
     const [message, setMessage] = useState("")
     const [isOpen, setIsOpen] = useState(false);
@@ -58,7 +59,7 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
     const loadingDialog =
         <Dialog onOpenChange={onOpenChange} open={isOpen}>
             <DialogTitle />
-            <DialogContent className=''>
+            <DialogContent className='' preventClosing={result === null}>
                 {result === null ? (
                     <div className="text-center">
                         <p className="font-bold text-xl">{loadingMessage}</p>

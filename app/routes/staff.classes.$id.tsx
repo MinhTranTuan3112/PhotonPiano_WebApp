@@ -26,13 +26,17 @@ import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail, fetchClassScoreboard, fetchDeleteStudentClass } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
+import { fetchSystemConfigByName } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
+import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
+import { ALLOW_SKIPPING_LEVEL } from '~/lib/utils/config-name';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 import { formEntryToString } from '~/lib/utils/form';
+import { getParsedParamsArray } from '~/lib/utils/url';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -59,7 +63,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const promise = fetchClassDetail(params.id, idToken).then((response) => {
 
     const classDetail: ClassDetail = response.data;
-
+    const includeOtherLevel = searchParams.get('include-other') === 'true'
     const query = {
       page: Number.parseInt(searchParams.get('page-students') || '1'),
       pageSize: Number.parseInt(searchParams.get('size-students') || '10'),
@@ -67,7 +71,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       studentStatuses: [StudentStatus.WaitingForClass],
       q: searchParams.get('q') || '',
-      levels: [classDetail.levelId],
+      levels: includeOtherLevel ? [] : [classDetail.levelId],
       idToken
     };
 
@@ -89,11 +93,18 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     }
   })
 
+  const configPromise = fetchSystemConfigByName({ name: ALLOW_SKIPPING_LEVEL, idToken }).then((response) => {
+    const config = response.data as SystemConfig
+    return {
+      config,
+    }
+  });
+
   const tab = (searchParams.get('tab') || 'general')
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise
+    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise
   }
 }
 const getSlotCover = (status: number) => {
@@ -389,11 +400,12 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   )
 }
 
-function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken }: {
+function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken, configPromise }: {
   classInfo: ClassDetail,
   studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
   isOpenStudentClassDialog: boolean,
   minimum: number,
+  configPromise: Promise<{ config: SystemConfig }>
   idToken: string
 }) {
   const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
@@ -472,8 +484,14 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </DataTable>
         {
           (classInfo.capacity > classInfo.studentClasses.length) && (
-            <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
-              classInfo={classInfo} idToken={idToken} />
+            <Suspense fallback={<Loader2 className='animate-spin' />}>
+              <Await resolve={configPromise}>
+                {(data) => (
+                  <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
+                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"}/>
+                )}
+              </Await>
+            </Suspense>
           )
         }
         {confirmDeleteDialog}
@@ -598,7 +616,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
@@ -660,7 +678,7 @@ export default function StaffClassDetailPage({ }: Props) {
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
                       isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.classDetail.minimumStudents}
-                      idToken={idToken} />
+                      idToken={idToken} configPromise={configPromise} />
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} scorePromise={scorePromise} />
