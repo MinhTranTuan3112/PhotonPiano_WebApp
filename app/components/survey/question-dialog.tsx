@@ -33,7 +33,7 @@ export const createQuestionSchema = z.object({
     type: z.coerce.number({ message: 'Vui lòng chọn loại câu hỏi.' }),
     questionContent: z.string({ message: 'Nội dung câu hỏi không được để trống.' }).nonempty({ message: 'Nội dung câu hỏi không được để trống.' }),
     options: z.array(z.string()),
-    // orderIndex: z.coerce.number({ message: 'Vui lòng chọn vị trí câu hỏi.' }),
+    // orderIndex: z.number().optional(),
     allowOtherAnswer: z.boolean().optional(),
     isRequired: z.boolean().optional(),
     minAge: z.coerce.number().optional(),

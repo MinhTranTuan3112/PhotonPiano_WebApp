@@ -1,13 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-
 import { ActionFunctionArgs } from '@remix-run/node';
 import { Form, useFetcher } from '@remix-run/react';
-import { CirclePlus, List, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Box, ChevronDown, CirclePlus, GripVertical, Inbox, List, Trash2 } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { createQuestionSchema } from '~/components/survey/question-dialog';
+import { CreateQuestionFormData, createQuestionSchema } from '~/components/survey/question-dialog';
 import { useQuestionDialog } from '~/hooks/use-question-dialog';
 import { Button } from '~/components/ui/button';
 import { DualRangeSlider } from '~/components/ui/dual-range-slider';
@@ -18,8 +16,27 @@ import { Switch } from '~/components/ui/switch';
 import { Textarea } from '~/components/ui/textarea';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
-import QuestionsListDialog from '~/components/survey/questions-list-dialog';
 import useQuestionsListDialog from '~/hooks/use-questions-list-dialog';
+import { CSS } from "@dnd-kit/utilities";
+import { cn } from '~/lib/utils';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+} from "@dnd-kit/core"
+
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import React from 'react';
 
 type Props = {}
 
@@ -113,12 +130,12 @@ export default function CreateSurveyPage({ }: Props) {
         onQuestionsAdded: (questions) => {
             console.log({ questions });
 
-            const questionsFormData = questions.map(question => {
+            const questionsFormData = questions.map((question, index) => {
                 return {
                     ...question,
                     isRequired: true,
                     minAge: watch('minAge'),
-                    maxAge: watch('maxAge')
+                    maxAge: watch('maxAge'),
                 }
             });
 
@@ -211,48 +228,35 @@ export default function CreateSurveyPage({ }: Props) {
                             <div className='p-4 font-bold'>Câu hỏi</div>
                         </div>
 
-                        {questions?.map((question, index) => (
-                            <div className="rounded-md p-2 shadow-lg max-w-[50%]" key={index}>
+                        <Separator className='w-full my-2' />
 
-                                <div className="flex justify-between items-center">
-                                    <div className="font-bold my-3">
-                                        {index + 1}. {question.questionContent}
-                                    </div>
-                                    <Button type='button' variant={'outline'} size={'icon'}
-                                        className='size-8 rounded-full'
-                                        onClick={() => {
-                                            setFormValue('questions', questions.filter((_, i) => i !== index));
-                                        }}>
-                                        <Trash2 className='size-6 text-red-600' />
-                                    </Button>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    {question.options.map((option, index) => (
-                                        <div className="rounded-md border border-gray-300 p-2" key={`${option}_${index}`}>
-                                            {option}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex flex-row gap-1 my-2 items-center">
-                                    <Switch checked={question.isRequired} onCheckedChange={(checked) => {
-                                        setFormValue('questions', questions.map((q, i) => {
-                                            if (i === index) {
-                                                return {
-                                                    ...q,
-                                                    isRequired: checked
-                                                }
+                        {questions && questions.length > 0 ? (
+                            <QuestionsContent questions={questions || []}
+                                handleRemoveQuestion={(index) => {
+                                    setFormValue('questions', questions.filter((_, i) => i !== index));
+                                }}
+                                handleRequiredChange={(checked, index) => {
+                                    setFormValue('questions', questions.map((q, i) => {
+                                        if (i === index) {
+                                            return {
+                                                ...q,
+                                                isRequired: checked
                                             }
-                                            return q;
-                                        }));
-                                    }} className='data-[state=checked]:bg-red-600' />
-                                    <Label className='font-bold'>Bắt buộc</Label>
-                                </div>
+                                        }
+                                        return q;
+                                    }));
+                                }}
+                                onQuestionsChange={(questions) => {
+                                    setFormValue('questions', questions);
+                                }} />
+                        ) : <div className='flex flex-col items-center max-w-[50%]'>
+                            <div className="flex items-center justify-center size-10 rounded-lg border border-border bg-background mb-3">
+                                <Inbox className="w-6 h-6 text-foreground" />
                             </div>
-                        ))}
+                            <p className="font-bold text-foreground">Chưa có câu hỏi nào.</p>
+                        </div>}
 
-                        <div className="flex flex-row gap-3">
+                        <div className="flex flex-row gap-3 mt-7 items-center justify-center max-w-[50%]">
                             <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog}>Tạo câu hỏi mới</Button>
                             <Button type='button' variant={'outline'} Icon={List} iconPlacement='left'
                                 onClick={handleOpenQuestionsListDialog}>Thêm từ ngân hàng câu hỏi</Button>
@@ -274,3 +278,122 @@ export default function CreateSurveyPage({ }: Props) {
         </article>
     );
 };
+
+
+function QuestionCard({
+    question,
+    index,
+    handleRemoveQuestion,
+    handleRequiredChange
+}: {
+    question: CreateQuestionFormData,
+    index: number;
+    handleRemoveQuestion: () => void;
+    handleRequiredChange: (checked: boolean) => void;
+}) {
+
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id || index })
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    }
+
+    return <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
+        <div className="rounded-md p-2 shadow-lg max-w-[50%] flex flex-row items-center">
+
+            <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab touch-none flex items-center justify-center p-1 rounded-md hover:bg-muted"
+            >
+                <GripVertical className="h-5 w-5 text-muted-foreground" />
+            </div>
+
+            <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center w-full">
+                    <div className="font-bold my-3">
+                        {index + 1}. {question.questionContent}
+                    </div>
+                    <Button type='button' variant={'outline'} size={'icon'}
+                        className='size-8 rounded-full'
+                        onClick={handleRemoveQuestion}>
+                        <Trash2 className='size-6 text-red-600' />
+                    </Button>
+                </div>
+                <div className="flex flex-col gap-2">
+                    {question.options.map((option, index) => (
+                        <div className="rounded-md border border-gray-300 p-2" key={`${option}_${index}`}>
+                            {option}
+                        </div>
+                    ))}
+                </div>
+                <div className="flex flex-row gap-1 my-2 items-center">
+                    <Switch checked={question.isRequired} onCheckedChange={handleRequiredChange}
+                        className='data-[state=checked]:bg-red-600' />
+                    <Label className='font-bold'>Bắt buộc</Label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+function QuestionsContent({
+    questions,
+    onQuestionsChange,
+    handleRemoveQuestion,
+    handleRequiredChange
+}: {
+    questions: CreateQuestionFormData[];
+    onQuestionsChange: (questions: CreateQuestionFormData[]) => void;
+    handleRemoveQuestion: (index: number) => void;
+    handleRequiredChange: (checked: boolean, index: number) => void;
+}) {
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
+    );
+
+    function handleDragEnd(event: DragEndEvent) {
+
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+
+            const oldIndex = questions.findIndex((item) => item.id === active.id);
+            const newIndex = questions.findIndex((item) => item.id === over.id);
+            const newQuestions = arrayMove(questions, oldIndex, newIndex);
+
+            onQuestionsChange(newQuestions);
+        }
+    }
+
+    return (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={questions.map((question, index) => question.id || index)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-1">
+                    {questions.map((question, index) => (
+                        <React.Fragment key={question.id || index}>
+                            <QuestionCard question={question} handleRemoveQuestion={() => {
+                                handleRemoveQuestion(index);
+                            }} handleRequiredChange={(checked) => {
+                                handleRequiredChange(checked, index);
+                            }}
+                                index={index} />
+                            {index !== questions.length - 1 && <div className="flex justify-center max-w-[50%]">
+                                <ChevronDown className="animate-bounce" />
+                            </div>}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </SortableContext>
+        </DndContext>
+    )
+}
