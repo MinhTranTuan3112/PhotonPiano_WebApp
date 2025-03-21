@@ -41,6 +41,20 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+        case pathname === '/staff/surveys/create':
+            otherNavItems = [
+                {
+                    name: "Quản lý khảo sát",
+                    url: '/staff/surveys',
+                    isCurrentPage: false
+                },
+                {
+                    name: "Tạo khảo sát mới",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
         case pathname === '/staff/profile':
             otherNavItems = [
                 {
