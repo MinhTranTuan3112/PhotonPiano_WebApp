@@ -2,13 +2,15 @@ export enum SlotStatus
 {
     NotStarted,
     Ongoing,
-    Finished
+    Finished,
+    Cancelled
 }
 
 export const SlotStatusText = {
     [SlotStatus.NotStarted] : "Chưa Bắt Đầu",
     [SlotStatus.Ongoing] : "Đang Diễn Ra",
-    [SlotStatus.Finished] : "Đã Kết Thúc"
+    [SlotStatus.Finished] : "Đã Kết Thúc",
+    [SlotStatus.Cancelled] : "Đã Hủy"
 }
 
 export enum AttendanceStatus {
@@ -101,6 +103,13 @@ export type SlotDetail = {
     slotStudents: SlotStudentModel[] | null;
     numberOfStudents: number;
     attendanceStatus?: AttendanceStatus;
+}
+
+export type BlankSlotModel = {
+    date: string,
+    shift: Shift,
+    roomId: string, 
+    roomName?: string,
 }
 
 
