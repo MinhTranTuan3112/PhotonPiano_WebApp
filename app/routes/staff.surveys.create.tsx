@@ -8,7 +8,7 @@ import { Controller } from 'react-hook-form';
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import { createQuestionSchema } from '~/components/survey/question-dialog';
-import { useQuestionDialog } from '~/components/survey/use-question-dialog';
+import { useQuestionDialog } from '~/hooks/use-question-dialog';
 import { Button } from '~/components/ui/button';
 import { DualRangeSlider } from '~/components/ui/dual-range-slider';
 import { Input } from '~/components/ui/input';
@@ -18,6 +18,8 @@ import { Switch } from '~/components/ui/switch';
 import { Textarea } from '~/components/ui/textarea';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import QuestionsListDialog from '~/components/survey/questions-list-dialog';
+import useQuestionsListDialog from '~/hooks/use-questions-list-dialog';
 
 type Props = {}
 
@@ -88,6 +90,10 @@ export default function CreateSurveyPage({ }: Props) {
             }
         });
 
+    const isEmptySurvey = watch('isEmptySurvey');
+
+    const questions = watch('questions');
+
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Xác nhận tạo khảo sát',
         description: 'Bạn có chắc chắn muốn tạo khảo sát này?',
@@ -103,11 +109,22 @@ export default function CreateSurveyPage({ }: Props) {
         maxAge: watch('maxAge')
     });
 
-    const [values, setValues] = useState([0, 100]);
+    const { isOpen: isQuestionsListDialogOpen, handleOpen: handleOpenQuestionsListDialog, questionsListDialog } = useQuestionsListDialog({
+        onQuestionsAdded: (questions) => {
+            console.log({ questions });
 
-    const isEmptySurvey = watch('isEmptySurvey');
+            const questionsFormData = questions.map(question => {
+                return {
+                    ...question,
+                    isRequired: true,
+                    minAge: watch('minAge'),
+                    maxAge: watch('maxAge')
+                }
+            });
 
-    const questions = watch('questions');
+            setFormValue('questions', [...(getFormValues().questions || []), ...questionsFormData]);
+        }
+    });
 
     return (
         <article className='px-10'>
@@ -124,6 +141,7 @@ export default function CreateSurveyPage({ }: Props) {
             </div>
 
             <Form method='POST' onSubmit={(e) => {
+                console.log(getFormValues());
                 if (isValid) {
                     handleOpenConfirmDialog();
                 } else {
@@ -188,10 +206,25 @@ export default function CreateSurveyPage({ }: Props) {
 
                 {!isEmptySurvey && (
                     <>
+                        <div className='flex items-center'>
+                            <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>2</div>
+                            <div className='p-4 font-bold'>Câu hỏi</div>
+                        </div>
+
                         {questions?.map((question, index) => (
-                            <div className="rounded-md p-2 shadow-lg max-w-[50%] relative" key={index}>
-                                <div className="font-bold my-3">
-                                    {question.questionContent}
+                            <div className="rounded-md p-2 shadow-lg max-w-[50%]" key={index}>
+
+                                <div className="flex justify-between items-center">
+                                    <div className="font-bold my-3">
+                                        {index + 1}. {question.questionContent}
+                                    </div>
+                                    <Button type='button' variant={'outline'} size={'icon'}
+                                        className='size-8 rounded-full'
+                                        onClick={() => {
+                                            setFormValue('questions', questions.filter((_, i) => i !== index));
+                                        }}>
+                                        <Trash2 className='size-6 text-red-600' />
+                                    </Button>
                                 </div>
 
                                 <div className="flex flex-col gap-2">
@@ -201,29 +234,33 @@ export default function CreateSurveyPage({ }: Props) {
                                         </div>
                                     ))}
                                 </div>
-                                <Button type='button' variant={'outline'} size={'icon'}
-                                    className='absolute top-1 right-2 size-8 rounded-full'
-                                    onClick={() => {
-                                        setFormValue('questions', questions.filter((_, i) => i !== index));
-                                    }}>
-                                    <Trash2 className='size-6 text-red-600' />
-                                </Button>
+
+                                <div className="flex flex-row gap-1 my-2 items-center">
+                                    <Switch checked={question.isRequired} onCheckedChange={(checked) => {
+                                        setFormValue('questions', questions.map((q, i) => {
+                                            if (i === index) {
+                                                return {
+                                                    ...q,
+                                                    isRequired: checked
+                                                }
+                                            }
+                                            return q;
+                                        }));
+                                    }} className='data-[state=checked]:bg-red-600' />
+                                    <Label className='font-bold'>Bắt buộc</Label>
+                                </div>
                             </div>
                         ))}
-                        <div className='flex items-center'>
-                            <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>2</div>
-                            <div className='p-4 font-bold'>Câu hỏi</div>
-                        </div>
 
                         <div className="flex flex-row gap-3">
                             <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog}>Tạo câu hỏi mới</Button>
-                            <Button type='button' variant={'outline'} Icon={List} iconPlacement='left'>Thêm từ ngân hàng câu hỏi</Button>
+                            <Button type='button' variant={'outline'} Icon={List} iconPlacement='left'
+                                onClick={handleOpenQuestionsListDialog}>Thêm từ ngân hàng câu hỏi</Button>
                         </div>
 
                         <Separator className='w-full my-2' />
                     </>
                 )}
-
 
                 <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting}
                     className='max-w-[30%] mt-4'>
@@ -232,6 +269,7 @@ export default function CreateSurveyPage({ }: Props) {
             </Form>
 
             {questionDialog}
+            {questionsListDialog}
             {confirmDialog}
         </article>
     );

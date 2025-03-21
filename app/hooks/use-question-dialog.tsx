@@ -1,5 +1,5 @@
 import { useState } from "react";
-import QuestionDialog, { CreateQuestionFormData, QuestionDialogProps } from "./question-dialog";
+import QuestionDialog, { QuestionDialogProps } from "../components/survey/question-dialog";
 
 export function useQuestionDialog({
     ...props

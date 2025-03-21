@@ -29,6 +29,7 @@ export type QuestionDialogProps = {
 } & Partial<CreateQuestionFormData>;
 
 export const createQuestionSchema = z.object({
+    id: z.string().optional(),
     type: z.coerce.number({ message: 'Vui lòng chọn loại câu hỏi.' }),
     questionContent: z.string({ message: 'Nội dung câu hỏi không được để trống.' }).nonempty({ message: 'Nội dung câu hỏi không được để trống.' }),
     options: z.array(z.string()),
@@ -161,7 +162,7 @@ export default function QuestionDialog({
                             name='isRequired'
                             render={({ field: { value, onChange } }) => (
                                 <div className="flex items-center space-x-2">
-                                    <Switch id="isRequired" checked={value} onCheckedChange={onChange} />
+                                    <Switch className='data-[state=checked]:bg-red-600' id="isRequired" checked={value} onCheckedChange={onChange} />
                                     <Label htmlFor="isRequired">Bắt buộc</Label>
                                 </div>
                             )}
