@@ -148,7 +148,7 @@ function SearchForm() {
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
     className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
-    {isLoadingLevels ? <Skeleton className='w-full'/> : <Controller
+    {isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
       name='levels'
       control={control}
       render={({ field: { onChange, onBlur, value, ref } }) => (

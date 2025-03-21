@@ -1,18 +1,30 @@
-FROM node:21
+# Stage 1: Build
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files first to optimize caching
 COPY package*.json ./
+RUN npm install
 
-# Install dependencies (adjust for production if needed)
-RUN npm ci
-
-# Copy the rest of the application code
 COPY . .
+RUN npm run build 
 
-# Expose Vite's default development port
-EXPOSE 5173
+# Stage 2: Runtime
+FROM node:20-alpine
 
-# Use exec form for better signal handling
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+WORKDIR /app
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.env ./
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/public ./public
+
+RUN npm install 
+
+EXPOSE 3000
+
+#ENV NODE_ENV=production
+
+CMD ["npm", "run", "start"]
+
+#CMD ["npm", "run", "dev"]
