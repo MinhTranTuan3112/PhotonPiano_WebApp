@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ActionFunctionArgs } from '@remix-run/node';
-import { Form, useFetcher } from '@remix-run/react';
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { Form, useFetcher, useLoaderData } from '@remix-run/react';
 import { Box, ChevronDown, CirclePlus, GripVertical, Inbox, List, Trash2 } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form';
@@ -37,8 +37,37 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import React from 'react';
+import { requireAuth } from '~/lib/utils/auth';
+import { Role } from '~/lib/types/account/account';
+import { fetchCreateSurvey } from '~/lib/services/survey';
 
 type Props = {}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        return {
+            idToken
+        }
+
+    } catch (error) {
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+    }
+}
 
 const createSchema = z.object({
     name: z.string().nonempty({ message: 'Tên khảo sát không được để trống' }),
@@ -57,6 +86,12 @@ const resolver = zodResolver(createSchema);
 export async function action({ request }: ActionFunctionArgs) {
     try {
 
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<CreateSurveyFormData>(request, resolver);
 
@@ -64,8 +99,26 @@ export async function action({ request }: ActionFunctionArgs) {
             return { success: false, errors, defaultValues };
         }
 
-        return {
-            success: true
+        const createRequest = {
+            name: data.name,
+            description: data.description,
+            questions: data.questions?.map((question, index) => {
+                return {
+                    id: question.id,
+                    type: question.type,
+                    questionContent: question.questionContent,
+                    options: question.options || [],
+                    isRequired: question.isRequired || true,
+                    allowOtherAnswer: question.allowOtherAnswer || true,
+                }
+            }) || [],
+            idToken
+        }
+
+        const response = await fetchCreateSurvey({ ...createRequest });
+
+        if (response.status === 201) {
+            return redirect('/staff/surveys');
         }
 
     } catch (error) {
@@ -78,11 +131,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        throw new Response(message, { status });
+        return {
+            success: false,
+            error: message,
+            status
+        }
     }
 }
 
 export default function CreateSurveyPage({ }: Props) {
+
+    const { idToken } = useLoaderData<typeof loader>();
 
     const fetcher = useFetcher<typeof action>();
 
@@ -127,6 +186,7 @@ export default function CreateSurveyPage({ }: Props) {
     });
 
     const { isOpen: isQuestionsListDialogOpen, handleOpen: handleOpenQuestionsListDialog, questionsListDialog } = useQuestionsListDialog({
+        idToken,
         onQuestionsAdded: (questions) => {
             console.log({ questions });
 
@@ -157,13 +217,9 @@ export default function CreateSurveyPage({ }: Props) {
                 <div className='p-4 font-bold'>Thông tin chung</div>
             </div>
 
-            <Form method='POST' onSubmit={(e) => {
+            <Form method='POST' onSubmit={() => {
                 console.log(getFormValues());
-                if (isValid) {
-                    handleOpenConfirmDialog();
-                } else {
-                    handleSubmit(e);
-                }
+                handleOpenConfirmDialog();
             }} className='flex flex-col gap-3 my-4'>
 
                 <div className="max-w-[50%]">
@@ -266,8 +322,8 @@ export default function CreateSurveyPage({ }: Props) {
                     </>
                 )}
 
-                <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting}
-                    className='max-w-[30%] mt-4'>
+                <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
+                    className='max-w-[30%] mt-4' onClick={handleOpenConfirmDialog}>
                     {isSubmitting ? 'Đang tạo...' : 'Tạo khảo sát'}
                 </Button>
             </Form>
@@ -322,7 +378,7 @@ function QuestionCard({
                     </Button>
                 </div>
                 <div className="flex flex-col gap-2">
-                    {question.options.map((option, index) => (
+                    {question.options?.map((option, index) => (
                         <div className="rounded-md border border-gray-300 p-2" key={`${option}_${index}`}>
                             {option}
                         </div>

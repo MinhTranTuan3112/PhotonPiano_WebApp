@@ -1,9 +1,12 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Await, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
-import { RotateCcw } from "lucide-react";
+import { Await, Form, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
+import { CirclePlus, RotateCcw, Search } from "lucide-react";
+import { Suspense } from "react";
 import { columns } from "~/components/survey/survey-table";
 import { Button, buttonVariants } from "~/components/ui/button";
 import GenericDataTable from "~/components/ui/generic-data-table";
+import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import { fetchSurveys } from "~/lib/services/survey";
 import { Role } from "~/lib/types/account/account";
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
@@ -29,6 +32,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             pageSize: Number.parseInt(searchParams.get('size') || '10'),
             sortColumn: searchParams.get('column') || 'Id',
             orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+            keyword: searchParams.get('q') || undefined,
             idToken
         };
 
@@ -70,9 +74,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 }
 
+function SearchForm() {
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    return <Form method="GET" className="my-4 flex flex-row gap-3">
+        <Input placeholder="Tìm kiếm khảo sát..." name="q"
+            defaultValue={searchParams.get('q') || undefined} />
+
+        <Button type="submit" Icon={Search} iconPlacement="left">Tìm kiếm</Button>
+    </Form>
+}
+
 export default function StaffSurveysPage({ }: Props) {
 
-    const { promise } = useLoaderData<typeof loader>();
+    const { promise, query } = useLoaderData<typeof loader>();
+
+    const navigate = useNavigate();
 
     return (
         <article className="px-10">
@@ -81,22 +99,27 @@ export default function StaffSurveysPage({ }: Props) {
                 Quản lý khảo sát của trung tâm
             </p>
 
-            <Await resolve={promise}>
-                {({ surveysPromise, metadata }) => (
-                    <Await resolve={surveysPromise}>
-                        <GenericDataTable
-                            columns={columns}
-                            metadata={metadata}
-                            emptyText="Không có khảo sát nào"
-                            extraHeaderContent={
-                                <>
-                                    <Button type="button">Tạo khảo sát</Button>
-                                </>
-                            }
-                        />
-                    </Await>
-                )}
-            </Await>
+            <SearchForm />
+
+            <Suspense key={JSON.stringify(query)}>
+                <Await resolve={promise}>
+                    {({ surveysPromise, metadata }) => (
+                        <Await resolve={surveysPromise}>
+                            <GenericDataTable
+                                columns={columns}
+                                metadata={metadata}
+                                emptyText="Không có khảo sát nào"
+                                extraHeaderContent={
+                                    <>
+                                        <Button type="button" Icon={CirclePlus} iconPlacement="left"
+                                            onClick={() => navigate('/staff/surveys/create')}>Tạo khảo sát</Button>
+                                    </>
+                                }
+                            />
+                        </Await>
+                    )}
+                </Await>
+            </Suspense>
 
         </article>
     );
@@ -128,4 +151,11 @@ export function ErrorBoundary() {
             </div>
         </article>
     );
+}
+
+
+function LoadingSkeleton() {
+    return <div className="flex justify-center items-center my-4">
+        <Skeleton className="w-full h-[500px] rounded-md" />
+    </div>
 }

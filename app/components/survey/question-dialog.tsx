@@ -21,6 +21,7 @@ import { Input } from '../ui/input';
 import { CirclePlus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { QuestionType } from '~/lib/types/survey-question/survey-question';
 
 export type QuestionDialogProps = {
     isOpen: boolean;
@@ -32,12 +33,19 @@ export const createQuestionSchema = z.object({
     id: z.string().optional(),
     type: z.coerce.number({ message: 'Vui lòng chọn loại câu hỏi.' }),
     questionContent: z.string({ message: 'Nội dung câu hỏi không được để trống.' }).nonempty({ message: 'Nội dung câu hỏi không được để trống.' }),
-    options: z.array(z.string()),
-    // orderIndex: z.number().optional(),
+    options: z.array(z.string()).optional(),
     allowOtherAnswer: z.boolean().optional(),
     isRequired: z.boolean().optional(),
     minAge: z.coerce.number().optional(),
     maxAge: z.coerce.number().optional(),
+}).refine((data) => {
+    if ([QuestionType.MultipleChoice, QuestionType.SingleChoice, QuestionType.LikertScale].includes(data.type)) {
+        return Array.isArray(data.options) && data.options.length > 0;
+    }
+    return true;
+}, {
+    message: 'Các tùy chọn là bắt buộc đối với câu hỏi lựa chọn đơn, lựa chọn nhiều hoặc thang đo đánh giá.',
+    path: ['options']
 });
 
 export type CreateQuestionFormData = z.infer<typeof createQuestionSchema>;
@@ -68,12 +76,13 @@ export default function QuestionDialog({
         },
         defaultValues: {
             ...defaultData,
+            type: defaultData?.type || QuestionType.MultipleChoice,
             allowOtherAnswer: false,
             isRequired: true,
         }
     });
 
-    const type = watch('type');
+    const type = getFormValues().type;
 
     const options = watch('options');
 
@@ -133,6 +142,7 @@ export default function QuestionDialog({
                         <Textarea {...register('questionContent')} id='questionContent' placeholder='Nhập nội dung câu hỏi...' />
                         {errors.questionContent && <p className="text-red-500 text-sm">{errors.questionContent.message}</p>}
                     </div>
+
                     <div className="">
                         <Label className='font-bold'>Các lựa chọn</Label>
                         <div className="flex flex-col gap-2 mb-2">
@@ -155,6 +165,7 @@ export default function QuestionDialog({
                             </Button>
                         </div>
                     </div>
+                    {errors.options && <p className="text-red-500 text-sm">{errors.options.message}</p>}
 
                     <div className="flex flex-col gap-3 my-3">
                         <Controller

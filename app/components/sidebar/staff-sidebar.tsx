@@ -53,7 +53,10 @@ const data = {
                     title: 'Danh sách đơn từ',
                     url: '/staff/applications',
                 },
-                
+                {
+                    title: 'Quản lý khảo sát',
+                    url: '/staff/surveys'
+                }
             ],
         }
     ]

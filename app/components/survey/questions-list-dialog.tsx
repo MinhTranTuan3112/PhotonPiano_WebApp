@@ -1,27 +1,93 @@
-import { Form } from "@remix-run/react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { ColumnDef } from "@tanstack/react-table";
-import { sampleSurveyQuestions, SurveyQuestion } from "~/lib/types/survey-question/survey-question";
+import {  SurveyQuestion } from "~/lib/types/survey-question/survey-question";
 import { Checkbox } from "../ui/checkbox";
 import { DataTable } from "../ui/data-table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "~/hooks/use-debounce";
+import { fetchSurveyQuestions } from "~/lib/services/survey-question";
+import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
+import { PagedResult } from "~/lib/types/query/paged-result";
+import { Skeleton } from "../ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 export type QuestionsListDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     onQuestionsAdded: (questions: SurveyQuestion[]) => void;
+    idToken: string;
 }
+
 
 export default function QuestionsListDialog({
     isOpen,
     setIsOpen,
-    onQuestionsAdded
+    onQuestionsAdded,
+    idToken
 }: QuestionsListDialogProps) {
 
+    const queryClient = useQueryClient();
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isPreloading, setIsPreloading] = useState(true);
+    const debouncedSearchTerm = useDebounce(searchTerm, isPreloading ? 0 : 300);
+
+    const { data, isLoading: isLoadingQuestions, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+        useInfiniteQuery({
+            queryKey: ['questions', debouncedSearchTerm],
+            queryFn: async ({ pageParam = 1 }) => {
+                const response = await fetchSurveyQuestions({ keyword: debouncedSearchTerm, page: pageParam, pageSize: 10, idToken });
+
+                const headers = response.headers;
+
+                const metadata: PaginationMetaData = {
+                    page: parseInt(headers['x-page'] || '1'),
+                    pageSize: parseInt(headers['x-page-size'] || '10'),
+                    totalPages: parseInt(headers['x-total-pages'] || '1'),
+                    totalCount: parseInt(headers['x-total-count'] || '0'),
+                };
+
+                return {
+                    data: await response.data,
+                    metadata
+                } as PagedResult<SurveyQuestion>;
+
+            },
+            getNextPageParam: (lastResult) =>
+                lastResult.metadata && lastResult.metadata.page < lastResult.metadata.totalPages
+                    ? lastResult.metadata.page + 1
+                    : undefined,
+            enabled: isOpen, // Automatically fetch when the component is mounted
+            initialPageParam: 1,
+            refetchOnWindowFocus: false,
+        });
+
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLDivElement;
+        if (target.scrollHeight - target.scrollTop === target.clientHeight && hasNextPage) {
+            fetchNextPage();
+        }
+    };
+
+    const fetchedData: SurveyQuestion[] = data?.pages.flatMap(item => item.data) || [];
+
     const [selectedQuestions, setSelectedQuestions] = useState<SurveyQuestion[]>([]);
+
+    useEffect(() => {
+
+        setIsPreloading(false);
+
+        return () => {
+
+        }
+
+    }, []);
+
 
     const columns: ColumnDef<SurveyQuestion>[] = [
         {
@@ -35,7 +101,7 @@ export default function QuestionsListDialog({
                     }
                     onCheckedChange={(value) => {
                         table.toggleAllPageRowsSelected(!!value)
-                        setSelectedQuestions(value ? sampleSurveyQuestions : [])
+                        setSelectedQuestions(value ? fetchedData : [])
                     }}
                     aria-label="Select all"
                 />
@@ -89,14 +155,18 @@ export default function QuestionsListDialog({
                         Chọn câu hỏi từ ngân hàng câu hỏi để thêm vào bài khảo sát hiện tại.
                     </DialogDescription>
                 </DialogHeader>
-                <Input placeholder="Nhập nội dung câu hỏi..." />
-                <ScrollArea className="h-80 w-full px-3">
-                    <DataTable
+                <Input placeholder="Nhập nội dung câu hỏi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <ScrollArea className="h-80 w-full px-3" onScroll={handleScroll}>
+                    {isLoadingQuestions ? <LoadingSkeleton /> : <DataTable
+                        enablePagination={false}
                         columns={columns}
-                        data={sampleSurveyQuestions}
-                        emptyContent={'Không có câu hỏi'}
+                        data={fetchedData}
+                        emptyContent={'Không có câu hỏi nào.'}
                         enableColumnDisplayOptions={false}
-                    />
+                    />}
+                    {isFetchingNextPage && (
+                        <Loader2 className='animate-spin w-full' />
+                    )}
                 </ScrollArea>
                 <DialogFooter>
                     <Button type="button" onClick={() => {
@@ -112,3 +182,8 @@ export default function QuestionsListDialog({
     );
 };
 
+function LoadingSkeleton() {
+    return <div className="flex justify-center items-center my-4">
+        <Skeleton className="w-full h-[500px] rounded-md" />
+    </div>
+}

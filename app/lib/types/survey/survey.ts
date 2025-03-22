@@ -1,3 +1,4 @@
+import { SurveyQuestion } from "../survey-question/survey-question";
 
 export type Survey = {
     id: string;
@@ -9,6 +10,11 @@ export type Survey = {
     updatedAt?: string;
 };
 
-export type CreateSurveyRequest = Pick<Survey, 'name' | 'description'>;
+type CreateQuestionInSurveyRequest = Omit<SurveyQuestion, 'minAge' | 'maxAge' | 'orderIndex' | 'id'>
+    & { id?: string; isRequired: boolean; }
+
+export type CreateSurveyRequest = Pick<Survey, 'name' | 'description'> & {
+    questions: CreateQuestionInSurveyRequest[];
+};
 
 export type UpdateSurveyRequest = Partial<Pick<Survey, 'id' | 'name' | 'description'>>;

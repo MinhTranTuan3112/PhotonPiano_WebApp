@@ -6,7 +6,6 @@ export type SurveyQuestion = {
     options: string[];
     orderIndex: number;
     allowOtherAnswer: boolean;
-    isRequired: boolean;
     minAge?: number;
     maxAge?: number;
 };
@@ -26,8 +25,7 @@ export const sampleSurveyQuestions: SurveyQuestion[] = [
         questionContent: "What is your favorite type of cuisine?",
         options: ["Italian", "Chinese", "Mexican", "Indian", "Other"],
         orderIndex: 1,
-        allowOtherAnswer: true,
-        isRequired: true,
+        allowOtherAnswer: true
     },
     {
         id: "2",
@@ -36,7 +34,6 @@ export const sampleSurveyQuestions: SurveyQuestion[] = [
         options: ["Reading", "Traveling", "Cooking", "Sports", "Gaming", "Other"],
         orderIndex: 2,
         allowOtherAnswer: true,
-        isRequired: false,
     },
     {
         id: "3",
@@ -45,7 +42,6 @@ export const sampleSurveyQuestions: SurveyQuestion[] = [
         options: [],
         orderIndex: 3,
         allowOtherAnswer: false,
-        isRequired: false,
     },
     {
         id: "4",
@@ -54,7 +50,6 @@ export const sampleSurveyQuestions: SurveyQuestion[] = [
         options: ["1 - Very Dissatisfied", "2 - Dissatisfied", "3 - Neutral", "4 - Satisfied", "5 - Very Satisfied"],
         orderIndex: 4,
         allowOtherAnswer: false,
-        isRequired: true,
     },
     {
         id: "5",
@@ -63,7 +58,6 @@ export const sampleSurveyQuestions: SurveyQuestion[] = [
         options: [],
         orderIndex: 5,
         allowOtherAnswer: false,
-        isRequired: true,
         minAge: 18,
         maxAge: 65,
     }
