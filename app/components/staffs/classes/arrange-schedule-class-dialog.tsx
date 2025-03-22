@@ -100,7 +100,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className=''>
                 <DialogHeader>
-                    <DialogTitle>Trình xếp lịch auto vip pro max</DialogTitle>
+                    <DialogTitle>Trình xếp lịch</DialogTitle>
                 </DialogHeader>
                 <div>
                     <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>

@@ -9,6 +9,7 @@ export type Class = {
     instructor? : Account,
     studentNumber : number,
     level : Level,
+    levelId: string,
     status : number,
     isPublic : boolean,
     minimumStudents : number,

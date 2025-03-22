@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -25,13 +25,18 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchClassDetail, fetchClassScoreboard, fetchDeleteStudentClass } from '~/lib/services/class';
+import { fetchLevels } from '~/lib/services/level';
+import { fetchSystemConfigByName } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
+import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
+import { ALLOW_SKIPPING_LEVEL } from '~/lib/utils/config-name';
 import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 import { formEntryToString } from '~/lib/utils/form';
+import { getParsedParamsArray } from '~/lib/utils/url';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -51,10 +56,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return { classScore }
   })
 
+  const levelPromise = fetchLevels().then((res) => {
+    return res.data as Level[]
+  });
+
   const promise = fetchClassDetail(params.id, idToken).then((response) => {
 
     const classDetail: ClassDetail = response.data;
-
+    const includeOtherLevel = searchParams.get('include-other') === 'true'
     const query = {
       page: Number.parseInt(searchParams.get('page-students') || '1'),
       pageSize: Number.parseInt(searchParams.get('size-students') || '10'),
@@ -62,7 +71,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       studentStatuses: [StudentStatus.WaitingForClass],
       q: searchParams.get('q') || '',
-      levels: [classDetail.level],
+      levels: includeOtherLevel ? [] : [classDetail.levelId],
       idToken
     };
 
@@ -84,11 +93,18 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     }
   })
 
+  const configPromise = fetchSystemConfigByName({ name: ALLOW_SKIPPING_LEVEL, idToken }).then((response) => {
+    const config = response.data as SystemConfig
+    return {
+      config,
+    }
+  });
+
   const tab = (searchParams.get('tab') || 'general')
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, scorePromise
+    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise
   }
 }
 const getSlotCover = (status: number) => {
@@ -133,7 +149,7 @@ function StatusBadge({ status }: {
 }
 
 
-function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetail, idToken: string }) {
+function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classInfo: ClassDetail, idToken: string, levelPromise: Promise<Level[]> }) {
   const updateClassSchema = z.object({
     level: z.string().optional(),
     instructorId: z.string().optional(),
@@ -225,7 +241,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
               isEdit ? (
                 <>
                   <Button className='bg-green-500 hover:bg-green-300' type="submit"><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
-                  <Button className='bg-red-400 hover:bg-red-200'  type="button" onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
+                  <Button className='bg-red-400 hover:bg-red-200' type="button" onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
                 </>
               ) : (
                 <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"><Edit2Icon className='mr-4' /> Chỉnh sửa lớp</Button>
@@ -301,7 +317,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
 
                     </div>
                   ) : (
-                    <p className="text-gray-900">{classInfo.instructor ? (classInfo.instructor.fullName ||  classInfo.instructor.userName) : "Chưa có"}</p>
+                    <p className="text-gray-900">{classInfo.instructor ? (classInfo.instructor.fullName || classInfo.instructor.userName) : "Chưa có"}</p>
                   )
                 }
 
@@ -323,7 +339,7 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
                     <Controller
                       control={control}
                       name='level'
-                      defaultValue={classInfo.level.toString()}
+                      defaultValue={classInfo.levelId}
                       render={({ field: { onChange, onBlur, value, ref } }) => (
                         <Select value={value} onValueChange={onChange} >
                           <SelectTrigger className="mt-2">
@@ -331,11 +347,14 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
                           </SelectTrigger>
                           <SelectGroup>
                             <SelectContent>
-                              {
-                                LEVEL.map((level, index) => (
-                                  <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
-                                ))
-                              }
+                              <Suspense fallback={<Loader2 className='animate-spin' />}>
+                                <Await resolve={levelPromise}>
+                                  {(levels) =>
+                                    levels.map(l => (
+                                      <SelectItem value={l.id} key={l.id}>{l.name.split('(')[0]}</SelectItem>
+                                    ))}
+                                </Await>
+                              </Suspense>
                             </SelectContent>
                           </SelectGroup>
                         </Select>
@@ -381,11 +400,12 @@ function ClassGeneralInformation({ classInfo, idToken }: { classInfo: ClassDetai
   )
 }
 
-function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken }: {
+function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken, configPromise }: {
   classInfo: ClassDetail,
   studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
   isOpenStudentClassDialog: boolean,
   minimum: number,
+  configPromise: Promise<{ config: SystemConfig }>
   idToken: string
 }) {
   const [isOpenAddStudentDialog, setIsOpenAddStudentDialog] = useState(isOpenStudentClassDialog)
@@ -464,8 +484,14 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </DataTable>
         {
           (classInfo.capacity > classInfo.studentClasses.length) && (
-            <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
-              classInfo={classInfo} idToken={idToken} />
+            <Suspense fallback={<Loader2 className='animate-spin' />}>
+              <Await resolve={configPromise}>
+                {(data) => (
+                  <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
+                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"}/>
+                )}
+              </Await>
+            </Suspense>
           )
         }
         {confirmDeleteDialog}
@@ -477,6 +503,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
 
 function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { classInfo: ClassDetail, idToken: string, slotsPerWeek: number, totalSlots: number }) {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isOpenAddSlotDialog, setIsOpenAddSlotDialog] = useState(false)
   const [isOpenArrangeDialog, setIsOpenArrangeDialog] = useState(false)
   classInfo.slots.sort((a, b) => {
@@ -488,6 +515,34 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
     // If dates are equal, compare shift numbers
     return a.shift - b.shift; // Sorts shift in ascending order
   });
+
+  const fetcher = useFetcher<ActionResult>();
+
+  const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
+    title: 'Xác nhận xóa lịch lớp học',
+    description: 'Bạn có chắc chắn muốn xóa lịch của lớp học này không? Hành động này không thể hoàn tác!',
+    onConfirm: () => {
+      handleDelete();
+    }
+  })
+
+  const { loadingDialog } = useLoadingDialog({
+    fetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const handleDelete = () => {
+    fetcher.submit({
+      action: "DELETE_SCHEDULE",
+      id: classInfo.id,
+      idToken: idToken
+    }, {
+      action: "/api/classes",
+      method: "DELETE"
+    })
+  }
 
   return (
     <Card>
@@ -516,6 +571,11 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
               <PlusCircle className='mr-4' /> Thêm buổi học mới
             </Button>
             <Button disabled={(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Xếp lịch tự động</Button>
+            {
+              classInfo.slots.length > 0 && (
+                <Button disabled={(classInfo.status !== 0 || classInfo.isPublic)} onClick={handleOpenDeleteModal} variant={'destructive'} Icon={Trash} iconPlacement='left'>Xóa lịch học</Button>
+              )
+            }
           </div>
           <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate('/scheduler')}>Xem dạng lịch</Button>
         </div>
@@ -546,6 +606,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
+        {confirmDeleteDialog}
+        {loadingDialog}
       </CardContent>
     </Card>
   )
@@ -554,7 +616,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
   return (
@@ -611,12 +673,12 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} />
+                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise} />
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
                       isOpenStudentClassDialog={isOpenStudentClassDialog} minimum={data.classDetail.minimumStudents}
-                      idToken={idToken} />
+                      idToken={idToken} configPromise={configPromise} />
                   </TabsContent>
                   <TabsContent value="scores">
                     <ClassScoreboard classInfo={data.classDetail} scorePromise={scorePromise} />

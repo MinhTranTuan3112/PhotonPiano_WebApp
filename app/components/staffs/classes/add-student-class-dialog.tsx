@@ -21,17 +21,19 @@ type Props = {
     setIsOpen: (isOpen: boolean) => void,
     studentPromise: Promise<{ students: Account[], metadata: PaginationMetaData }>,
     classInfo: ClassDetail,
-    idToken: string
+    idToken: string,
+    allowSkipLevel: boolean
 
 }
 
-export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromise, classInfo, idToken }: Props) {
+export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromise, classInfo, idToken, allowSkipLevel }: Props) {
     const navigation = useNavigation();
     const [searchParams, setSearchParams] = useSearchParams();
     const { selectedRowIds, toggleRowSelection, clearSelection } = useSelection(classInfo.capacity - classInfo.studentNumber);
     const columns = getStudentSimpleColumns({ selectedRowIds, toggleRowSelection });
     const fetcher = useFetcher<ActionResult>()
     const [isAutoFill, setIsAutoFill] = useState(false)
+    const [isIncludeOther, setIsIncludeOther] = useState(false)
 
     const handleRefresh = () => {
         setSearchParams({
@@ -40,6 +42,22 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
             "q": ""
         })
         // clearSelection()
+    }
+
+    const handleIncludeOther = () => {
+        if (isIncludeOther) {
+            setIsIncludeOther(false)
+            setSearchParams({
+                ...Object.fromEntries(searchParams.entries()),
+                "include-other": "false",
+            })
+        } else {
+            setIsIncludeOther(true)
+            setSearchParams({
+                ...Object.fromEntries(searchParams.entries()),
+                "include-other": "true",
+            })
+        }
     }
 
     const { loadingDialog } = useLoadingDialog({
@@ -60,7 +78,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
             {
                 studentFirebaseIds: selectedRowIds,
                 classId: classInfo.id,
-                isAutoFill : isAutoFill,
+                isAutoFill: isAutoFill,
                 idToken
             },
             {
@@ -87,10 +105,10 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
             handleAdd();
         }
     })
-
+    console.log(allowSkipLevel)
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className=''>
+            <DialogContent className='max-w-3xl'>
                 <DialogHeader>
                     <DialogTitle>Thêm học sinh vào lớp</DialogTitle>
                 </DialogHeader>
@@ -98,7 +116,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                     <div className='flex place-content-between'>
                         <div className='flex gap-2'>
                             <span className='font-bold'>LEVEL : </span>
-                            <span>{classInfo.level + 1}</span>
+                            <span>{classInfo.level.name.split('(')[0]}</span>
                         </div>
                         <div className='flex gap-2'>
                             <span className='font-bold'>Tối đa : </span>
@@ -116,7 +134,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             <Button Icon={Search} iconPlacement='left'>Tìm kiếm</Button>
                         </div>
                     </Form>
-                    <div className='max-h-[28rem] overflow-y-auto mt-2'>
+                    <div className='max-h-[24rem] overflow-y-auto mt-2'>
                         <Suspense fallback={<LoadingDialog />}>
                             <Await resolve={studentPromise}>
                                 {(data) => (
@@ -132,16 +150,26 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             </Await>
                         </Suspense>
                     </div>
+                    {
+                        allowSkipLevel && (
+                            <div className='flex gap-2 items-center italic mt-2'>
+                                <Checkbox checked={isIncludeOther} onCheckedChange={() => handleIncludeOther()}></Checkbox>
+                                Bao gồm các học viên level khác
+                            </div>
+                        )
+                    }
                     <div className='flex gap-2 items-center italic mt-2'>
-                        <Checkbox checked={isAutoFill} onCheckedChange={() => setIsAutoFill(!isAutoFill)}></Checkbox> Phân bổ ngẫu nhiên để đủ sĩ số
+                        <Checkbox checked={isAutoFill} onCheckedChange={() => setIsAutoFill(!isAutoFill)}></Checkbox>
+                        Phân bổ ngẫu nhiên để đủ sĩ số
                     </div>
                     <div className='flex gap-2 mt-2 '>
                         <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full'>Xác nhận thêm</Button>
                     </div>
                 </div>
-                {confirmAddDialog}
-                {loadingDialog}
+
             </DialogContent>
+            {confirmAddDialog}
+            {loadingDialog}
         </Dialog>
     )
 }

@@ -149,6 +149,97 @@ export async function fetchUpdateAttendanceStatus(
 }
 
 
+export async function fetchCancelSlot( slotId: string, cancelReason: string, idToken: string) {
+   
+    const url = '/scheduler/cancel-slot';
+
+    console.log("Go to here");
+    
+    const response = await axiosInstance.post(url, {
+        slotId: slotId,
+        cancelReason: cancelReason,
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    
+    if (response.status != 204) {
+        throw new Error(`Failed to cancel slot: ${response.statusText}`);
+    }
+    return response; // API trả về 204 No Content
+}
+
+export async function fetchBlankSlots( startDate: string, endDate: string, idToken: string) {
+
+    const url = '/scheduler/blank-slot';
+
+    const response = await axiosInstance.post(url, {
+        startDate: startDate,
+        endDate: endDate,
+    }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    if (response.status != 200) {
+        throw new Error(`Failed to cancel slot: ${response.statusText}`);
+    }
+    return response; 
+}
+
+export async function fetchPublicNewSlot(
+    roomId: string,
+    date: string,
+    shift: Shift,
+    classId: string,
+    idToken: string
+) {
+    const url = '/scheduler/public-new-slot';
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new Error("Invalid date format. Expected format: YYYY-MM-DD");
+    }
+
+    console.log("Sending request to fetchPublicNewSlot:", {
+        roomId,
+        date,
+        shift,
+        classId,
+        idToken: idToken ? "Provided" : "Missing",
+    });
+
+    const fullUrl = axiosInstance.getUri({ url });
+    console.log("Full URL for fetchPublicNewSlot:", fullUrl);
+
+    try {
+        const response = await axiosInstance.post(url, {
+            roomId: roomId,
+            date: date,
+            shift: shift,
+            classId: classId,
+        }, {
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+        });
+
+        console.log("fetchPublicNewSlot response:", response);
+
+        if (response.status !== 200) {
+            throw new Error(`Failed to create new slot: ${response.statusText}`);
+        }
+
+        return response;
+    } catch (error) {
+        console.error("fetchPublicNewSlot error:", error);
+        if (error.code === "ECONNABORTED") {
+            throw new Error("Request timed out. The server took too long to respond.");
+        }
+        throw error;
+    }
+}
 
 
 export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }: {

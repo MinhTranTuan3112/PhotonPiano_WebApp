@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react';
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, CalendarSync, RotateCcw, Loader2 } from 'lucide-react';
 import { Suspense } from 'react'
@@ -189,7 +189,7 @@ function SearchForm() {
 }
 
 export default function StaffStudentsPage({ }: Props) {
-
+  const navigate = useNavigate()
   const { promise, query } = useLoaderData<typeof loader>();
 
   return (
@@ -201,7 +201,7 @@ export default function StaffStudentsPage({ }: Props) {
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left'>Xếp lớp tự động</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
         </div>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
@@ -228,7 +228,7 @@ function LoadingSkeleton() {
 }
 
 export function ErrorBoundary() {
-
+  const navigate = useNavigate()
   const error = useRouteError();
 
   const { pathname, search } = useLocation();
@@ -242,7 +242,7 @@ export function ErrorBoundary() {
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left'>Xếp lớp tự động</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
         </div>
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">

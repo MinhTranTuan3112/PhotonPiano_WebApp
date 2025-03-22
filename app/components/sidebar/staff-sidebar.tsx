@@ -8,6 +8,7 @@ import TopNav from "./top-nav"
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 
+
 const data = {
     user: {
         name: "shadcn",
