@@ -235,9 +235,6 @@ export async function fetchPublicNewSlot(
         return response;
     } catch (error) {
         console.error("fetchPublicNewSlot error:", error);
-        if (error.code === "ECONNABORTED") {
-            throw new Error("Request timed out. The server took too long to respond.");
-        }
         throw error;
     }
 }
