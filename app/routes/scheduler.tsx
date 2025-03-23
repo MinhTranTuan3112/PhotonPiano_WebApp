@@ -222,7 +222,7 @@ const SchedulerPage: React.FC = () => {
         return () => {
             subscription.unsubscribe();
         };
-    }, [year, weekNumber]);
+    }, [year, weekNumber, slots, idToken, currentAccount.accountFirebaseId]);
 
     const fetchSlotsForWeek = async (year: number, week: number) => {
         try {
@@ -954,7 +954,7 @@ const SchedulerPage: React.FC = () => {
                                 {blankSlots.length > 0 ? (
                                     <div className="space-y-2 max-h-60 overflow-y-auto">
                                         {blankSlots.map((slot, index) => {
-                                            const slotDate = typeof slot.date === "string" ? slot.date : slot.date
+                                            const slotDate = slot.date
                                             return (
                                                 <div
                                                     key={index}
