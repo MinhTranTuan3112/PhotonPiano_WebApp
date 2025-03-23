@@ -97,6 +97,7 @@ export type SlotDetail = {
     class: Class;
     slotStudents: SlotStudentModel[] | null;
     numberOfStudents: number;
+    slotNote: string | null;
     attendanceStatus?: AttendanceStatus;
 }
 

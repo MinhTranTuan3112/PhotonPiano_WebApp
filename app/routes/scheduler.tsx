@@ -14,10 +14,8 @@ import { motion } from "framer-motion"
 import {Calendar, Music, Filter, ChevronLeft, ChevronRight} from "lucide-react"
 import { getWeek } from "date-fns"
 import {
-    type Slot,
     Shift,
     type SlotDetail,
-    AttendanceStatus,
     type StudentAttendanceModel,
     SlotStatus,
     AttendanceStatusText,
@@ -31,6 +29,10 @@ import {Button} from "~/components/ui/button";
 import {Checkbox} from "~/components/ui/checkbox";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "~/components/ui/dialog"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "~/components/ui/select";
+import { Card } from "~/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import { Badge } from "~/components/ui/badge"
+import { cn } from "~/lib/utils"
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -129,7 +131,7 @@ const LoadingOverlay: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600 border-solid"></div>
-                <p className="mt-4 text-indigo-800 font-semibold">Đang tải...</p>
+                <p className="mt-4 text-indigo-800 font-semibold">Đang xử lý...</p>
             </div>
         </div>
     );
@@ -156,7 +158,7 @@ const SchedulerPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isFilterLoading, setIsFilterLoading] = useState(false); // New state for filter loading
+    const [isFilterLoading, setIsFilterLoading] = useState(false);
     const [filters, setFilters] = useState({
         shifts: [] as Shift[],
         slotStatuses: [] as SlotStatus[],
@@ -164,10 +166,10 @@ const SchedulerPage: React.FC = () => {
         studentFirebaseId: "",
         classIds: [] as string[],
     });
+
     const [selectedSlotToCancel, setSelectedSlotToCancel] = useState<SlotDetail | null>(null);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState<boolean>(false);
     const [cancelReason, setCancelReason] = useState<string>("");
-    const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState<boolean>(false);
     const [blankSlots, setBlankSlots] = useState<BlankSlotModel[]>([]);
     const [selectedBlankSlot, setSelectedBlankSlot] = useState<BlankSlotModel | null>(null);
 
@@ -300,79 +302,61 @@ const SchedulerPage: React.FC = () => {
         }
     };
 
-    const handleCancelSlot = async () => {
-        if (!selectedSlotToCancel || !cancelReason.trim()) return;
+    useEffect(() => {
+        if (isCancelDialogOpen && selectedSlotToCancel) {
+            const fetchBlankSlotsForWeek = async () => {
+                try {
+                    const startTime = formatDateForAPI(startDate);
+                    const endTime = formatDateForAPI(endDate);
+                    const blankSlotsResponse = await fetchBlankSlots(startTime, endTime, idToken);
+                    setBlankSlots(blankSlotsResponse.data);
+                } catch (error) {
+                    console.error("Failed to fetch blank slots:", error);
+                    setBlankSlots([]);
+                }
+            };
+            fetchBlankSlotsForWeek();
+        }
+    }, [isCancelDialogOpen, selectedSlotToCancel, startDate, endDate, idToken]);
+
+
+    const weekDates = Array.from({ length: 7 }, (_, i) => {
+        const currentDay = new Date(startDate)
+        currentDay.setDate(currentDay.getDate() + i)
+        return currentDay
+    })
+    
+    const handleReplaceThenCancel = async () => {
+        if (!selectedSlotToCancel || !cancelReason.trim() || !selectedBlankSlot) {
+            console.log("Validation failed: Missing required fields", {
+                selectedSlotToCancel,
+                cancelReason,
+                selectedBlankSlot,
+            });
+            return;
+        }
 
         try {
             setIsLoading(true);
-            await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
-            console.log(`Slot ${selectedSlotToCancel.id} đã được hủy thành công`);
+            console.log("Starting replace-then-cancel process...");
 
-            const updatedSlots = slots.map((slot) =>
-                slot.id === selectedSlotToCancel.id ? { ...slot, status: SlotStatus.Cancelled } : slot
-            );
-            setSlots(updatedSlots);
+            // Step 1: Create the replacement slot first
+            const roomId = selectedBlankSlot.roomId;
+            const classId = selectedSlotToCancel.class.id;
 
-            setIsCancelDialogOpen(false);
-            setCancelReason("");
-
-            const startTime = formatDateForAPI(startDate);
-            const endTime = formatDateForAPI(endDate);
-            const blankSlotsResponse = await fetchBlankSlots(startTime, endTime, idToken);
-
-            if (blankSlotsResponse.data.length === 0) {
-                alert("Không có slot trống trong tuần này để thay thế. Vui lòng kiểm tra lại hoặc liên hệ quản lý.");
+            const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            if (!guidRegex.test(roomId) || !guidRegex.test(classId)) {
+                console.error("Invalid GUID format:", { roomId, classId });
+                alert("Lỗi: roomId hoặc classId không đúng định dạng GUID.");
                 return;
             }
 
-            setBlankSlots(blankSlotsResponse.data);
-            setIsReplaceDialogOpen(true);
-        } catch (error) {
-            console.error("Failed to cancel slot:", error);
-            alert("Có lỗi xảy ra khi hủy buổi học. Vui lòng thử lại.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleReplaceSlot = async () => {
-        console.log("handleReplaceSlot called");
-
-        console.log("Checking selectedSlotToCancel and selectedBlankSlot:", {
-            selectedSlotToCancel,
-            selectedBlankSlot,
-        });
-
-        if (!selectedSlotToCancel || !selectedBlankSlot) {
-            console.log("Missing selectedSlotToCancel or selectedBlankSlot");
-            alert("Lỗi: Không có slot được chọn để thay thế. Vui lòng thử lại.");
-            return;
-        }
-
-        console.log("Accessing roomId and classId");
-        const roomId = selectedBlankSlot.roomId;
-        const classId = selectedSlotToCancel.class.id;
-
-        console.log("SelectedBlankSlot:", selectedBlankSlot);
-
-        console.log("Validating GUID format");
-        const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!guidRegex.test(roomId)) {
-            console.error("Invalid roomId format:", roomId);
-            alert("Lỗi: roomId không đúng định dạng GUID. Vui lòng kiểm tra lại.");
-            return;
-        }
-        if (!guidRegex.test(classId)) {
-            console.error("Invalid classId format:", classId);
-            alert("Lỗi: classId không đúng định dạng GUID. Vui lòng kiểm tra lại.");
-            return;
-        }
-
-        console.log("Replacing slot with:", { selectedSlotToCancel, selectedBlankSlot });
-
-        try {
-            setIsLoading(true);
-            console.log("Calling fetchPublicNewSlot");
+            console.log("Calling fetchPublicNewSlot with:", {
+                roomId,
+                date: selectedBlankSlot.date,
+                shift: selectedBlankSlot.shift,
+                classId,
+            });
             const response = await fetchPublicNewSlot(
                 roomId,
                 selectedBlankSlot.date,
@@ -380,23 +364,117 @@ const SchedulerPage: React.FC = () => {
                 classId,
                 idToken
             );
-
-            console.log("fetchPublicNewSlot response:", response);
             const newSlot = response.data;
+            console.log(`New slot created successfully: ${newSlot.id}`);
 
-            setSlots((prevSlots) => [...prevSlots, newSlot]);
+            // Step 2: Cancel the original slot only if replacement succeeds
+            console.log("Calling fetchCancelSlot with:", {
+                slotId: selectedSlotToCancel.id,
+                cancelReason,
+            });
+            await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
+            console.log(`Slot ${selectedSlotToCancel.id} cancelled successfully`);
 
-            setIsReplaceDialogOpen(false);
-            setSelectedBlankSlot(null);
+            // Update local state (optional, since we'll refresh)
+            const updatedSlots = slots
+                .map((slot) =>
+                    slot.id === selectedSlotToCancel.id
+                        ? { ...slot, status: SlotStatus.Cancelled, cancelReason }
+                        : slot
+                )
+                .concat(newSlot);
+            setSlots(updatedSlots);
+
+            // Close dialog and reset states
+            setIsCancelDialogOpen(false);
+            setCancelReason("");
             setSelectedSlotToCancel(null);
-            setIsModalOpen(false);
+            setSelectedBlankSlot(null);
+
+            // Refresh the page
+            console.log("Refreshing page...");
+            navigate(0); // This reloads the current page
         } catch (error) {
-            console.error("Failed to public new slot:", error);
-            alert(`Có lỗi xảy ra khi tạo slot thay thế: ${error.message}`);
+            console.error("Error in replace-then-cancel process:", error);
         } finally {
+            console.log("Resetting isLoading to false");
             setIsLoading(false);
         }
     };
+    
+    // const handleCancelSlot = async () => {
+    //     if (!selectedSlotToCancel || !cancelReason.trim()) return;
+    //
+    //     try {
+    //         setIsLoading(true);
+    //         await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
+    //         console.log(`Slot ${selectedSlotToCancel.id} đã được hủy thành công`);
+    //
+    //         const updatedSlots = slots.map((slot) =>
+    //             slot.id === selectedSlotToCancel.id ? { ...slot, status: SlotStatus.Cancelled } : slot
+    //         );
+    //         setSlots(updatedSlots);
+    //
+    //         const startTime = formatDateForAPI(startDate);
+    //         const endTime = formatDateForAPI(endDate);
+    //         const blankSlotsResponse = await fetchBlankSlots(startTime, endTime, idToken);
+    //
+    //         if (blankSlotsResponse.data.length === 0) {
+    //             alert("Không có slot trống trong tuần này để thay thế. Vui lòng kiểm tra lại hoặc liên hệ quản lý.");
+    //             setCurrentStep("done"); // Allow closing if no blank slots
+    //             return;
+    //         }
+    //
+    //         setBlankSlots(blankSlotsResponse.data);
+    //         setCurrentStep("replace"); // Move to replacement step
+    //     } catch (error) {
+    //         console.error("Failed to cancel slot:", error);
+    //         alert("Có lỗi xảy ra khi hủy buổi học. Vui lòng thử lại.");
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+    //
+    // const handleReplaceSlot = async () => {
+    //     console.log("handleReplaceSlot called");
+    //
+    //     if (!selectedSlotToCancel || !selectedBlankSlot) {
+    //         console.log("Missing selectedSlotToCancel or selectedBlankSlot");
+    //         alert("Lỗi: Không có slot được chọn để thay thế. Vui lòng thử lại.");
+    //         return;
+    //     }
+    //
+    //     const roomId = selectedBlankSlot.roomId;
+    //     const classId = selectedSlotToCancel.class.id;
+    //
+    //     const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    //     if (!guidRegex.test(roomId) || !guidRegex.test(classId)) {
+    //         console.error("Invalid GUID format:", { roomId, classId });
+    //         alert("Lỗi: roomId hoặc classId không đúng định dạng GUID.");
+    //         return;
+    //     }
+    //
+    //     try {
+    //         setIsLoading(true);
+    //         const response = await fetchPublicNewSlot(
+    //             roomId,
+    //             selectedBlankSlot.date,
+    //             selectedBlankSlot.shift,
+    //             classId,
+    //             idToken
+    //         );
+    //
+    //         const newSlot = response.data;
+    //         setSlots((prevSlots) => [...prevSlots, newSlot]);
+    //         setCurrentStep("done"); // Mark process as complete
+    //         setIsCancelDialogOpen(false); // Close the dialog
+    //     } catch (error) {
+    //         console.error("Failed to public new slot:", error);
+    //         alert(`Có lỗi xảy ra khi tạo slot thay thế: ${error.message}`);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
 
     const navigate = useNavigate();
 
@@ -407,11 +485,11 @@ const SchedulerPage: React.FC = () => {
                 backgroundImage: "url(/piano-keys-pattern.png)",
                 backgroundSize: "cover",
                 backgroundPosition: "bottom",
-                backgroundOpacity: "0.1",
             }}
         >
             {/* Loading Overlay for Filter */}
             {isFilterLoading && <LoadingOverlay />}
+            {isLoading && <LoadingOverlay />}
 
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -421,13 +499,13 @@ const SchedulerPage: React.FC = () => {
             >
                 <div className="flex justify-between items-center mb-6">
                     <button
-                        onClick={() => navigate('/')}
-                        className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                        onClick={() => navigate("/")}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                     >
                         Quay lại
                     </button>
 
-                    <h1 className="title text-4xl font-bold text-center text-indigo-900 flex items-center">
+                    <h1 className="title text-3xl font-bold text-center text-blue-900 flex items-center">
                         <Music className="w-8 h-8 mr-2 text-indigo-800" /> Lịch học của Trung tâm học Piano
                     </h1>
 
@@ -441,24 +519,9 @@ const SchedulerPage: React.FC = () => {
 
                 <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
                     <div className="control flex flex-col mb-4 sm:mb-0">
-                        <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
-                        <Select value={year.toString()} onValueChange={handleYearChange}>
-                            <SelectTrigger className="w-[180px] bg-white/90 border-indigo-300 text-indigo-800 rounded-full shadow-sm focus:ring-indigo-500">
-                                <SelectValue placeholder="Select year" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
-                                {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
-                                    <SelectItem key={year} value={year.toString()} className="text-indigo-800 hover:bg-indigo-50">
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="control flex flex-col">
                         <span className="mb-1 font-semibold text-indigo-800">Tuần:</span>
                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
-                            <SelectTrigger className="w-[180px] bg-white/90 border-indigo-300 text-indigo-800 rounded-full shadow-sm focus:ring-indigo-500">
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
                                 <SelectValue placeholder="Select week" />
                             </SelectTrigger>
                             <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
@@ -466,6 +529,22 @@ const SchedulerPage: React.FC = () => {
                                     <SelectItem key={week} value={week.toString()} className="text-indigo-800 hover:bg-indigo-50">
                                         Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
                                         {formatDateForDisplay(getWeekRange(year, week).endDate)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="control flex flex-col">
+                        <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
+                        <Select value={year.toString()} onValueChange={handleYearChange}>
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
+                                <SelectValue placeholder="Select year" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
+                                {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
+                                    <SelectItem key={year} value={year.toString()} className="text-indigo-800 hover:bg-indigo-50">
+                                        {year}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -489,7 +568,7 @@ const SchedulerPage: React.FC = () => {
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber - 1)}
                         disabled={weekNumber <= 1 || isLoading}
-                        className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
+                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-full shadow-md transition-all duration-200"
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
@@ -502,91 +581,114 @@ const SchedulerPage: React.FC = () => {
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber + 1)}
                         disabled={weekNumber >= 52 || isLoading}
-                        className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 rounded-full shadow-md transition-all duration-200"
+                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-full shadow-md transition-all duration-200"
                     >
                         <ChevronRight className="h-5 w-5" />
                     </Button>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="schedule-table w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden backdrop-blur-sm">
-                        <thead>
-                        <tr className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-                            <th className="py-3 px-4 border-b border-indigo-500 w-24 text-center">Time Slot</th>
-                            {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(startDate);
-                                currentDay.setDate(currentDay.getDate() + i);
-                                return (
-                                    <th key={i} className="py-3 px-4 border-b border-indigo-500 min-w-[150px] text-center relative">
-                                        {getVietnameseWeekday(currentDay)}
-                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-400"></div>}
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                        <tr className="bg-indigo-100 text-indigo-800">
-                            <th className="py-2 px-4 border-b border-indigo-200"></th>
-                            {Array.from({ length: 7 }, (_, i) => {
-                                const currentDay = new Date(startDate);
-                                currentDay.setDate(currentDay.getDate() + i);
-                                return (
-                                    <th key={i} className="py-2 px-4 border-b border-indigo-200 text-sm text-center relative">
-                                        {formatDateForDisplay(currentDay)}
-                                        {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-300"></div>}
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {shiftTimes.map((time, index) => (
-                            <tr key={index} className="hover:bg-indigo-50/50 transition-colors duration-150">
-                                <td className="time-slot py-4 px-4 font-semibold border-b border-indigo-100 text-center">{time}</td>
-                                {Array.from({ length: 7 }, (_, i) => {
-                                    const currentDay = new Date(startDate);
-                                    currentDay.setDate(currentDay.getDate() + i);
-                                    const currentDayString = formatDateForAPI(currentDay);
-                                    const slotForDateAndShift = slots.filter((slot) => {
-                                        return slot.date === currentDayString && shiftTimesMap[slot.shift] === time;
-                                    });
-                                    return (
-                                        <td key={i} className="slot-cell border-b border-indigo-100 p-4 relative min-h-[120px]">
-                                            {slotForDateAndShift.length > 0 ? (
-                                                slotForDateAndShift.map((slot, idx) => (
-                                                    <motion.div
-                                                        key={idx}
-                                                        className="slot bg-white/95 rounded-lg shadow-md p-3 mb-2 cursor-pointer hover:shadow-lg transition-all duration-200 backdrop-blur-sm"
-                                                        onClick={() => handleSlotClick(slot.id)}
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onKeyPress={(e) => e.key === "Enter" && handleSlotClick(slot.id)}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                    >
-                                                        <div className="slot-room text-lg font-bold text-indigo-600 flex items-center">
-                                                            <Music className="mr-1 w-5 h-5" />
-                                                            {slot.room?.name}
-                                                        </div>
-                                                        <div className="slot-class text-md text-indigo-800">{slot.class?.name}</div>
-                                                        <div className="slot-status text-sm mt-1 text-indigo-500">
-                                                            {role === 1 && slot.status !== undefined
-                                                                ? AttendanceStatusText[slot.attendanceStatus]
-                                                                : SlotStatusText[slot.status]}
-                                                        </div>
-                                                    </motion.div>
-                                                ))
-                                            ) : (
-                                                <div className="h-16 flex items-center justify-center text-gray-400">-</div>
+                <Card className="overflow-hidden border-0 shadow-xl">
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-blue-600 hover:bg-blue-600">
+                                    <TableHead className="h-14 text-center text-primary-foreground font-semibold w-32">
+                                        Thời gian
+                                    </TableHead>
+                                    {weekDates.map((date, i) => (
+                                        <TableHead
+                                            key={i}
+                                            className={cn(
+                                                "text-center text-primary-foreground px-3 min-w-[150px]",
+                                                i < 6 ? "border-r border-primary-foreground/20" : "",
                                             )}
-                                            {i < 6 && <div className="absolute right-0 top-0 bottom-0 w-px bg-indigo-100"></div>}
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                                        >
+                                            <div className="font-medium">{getVietnameseWeekday(date)}</div>
+                                            <div className="text-xs opacity-90 mt-1">{formatDateForDisplay(date)}</div>
+                                        </TableHead>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {shiftTimes.map((time, timeIndex) => (
+                                    <TableRow key={timeIndex} className="border-b bg-card hover:bg-muted/20">
+                                        <TableCell className="text-center font-medium py-3 border-r">{time}</TableCell>
+                                        {weekDates.map((date, dateIndex) => {
+                                            const currentDayString = formatDateForAPI(date)
+                                            const slotForDateAndShift = slots.filter(
+                                                (slot) => slot.date === currentDayString && shiftTimesMap[slot.shift] === time,
+                                            )
+
+                                            return (
+                                                <TableCell
+                                                    key={dateIndex}
+                                                    className={cn("p-2 align-top h-[130px]", dateIndex < 6 ? "border-r border-border/60" : "")}
+                                                >
+                                                    {slotForDateAndShift.length > 0 ? (
+                                                        <div className="space-y-2">
+                                                            {slotForDateAndShift.map((slot, idx) => (
+                                                                <motion.div
+                                                                    key={idx}
+                                                                    className={cn(
+                                                                        "rounded-lg shadow p-3 transition-all duration-200",
+                                                                        slot.status === SlotStatus.Cancelled
+                                                                            ? "bg-gray-100 text-gray-600 cursor-not-allowed"
+                                                                            : slot.status === SlotStatus.Ongoing
+                                                                                ? "bg-blue-50 border border-blue-200 hover:shadow-md cursor-pointer"
+                                                                                : slot.status === SlotStatus.Finished
+                                                                                    ? "bg-green-50 border border-green-200 hover:shadow-md cursor-pointer"
+                                                                                    : "bg-white border border-blue-100 hover:shadow-md cursor-pointer",
+                                                                    )}
+                                                                    onClick={() => slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)}
+                                                                    whileHover={slot.status !== SlotStatus.Cancelled ? { scale: 1.02 } : {}}
+                                                                    whileTap={slot.status !== SlotStatus.Cancelled ? { scale: 0.98 } : {}}
+                                                                >
+                                                                    <div
+                                                                        className={cn(
+                                                                            "text-lg font-bold flex items-center",
+                                                                            slot.status === SlotStatus.Cancelled ? "text-muted-foreground" : "text-primary",
+                                                                        )}
+                                                                    >
+                                                                        <Music className="mr-1 w-4 h-4" />
+                                                                        {slot.room?.name}
+                                                                    </div>
+                                                                    <div className="text-sm">{slot.class?.name}</div>
+                                                                    <Badge
+                                                                        className="mt-2"
+                                                                        variant={
+                                                                            slot.status === SlotStatus.Cancelled
+                                                                                ? "outline"
+                                                                                : slot.status === SlotStatus.Finished
+                                                                                    ? "default"
+                                                                                    : slot.status === SlotStatus.Ongoing
+                                                                                        ? "secondary"
+                                                                                        : "outline"
+                                                                        }
+                                                                    >
+                                                                        {role === 1 && slot.attendanceStatus !== undefined
+                                                                            ? AttendanceStatusText[slot.attendanceStatus]
+                                                                            : SlotStatusText[slot.status]}
+                                                                    </Badge>
+                                                                    {slot.status === SlotStatus.Cancelled && slot.slotNote && (
+                                                                        <div className="text-xs mt-2 text-muted-foreground italic">
+                                                                            Lý do hủy: {slot.slotNote}
+                                                                        </div>
+                                                                    )}
+                                                                </motion.div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-full flex items-center justify-center text-muted-foreground">-</div>
+                                                    )}
+                                                </TableCell>
+                                            )
+                                        })}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </Card>
 
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
@@ -617,8 +719,7 @@ const SchedulerPage: React.FC = () => {
                                             {selectedSlot.slotStudents
                                                 .filter(
                                                     (student) =>
-                                                        student.studentFirebaseId.toLowerCase() ===
-                                                        currentAccount.accountFirebaseId?.toLowerCase()
+                                                        student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
                                                 )
                                                 .map((student, index) => (
                                                     <div key={index} className="space-y-2">
@@ -648,8 +749,10 @@ const SchedulerPage: React.FC = () => {
                                         {role === 2 && (
                                             <Button
                                                 onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
-                                                disabled={!isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled}
-                                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                                                disabled={
+                                                    !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
+                                                }
+                                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                                             >
                                                 Điểm danh
                                             </Button>
@@ -657,10 +760,12 @@ const SchedulerPage: React.FC = () => {
                                         {role === 4 && (
                                             <Button
                                                 onClick={() => {
-                                                    setSelectedSlotToCancel(selectedSlot);
-                                                    setIsCancelDialogOpen(true);
+                                                    setSelectedSlotToCancel(selectedSlot)
+                                                    setIsCancelDialogOpen(true)
                                                 }}
-                                                disabled={!isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled}
+                                                disabled={
+                                                    !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
+                                                }
                                                 className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                                             >
                                                 Hủy buổi học
@@ -694,7 +799,9 @@ const SchedulerPage: React.FC = () => {
                                             }
                                             className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`shift-${value}`} className="text-indigo-800">{shiftTimesMap[value]}</label>
+                                        <label htmlFor={`shift-${value}`} className="text-indigo-800">
+                                            {shiftTimesMap[value]}
+                                        </label>
                                     </div>
                                 ))}
                             </div>
@@ -713,7 +820,9 @@ const SchedulerPage: React.FC = () => {
                                             }
                                             className="text-indigo-600 border-indigo-300 rounded focus:ring-indigo-500"
                                         />
-                                        <label htmlFor={`status-${value}`} className="text-indigo-800">{SlotStatusText[value]}</label>
+                                        <label htmlFor={`status-${value}`} className="text-indigo-800">
+                                            {SlotStatusText[value]}
+                                        </label>
                                     </div>
                                 ))}
                             </div>
@@ -723,12 +832,12 @@ const SchedulerPage: React.FC = () => {
                                     <div key={id} className="flex items-center space-x-2">
                                         <Checkbox
                                             id={`instructor-${id}`}
-                                            checked={filters.instructorFirebaseIds.includes(id)}
+                                            checked={filters.instructorFirebaseIds.includes(id!)}
                                             onCheckedChange={(checked) =>
                                                 handleFilterChange(
                                                     "instructorFirebaseIds",
                                                     checked
-                                                        ? [...filters.instructorFirebaseIds, id]
+                                                        ? [...filters.instructorFirebaseIds, id!]
                                                         : filters.instructorFirebaseIds.filter((i) => i !== id),
                                                 )
                                             }
@@ -790,14 +899,25 @@ const SchedulerPage: React.FC = () => {
                     </DialogContent>
                 </Dialog>
 
-                <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <Dialog
+                    open={isCancelDialogOpen}
+                    onOpenChange={(open) => {
+                        if (!isLoading) {
+                            setIsCancelDialogOpen(open)
+                            setCancelReason("")
+                            setSelectedSlotToCancel(null)
+                            setSelectedBlankSlot(null)
+                            setBlankSlots([])
+                        }
+                    }}
+                >
                     <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                         <DialogHeader>
-                            <DialogTitle className="text-indigo-900">Xác nhận hủy buổi học</DialogTitle>
+                            <DialogTitle className="text-indigo-900">Hủy và thay thế buổi học</DialogTitle>
                         </DialogHeader>
                         <div className="p-6">
                             <p className="text-indigo-800 mb-4">
-                                Bạn có chắc chắn muốn hủy buổi học này không? Sau khi hủy, bạn phải chọn một slot thay thế.
+                                Vui lòng nhập lý do hủy và chọn slot thay thế. Nếu không chọn slot thay thế, buổi học sẽ không bị hủy.
                             </p>
                             {selectedSlotToCancel && (
                                 <div className="space-y-2">
@@ -810,8 +930,8 @@ const SchedulerPage: React.FC = () => {
                                     <p className="text-indigo-800">
                                         <strong>Thời gian:</strong>{" "}
                                         <span className="text-indigo-600">
-                                            {shiftTimesMap[selectedSlotToCancel.shift]} - {selectedSlotToCancel.date}
-                                        </span>
+                      {shiftTimesMap[selectedSlotToCancel.shift]} - {selectedSlotToCancel.date}
+                    </span>
                                     </p>
                                 </div>
                             )}
@@ -829,77 +949,57 @@ const SchedulerPage: React.FC = () => {
                                     required
                                 />
                             </div>
+                            <div className="mt-4">
+                                <h3 className="text-indigo-800 font-semibold mb-2">Chọn slot thay thế (bắt buộc để hủy)</h3>
+                                {blankSlots.length > 0 ? (
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {blankSlots.map((slot, index) => {
+                                            const slotDate = typeof slot.date === "string" ? slot.date : slot.date
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className={`p-2 border rounded-lg cursor-pointer hover:bg-indigo-50 ${
+                                                        selectedBlankSlot === slot ? "bg-indigo-100 border-indigo-500" : "border-indigo-300"
+                                                    }`}
+                                                    onClick={() => setSelectedBlankSlot(slot)}
+                                                >
+                                                    <p className="text-indigo-800">
+                                                        <strong>Phòng:</strong>{" "}
+                                                        <span className="text-indigo-600">{slot.roomName || slot.roomId}</span>
+                                                    </p>
+                                                    <p className="text-indigo-800">
+                                                        <strong>Thời gian:</strong>{" "}
+                                                        <span className="text-indigo-600">
+                              {shiftTimesMap[slot.shift]} - {slotDate}
+                            </span>
+                                                    </p>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-indigo-800">Không có slot trống trong tuần này. Không thể hủy buổi học.</p>
+                                )}
+                            </div>
                             <div className="flex justify-end space-x-2 mt-6">
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        setIsCancelDialogOpen(false);
-                                        setCancelReason("");
+                                        setIsCancelDialogOpen(false)
+                                        setCancelReason("")
+                                        setSelectedBlankSlot(null)
                                     }}
                                     className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
+                                    disabled={isLoading}
                                 >
                                     Hủy bỏ
                                 </Button>
                                 <Button
-                                    onClick={handleCancelSlot}
-                                    disabled={isLoading || !cancelReason.trim()}
-                                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                                    onClick={handleReplaceThenCancel}
+                                    disabled={isLoading || !cancelReason.trim() || !selectedBlankSlot || blankSlots.length === 0}
+                                    className="bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
                                 >
-                                    {isLoading ? "Đang hủy..." : "Xác nhận hủy"}
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-
-                <Dialog open={isReplaceDialogOpen} onOpenChange={setIsReplaceDialogOpen}>
-                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
-                        <DialogHeader>
-                            <DialogTitle className="text-indigo-900">Chọn slot thay thế</DialogTitle>
-                        </DialogHeader>
-                        <div className="p-6">
-                            <p className="text-indigo-800 mb-4">
-                                Vui lòng chọn một slot trống để thay thế cho buổi học vừa hủy.
-                            </p>
-                            {blankSlots.length > 0 ? (
-                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                    {blankSlots.map((slot, index) => {
-                                        const slotDate = typeof slot.date === "string" ? slot.date : slot.date;
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`p-2 border rounded-lg cursor-pointer hover:bg-indigo-50 ${
-                                                    selectedBlankSlot === slot ? "bg-indigo-100 border-indigo-500" : "border-indigo-300"
-                                                }`}
-                                                onClick={() => {
-                                                    console.log("Selecting blank slot:", slot);
-                                                    setSelectedBlankSlot(slot);
-                                                }}
-                                            >
-                                                <p className="text-indigo-800">
-                                                    <strong>Phòng:</strong> <span className="text-indigo-600">{slot.roomName || slot.roomId}</span>
-                                                </p>
-                                                <p className="text-indigo-800">
-                                                    <strong>Thời gian:</strong>{" "}
-                                                    <span className="text-indigo-600">{shiftTimesMap[slot.shift]} - {slotDate}</span>
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <p className="text-indigo-800">Không có slot trống trong tuần này.</p>
-                            )}
-                            <div className="flex justify-end space-x-2 mt-6">
-                                <Button
-                                    onClick={() => {
-                                        console.log("Xác nhận thay thế button clicked");
-                                        handleReplaceSlot();
-                                    }}
-                                    disabled={isLoading || !selectedBlankSlot}
-                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
-                                >
-                                    {isLoading ? "Đang tạo..." : "Xác nhận thay thế"}
+                                    {isLoading ? "Đang xử lý..." : "Xác nhận"}
                                 </Button>
                             </div>
                         </div>
@@ -907,7 +1007,8 @@ const SchedulerPage: React.FC = () => {
                 </Dialog>
             </motion.div>
         </div>
-    );
-};
+    )
+}
 
-export default SchedulerPage;
+export default SchedulerPage
+
