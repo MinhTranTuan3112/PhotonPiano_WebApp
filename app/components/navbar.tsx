@@ -167,11 +167,11 @@ export default function NavBar() {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-                        <NavigationMenuItem>
+                        {/* <NavigationMenuItem>
                             <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${pathname.startsWith('/entrance-tests') ? buttonVariants({ variant: 'theme' }) : ''}`}>
                                 Thi xếp lớp đầu vào
                             </Link>
-                        </NavigationMenuItem>
+                        </NavigationMenuItem> */}
                         <NavigationMenuItem>
                             <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold `}>
                                 Tin tức

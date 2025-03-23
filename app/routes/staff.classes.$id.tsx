@@ -104,7 +104,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise
+    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise, classId: params.id
   }
 }
 const getSlotCover = (status: number) => {
@@ -488,7 +488,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
               <Await resolve={configPromise}>
                 {(data) => (
                   <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
-                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"}/>
+                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"} />
                 )}
               </Await>
             </Suspense>
@@ -616,9 +616,35 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const publishFetcher = useFetcher<ActionResult>();
+
+  const { open: handleOpenPublishModal, dialog: confirmPublishDialog } = useConfirmationDialog({
+    title: 'Xác nhận công bố lớp học',
+    description: 'Bạn có chắc chắn muốn công bố lớp học này không? Hành động này không thể hoàn tác!',
+    onConfirm: () => {
+      handlePublish();
+    }
+  })
+  const { loadingDialog } = useLoadingDialog({
+    fetcher: publishFetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const handlePublish = () => {
+    publishFetcher.submit({
+      action: "PUBLISH",
+      id: classId,
+      idToken: idToken
+    }, {
+      action: "/api/classes",
+      method: "PATCH"
+    })
+  }
   return (
     <div className='px-8'>
       <h3 className="text-lg font-medium">Thông tin chi tiết lớp</h3>
@@ -639,7 +665,7 @@ export default function StaffClassDetailPage({ }: Props) {
                           Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
                         </div>
                       </div>
-                      <Button>CÔNG BỐ LỚP</Button>
+                      <Button onClick={handleOpenPublishModal}>CÔNG BỐ LỚP</Button>
                     </div>
                   )
                 }
@@ -693,7 +719,8 @@ export default function StaffClassDetailPage({ }: Props) {
         </Await>
 
       </Suspense>
-
+      {loadingDialog}
+      {confirmPublishDialog}
     </div >
   )
 }

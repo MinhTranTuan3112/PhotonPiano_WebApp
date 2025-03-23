@@ -1,3 +1,5 @@
+import { Class } from "../class/class";
+
 export enum SlotStatus
 {
     NotStarted,
@@ -92,14 +94,7 @@ export type SlotDetail = {
         status: number;
         capacity: number;
     };
-    class: {
-        id: string;
-        instructorId: string;
-        instructorName: string;
-        status: number;
-        name: string;
-        level: number;
-    };
+    class: Class;
     slotStudents: SlotStudentModel[] | null;
     numberOfStudents: number;
     attendanceStatus?: AttendanceStatus;

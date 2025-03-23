@@ -188,3 +188,15 @@ export async function fetchClearScheduleClass({id, idToken }: {
 
     return response;
 }
+export async function fetchPublishAClass({id, idToken }: {
+    id : string
+    idToken: string
+}) {
+    const response = await axiosInstance.patch(`/classes/${id}/publishing`, {}, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}

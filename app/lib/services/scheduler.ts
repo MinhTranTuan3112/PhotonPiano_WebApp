@@ -1,6 +1,7 @@
 import axiosInstance from "~/lib/utils/axios-instance";
 import {Shift, SlotDetail, SlotStatus} from "~/lib/types/Scheduler/slot";
 import axios from "axios";
+import { isErrorResponse } from "@remix-run/react/dist/data";
 
 export type FetchSlotsParams = {
     startTime?: string;
@@ -263,11 +264,12 @@ export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }:
     return response;
 }
 
-export async function fetchUpdateSlot({ id, shift, date, roomId, idToken }: {
+export async function fetchUpdateSlot({ id, shift, date, roomId, reason, idToken }: {
     id : string,
     shift? : number,
     date? : string,
     roomId? : string,
+    reason? : string,
     idToken : string
 }) {
     const response = await axiosInstance.put(`/scheduler`, {
@@ -275,6 +277,7 @@ export async function fetchUpdateSlot({ id, shift, date, roomId, idToken }: {
         shift : shift,
         date : date,
         roomId : roomId,
+        reason : reason
     },{
         headers: {
             Authorization: `Bearer ${idToken}`,

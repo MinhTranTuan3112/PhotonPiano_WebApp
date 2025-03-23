@@ -7,6 +7,8 @@ export type Class = {
     requiredSlots : number,
     capacity : number,
     instructor? : Account,
+    instructorId? : string,
+    instructorName? : string,
     studentNumber : number,
     level : Level,
     levelId: string,
