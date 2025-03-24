@@ -210,7 +210,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
 
             <Form onSubmit={() => setIsOpenConfirmEdit(true)}>
                 <div className='flex flex-col sm:flex-row place-content-between gap-2 mb-8'>
-                    <Button type='button' variant={'outline'} onClick={() => navigate(`/staff/classes/${slot.classId}`)}><ArrowLeftCircle className='mr-4' /> Trở về</Button>
+                    <Button type='button' variant={'outline'} onClick={() => navigate(-1)}><ArrowLeftCircle className='mr-4' /> Trở về</Button>
                     <div className='flex gap-2'>
                         {
                             isEdit ? (

@@ -35,6 +35,10 @@ const data = {
             isActive: true,
             items: [
                 {
+                    title: "Lịch học",
+                    url: "/staff/scheduler",
+                },
+                {
                     title: "Quản lý lịch thi đầu vào",
                     url: "/staff/entrance-tests",
                 },

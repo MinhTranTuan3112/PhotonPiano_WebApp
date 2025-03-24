@@ -577,7 +577,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
               )
             }
           </div>
-          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate('/scheduler')}>Xem dạng lịch</Button>
+          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>Xem dạng lịch</Button>
         </div>
 
         <div className='text-center text-xl mt-4'>

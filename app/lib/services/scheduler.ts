@@ -54,7 +54,6 @@ export async function fetchSlots({
             },
         })
 
-
         return response;
     } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
