@@ -20,7 +20,7 @@ type Props = {
 
 };
 
-export default function TopNav({}: Props) {
+export default function TopNav({ }: Props) {
 
     const { isMobile } = useSidebar()
 
@@ -29,7 +29,20 @@ export default function TopNav({}: Props) {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <SidebarMenuButton size="lg"
+                    onClick={() => navigate('/')}
+                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                        <Piano className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold text-base">
+                            Photon Piano
+                        </span>
+                        {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
+                    </div>
+                </SidebarMenuButton>
+                {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
@@ -42,7 +55,6 @@ export default function TopNav({}: Props) {
                                 <span className="truncate font-semibold text-base">
                                    Photon Piano
                                 </span>
-                                {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
                             </div>
                             <ChevronsUpDown className="ml-auto" />
                         </SidebarMenuButton>
@@ -65,7 +77,7 @@ export default function TopNav({}: Props) {
 
                         </DropdownMenuItem>
                     </DropdownMenuContent>
-                </DropdownMenu>
+                </DropdownMenu> */}
             </SidebarMenuItem>
         </SidebarMenu>
     )

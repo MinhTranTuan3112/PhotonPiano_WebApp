@@ -38,6 +38,10 @@ const data = {
             isActive: true,
             items: [
                 {
+                    title: "Lịch học của tôi",
+                    url: "/account/scheduler",
+                },
+                {
                     title: "Lớp của tôi",
                     url: "/account/class",
                 },
