@@ -4,6 +4,7 @@ import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { Eye, MoreHorizontal } from "lucide-react";
+import { useNavigate } from "@remix-run/react";
 
 export const columns: ColumnDef<Survey>[] = [
     {
@@ -35,6 +36,13 @@ export const columns: ColumnDef<Survey>[] = [
         }
     },
     {
+        accessorKey: 'Là khảo sát đầu vào',
+        header: 'Là khảo sát đầu vào',
+        cell: ({ row }) => {
+            return <div className="">{row.original.isEntranceSurvey ? 'Có' : 'Không'}</div>
+        }
+    },
+    {
         id: 'Thao tác',
         accessorKey: 'Thao tác',
         header: 'Thao tác',
@@ -48,6 +56,8 @@ function ActionDropdown({ row }: {
     row: Row<Survey>
 }) {
 
+    const navigate = useNavigate();
+
 
     return <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -60,7 +70,7 @@ function ActionDropdown({ row }: {
             <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => {
-               
+                navigate(`/staff/surveys/${row.original.id}`)
             }}>
                 <Eye />
                 Xem

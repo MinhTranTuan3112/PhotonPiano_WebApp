@@ -10,6 +10,10 @@ export type SurveyQuestion = {
     maxAge?: number;
 };
 
+export type CreateSurveyQuestionRequest = Omit<SurveyQuestion, 'id' | 'orderIndex'>;
+
+export type UpdateSurveyQuestionRequest = Partial<Pick<SurveyQuestion, 'id' | 'questionContent' | 'type' | 'options'>>;
+
 export enum QuestionType {
     SingleChoice,
     MultipleChoice,

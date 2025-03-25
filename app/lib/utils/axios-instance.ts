@@ -8,7 +8,7 @@ if (typeof window === 'undefined') {
     // Node.js environment (server-side)
     axiosInstance = axios.create({
         baseURL: `${API_BASE_URL}/api`,
-        timeout: 10000,
+        timeout: 30000,
         httpsAgent: new https.Agent({
             rejectUnauthorized: process.env.VITE_IS_DEVELOPMENT === 'true' ? false : true,
         }),

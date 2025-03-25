@@ -101,7 +101,7 @@ export default function StaffSurveysPage({ }: Props) {
 
             <SearchForm />
 
-            <Suspense key={JSON.stringify(query)}>
+            <Suspense key={JSON.stringify(query)} fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>
                     {({ surveysPromise, metadata }) => (
                         <Await resolve={surveysPromise}>
