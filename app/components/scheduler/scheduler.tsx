@@ -35,6 +35,7 @@ import { Badge } from "~/components/ui/badge"
 import { cn } from "~/lib/utils"
 import { Account, Role } from "~/lib/types/account/account"
 import { Class } from "~/lib/types/class/class"
+import {fetchSystemConfigSlotCancel} from "~/lib/services/system-config";
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -131,12 +132,12 @@ export const Scheduler = ({
     const [cancelReason, setCancelReason] = useState<string>("");
     const [blankSlots, setBlankSlots] = useState<BlankSlotModel[]>([]);
     const [selectedBlankSlot, setSelectedBlankSlot] = useState<BlankSlotModel | null>(null);
-
+    const [cancelReasons, setCancelReasons] = useState<string[]>([]);
     const uniqueShifts = Array.from(new Set(slots.map((slot) => slot.shift)));
     const uniqueSlotStatuses = Array.from(new Set(slots.map((slot) => slot.status)));
     const uniqueInstructorIds = Array.from(new Set(slots.map((slot) => slot.class.instructorId)));
     const uniqueClassIds = Array.from(new Set(slots.map((slot) => slot.class.id)));
-
+    const [isOtherSelected, setIsOtherSelected] = useState<boolean>(false);
     const instructorMap = new Map(slots.map((slot) => [slot.class.instructorId, slot.class.instructorName]));
     const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]));
 
@@ -280,6 +281,31 @@ export const Scheduler = ({
     }, [isCancelDialogOpen, selectedSlotToCancel, startDate, endDate, idToken]);
 
 
+    useEffect(() => {
+        const fetchCancelReasons = async () => {
+            try {
+                const response = await fetchSystemConfigSlotCancel({ idToken });
+                const reasons = JSON.parse(response.data.configValue);
+                setCancelReasons(reasons);
+            } catch (error) {
+                console.error("Failed to fetch cancel reasons:", error);
+            }
+        };
+
+        fetchCancelReasons();
+    }, [idToken]);
+
+    const handleReasonChange = (e) => {
+        const value = e.target.value;
+        if (value === "Khác") {
+            setIsOtherSelected(true);
+            setCancelReason("");
+        } else {
+            setIsOtherSelected(false);
+            setCancelReason(value);
+        }
+    };
+    
     const weekDates = Array.from({ length: 7 }, (_, i) => {
         const currentDay = new Date(startDate)
         currentDay.setDate(currentDay.getDate() + i)
@@ -858,14 +884,14 @@ export const Scheduler = ({
                                     variant="outline"
                                     onClick={() => setIsFilterModalOpen(false)}
                                     className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
-                                    disabled={isFilterLoading} // Disable while loading
+                                    disabled={isFilterLoading} 
                                 >
                                     Hủy
                                 </Button>
                                 <Button
                                     onClick={applyFilters}
                                     className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
-                                    disabled={isFilterLoading} // Disable while loading
+                                    disabled={isFilterLoading} 
                                 >
                                     {isFilterLoading ? "Đang áp dụng..." : "Xác nhận"}
                                 </Button>
@@ -914,15 +940,29 @@ export const Scheduler = ({
                                 <label htmlFor="cancelReason" className="text-indigo-800 font-semibold">
                                     Lý do hủy <span className="text-red-500">*</span>
                                 </label>
-                                <input
+                                <select
                                     id="cancelReason"
-                                    type="text"
-                                    value={cancelReason}
-                                    onChange={(e) => setCancelReason(e.target.value)}
+                                    value={isOtherSelected ? "Khác" : cancelReason}
+                                    onChange={handleReasonChange}
                                     className="w-full mt-1 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
-                                    placeholder="Nhập lý do hủy buổi học"
                                     required
-                                />
+                                >
+                                    <option value="" disabled>Chọn lý do hủy</option>
+                                    {cancelReasons.map((reason, index) => (
+                                        <option key={index} value={reason}>{reason}</option>
+                                    ))}
+                                    <option value="Khác">Khác</option>
+                                </select>
+                                {isOtherSelected && (
+                                    <input
+                                        type="text"
+                                        value={cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                        className="w-full mt-2 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
+                                        placeholder="Nhập lý do hủy buổi học"
+                                        required
+                                    />
+                                )}
                             </div>
                             <div className="mt-4">
                                 <h3 className="text-indigo-800 font-semibold mb-2">Chọn slot thay thế (bắt buộc để hủy)</h3>
