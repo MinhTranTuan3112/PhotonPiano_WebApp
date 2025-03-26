@@ -1,17 +1,38 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import { motion } from "framer-motion";
-import { AlertTriangle, Check, Eye, FileText, Music, UserX, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { FileUpload } from "~/components/ui/file-upload";
-import { Textarea } from "~/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { fetchSlotById, fetchUpdateAttendanceStatus } from "~/lib/services/scheduler";
-import { AttendanceStatus, SlotDetail, SlotStudentModel } from "~/lib/types/Scheduler/slot";
-import { requireAuth } from "~/lib/utils/auth";
+import type { LoaderFunctionArgs } from "@remix-run/node"
+import { useLoaderData, useNavigate } from "@remix-run/react"
+import { motion } from "framer-motion"
+import {
+    AlertTriangle,
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    Eye,
+    FileText,
+    ImageIcon,
+    Music,
+    Pencil,
+    Save,
+    Trash2,
+    UserX,
+    X,
+} from "lucide-react"
+import { useEffect, useState } from "react"
+import { Badge } from "~/components/ui/badge"
+import { Button } from "~/components/ui/button"
+import { Card, CardContent } from "~/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
+import { FileUpload } from "~/components/ui/file-upload"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
+import { Textarea } from "~/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
+import { fetchSlotById, fetchUpdateAttendanceStatus } from "~/lib/services/scheduler"
+import { AttendanceStatus, type SlotDetail, type SlotStudentModel } from "~/lib/types/Scheduler/slot"
+import { requireAuth } from "~/lib/utils/auth"
+
+// Extended SlotStudentModel to support multiple images
+interface ExtendedSlotStudentModel extends SlotStudentModel {
+    gestureUrls: string[]
+}
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
@@ -20,20 +41,50 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
         if (!id) {
             throw new Response("ID is required", { status: 400 });
         }
+        console.log(`Loading attendance details for slot ID: ${id}`);
         const response = await fetchSlotById(id, idToken);
         const slotDetail: SlotDetail = response.data;
 
-        const slotStudent: SlotStudentModel[] = slotDetail.slotStudents!.map((student) => ({
-            ...student,
-            attendanceStatus: student.attendanceStatus ?? 0,
-            attendanceComment: student.attendanceComment ?? "",
-            gestureComment: student.gestureComment ?? "",
-            gestureUrl: student.gestureUrl ?? "",
-            fingerNoteComment: student.fingerNoteComment ?? "",
-            pedalComment: student.pedalComment ?? "",
-        }));
+        const slotStudent: ExtendedSlotStudentModel[] = slotDetail.slotStudents!.map((student) => {
+            // Parse gestureUrl which might be a JSON string containing array of URLs
+            let gestureUrls: string[] = [];
 
-   
+            if (student.gestureUrl) {
+                try {
+                    // Try to parse as JSON first (might be array or nested JSON string)
+                    const parsedUrls = JSON.parse(student.gestureUrl);
+
+                    // Handle different possible formats
+                    if (Array.isArray(parsedUrls)) {
+                        // Direct array of URLs
+                        gestureUrls = parsedUrls;
+                    } else if (typeof parsedUrls === 'string') {
+                        // Might be a nested JSON string
+                        try {
+                            const nestedParsed = JSON.parse(parsedUrls);
+                            gestureUrls = Array.isArray(nestedParsed) ? nestedParsed : [parsedUrls];
+                        } catch {
+                            gestureUrls = [parsedUrls];
+                        }
+                    }
+                } catch {
+                    // If not valid JSON, treat as a single URL
+                    gestureUrls = [student.gestureUrl];
+                }
+            }
+
+            return {
+                ...student,
+                attendanceStatus: student.attendanceStatus ?? 0,
+                attendanceComment: student.attendanceComment ?? "",
+                gestureComment: student.gestureComment ?? "",
+                gestureUrl: student.gestureUrl ?? "",
+                gestureUrls: gestureUrls, // Use the properly parsed URLs
+                fingerNoteComment: student.fingerNoteComment ?? "",
+                pedalComment: student.pedalComment ?? "",
+            };
+        });
+
         return { slotStudent, idToken, id };
     } catch (error) {
         console.error("Failed to load attendance details:", error);
@@ -42,15 +93,17 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 };
 
 const AttendancePage = () => {
-    const { slotStudent, idToken, id } = useLoaderData<typeof loader>();
-    const [attendanceData, setAttendanceData] = useState<SlotStudentModel[]>(slotStudent || []);
-    const [showAbsentees, setShowAbsentees] = useState(false);
-    const [flashingStudentId, setFlashingStudentId] = useState<string | null>(null);
-    const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null);
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-    const [showViewDetails, setShowViewDetails] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const navigate = useNavigate();
+    const { slotStudent, idToken, id } = useLoaderData<typeof loader>()
+    const [attendanceData, setAttendanceData] = useState<ExtendedSlotStudentModel[]>(slotStudent || [])
+    const [showAbsentees, setShowAbsentees] = useState(false)
+    const [flashingStudentId, setFlashingStudentId] = useState<string | null>(null)
+    const [highlightedStudentId, setHighlightedStudentId] = useState<string | null>(null)
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+    const [showViewDetails, setShowViewDetails] = useState<string | null>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [activeTab, setActiveTab] = useState("attendance")
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const navigate = useNavigate()
 
     useEffect(() => {
         if (slotStudent && slotStudent.length > 0) {
@@ -60,42 +113,109 @@ const AttendancePage = () => {
                     student.attendanceStatus !== undefined && student.attendanceStatus !== AttendanceStatus.NotYet
                         ? student.attendanceStatus
                         : 1,
-            }));
-            setAttendanceData(initializedData);
+            }))
+            setAttendanceData(initializedData)
         }
-    }, [slotStudent]);
+    }, [slotStudent])
 
     const sortedAttendanceData = [...attendanceData].sort((a, b) =>
-        a.studentAccount.fullName!.localeCompare(b.studentAccount.fullName!)
-    );
+        a.studentAccount.fullName!.localeCompare(b.studentAccount.fullName!),
+    )
 
-    const handleAttendanceChange = (studentId: string, field: keyof SlotStudentModel, value: any) => {
+    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value: any) => {
         setAttendanceData((prev) =>
-            prev.map((student) =>
-                student.studentFirebaseId === studentId ? { ...student, [field]: value } : student
-            )
+            prev.map((student) => {
+                if (student.studentFirebaseId === studentId) {
+                    // If updating gestureUrl, also update gestureUrls for backward compatibility
+                    if (field === "gestureUrl") {
+                        return {
+                            ...student,
+                            [field]: value,
+                            gestureUrls: value ? [value] : [],
+                        }
+                    }
+                    return { ...student, [field]: value }
+                }
+                return student
+            }),
+        )
+        setFlashingStudentId(studentId)
+        setHighlightedStudentId(studentId)
+        setTimeout(() => setFlashingStudentId(null), 2000)
+    }
+
+    // Handle adding a new image to gestureUrls array
+    const handleAddImage = (studentId: string, imageUrl: string) => {
+        setAttendanceData((prev) =>
+            prev.map((student) => {
+                if (student.studentFirebaseId === studentId) {
+                    const updatedUrls = [...student.gestureUrls, imageUrl];
+                    return {
+                        ...student,
+                        gestureUrls: updatedUrls,
+                        gestureUrl: updatedUrls[0] || "",
+                    };
+                }
+                return student;
+            })
         );
-        setFlashingStudentId(studentId);
-        setHighlightedStudentId(studentId);
-        setTimeout(() => setFlashingStudentId(null), 2000);
+        setCurrentImageIndex(0);
     };
 
-    const absentStudents = sortedAttendanceData.filter((student) => student.attendanceStatus === 2);
+    // Handle removing an image from gestureUrls array
+    const handleRemoveImage = (studentId: string, index: number) => {
+        setAttendanceData((prev) =>
+            prev.map((student) => {
+                if (student.studentFirebaseId === studentId) {
+                    const updatedUrls = [...student.gestureUrls]
+                    updatedUrls.splice(index, 1)
+                    return {
+                        ...student,
+                        gestureUrls: updatedUrls,
+                        gestureUrl: updatedUrls[0] || "",
+                    }
+                }
+                return student
+            }),
+        )
+        setCurrentImageIndex(0)
+    }
+
+    const absentStudents = sortedAttendanceData.filter((student) => student.attendanceStatus === 2)
 
     const handleSubmit = () => {
-        setShowConfirmDialog(true);
-    };
+        setShowConfirmDialog(true)
+    }
 
     const prepareAttendanceRequest = () => {
-        const slotStudentInfoModels = sortedAttendanceData.map((student) => ({
-            StudentId: student.studentFirebaseId,
-            AttendanceComment: student.attendanceComment || undefined,
-            GestureComment: student.gestureComment || undefined,
-            GestureUrl: student.gestureUrl || undefined,
-            FingerNoteComment: student.fingerNoteComment || undefined,
-            PedalComment: student.pedalComment || undefined,
-            AttendanceStatus: student.attendanceStatus,
-        }));
+        const slotStudentInfoModels = sortedAttendanceData.map((student) => {
+            // Create the base object with required fields
+            const studentData: any = {
+                StudentId: student.studentFirebaseId,
+                AttendanceStatus: student.attendanceStatus,
+            };
+
+            // Only add optional fields if they have values
+            if (student.attendanceComment)
+                studentData.AttendanceComment = student.attendanceComment;
+
+            if (student.gestureComment)
+                studentData.GestureComment = student.gestureComment;
+
+            if (student.fingerNoteComment)
+                studentData.FingerNoteComment = student.fingerNoteComment;
+
+            if (student.pedalComment)
+                studentData.PedalComment = student.pedalComment;
+
+            // Only add GestureUrls if the array is not empty
+            if (student.gestureUrls && student.gestureUrls.length > 0) {
+                // Send as array of strings, let the API handle serialization
+                studentData.GestureUrls = student.gestureUrls;
+            }
+
+            return studentData;
+        });
 
         return {
             SlotId: id,
@@ -107,12 +227,8 @@ const AttendancePage = () => {
         setIsSubmitting(true);
         try {
             const attendanceRequest = prepareAttendanceRequest();
-            await fetchUpdateAttendanceStatus(
-                attendanceRequest.SlotId,
-                attendanceRequest.SlotStudentInfoRequests,
-                idToken
-            );
-            navigate("/scheduler");
+            await fetchUpdateAttendanceStatus(attendanceRequest.SlotId, attendanceRequest.SlotStudentInfoRequests, idToken);
+            navigate(-1);
         } catch (error: any) {
             console.error("Error updating attendance:", error);
             alert("Failed to update attendance: " + error.message);
@@ -122,31 +238,37 @@ const AttendancePage = () => {
         }
     };
 
-    const hasAdditionalData = (student: SlotStudentModel): boolean => {
+    const hasAdditionalData = (student: ExtendedSlotStudentModel): boolean => {
         return !!(
-            student.gestureUrl ||
+            student.gestureUrls.length > 0 ||
             student.fingerNoteComment ||
             student.pedalComment ||
             student.attendanceComment ||
             student.gestureComment
-        );
-    };
+        )
+    }
 
-    const getDataIndicators = (student: SlotStudentModel) => {
-        const indicators = [];
-        if (student.gestureUrl) indicators.push("Gesture Image");
-        if (student.gestureComment) indicators.push("Gesture Comment");
-        if (student.fingerNoteComment) indicators.push("Finger Notes");
-        if (student.pedalComment) indicators.push("Pedal Notes");
-        if (student.attendanceComment) indicators.push("Attendance Comment");
-        return indicators;
-    };
+    const getDataIndicators = (student: ExtendedSlotStudentModel) => {
+        const indicators = []
+        if (student.gestureUrls.length > 0) indicators.push(`${student.gestureUrls.length} Hình ảnh`)
+        if (student.gestureComment) indicators.push("Ghi chú tư thế")
+        if (student.fingerNoteComment) indicators.push("Ghi chú ngón tay")
+        if (student.pedalComment) indicators.push("Ghi chú pedal")
+        if (student.attendanceComment) indicators.push("Ghi chú điểm danh")
+        return indicators
+    }
+
+    const handleOpenDetails = (studentId: string) => {
+        setShowViewDetails(studentId)
+        setActiveTab("attendance")
+        setCurrentImageIndex(0)
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-4 py-6 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <Button
-                    onClick={() => navigate("/scheduler")}
+                    onClick={() => navigate(-1)}
                     className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-full"
                 >
                     Quay lại
@@ -188,10 +310,7 @@ const AttendancePage = () => {
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {absentStudents.map((student) => (
-                                <div
-                                    key={student.studentFirebaseId}
-                                    className="p-4 bg-white/90 rounded-lg shadow-md"
-                                >
+                                <div key={student.studentFirebaseId} className="p-4 bg-white/90 rounded-lg shadow-md">
                                     <p className="text-gray-700 text-sm md:text-base">
                                         <strong>Email:</strong> {student.studentAccount.email}
                                     </p>
@@ -221,13 +340,9 @@ const AttendancePage = () => {
                         {sortedAttendanceData.map((detail) => (
                             <motion.tr
                                 key={detail.studentFirebaseId}
-                                className={`bg-white/90 ${
-                                    detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""
-                                } ${
+                                className={`bg-white/90 ${detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""} ${
                                     flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""
-                                } ${
-                                    highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""
-                                }`}
+                                } ${highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""}`}
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.05 }}
@@ -250,9 +365,7 @@ const AttendancePage = () => {
                                 <td className="py-3 px-2 md:py-4 md:px-4 text-center">
                                     <div className="flex flex-col md:flex-row gap-2">
                                         <Button
-                                            onClick={() =>
-                                                handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)
-                                            }
+                                            onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
                                             variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
                                             className={`w-full text-xs md:text-sm ${
                                                 detail.attendanceStatus === 1
@@ -263,9 +376,7 @@ const AttendancePage = () => {
                                             <Check size={14} className="mr-1 md:mr-2" /> Có mặt
                                         </Button>
                                         <Button
-                                            onClick={() =>
-                                                handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)
-                                            }
+                                            onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
                                             variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
                                             className={`w-full text-xs md:text-sm ${
                                                 detail.attendanceStatus === 2
@@ -279,7 +390,7 @@ const AttendancePage = () => {
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button
-                                                        onClick={() => setShowViewDetails(detail.studentFirebaseId)}
+                                                        onClick={() => handleOpenDetails(detail.studentFirebaseId)}
                                                         variant="secondary"
                                                         className={`w-full text-xs md:text-sm relative ${
                                                             hasAdditionalData(detail)
@@ -325,137 +436,450 @@ const AttendancePage = () => {
                     </Button>
                 </div>
 
-                {/* Dialog chi tiết - Đảm bảo viền đầy đủ cho Textarea */}
-                <Dialog open={!!showViewDetails} onOpenChange={() => setShowViewDetails(null)}>
-                    <DialogContent className="bg-white/90 backdrop-blur-sm w-full max-w-[95vw] sm:max-w-xl p-4">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center text-blue-700 text-sm md:text-base">
-                                <Eye className="w-4 h-4 mr-2 text-blue-600" />
-                                Xem và chỉnh sửa chi tiết
-                                {showViewDetails &&
-                                    hasAdditionalData(
-                                        sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                    ) && (
-                                        <Badge className="ml-2 bg-blue-500 text-xs">Có dữ liệu</Badge>
-                                    )}
-                            </DialogTitle>
-                        </DialogHeader>
+                {/* Redesigned "Xem chi tiet" dialog with multiple image support */}
+                <Dialog open={!!showViewDetails} onOpenChange={(open) => !open && setShowViewDetails(null)}>
+                    <DialogContent className="bg-white p-0 rounded-xl overflow-hidden border border-blue-100 shadow-lg max-w-[95vw] sm:max-w-2xl">
                         {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails) && (
-                            <div className="max-h-[60vh] overflow-y-auto">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Cột bên trái */}
-                                    <div className="space-y-3">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-700">Ghi chú điểm danh:</label>
-                                            <Textarea
-                                                value={
-                                                    sortedAttendanceData.find(
-                                                        (s) => s.studentFirebaseId === showViewDetails
-                                                    )!.attendanceComment || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleAttendanceChange(showViewDetails!, "attendanceComment", e.target.value)
-                                                }
-                                                className="text-xs h-20 border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-700">Tư thế (URL hình ảnh):</label>
-                                            <div className="mt-1">
-                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)
-                                                    ?.gestureUrl && (
-                                                    <div className="mb-2 flex items-center gap-2">
-                                                        <img
-                                                            src={
-                                                                sortedAttendanceData.find(
-                                                                    (s) => s.studentFirebaseId === showViewDetails
-                                                                )!.gestureUrl || "/placeholder.svg"
-                                                            }
-                                                            alt="Gesture"
-                                                            className="h-10 w-10 md:h-12 md:w-12 object-cover rounded-md border border-blue-200"
-                                                        />
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleAttendanceChange(showViewDetails!, "gestureUrl", "")}
-                                                        >
-                                                            <X className="h-3 w-3 mr-1" /> Xóa
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                                <FileUpload
-                                                    onChange={(files) => {
-                                                        if (files.length > 0) {
-                                                            const fileUrl = URL.createObjectURL(files[0]);
-                                                            handleAttendanceChange(showViewDetails!, "gestureUrl", fileUrl);
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
+                            <>
+                                {/* Student Header */}
+                                <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center gap-4">
+                                    <div className="relative">
+                                        <img
+                                            src={
+                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount
+                                                    .avatarUrl || "/placeholder.svg?height=64&width=64"
+                                            }
+                                            alt="Student Avatar"
+                                            className="h-16 w-16 rounded-full border-2 border-white/70 object-cover shadow-md"
+                                        />
+                                        <Badge
+                                            className={`absolute -bottom-1 -right-1 ${
+                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
+                                                1
+                                                    ? "bg-emerald-400 hover:bg-emerald-500"
+                                                    : "bg-orange-400 hover:bg-orange-500"
+                                            }`}
+                                        >
+                                            {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
+                                            1 ? (
+                                                <Check className="h-3 w-3" />
+                                            ) : (
+                                                <X className="h-3 w-3" />
+                                            )}
+                                        </Badge>
                                     </div>
-
-                                    {/* Cột bên phải */}
-                                    <div className="space-y-3">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-700">Tư thế:</label>
-                                            <Textarea
-                                                value={
-                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                        .gestureComment || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleAttendanceChange(showViewDetails!, "gestureComment", e.target.value)
-                                                }
-                                                className="text-xs h-20 border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-700">Ngón tay:</label>
-                                            <Textarea
-                                                value={
-                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                        .fingerNoteComment || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleAttendanceChange(showViewDetails!, "fingerNoteComment", e.target.value)
-                                                }
-                                                className="text-xs h-20 border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-gray-700">Pedal:</label>
-                                            <Textarea
-                                                value={
-                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                        .pedalComment || ""
-                                                }
-                                                onChange={(e) =>
-                                                    handleAttendanceChange(showViewDetails!, "pedalComment", e.target.value)
-                                                }
-                                                className="text-xs h-20 border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
+                                    <div className="text-white">
+                                        <h3 className="font-bold text-lg">
+                                            {
+                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount
+                                                    .fullName
+                                            }
+                                        </h3>
+                                        <p className="text-sm text-blue-100">
+                                            {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.studentAccount.email}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Badge className="bg-white/20 text-white hover:bg-white/30">
+                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
+                                                1
+                                                    ? "Có mặt"
+                                                    : "Vắng mặt"}
+                                            </Badge>
+                                            {hasAdditionalData(
+                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
+                                            ) && (
+                                                <Badge className="bg-white/20 text-white hover:bg-white/30">
+                                                    <FileText className="w-3 h-3 mr-1" />
+                                                    {
+                                                        getDataIndicators(
+                                                            sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
+                                                        ).length
+                                                    }{" "}
+                                                    ghi chú
+                                                </Badge>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Nút Hủy và Xác nhận */}
-                                <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4">
+                                {/* Tabbed Interface */}
+                                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                    <div className="border-b border-gray-200">
+                                        <TabsList className="h-12 w-full rounded-none bg-white">
+                                            <TabsTrigger
+                                                value="attendance"
+                                                className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
+                                            >
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                Điểm danh
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="technique"
+                                                className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
+                                            >
+                                                <Music className="w-4 h-4 mr-2" />
+                                                Kỹ thuật
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="image"
+                                                className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
+                                            >
+                                                <ImageIcon className="w-4 h-4 mr-2" />
+                                                Hình ảnh
+                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls.length >
+                                                    0 && (
+                                                        <Badge className="ml-1 bg-blue-100 text-blue-700 hover:bg-blue-200">
+                                                            {
+                                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
+                                                                    .length
+                                                            }
+                                                        </Badge>
+                                                    )}
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </div>
+
+                                    <div className="p-5 max-h-[60vh] overflow-y-auto">
+                                        {/* Attendance Tab */}
+                                        <TabsContent value="attendance" className="mt-0">
+                                            <Card className="border-0 shadow-none">
+                                                <CardContent className="p-0 space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                            <FileText className="w-4 h-4 mr-2 text-blue-500" />
+                                                            Ghi chú điểm danh:
+                                                        </label>
+                                                        <div className="relative">
+                                                            <Textarea
+                                                                value={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceComment || ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleAttendanceChange(showViewDetails!, "attendanceComment", e.target.value)
+                                                                }
+                                                                placeholder="Nhập ghi chú về việc điểm danh..."
+                                                                className="text-sm min-h-[120px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
+                                                            />
+                                                            <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between mt-4 pt-2 border-t border-gray-100">
+                                                        <div className="flex items-center">
+                                                            <Badge
+                                                                className={`${
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceStatus === 1
+                                                                        ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                                                        : "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                                                                }`}
+                                                            >
+                                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                    .attendanceStatus === 1
+                                                                    ? "Có mặt"
+                                                                    : "Vắng mặt"}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                onClick={() => handleAttendanceChange(showViewDetails!, "attendanceStatus", 1)}
+                                                                variant={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceStatus === 1
+                                                                        ? "default"
+                                                                        : "outline"
+                                                                }
+                                                                size="sm"
+                                                                className={`${
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceStatus === 1
+                                                                        ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+                                                                        : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                                                }`}
+                                                            >
+                                                                <Check className="w-4 h-4 mr-1" /> Có mặt
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => handleAttendanceChange(showViewDetails!, "attendanceStatus", 2)}
+                                                                variant={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceStatus === 2
+                                                                        ? "default"
+                                                                        : "outline"
+                                                                }
+                                                                size="sm"
+                                                                className={`${
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .attendanceStatus === 2
+                                                                        ? "bg-orange-500 hover:bg-orange-600 text-white"
+                                                                        : "border-orange-200 text-orange-700 hover:bg-orange-50"
+                                                                }`}
+                                                            >
+                                                                <UserX className="w-4 h-4 mr-1" /> Vắng mặt
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+
+                                        {/* Technique Tab */}
+                                        <TabsContent value="technique" className="mt-0">
+                                            <Card className="border-0 shadow-none">
+                                                <CardContent className="p-0 space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                            <Music className="w-4 h-4 mr-2 text-blue-500" />
+                                                            Tư thế:
+                                                        </label>
+                                                        <div className="relative">
+                                                            {" "}
+                                                            <Textarea
+                                                                value={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .gestureComment || ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleAttendanceChange(showViewDetails!, "gestureComment", e.target.value)
+                                                                }
+                                                                placeholder="Nhập ghi chú về tư thế chơi đàn..."
+                                                                className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
+                                                            />
+                                                            <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                            <Music className="w-4 h-4 mr-2 text-blue-500" />
+                                                            Ngón tay:
+                                                        </label>
+                                                        <div className="relative">
+                                                            <Textarea
+                                                                value={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .fingerNoteComment || ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleAttendanceChange(showViewDetails!, "fingerNoteComment", e.target.value)
+                                                                }
+                                                                placeholder="Nhập ghi chú về kỹ thuật ngón tay..."
+                                                                className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
+                                                            />
+                                                            <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                            <Music className="w-4 h-4 mr-2 text-blue-500" />
+                                                            Pedal:
+                                                        </label>
+                                                        <div className="relative">
+                                                            <Textarea
+                                                                value={
+                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .pedalComment || ""
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleAttendanceChange(showViewDetails!, "pedalComment", e.target.value)
+                                                                }
+                                                                placeholder="Nhập ghi chú về kỹ thuật pedal..."
+                                                                className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
+                                                            />
+                                                            <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+
+                                        {/* Image Tab - Enhanced for multiple images */}
+                                        <TabsContent value="image" className="mt-0">
+                                            <Card className="border-0 shadow-none">
+                                                <CardContent className="p-0">
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-sm font-medium text-gray-700 flex items-center">
+                                                                <ImageIcon className="w-4 h-4 mr-2 text-blue-500" />
+                                                                Hình ảnh tư thế:
+                                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
+                                                                    .length > 0 && (
+                                                                    <Badge className="ml-2 bg-blue-100 text-blue-700">
+                                                                        {
+                                                                            sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                .gestureUrls.length
+                                                                        }{" "}
+                                                                        hình ảnh
+                                                                    </Badge>
+                                                                )}
+                                                            </label>
+                                                        </div>
+
+                                                        {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
+                                                            .length > 0 ? (
+                                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                                                {/* Image Gallery */}
+                                                                <div className="flex flex-col items-center">
+                                                                    <div className="relative mb-3 w-full">
+                                                                        <div className="relative aspect-video bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
+                                                                            <img
+                                                                                src={
+                                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                        .gestureUrls[currentImageIndex] || "/placeholder.svg"
+                                                                                }
+                                                                                alt={`Gesture ${currentImageIndex + 1}`}
+                                                                                className="max-h-[300px] max-w-full object-contain"
+                                                                            />
+
+                                                                            {/* Image navigation controls */}
+                                                                            {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                .gestureUrls.length > 1 && (
+                                                                                <>
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        size="icon"
+                                                                                        onClick={() =>
+                                                                                            setCurrentImageIndex((prev) =>
+                                                                                                prev === 0
+                                                                                                    ? sortedAttendanceData.find(
+                                                                                                    (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                )!.gestureUrls.length - 1
+                                                                                                    : prev - 1,
+                                                                                            )
+                                                                                        }
+                                                                                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                    >
+                                                                                        <ChevronLeft className="h-4 w-4" />
+                                                                                    </Button>
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        size="icon"
+                                                                                        onClick={() =>
+                                                                                            setCurrentImageIndex((prev) =>
+                                                                                                prev ===
+                                                                                                sortedAttendanceData.find(
+                                                                                                    (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                )!.gestureUrls.length -
+                                                                                                1
+                                                                                                    ? 0
+                                                                                                    : prev + 1,
+                                                                                            )
+                                                                                        }
+                                                                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                    >
+                                                                                        <ChevronRight className="h-4 w-4" />
+                                                                                    </Button>
+                                                                                </>
+                                                                            )}
+
+                                                                            {/* Delete button */}
+                                                                            <Button
+                                                                                variant="destructive"
+                                                                                size="sm"
+                                                                                onClick={() => handleRemoveImage(showViewDetails!, currentImageIndex)}
+                                                                                className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-600"
+                                                                            >
+                                                                                <Trash2 className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
+
+                                                                        {/* Image counter */}
+                                                                        {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                            .gestureUrls.length > 1 && (
+                                                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                                                                                {currentImageIndex + 1} /{" "}
+                                                                                {
+                                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                        .gestureUrls.length
+                                                                                }
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* Thumbnail navigation */}
+                                                                    {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                        .gestureUrls.length > 1 && (
+                                                                        <div className="flex flex-wrap gap-2 justify-center mt-2 mb-3">
+                                                                            {sortedAttendanceData
+                                                                                .find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                .gestureUrls.map((url, index) => (
+                                                                                    <button
+                                                                                        key={index}
+                                                                                        onClick={() => setCurrentImageIndex(index)}
+                                                                                        className={`w-12 h-12 rounded-md overflow-hidden border-2 ${
+                                                                                            currentImageIndex === index ? "border-blue-500" : "border-gray-200"
+                                                                                        }`}
+                                                                                    >
+                                                                                        <img
+                                                                                            src={url || "/placeholder.svg"}
+                                                                                            alt={`Thumbnail ${index + 1}`}
+                                                                                            className="w-full h-full object-cover"
+                                                                                        />
+                                                                                    </button>
+                                                                                ))}
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Add more images button */}
+                                                                    <div className="w-full mt-3">
+                                                                        <p className="text-sm text-gray-500 mb-2">Thêm hình ảnh mới:</p>
+                                                                        <FileUpload
+                                                                            onChange={(files) => {
+                                                                                if (files.length > 0) {
+                                                                                    const fileUrl = URL.createObjectURL(files[0])
+                                                                                    handleAddImage(showViewDetails!, fileUrl)
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="bg-gray-50 rounded-lg p-6 border border-dashed border-gray-200 flex flex-col items-center justify-center">
+                                                                <div className="text-center mb-4">
+                                                                    <ImageIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                                                                    <p className="text-sm text-gray-500">Chưa có hình ảnh tư thế</p>
+                                                                    <p className="text-xs text-gray-400 mt-1">Tải lên hình ảnh bên dưới</p>
+                                                                </div>
+
+                                                                <FileUpload
+                                                                    onChange={(files) => {
+                                                                        if (files.length > 0) {
+                                                                            const fileUrl = URL.createObjectURL(files[0])
+                                                                            handleAddImage(showViewDetails!, fileUrl)
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+                                    </div>
+                                </Tabs>
+
+                                {/* Footer with action buttons */}
+                                <div className="border-t border-gray-200 p-4 bg-gray-50 flex flex-col sm:flex-row gap-3 justify-end">
                                     <Button
                                         onClick={() => setShowViewDetails(null)}
                                         variant="outline"
-                                        className="w-full sm:w-auto border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 text-xs py-1"
+                                        className="w-full sm:w-auto border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
                                     >
-                                        Hủy
+                                        <X className="w-4 h-4 mr-2" />
+                                        Đóng
                                     </Button>
                                     <Button
                                         onClick={() => setShowViewDetails(null)}
-                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-xs py-1"
+                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
                                     >
-                                        Xác nhận
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Lưu thay đổi
                                     </Button>
                                 </div>
-                            </div>
+                            </>
                         )}
                     </DialogContent>
                 </Dialog>
@@ -506,7 +930,8 @@ const AttendancePage = () => {
                 </Dialog>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default AttendancePage;
+export default AttendancePage
+

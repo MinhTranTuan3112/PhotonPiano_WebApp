@@ -1,40 +1,36 @@
 import type React from "react"
-import { useEffect, useState } from "react"
-import { useLoaderData, useNavigate } from "@remix-run/react"
-import type { LoaderFunctionArgs } from "@remix-run/node"
-import { getWeekRange } from "~/lib/utils/datetime"
+import {useEffect, useState} from "react"
+import {useNavigate} from "@remix-run/react"
+import {getWeekRange} from "~/lib/utils/datetime"
 import {
     fetchAttendanceStatus,
     fetchBlankSlots,
-    fetchCancelSlot, fetchPublicNewSlot,
+    fetchCancelSlot,
+    fetchPublicNewSlot,
     fetchSlotById,
     fetchSlots
 } from "~/lib/services/scheduler"
-import { motion } from "framer-motion"
-import { Calendar, Music, Filter, ChevronLeft, ChevronRight } from "lucide-react"
-import { getWeek } from "date-fns"
+import {motion} from "framer-motion"
+import {Calendar, ChevronLeft, ChevronRight, Filter, Music} from "lucide-react"
 import {
+    AttendanceStatusText,
+    BlankSlotModel,
     Shift,
     type SlotDetail,
-    type StudentAttendanceModel,
     SlotStatus,
-    AttendanceStatusText,
     SlotStatusText,
-    BlankSlotModel,
+    type StudentAttendanceModel,
 } from "~/lib/types/Scheduler/slot"
-import { requireAuth } from "~/lib/utils/auth"
-import { fetchCurrentAccountInfo } from "~/lib/services/auth"
-import { PubSub, type IPubSubMessage } from "~/lib/services/pub-sub"
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { Card } from "~/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import { Badge } from "~/components/ui/badge"
-import { cn } from "~/lib/utils"
-import { Account, Role } from "~/lib/types/account/account"
-import { Class } from "~/lib/types/class/class"
+import {type IPubSubMessage, PubSub} from "~/lib/services/pub-sub"
+import {Button} from "~/components/ui/button";
+import {Checkbox} from "~/components/ui/checkbox";
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "~/components/ui/dialog"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "~/components/ui/select";
+import {Card} from "~/components/ui/card"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "~/components/ui/table"
+import {Badge} from "~/components/ui/badge"
+import {cn} from "~/lib/utils"
+import {Account, Role} from "~/lib/types/account/account"
 import {fetchSystemConfigSlotCancel} from "~/lib/services/system-config";
 
 const shiftTimesMap: Record<Shift, string> = {
@@ -295,7 +291,7 @@ export const Scheduler = ({
         fetchCancelReasons();
     }, [idToken]);
 
-    const handleReasonChange = (e) => {
+    const handleReasonChange = (e: { target: { value: never } }) => {
         const value = e.target.value;
         if (value === "Khác") {
             setIsOtherSelected(true);
@@ -387,81 +383,7 @@ export const Scheduler = ({
             setIsLoading(false);
         }
     };
-
-    // const handleCancelSlot = async () => {
-    //     if (!selectedSlotToCancel || !cancelReason.trim()) return;
-    //
-    //     try {
-    //         setIsLoading(true);
-    //         await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
-    //         console.log(`Slot ${selectedSlotToCancel.id} đã được hủy thành công`);
-    //
-    //         const updatedSlots = slots.map((slot) =>
-    //             slot.id === selectedSlotToCancel.id ? { ...slot, status: SlotStatus.Cancelled } : slot
-    //         );
-    //         setSlots(updatedSlots);
-    //
-    //         const startTime = formatDateForAPI(startDate);
-    //         const endTime = formatDateForAPI(endDate);
-    //         const blankSlotsResponse = await fetchBlankSlots(startTime, endTime, idToken);
-    //
-    //         if (blankSlotsResponse.data.length === 0) {
-    //             alert("Không có slot trống trong tuần này để thay thế. Vui lòng kiểm tra lại hoặc liên hệ quản lý.");
-    //             setCurrentStep("done"); // Allow closing if no blank slots
-    //             return;
-    //         }
-    //
-    //         setBlankSlots(blankSlotsResponse.data);
-    //         setCurrentStep("replace"); // Move to replacement step
-    //     } catch (error) {
-    //         console.error("Failed to cancel slot:", error);
-    //         alert("Có lỗi xảy ra khi hủy buổi học. Vui lòng thử lại.");
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-    //
-    // const handleReplaceSlot = async () => {
-    //     console.log("handleReplaceSlot called");
-    //
-    //     if (!selectedSlotToCancel || !selectedBlankSlot) {
-    //         console.log("Missing selectedSlotToCancel or selectedBlankSlot");
-    //         alert("Lỗi: Không có slot được chọn để thay thế. Vui lòng thử lại.");
-    //         return;
-    //     }
-    //
-    //     const roomId = selectedBlankSlot.roomId;
-    //     const classId = selectedSlotToCancel.class.id;
-    //
-    //     const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    //     if (!guidRegex.test(roomId) || !guidRegex.test(classId)) {
-    //         console.error("Invalid GUID format:", { roomId, classId });
-    //         alert("Lỗi: roomId hoặc classId không đúng định dạng GUID.");
-    //         return;
-    //     }
-    //
-    //     try {
-    //         setIsLoading(true);
-    //         const response = await fetchPublicNewSlot(
-    //             roomId,
-    //             selectedBlankSlot.date,
-    //             selectedBlankSlot.shift,
-    //             classId,
-    //             idToken
-    //         );
-    //
-    //         const newSlot = response.data;
-    //         setSlots((prevSlots) => [...prevSlots, newSlot]);
-    //         setCurrentStep("done"); // Mark process as complete
-    //         setIsCancelDialogOpen(false); // Close the dialog
-    //     } catch (error) {
-    //         console.error("Failed to public new slot:", error);
-    //         alert(`Có lỗi xảy ra khi tạo slot thay thế: ${error.message}`);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
+    
     const navigate = useNavigate();
 
     return (
@@ -764,7 +686,7 @@ export const Scheduler = ({
                                                     setIsCancelDialogOpen(true)
                                                 }}
                                                 disabled={
-                                                    !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
+                                                    !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled || selectedSlot.status === SlotStatus.Ongoing
                                                 }
                                                 className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                             >

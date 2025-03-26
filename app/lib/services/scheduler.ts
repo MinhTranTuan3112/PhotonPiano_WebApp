@@ -1,7 +1,6 @@
 import axiosInstance from "~/lib/utils/axios-instance";
-import {Shift, SlotDetail, SlotStatus} from "~/lib/types/Scheduler/slot";
+import {Shift, SlotStatus} from "~/lib/types/Scheduler/slot";
 import axios from "axios";
-import { isErrorResponse } from "@remix-run/react/dist/data";
 
 export type FetchSlotsParams = {
     startTime?: string;
@@ -76,7 +75,7 @@ export async function fetchSlotById(id: string, idToken: string) {
 
 
         return response;
-    } catch (error : any) {
+    } catch (error : never) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
@@ -97,7 +96,7 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
         });
 
         return response;
-    } catch (error: any) {
+    } catch (error: never) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
@@ -113,7 +112,7 @@ export async function fetchUpdateAttendanceStatus(
         StudentId: string;
         AttendanceComment: string | undefined;
         GestureComment: string | undefined;
-        GestureUrl: string | undefined;
+        GestureUrls: string[] | undefined;
         FingerNoteComment: string | undefined;
         PedalComment: string | undefined;
         AttendanceStatus: number; // 0: NotYet, 1: Attended, 2: Absent
