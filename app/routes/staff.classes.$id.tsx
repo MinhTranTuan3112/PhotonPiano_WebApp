@@ -516,7 +516,35 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
     return a.shift - b.shift; // Sorts shift in ascending order
   });
 
+  const updateDescriptionSchema = z.object({
+    description: z.string().optional(),
+    id: z.string(),
+    idToken: z.string(),
+    action: z.string()
+  });
+
+  type UpdateDescriptionSchema = z.infer<typeof updateDescriptionSchema>;
+  const resolver = zodResolver(updateDescriptionSchema)
+
   const fetcher = useFetcher<ActionResult>();
+  const updateFetcher = useFetcher<ActionResult>();
+
+  const {
+    handleSubmit,
+    formState: { errors },
+    control,
+    register
+  } = useRemixForm<UpdateDescriptionSchema>({
+    mode: "onSubmit",
+    resolver,
+    submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+    fetcher: updateFetcher,
+    defaultValues: {
+      action: "EDIT",
+      id: classInfo.id,
+      idToken: idToken
+    }
+  });
 
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
     title: 'Xác nhận xóa lịch lớp học',
@@ -525,9 +553,23 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       handleDelete();
     }
   })
+  const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
+    title: 'Xác nhận cập nhật mô tả lịch lớp học?',
+    description: 'Bạn có chắc chắn muốn cập nhật mô tả lịch lớp học không?',
+    onConfirm: () => {
+      handleSubmit();
+    }
+  })
 
   const { loadingDialog } = useLoadingDialog({
     fetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const { loadingDialog: loadingEditDialog } = useLoadingDialog({
+    fetcher: updateFetcher,
     action: () => {
       setSearchParams([...searchParams])
     }
@@ -584,6 +626,15 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           Tổng số buổi học :
           <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
         </div>
+        <Form onSubmit={handleOpenEditModal}>
+          <div className='my-4 flex gap-2'>
+            <Input {...register("description")} placeholder="Nhập mô tả lịch học..."
+              className='flex-grow' 
+              defaultValue={classInfo.scheduleDescription}/>
+            <Button>Cập nhật</Button>
+          </div>
+        </Form>
+
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
           {
             classInfo.slots.map((s, index) => (
@@ -608,6 +659,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
         {confirmDeleteDialog}
         {loadingDialog}
+        {confirmEditDialog}
+        {loadingEditDialog}
       </CardContent>
     </Card>
   )

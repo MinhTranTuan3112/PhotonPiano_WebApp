@@ -54,6 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
             const instructorId = formEntryToString(formData.get("instructorId"));
             const name = formEntryToString(formData.get("name"));
             const id = formEntryToString(formData.get("id"));
+            const description = formEntryToString(formData.get("description"));
             const token = formEntryToString(formData.get("idToken"));
             if (!id) {
                 return {
@@ -75,7 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
                 level : level,
                 instructorId : instructorId,
                 name : name,
-                idToken: token
+                idToken: token,
+                scheduleDescription : description
             }
             await fetchUpdateClass(body);
 

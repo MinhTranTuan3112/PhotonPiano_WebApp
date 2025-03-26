@@ -9,6 +9,7 @@ export type Class = {
     instructor? : Account,
     instructorId? : string,
     instructorName? : string,
+    scheduleDescription? : string,
     studentNumber : number,
     level : Level,
     levelId: string,

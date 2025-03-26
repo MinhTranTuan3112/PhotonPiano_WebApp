@@ -15,7 +15,7 @@ import { Toggle } from '~/components/ui/toggle';
 import { fetchSystemConfigs } from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_SKIPPING_LEVEL, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_STUDENTS } from '~/lib/utils/config-name';
+import { ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_STUDENTS } from '~/lib/utils/config-name';
 
 type Props = {}
 
@@ -45,6 +45,7 @@ const settingsSchema = z.object({
 const classSettingsSchema = z.object({
     maxStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
     minStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
+    deadlineChangingClass: z.coerce.number().min(0, { message: 'Giá trị không âm' }),
     allowSkippingLevel: z.boolean().default(false),
 });
 
@@ -147,6 +148,20 @@ export default function AdminSettingsPage({ }: Props) {
                                                 )}
                                             />
                                             {classErrors.allowSkippingLevel && <p className='text-red-500'>{classErrors.allowSkippingLevel.message}</p>}
+                                        </div>
+                                        <div className="flex flex-row mb-4 gap-2">
+                                            <Label className='flex items-center'>Hạn chót đổi lớp </Label>
+                                            <div>
+                                                <Input {...classRegister('deadlineChangingClass')}
+                                                    defaultValue={configs.find(c => c.configName === DEADLINE_CHANGING_CLASS)?.configValue}
+                                                    placeholder='Nhập giá trị...'
+                                                    type='number'
+                                                    className='w-24' />
+                                                {classErrors.deadlineChangingClass && <p className='text-red-500'>{classErrors.deadlineChangingClass.message}</p>}
+                                            </div>
+
+                                            <Label className='w-1/2 lg:w-1/4 flex items-center'> ngày trước khi lớp bắt đầu học</Label>
+
                                         </div>
                                     </div>
 
