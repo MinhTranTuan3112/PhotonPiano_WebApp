@@ -47,6 +47,10 @@ const data = {
                     url: "/staff/students",
                 },
                 {
+                    title: "Danh sách giảng viên",
+                    url: "/staff/teachers",
+                },
+                {
                     title: "Danh sách lớp",
                     url: "/staff/classes",
                 },

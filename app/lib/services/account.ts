@@ -4,7 +4,7 @@ import axiosInstance from "../utils/axios-instance";
 
 export async function fetchAccounts({
     page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
-    levels = [], roles = [], studentStatuses = [], q,
+    levels = [], roles = [], studentStatuses = [], q, accountStatus = [],
     idToken
 }:
     Partial<QueryPagedRequest & {
@@ -12,6 +12,7 @@ export async function fetchAccounts({
         roles: Role[];
         q?: string;
         studentStatuses: StudentStatus[];
+        accountStatus : number[];
     }> & {
         idToken: string
     }
@@ -38,6 +39,12 @@ export async function fetchAccounts({
     if (studentStatuses.length > 0) {
         studentStatuses.forEach(status => {
             url += `&student-statuses=${status}`;
+        })
+    }
+
+    if (accountStatus.length > 0) {
+        accountStatus.forEach(status => {
+            url += `&statuses=${status}`;
         })
     }
 
@@ -72,6 +79,19 @@ export async function fetchWaitingStudentsOfAllLevel({idToken} : {idToken : stri
     const response = await axiosInstance.get("/accounts/class-waiting", {
         headers: {
             Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchTeachDetail(id : string, idToken : string) {
+
+    let url = `/accounts/${id}/teacher`;
+
+    const response = await axiosInstance.get(url, {
+        headers : {
+            Authorization : `Bearer ${idToken}`
         }
     });
 

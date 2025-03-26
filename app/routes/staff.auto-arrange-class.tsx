@@ -368,7 +368,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                                                 <tr key={c.id} className="border hover:bg-gray-100 transition">
                                                                     <td className="py-2 px-4 border">{c.name}</td>
                                                                     <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
-                                                                    <td className="py-2 px-4 border">{c.startDate ? new Date(c.startDate).toLocaleDateString() : ""}</td>
+                                                                    <td className="py-2 px-4 border">{c.startTime ? new Date(c.startTime).toLocaleDateString() : ""}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>

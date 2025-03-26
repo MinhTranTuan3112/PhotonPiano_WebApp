@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
@@ -317,7 +317,11 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
 
                     </div>
                   ) : (
-                    <p className="text-gray-900">{classInfo.instructor ? (classInfo.instructor.fullName || classInfo.instructor.userName) : "Chưa có"}</p>
+                    classInfo.instructor ? (
+                      <Link className="font-bold underline text-blue-400" to={`/staff/teachers/${classInfo.instructorId}`}>{(classInfo.instructor.fullName || classInfo.instructor.userName)}</Link>
+                    ) : (
+                      <p className="text-gray-900">Chưa có</p>
+                    )
                   )
                 }
 

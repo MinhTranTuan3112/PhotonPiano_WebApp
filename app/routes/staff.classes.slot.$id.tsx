@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
+import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
 import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
@@ -356,7 +356,16 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
             <h3 className="text-xl font-semibold text-gray-700 mb-3">Thông tin lớp</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <DetailItem label="Tên lớp" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Chưa có lớp'}</p>} />
-                <DetailItem label="Giảng viên" value={<p className="text-lg font-medium text-gray-800">{slot.class?.instructor?.fullName || 'Chưa có giảng viên'}</p>} />
+
+                <DetailItem label="Giảng viên" value={
+                    slot.class?.instructor ? (
+                        <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
+                            {slot.class?.instructor?.fullName || slot.class?.instructor?.userName}
+                        </Link>
+                    ) : (
+                        <p className="text-lg font-medium text-gray-800">Chưa có giảng viên</p>
+                    )
+                } />
                 <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
                 <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
             </div>

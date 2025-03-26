@@ -1,3 +1,5 @@
+import { Class } from "../class/class";
+import { EntranceTest } from "../entrance-test/entrance-test";
 
 export type Account = {
     accountFirebaseId: string;
@@ -19,6 +21,11 @@ export type Account = {
     studentStatus?: StudentStatus;
     role: Role;
 };
+
+export type TeacherDetail = {
+    instructorEntranceTests : EntranceTest[],
+    instructorClasses : Class[]
+} & Account
 
 export type AwaitingLevelCount = {
     level? : Level,
