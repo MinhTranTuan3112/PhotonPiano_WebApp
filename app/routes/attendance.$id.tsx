@@ -34,6 +34,36 @@ interface ExtendedSlotStudentModel extends SlotStudentModel {
     gestureUrls: string[]
 }
 
+// Function to validate if URL is a valid image URL
+const validateImageUrl = (url: string): boolean => {
+    // Check if it's a valid URL format
+    try {
+        new URL(url);
+    } catch {
+        return false;
+    }
+
+    // Check if URL has image extension or is a common image hosting URL
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    const hasImageExtension = imageExtensions.some(ext => url.toLowerCase().endsWith(ext));
+
+    // Check for common image hosting services
+    const isImageHosting = [
+        'imgur.com',
+        'i.imgur.com',
+        'flickr.com',
+        'unsplash.com',
+        'googleusercontent.com',
+        'cloudinary.com',
+        'drive.google.com/file',
+        'storage.googleapis.com',
+        's3.amazonaws.com',
+        'blob:'
+    ].some(host => url.includes(host));
+
+    return hasImageExtension || isImageHosting || url.includes('data:image/');
+};
+
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
         const { idToken } = await requireAuth(request);
@@ -694,8 +724,8 @@ const AttendancePage = () => {
                                                 </CardContent>
                                             </Card>
                                         </TabsContent>
-
-                                        {/* Image Tab - Enhanced for multiple images */}
+                                        
+                                        {/* Image Tab - Enhanced for allowing URL pasting for all students */}
                                         <TabsContent value="image" className="mt-0">
                                             <Card className="border-0 shadow-none">
                                                 <CardContent className="p-0">
@@ -821,19 +851,6 @@ const AttendancePage = () => {
                                                                                 ))}
                                                                         </div>
                                                                     )}
-
-                                                                    {/* Add more images button */}
-                                                                    <div className="w-full mt-3">
-                                                                        <p className="text-sm text-gray-500 mb-2">Thêm hình ảnh mới:</p>
-                                                                        <FileUpload
-                                                                            onChange={(files) => {
-                                                                                if (files.length > 0) {
-                                                                                    const fileUrl = URL.createObjectURL(files[0])
-                                                                                    handleAddImage(showViewDetails!, fileUrl)
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ) : (
@@ -841,7 +858,7 @@ const AttendancePage = () => {
                                                                 <div className="text-center mb-4">
                                                                     <ImageIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                                                                     <p className="text-sm text-gray-500">Chưa có hình ảnh tư thế</p>
-                                                                    <p className="text-xs text-gray-400 mt-1">Tải lên hình ảnh bên dưới</p>
+                                                                    <p className="text-xs text-gray-400 mt-1">Tải lên hình ảnh hoặc nhập URL bên dưới</p>
                                                                 </div>
 
                                                                 <FileUpload
@@ -854,6 +871,68 @@ const AttendancePage = () => {
                                                                 />
                                                             </div>
                                                         )}
+
+                                                        {/* Add more images section - Always show for all students */}
+                                                        <div className="w-full mt-3">
+                                                            <p className="text-sm text-gray-500 mb-2">
+                                                                {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls.length > 0
+                                                                    ? "Thêm hình ảnh mới:"
+                                                                    : "Hoặc nhập URL hình ảnh:"}
+                                                            </p>
+
+                                                            {/* URL input option with validation */}
+                                                            <div className="mt-2">
+                                                                <div className="flex flex-col gap-2">
+                                                                    <div className="flex gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            id="imageUrlInput"
+                                                                            placeholder="https://example.com/image.jpg"
+                                                                            className="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                            onKeyDown={(e) => {
+                                                                                if (e.key === 'Enter') {
+                                                                                    const target = e.target as HTMLInputElement;
+                                                                                    if (target.value.trim()) {
+                                                                                        // Validate URL before adding
+                                                                                        const isValid = validateImageUrl(target.value.trim());
+                                                                                        if (isValid) {
+                                                                                            handleAddImage(showViewDetails!, target.value.trim());
+                                                                                            target.value = '';
+                                                                                            document.getElementById('urlError')?.classList.add('hidden');
+                                                                                        } else {
+                                                                                            document.getElementById('urlError')?.classList.remove('hidden');
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <Button
+                                                                            onClick={() => {
+                                                                                const input = document.getElementById('imageUrlInput') as HTMLInputElement;
+                                                                                if (input.value.trim()) {
+                                                                                    // Validate URL before adding
+                                                                                    const isValid = validateImageUrl(input.value.trim());
+                                                                                    if (isValid) {
+                                                                                        handleAddImage(showViewDetails!, input.value.trim());
+                                                                                        input.value = '';
+                                                                                        document.getElementById('urlError')?.classList.add('hidden');
+                                                                                    } else {
+                                                                                        document.getElementById('urlError')?.classList.remove('hidden');
+                                                                                    }
+                                                                                }
+                                                                            }}
+                                                                            className="bg-blue-500 hover:bg-blue-600 text-white"
+                                                                            size="sm"
+                                                                        >
+                                                                            Thêm
+                                                                        </Button>
+                                                                    </div>
+                                                                    <p id="urlError" className="text-xs text-red-500 mt-1 hidden">
+                                                                        URL không hợp lệ. Đảm bảo URL có định dạng hình ảnh (jpg, jpeg, png, gif, webp).
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </CardContent>
                                             </Card>
