@@ -1,5 +1,5 @@
 import { QueryPagedRequest } from "../types/query/query-paged-request";
-import { CreateSurveyRequest, UpdateSurveyRequest } from "../types/survey/survey";
+import { CreateSurveyRequest, SendEntranceSurveyAnswers as SendEntranceSurveyAnswersRequest, UpdateSurveyRequest } from "../types/survey/survey";
 import axiosInstance from "../utils/axios-instance";
 
 export async function fetchSurveys({
@@ -61,12 +61,25 @@ export async function fetchUpdateSurvey({
     id: string;
     idToken: string;
 } & UpdateSurveyRequest) {
-    
+
     const response = await axiosInstance.put(`/piano-surveys/${id}`, { ...data }, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }
     });
+
+    return response;
+}
+
+export async function fetchEntranceSurvey() {
+
+    const response = await axiosInstance.get('/piano-surveys/entrance-survey');
+
+    return response;
+}
+
+export async function fetchSendEntranceSurveyAnswers({ ...data }: SendEntranceSurveyAnswersRequest) {
+    const response = await axiosInstance.post('/piano-surveys/entrance-survey/answers', { ...data });
 
     return response;
 }

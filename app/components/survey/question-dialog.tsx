@@ -86,15 +86,13 @@ export default function QuestionDialog({
         },
         defaultValues: {
             ...defaultData,
-            hasAgeConstraint: defaultData.hasAgeConstraint ? defaultData.hasAgeConstraint : false,
+            hasAgeConstraint: defaultData.minAge || defaultData.maxAge ? true : false,
             questionAction: isEditing ? 'update' : 'create',
             type: defaultData?.type || QuestionType.MultipleChoice,
-            allowOtherAnswer: false,
+            allowOtherAnswer: defaultData?.allowOtherAnswer || false,
             isRequired: true,
         }
     });
-
-    const type = getFormValues().type;
 
     const options = watch('options');
 
@@ -130,12 +128,12 @@ export default function QuestionDialog({
             setIsOpen(false);
             reset();
             setNewOption('');
-            toast.success('Thêm thành công!', {
+            toast.success(!isEditing ? 'Thêm thành công!' : 'Cập nhật thành công!', {
                 position: 'top-center',
                 duration: 1250
             });
         },
-        confirmText: isEditing ? 'Cập nhật' : 'Thêm'    
+        confirmText: isEditing ? 'Cập nhật' : 'Thêm'
     });
 
     return (
@@ -146,9 +144,10 @@ export default function QuestionDialog({
             }}>
                 <DialogContent className="">
                     <DialogHeader>
-                        <DialogTitle>Thêm câu hỏi mới</DialogTitle>
+                        <DialogTitle>{isEditing ? 'Cập nhật câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
                         <DialogDescription>
-                            Câu hỏi được tạo sẽ tự động được thêm vào ngân hàng câu hỏi.
+                            {!requiresUpload ? 'Câu hỏi được tạo sẽ tự động được thêm vào ngân hàng câu hỏi.'
+                                : isEditing ? 'Cập nhật thông tin câu hỏi.' : 'Thêm câu hỏi khảo sát mới.'}
                         </DialogDescription>
                     </DialogHeader>
                     <Form method='POST' onSubmit={(e) => {
@@ -193,7 +192,11 @@ export default function QuestionDialog({
                             <div className="flex flex-col gap-2 mb-2">
                                 {options?.map((option, index) => (
                                     <div key={index} className="flex items-center space-x-2">
-                                        <Input value={option} readOnly />
+                                        <Input value={option} onChange={(e) => {
+                                            const newOptions = options || [];
+                                            newOptions[index] = e.target.value;
+                                            setFormValue('options', newOptions);
+                                        }} />
                                         <Button type='button' variant={'outline'} size={'icon'} onClick={() => removeOption(index)}>
                                             <Trash2 className='text-red-600' />
                                         </Button>
@@ -302,7 +305,7 @@ export default function QuestionDialog({
 
                                 // Then continue with your existing logic
                             }}>
-                                {!requiresUpload ? 'Hoàn tất' : isEditing ? 'Cập nhật' : 'Thêm'}
+                                {!requiresUpload ? 'Hoàn tất' : isEditing ? 'Lưu' : 'Thêm'}
                             </Button>
                         </DialogFooter>
                     </Form>

@@ -57,6 +57,10 @@ const data = {
                 {
                     title: 'Quản lý khảo sát',
                     url: '/staff/surveys'
+                },
+                {
+                    title: 'Quản lý câu hỏi khảo sát',
+                    url: '/staff/survey-questions'
                 }
             ],
         }

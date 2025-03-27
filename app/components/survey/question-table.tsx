@@ -1,15 +1,16 @@
-import { useFetcher, useNavigate } from "@remix-run/react";
+import { useFetcher } from "@remix-run/react";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { QuestionType, SurveyQuestion } from "~/lib/types/survey-question/survey-question";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { CircleX, Eye, MoreHorizontal } from "lucide-react";
+import { Check, CircleX, MoreHorizontal, PencilLine } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { QUESTION_TYPES } from "~/lib/utils/constants";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { action } from "~/routes/delete-question";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useQuestionDialog } from "~/hooks/use-question-dialog";
 
 
 function QuestionTypeBadge({ type }: { type: QuestionType }) {
@@ -46,9 +47,20 @@ export const columns: ColumnDef<SurveyQuestion>[] = [
     },
     {
         accessorKey: 'Cho phép câu trả lời khác',
-        header: 'Cho phép câu trả lời khác',
+        header: (header) => {
+            return <div className="max-w-10">Cho phép câu trả lời khác</div>
+        },
         cell: ({ row }) => {
-            return <div className="">{row.original.allowOtherAnswer ? 'Có' : 'Không'}</div>
+            return <div className="">{row.original.allowOtherAnswer ? <Check className="text-green-600" /> : <CircleX className="text-red-600" />}</div>
+        }
+    },
+    {
+        accessorKey: 'Giới hạn độ tuổi',
+        header: 'Giới hạn độ tuổi',
+        cell: ({ row }) => {
+            return <div className="">
+                {row.original.minAge ? `Từ ${row.original.minAge} tuổi` : ''} {row.original.maxAge ? ` đến ${row.original.maxAge} tuổi` : '(Không)'}
+            </div>
         }
     },
     {
@@ -65,8 +77,6 @@ function ActionDropdown({ row }: {
     row: Row<SurveyQuestion>
 }) {
 
-    const navigate = useNavigate();
-
     const fetcher = useFetcher<typeof action>();
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
@@ -82,6 +92,16 @@ function ActionDropdown({ row }: {
         },
         confirmButtonClassname: 'bg-red-600 text-white',
         confirmText: 'Xóa'
+    });
+
+    const { isOpen: isQuestionDialogOpen, handleOpen: handleOpenQuestionDialog, questionDialog } = useQuestionDialog({
+        onQuestionCreated: (questionData) => {
+            console.log({ questionData });
+        },
+        requiresUpload: true,
+        requiresAgeInputs: true,
+        isEditing: true,
+        ...row.original
     });
 
     useEffect(() => {
@@ -115,10 +135,10 @@ function ActionDropdown({ row }: {
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                    navigate(`/staff/surveys-question/${row.original.id}`)
+                    handleOpenQuestionDialog();
                 }}>
-                    <Eye />
-                    Xem
+                    <PencilLine />
+                    Sửa
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleOpenConfirmDialog}>
                     <CircleX />
@@ -127,5 +147,6 @@ function ActionDropdown({ row }: {
             </DropdownMenuContent>
         </DropdownMenu>
         {confirmDialog}
+        {questionDialog}
     </>
 }

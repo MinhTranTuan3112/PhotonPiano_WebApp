@@ -1,3 +1,4 @@
+import { Account } from "../account/account";
 import { SurveyQuestion } from "../survey-question/survey-question";
 
 export type Survey = {
@@ -54,6 +55,14 @@ type UpdateQuestionInSurveyRequest = Omit<SurveyQuestion, 'minAge' | 'maxAge' | 
 export type CreateSurveyRequest = Pick<Survey, 'name' | 'description' | 'minAge' | 'maxAge'> & {
     questions: CreateQuestionInSurveyRequest[];
 };
+
+export type SendEntranceSurveyAnswers = {
+    password: string;
+    surveyAnswers: {
+        surveyQuestionId: string;
+        answers: string[];
+    }[]
+} & Pick<Account, 'fullName' | 'phone' | 'email'>
 
 export type UpdateSurveyRequest = Partial<Pick<Survey, 'name' | 'description' | 'minAge' | 'maxAge'> & {
     isEntranceSurvey: boolean

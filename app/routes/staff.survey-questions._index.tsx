@@ -12,7 +12,7 @@ import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
 import { Skeleton } from '~/components/ui/skeleton';
 import { useQuestionDialog } from '~/hooks/use-question-dialog';
-import { fetchCreateQuestion, fetchSurveyQuestions } from '~/lib/services/survey-question';
+import { fetchCreateQuestion, fetchSurveyQuestions, fetchUpdateQuestion } from '~/lib/services/survey-question';
 import { Role } from '~/lib/types/account/account';
 import { SurveyQuestion } from '~/lib/types/survey-question/survey-question';
 import { requireAuth } from '~/lib/utils/auth';
@@ -122,8 +122,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
             case 'update':
 
+                const updateRequest = {
+                    ...data,
+                    minAge: data.hasAgeConstraint ? data.minAge : undefined,
+                    maxAge: data.hasAgeConstraint ? data.maxAge : undefined,
+                    options: data.options || [],
+                    allowOtherAnswer: data.allowOtherAnswer || true,
+                    idToken
+                }
+
+                const updateResponse = await fetchUpdateQuestion({ ...updateRequest });
+
                 return {
-                    success: true,
+                    success: updateResponse.status === 204,
                     action: 'update'
                 }
             default:
