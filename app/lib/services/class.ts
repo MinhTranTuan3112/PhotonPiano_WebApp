@@ -105,10 +105,11 @@ export async function fetchCreateClass({ level, idToken }: {
 
     return response;
 }
-export async function fetchUpdateClass({ id, level, name, instructorId, idToken }: {
+export async function fetchUpdateClass({ id, level, name, instructorId, scheduleDescription, idToken }: {
     id : string,
     name? : string,
     instructorId? : string,
+    scheduleDescription? : string,
     level? : string,
     idToken: string
 }) {
@@ -117,6 +118,7 @@ export async function fetchUpdateClass({ id, level, name, instructorId, idToken 
         id : id,
         name : name,
         instructorId : instructorId,
+        scheduleDescription : scheduleDescription
     }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -181,6 +183,18 @@ export async function fetchClearScheduleClass({id, idToken }: {
     idToken: string
 }) {
     const response = await axiosInstance.delete(`/classes/${id}/schedule`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+export async function fetchPublishAClass({id, idToken }: {
+    id : string
+    idToken: string
+}) {
+    const response = await axiosInstance.patch(`/classes/${id}/publishing`, {}, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }

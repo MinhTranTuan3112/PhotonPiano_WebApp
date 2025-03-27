@@ -62,8 +62,9 @@ export function NavMain({
                             </SidebarMenuItem>
                         </Collapsible>
                     ) : <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                            <a href={item.url}>
+                        <SidebarMenuButton asChild >
+                            <a href={item.url}
+                                className={`hover:bg-theme hover:text-theme-foreground ${pathname.startsWith(item.url) ? 'bg-theme text-white' : '' }`}>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                             </a>

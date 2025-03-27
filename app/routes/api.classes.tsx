@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDeleteClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
+import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDeleteClass, fetchPublishAClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from "~/lib/utils/form";
 
@@ -54,6 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
             const instructorId = formEntryToString(formData.get("instructorId"));
             const name = formEntryToString(formData.get("name"));
             const id = formEntryToString(formData.get("id"));
+            const description = formEntryToString(formData.get("description"));
             const token = formEntryToString(formData.get("idToken"));
             if (!id) {
                 return {
@@ -75,7 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
                 level : level,
                 instructorId : instructorId,
                 name : name,
-                idToken: token
+                idToken: token,
+                scheduleDescription : description
             }
             await fetchUpdateClass(body);
 
@@ -164,8 +166,31 @@ export async function action({ request }: ActionFunctionArgs) {
             return {
                 success: true
             }
-        }
-        else {
+        } else if (action === "PUBLISH"){
+            const id = formEntryToString(formData.get("id"));
+            const token = formEntryToString(formData.get("idToken"));
+
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Không xác định lớp học.',
+                    status: 400
+                }
+            }
+            if (!token) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
+            }
+
+            await fetchPublishAClass({id,idToken : token});
+
+            return {
+                success: true
+            }
+        } else {
             return {
                 success: false,
                 error: "Action not found",

@@ -1,5 +1,5 @@
 import axiosInstance from "~/lib/utils/axios-instance";
-import {Shift, SlotDetail, SlotStatus} from "~/lib/types/Scheduler/slot";
+import {Shift, SlotStatus} from "~/lib/types/Scheduler/slot";
 import axios from "axios";
 
 export type FetchSlotsParams = {
@@ -53,7 +53,6 @@ export async function fetchSlots({
             },
         })
 
-
         return response;
     } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
@@ -76,7 +75,7 @@ export async function fetchSlotById(id: string, idToken: string) {
 
 
         return response;
-    } catch (error : any) {
+    } catch (error : never) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
@@ -97,7 +96,7 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
         });
 
         return response;
-    } catch (error: any) {
+    } catch (error: never) {
         if (error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
@@ -113,7 +112,7 @@ export async function fetchUpdateAttendanceStatus(
         StudentId: string;
         AttendanceComment: string | undefined;
         GestureComment: string | undefined;
-        GestureUrl: string | undefined;
+        GestureUrls: string[] | undefined;
         FingerNoteComment: string | undefined;
         PedalComment: string | undefined;
         AttendanceStatus: number; // 0: NotYet, 1: Attended, 2: Absent
@@ -234,9 +233,6 @@ export async function fetchPublicNewSlot(
         return response;
     } catch (error) {
         console.error("fetchPublicNewSlot error:", error);
-        if (error.code === "ECONNABORTED") {
-            throw new Error("Request timed out. The server took too long to respond.");
-        }
         throw error;
     }
 }
@@ -263,11 +259,12 @@ export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }:
     return response;
 }
 
-export async function fetchUpdateSlot({ id, shift, date, roomId, idToken }: {
+export async function fetchUpdateSlot({ id, shift, date, roomId, reason, idToken }: {
     id : string,
     shift? : number,
     date? : string,
     roomId? : string,
+    reason? : string,
     idToken : string
 }) {
     const response = await axiosInstance.put(`/scheduler`, {
@@ -275,6 +272,7 @@ export async function fetchUpdateSlot({ id, shift, date, roomId, idToken }: {
         shift : shift,
         date : date,
         roomId : roomId,
+        reason : reason
     },{
         headers: {
             Authorization: `Bearer ${idToken}`,

@@ -21,3 +21,13 @@ export async function fetchSystemConfigByName({ name, idToken } : {name : string
     
     return response;
 }
+
+export async function fetchSystemConfigSlotCancel({idToken} : {idToken : string}){
+    const response = await axiosInstance.get("/system-configs/cancel-slot-reason", {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+    
+    return response;
+}

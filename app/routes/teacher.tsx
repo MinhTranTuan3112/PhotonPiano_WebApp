@@ -170,6 +170,10 @@ const data = {
             isActive: true,
             items: [
                 {
+                    title: "Lịch dạy của tôi",
+                    url: "/teacher/scheduler",
+                },
+                {
                     title: "Quản lý thi đầu vào",
                     url: "/teacher/entrance-tests",
                 },

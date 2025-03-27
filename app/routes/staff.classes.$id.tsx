@@ -104,7 +104,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise
+    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise, classId: params.id
   }
 }
 const getSlotCover = (status: number) => {
@@ -488,7 +488,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
               <Await resolve={configPromise}>
                 {(data) => (
                   <AddStudentClassDialog isOpen={isOpenAddStudentDialog} setIsOpen={onOpenChange} studentPromise={studentPromise}
-                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"}/>
+                    classInfo={classInfo} idToken={idToken} allowSkipLevel={data.config.configValue === "true"} />
                 )}
               </Await>
             </Suspense>
@@ -516,7 +516,35 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
     return a.shift - b.shift; // Sorts shift in ascending order
   });
 
+  const updateDescriptionSchema = z.object({
+    description: z.string().optional(),
+    id: z.string(),
+    idToken: z.string(),
+    action: z.string()
+  });
+
+  type UpdateDescriptionSchema = z.infer<typeof updateDescriptionSchema>;
+  const resolver = zodResolver(updateDescriptionSchema)
+
   const fetcher = useFetcher<ActionResult>();
+  const updateFetcher = useFetcher<ActionResult>();
+
+  const {
+    handleSubmit,
+    formState: { errors },
+    control,
+    register
+  } = useRemixForm<UpdateDescriptionSchema>({
+    mode: "onSubmit",
+    resolver,
+    submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+    fetcher: updateFetcher,
+    defaultValues: {
+      action: "EDIT",
+      id: classInfo.id,
+      idToken: idToken
+    }
+  });
 
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
     title: 'Xác nhận xóa lịch lớp học',
@@ -525,9 +553,23 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       handleDelete();
     }
   })
+  const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
+    title: 'Xác nhận cập nhật mô tả lịch lớp học?',
+    description: 'Bạn có chắc chắn muốn cập nhật mô tả lịch lớp học không?',
+    onConfirm: () => {
+      handleSubmit();
+    }
+  })
 
   const { loadingDialog } = useLoadingDialog({
     fetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const { loadingDialog: loadingEditDialog } = useLoadingDialog({
+    fetcher: updateFetcher,
     action: () => {
       setSearchParams([...searchParams])
     }
@@ -577,13 +619,22 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
               )
             }
           </div>
-          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate('/scheduler')}>Xem dạng lịch</Button>
+          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>Xem dạng lịch</Button>
         </div>
 
         <div className='text-center text-xl mt-4'>
           Tổng số buổi học :
           <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
         </div>
+        <Form onSubmit={handleOpenEditModal}>
+          <div className='my-4 flex gap-2'>
+            <Input {...register("description")} placeholder="Nhập mô tả lịch học..."
+              className='flex-grow' 
+              defaultValue={classInfo.scheduleDescription}/>
+            <Button>Cập nhật</Button>
+          </div>
+        </Form>
+
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
           {
             classInfo.slots.map((s, index) => (
@@ -608,6 +659,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
         {confirmDeleteDialog}
         {loadingDialog}
+        {confirmEditDialog}
+        {loadingEditDialog}
       </CardContent>
     </Card>
   )
@@ -616,9 +669,35 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId } = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const publishFetcher = useFetcher<ActionResult>();
+
+  const { open: handleOpenPublishModal, dialog: confirmPublishDialog } = useConfirmationDialog({
+    title: 'Xác nhận công bố lớp học',
+    description: 'Bạn có chắc chắn muốn công bố lớp học này không? Hành động này không thể hoàn tác!',
+    onConfirm: () => {
+      handlePublish();
+    }
+  })
+  const { loadingDialog } = useLoadingDialog({
+    fetcher: publishFetcher,
+    action: () => {
+      setSearchParams([...searchParams])
+    }
+  })
+
+  const handlePublish = () => {
+    publishFetcher.submit({
+      action: "PUBLISH",
+      id: classId,
+      idToken: idToken
+    }, {
+      action: "/api/classes",
+      method: "PATCH"
+    })
+  }
   return (
     <div className='px-8'>
       <h3 className="text-lg font-medium">Thông tin chi tiết lớp</h3>
@@ -639,7 +718,7 @@ export default function StaffClassDetailPage({ }: Props) {
                           Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
                         </div>
                       </div>
-                      <Button>CÔNG BỐ LỚP</Button>
+                      <Button onClick={handleOpenPublishModal}>CÔNG BỐ LỚP</Button>
                     </div>
                   )
                 }
@@ -693,7 +772,8 @@ export default function StaffClassDetailPage({ }: Props) {
         </Await>
 
       </Suspense>
-
+      {loadingDialog}
+      {confirmPublishDialog}
     </div >
   )
 }

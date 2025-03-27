@@ -19,6 +19,7 @@ import { ActionResult } from '~/lib/types/action-result';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { Level } from '~/lib/types/account/account';
+import { addDays } from 'date-fns';
 
 
 type Props = {
@@ -54,6 +55,9 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
             .date()
             .refine((date: Date) => date.getDay() === 1, {
                 message: "Ngày được chọn phải là Thứ Hai",
+            })
+            .refine((date: Date) => date > addDays(new Date(), -1), {
+                message: "Tuần bắt đầu phải sau hôm nay"
             }),
         dayOfWeeks: z.array(z.string()).min(slotsPerWeek, { message: `Phải chọn ${slotsPerWeek} ngày trong tuần` }),
         id: z.string(),

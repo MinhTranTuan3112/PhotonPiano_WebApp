@@ -13,11 +13,9 @@ export const formEntryToDateOnly = (formEntry?: FormDataEntryValue | null, defau
 
     const dateStr = formEntry.toString().replace(/"/g, "").trim();
     const date = new Date(dateStr)
-    // Set the time to midnight UTC
-    date.setUTCHours(0, 0, 0, 0);
-    // Move to the next day
-    date.setUTCDate(date.getUTCDate() + 1);
-
+    date.setHours(date.getHours() + 7);
+    console.log(date.toISOString())
+    console.log(date.toISOString().split('T')[0])
     return date.toISOString().split('T')[0]
 }
 

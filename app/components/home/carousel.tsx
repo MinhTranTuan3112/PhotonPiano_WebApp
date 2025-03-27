@@ -5,19 +5,19 @@ import EnrollDialog from '../entrance-tests/enroll-dialog';
 const slides = [
     {
         // ?height=1000&width=1200
-        url: "/images/placeholder.jpg?height=1000&width=1200",
+        url: "/images/banner1.jpg?height=1000&width=1200",
         title: "THI ĐẦU VÀO 2025",
         description: "Trung tâm Photon Piano trân trọng thông báo lịch thi đầu vào mới nhất 2025",
     },
     {
-        url: "/images/placeholder.jpg?height=1000&width=1200",
+        url: "/images/banner2.png?height=1000&width=1200",
         title: "Learn from the Best",
-        description: "Expert instructors dedicated to your musical growth",
+        description: "Các giảng viên chuyên gia tận tâm giúp bạn phát triển âm nhạc",
     },
     {
-        url: "/images/placeholder.jpg?height=1000&width=1200",
-        title: "Unlock Your Potential",
-        description: "Personalized lessons to help you achieve your musical goals",
+        url: "/images/banner3.jpg?height=1000&width=1200",
+        title: "Mở khóa tiềm năng",
+        description: "Lộ trình học đảm bảo giúp bạn đạt được mục tiêu âm nhạc của mình",
     }
 ]
 
@@ -67,7 +67,7 @@ export function Carousel() {
                             alt={`Carousel Slide ${index + 1}`}
                             className="h-full w-full object-cover brightness-75"
                         />
-                        <div className="absolute inset-0 bg-black/30" />
+                        <div className="absolute inset-0 bg-black/50" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
                             <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">{slide.title}</h1>
                             <p className="mt-6 max-w-2xl text-lg leading-8">{slide.description}</p>

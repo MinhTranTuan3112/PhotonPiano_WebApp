@@ -65,6 +65,7 @@ export async function action({ request }: ActionFunctionArgs) {
             const roomId = formEntryToString(formData.get("room"));
             const shift = formEntryToNumber(formData.get("shift"));
             const id = formEntryToString(formData.get("slotId"));
+            const reason = formEntryToString(formData.get("reason"));
             const token = formEntryToString(formData.get("idToken"));
 
             if (!id) {
@@ -87,6 +88,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 roomId: roomId,
                 date: date,
                 shift: shift,
+                reason : reason,
                 idToken: token
             }
             await fetchUpdateSlot(body);

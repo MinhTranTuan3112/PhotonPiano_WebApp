@@ -167,11 +167,11 @@ export default function NavBar() {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-                        <NavigationMenuItem>
+                        {/* <NavigationMenuItem>
                             <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${pathname.startsWith('/entrance-tests') ? buttonVariants({ variant: 'theme' }) : ''}`}>
                                 Thi xếp lớp đầu vào
                             </Link>
-                        </NavigationMenuItem>
+                        </NavigationMenuItem> */}
                         <NavigationMenuItem>
                             <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold `}>
                                 Tin tức
@@ -231,7 +231,7 @@ export default function NavBar() {
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
                         {confirmDialog} */}
-                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} />
+                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} role={authData.role}/>
                     </>
                 )}
             </div>
