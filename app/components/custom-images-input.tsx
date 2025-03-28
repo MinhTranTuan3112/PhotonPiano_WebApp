@@ -191,10 +191,13 @@ function ImagePreview({ isUploading, src, filename, size, onDelete }: ImagePrevi
                 />
             </div>
 
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{filename}</p>
+            <div className="relative group flex-1 min-w-0 max-w-xs">
+                <p className="text-sm font-medium text-gray-900 truncate group-hover:whitespace-normal group-hover:overflow-visible group-hover:bg-white group-hover:absolute group-hover:p-1 group-hover:rounded-md group-hover:shadow-lg">
+                    {filename}
+                </p>
                 <p className="text-sm text-gray-500">{size}</p>
             </div>
+
             <Button
                 disabled={isUploading}
                 variant="ghost"
