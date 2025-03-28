@@ -1,4 +1,4 @@
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useRouteLoaderData } from "@remix-run/react";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { QuestionType, SurveyQuestion } from "~/lib/types/survey-question/survey-question";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -11,6 +11,7 @@ import { action } from "~/routes/delete-question";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useQuestionDialog } from "~/hooks/use-question-dialog";
+import { loader } from "~/root";
 
 
 function QuestionTypeBadge({ type }: { type: QuestionType }) {
@@ -79,6 +80,8 @@ function ActionDropdown({ row }: {
 
     const fetcher = useFetcher<typeof action>();
 
+    const loaderData = useRouteLoaderData<typeof loader>("root");
+
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Xác nhận xóa câu hỏi',
         description: 'Bạn có chắc chắn muốn xóa câu hỏi này không?',
@@ -101,6 +104,8 @@ function ActionDropdown({ row }: {
         requiresUpload: true,
         requiresAgeInputs: true,
         isEditing: true,
+        requiresAnswersDataDisplay: true,
+        idToken: loaderData.idToken || '',
         ...row.original
     });
 

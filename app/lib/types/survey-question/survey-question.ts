@@ -1,3 +1,4 @@
+import { LearnerSurvey } from "../survey/survey";
 
 export type SurveyQuestion = {
     id: string;
@@ -9,6 +10,20 @@ export type SurveyQuestion = {
     minAge?: number;
     maxAge?: number;
 };
+
+export type LearnerAnswer = {
+    learnerSurveyId: string;
+    surveyQuestionId: string;
+    answers: string[];
+}
+
+export type LearnerAnswerDetails = {
+    learnerSurvey: LearnerSurvey;
+} & LearnerAnswer;
+
+export type SurveyQuestionDetails = {
+    learnerAnswers: LearnerAnswer[];
+} & SurveyQuestion;
 
 export type CreateSurveyQuestionRequest = Omit<SurveyQuestion, 'id' | 'orderIndex'>;
 

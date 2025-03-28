@@ -28,6 +28,41 @@ export async function fetchSurveyQuestions({
     return response;
 }
 
+export async function fetchAQuestion({
+    id, idToken
+}: {
+    id: string;
+    idToken: string
+}) {
+
+    const response = await axiosInstance.get(`/survey-questions/${id}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchQuestionAnswers({
+    questionId, idToken,
+    page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true
+} : {
+    questionId: string
+    idToken: string
+} & Partial<QueryPagedRequest>) {
+    
+    let url = `/survey-questions/${questionId}/answers?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+
+    const response = await axiosInstance.get(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
 export async function fetchCreateQuestion({
     idToken, ...data
 }: {
