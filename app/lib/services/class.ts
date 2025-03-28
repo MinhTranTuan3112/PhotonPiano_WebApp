@@ -63,7 +63,7 @@ export async function fetchGradeTemplate({
   if (!idToken) {
     throw new Error("Authentication token is required");
   }
-  let url = `/classes/${id}/grade-template`;
+  let url = `/student-class/${id}/grade-template`;
   const response = await axiosInstance.get(url, {
     headers: {
       Authorization: `Bearer ${idToken}`,
@@ -301,6 +301,28 @@ export async function fetchAutoArrange({
       },
     }
   );
+
+  return response;
+}
+
+export async function importStudentClassScoresFromExcel({
+  classId,
+  excelFile,
+  idToken,
+}: {
+  classId: string;
+  excelFile: File;
+  idToken: string;
+}) {
+  const url = `/student-class/${classId}/import-scores`;
+
+  const formData = new FormData();
+  formData.append("file", excelFile);
+  const response = await axiosInstance.post(url, formData, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
 
   return response;
 }
