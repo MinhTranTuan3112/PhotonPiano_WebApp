@@ -41,6 +41,38 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+
+        case pathname === '/staff/surveys/create':
+            otherNavItems = [
+                {
+                    name: "Quản lý khảo sát",
+                    url: '/staff/surveys',
+                    isCurrentPage: false
+                },
+                {
+                    name: "Tạo khảo sát mới",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname.startsWith('/staff/surveys'):
+            const surveyParam = pathname.replace('/staff/surveys', "")
+            otherNavItems = [
+                {
+                    name: "Quản lý khảo sát",
+                    url: '/staff/surveys',
+                    isCurrentPage: surveyParam.length === 0
+                }
+            ]
+            if (surveyParam.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết khảo sát",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+            break;
         case pathname === '/staff/profile':
             otherNavItems = [
                 {
@@ -72,6 +104,15 @@ function getBreadcrumbPageName({ pathname }: {
             otherNavItems = [
                 {
                     name: "Danh sách đơn từ",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname === '/staff/survey-questions':
+            otherNavItems = [
+                {
+                    name: "Danh sách câu hỏi khảo sát",
                     url: pathname,
                     isCurrentPage: true
                 }

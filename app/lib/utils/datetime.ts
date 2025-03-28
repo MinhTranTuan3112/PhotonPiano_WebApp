@@ -35,14 +35,14 @@ export function formatDateToRFC3339(date: Date | undefined): string {
     return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`;
 }
 
-export function formatRFC3339ToDisplayableDate(dateString: string): string {
+export function formatRFC3339ToDisplayableDate(dateString: string, requireAdd7Hours: boolean = true): string {
     const date = new Date(dateString);
 
     const day = String(date.getUTCDate()).padStart(2, '0');
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const year = date.getUTCFullYear();
 
-    const hours = String(date.getUTCHours() + 7).padStart(2, '0');
+    const hours = requireAdd7Hours ? String(date.getUTCHours() + 7).padStart(2, '0') : String(date.getUTCHours()).padStart(2, '0');
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
 
     return `${day}/${month}/${year} vào lúc ${hours}:${minutes}`;
