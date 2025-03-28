@@ -13,6 +13,7 @@ import {
     Pencil,
     Save,
     Trash2,
+    Upload,
     UserX,
     X,
 } from "lucide-react"
@@ -28,6 +29,20 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { fetchSlotById, fetchUpdateAttendanceStatus } from "~/lib/services/scheduler"
 import { AttendanceStatus, type SlotDetail, type SlotStudentModel } from "~/lib/types/Scheduler/slot"
 import { requireAuth } from "~/lib/utils/auth"
+import { read, utils } from "xlsx"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
+import { InfoIcon } from "lucide-react";
+
 
 // Extended SlotStudentModel to support multiple images
 interface ExtendedSlotStudentModel extends SlotStudentModel {
@@ -133,6 +148,8 @@ const AttendancePage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [activeTab, setActiveTab] = useState("attendance")
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [showExcelHelpDialog, setShowExcelHelpDialog] = useState(false);
+
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -294,6 +311,98 @@ const AttendancePage = () => {
         setCurrentImageIndex(0)
     }
 
+    const handleExcelImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            // Read the Excel file
+            const data = await file.arrayBuffer();
+            const workbook = read(data);
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = utils.sheet_to_json(worksheet);
+
+            // Check if data has required fields
+            if (jsonData.length === 0) {
+                alert("No data found in the Excel file");
+                return;
+            }
+
+            // Validate the Excel structure (should have email and status columns)
+            const firstRow = jsonData[0] as any;
+            if (!firstRow.Email && !firstRow.email) {
+                alert("Excel file must contain an 'Email' column");
+                return;
+            }
+
+            // Update attendance data from Excel
+            const updatedAttendanceData = [...attendanceData];
+            let updatedCount = 0;
+            let notFoundCount = 0;
+
+            jsonData.forEach((row: any) => {
+                // Get email from row (case insensitive)
+                const email = row.Email || row.email;
+                if (!email) return;
+
+                // Find the student by email
+                const studentIndex = updatedAttendanceData.findIndex(
+                    student => student.studentAccount.email.toLowerCase() === email.toLowerCase()
+                );
+
+                if (studentIndex === -1) {
+                    notFoundCount++;
+                    return;
+                }
+
+                // Update attendance status
+                let status = AttendanceStatus.NotYet;
+                const rawStatus = row.Status || row.status || row.AttendanceStatus || row.attendanceStatus;
+
+                if (rawStatus !== undefined) {
+                    // Handle various status formats
+                    if (typeof rawStatus === 'number') {
+                        status = rawStatus;
+                    } else if (typeof rawStatus === 'string') {
+                        const statusText = rawStatus.toLowerCase();
+                        if (statusText.includes('có mặt') || statusText.includes('present') || statusText === '1') {
+                            status = AttendanceStatus.Attended;
+                        } else if (statusText.includes('vắng') || statusText.includes('absent') || statusText === '2') {
+                            status = AttendanceStatus.Absent;
+                        }
+                    }
+
+                    updatedAttendanceData[studentIndex].attendanceStatus = status;
+                    updatedCount++;
+                }
+
+                // Update comments if available
+                const comments = {
+                    attendanceComment: row.AttendanceComment || row.attendanceComment,
+                    gestureComment: row.GestureComment || row.gestureComment,
+                    fingerNoteComment: row.FingerNoteComment || row.fingerNoteComment,
+                    pedalComment: row.PedalComment || row.pedalComment
+                };
+
+                Object.entries(comments).forEach(([key, value]) => {
+                    if (value !== undefined) {
+                        updatedAttendanceData[studentIndex][key as keyof ExtendedSlotStudentModel] = value;
+                    }
+                });
+            });
+
+            setAttendanceData(updatedAttendanceData);
+
+            alert(`Imported ${updatedCount} attendance records successfully.${notFoundCount > 0 ? ` ${notFoundCount} students not found.` : ''}`);
+        } catch (error) {
+            console.error("Error importing Excel:", error);
+            alert("Failed to import Excel file. Please check the file format.");
+        }
+
+        // Reset the input
+        event.target.value = '';
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white px-4 py-6 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
@@ -327,6 +436,63 @@ const AttendancePage = () => {
                     </div>
                 </div>
 
+
+                <div className="mb-4 flex items-center justify-center">
+                    <AlertDialog open={showExcelHelpDialog} onOpenChange={setShowExcelHelpDialog}>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-800"
+                            >
+                                <InfoIcon className="w-4 h-4 mr-2" />
+                                Hướng dẫn nhập Excel
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white max-w-[95vw] sm:max-w-md">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-blue-700">
+                                    Hướng dẫn nhập Excel
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-sm text-gray-600">
+                                    <p>Tập tin Excel cần có cột <strong>&quot;Email&quot;</strong> để xác định học sinh và cột <strong>&quot;Status&quot;</strong>
+                                        (1 = Có mặt, 2 = Vắng mặt).</p>
+                                    <p className="mt-2">Có thể thêm các cột bổ sung:</p>
+                                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                                        <li>&quot;AttendanceComment&quot; - Ghi chú điểm danh</li>
+                                        <li>&quot;GestureComment&quot; - Ghi chú tư thế</li>
+                                        <li>&quot;FingerNoteComment&quot; - Ghi chú ngón tay</li>
+                                        <li>&quot;PedalComment&quot; - Ghi chú pedal</li>
+                                    </ul>
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogAction className="bg-blue-600 text-white hover:bg-blue-700">
+                                    Đã hiểu
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                
+                <div className="relative flex-1 sm:flex-none">
+                    <Button
+                        onClick={() => document.getElementById('excelImport')?.click()}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-full"
+                    >
+                        <Upload className="w-5 h-5 mr-2" />
+                        Nhập từ Excel
+                    </Button>
+                    <input
+                        type="file"
+                        id="excelImport"
+                        accept=".xlsx,.xls,.csv"
+                        className="hidden"
+                        onChange={handleExcelImport}
+                    />
+                </div>
+                
+
+                
                 {showAbsentees && absentStudents.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -355,6 +521,8 @@ const AttendancePage = () => {
                         </div>
                     </motion.div>
                 )}
+
+             
 
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden">
