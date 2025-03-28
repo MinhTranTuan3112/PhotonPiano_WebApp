@@ -75,11 +75,11 @@ export async function fetchSlotById(id: string, idToken: string) {
 
 
         return response;
-    } catch (error : never) {
-        if (error.response) {
+    } catch (error : unknown) {
+        if (axios.isAxiosError(error) && error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
-            throw new Error(`Unexpected Error: ${error.message}`);
+            throw new Error(`Unexpected Error: ${(error as Error).message}`);
         }
     }
 }
@@ -96,11 +96,11 @@ export async function fetchAttendanceStatus(slotId: string, idToken: string) {
         });
 
         return response;
-    } catch (error: never) {
-        if (error.response) {
+    } catch (error: unknown) {
+        if (axios.isAxiosError(error) && error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
-            throw new Error(`Unexpected Error: ${error.message}`);
+            throw new Error(`Unexpected Error: ${(error as Error).message}`);
         }
     }
 }
