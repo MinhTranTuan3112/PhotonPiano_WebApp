@@ -1,14 +1,15 @@
 import * as React from "react"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { Link, useNavigation, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useNavigate, useNavigation, useRouteLoaderData, useSubmit } from "@remix-run/react"
 import { cn } from "~/lib/utils"
 import { Button, buttonVariants } from "./ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet"
 import { Menu, Piano, X } from "lucide-react"
 import { Separator } from "./ui/separator"
-import pianoLogo from '../lib/assets/images/piano.png';
-// import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
+import { loader } from "~/root"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import AccountDropdown from "./auth/account-dropdown"
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -53,11 +54,13 @@ const navItems = [
 
 export default function NavBar() {
 
-    // const authData = useRouteLoaderData<typeof loader>("root");
+    const authData = useRouteLoaderData<typeof loader>("root");
 
     const [isOpen, setIsOpen] = React.useState(false);
 
     const [isScrolling, setIsScrolling] = React.useState(false);
+    
+    const { pathname } = useLocation();
 
     React.useEffect(() => {
 
@@ -83,32 +86,38 @@ export default function NavBar() {
 
     const navigation = useNavigation();
 
+    const navigate = useNavigate();
+
     const isSubmitting = navigation.state === 'submitting';
 
-    // const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-    //     title: 'Xác nhận đăng xuất?',
-    //     description: 'Bạn có chắc chắn muốn đăng xuất?',
-    //     onConfirm: () => {
-    //         submit(null, {
-    //             method: 'POST',
-    //             action: '/sign-out'
-    //         });
-    //     },
-    //     confirmText: 'Đăng xuất',
-    // });
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận đăng xuất?',
+        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        onConfirm: () => {
+            submit(null, {
+                method: 'POST',
+                action: '/sign-out'
+            });
+        },
+        confirmText: 'Đăng xuất',
+    });
 
 
     return (
         <div className={`p-6 flex items-center sticky top-0 w-full bg-white transition-shadow duration-300 ${isScrolling ? 'shadow-md' : ''} z-50`}>
             <div className="w-full h-full flex md:gap-10 max-md:justify-between flex-row items-center">
-                <div className="">
-                    <Link to={'/'} className="font-bold text-2xl flex flex-row gap-1 items-center">
-                        <Piano /> Photon Piano
-                    </Link>
-                </div>
+
+                <Link className="flex items-center space-x-3" to={'/'}>
+                    <div className="relative">
+                        <Piano className="h-8 w-8 text-indigo-600 animate-pulse" />
+                        <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
+                    </div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                </Link>
+
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
-                        <NavigationMenuItem>
+                        <NavigationMenuItem className={`${pathname === '/intro' ? buttonVariants({ variant: 'theme' }) : ''}`}>
                             <NavigationMenuTrigger className="uppercase font-bold">Giới thiệu</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
@@ -143,9 +152,7 @@ export default function NavBar() {
                             </NavigationMenuContent>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <NavigationMenuTrigger className={`uppercase font-bold ${buttonVariants({
-                                variant: 'theme'
-                            })}`}>Loại hình đào tạo</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                                     {components.map((component) => (
@@ -160,21 +167,19 @@ export default function NavBar() {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <Link to="/" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
+                        {/* <NavigationMenuItem>
+                            <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${pathname.startsWith('/entrance-tests') ? buttonVariants({ variant: 'theme' }) : ''}`}>
                                 Thi xếp lớp đầu vào
                             </Link>
-                        </NavigationMenuItem>
+                        </NavigationMenuItem> */}
                         <NavigationMenuItem>
-                            <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${buttonVariants({
-                                variant: 'theme'
-                            })}`}>
+                            <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold `}>
                                 Tin tức
                             </Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
-                            <Link to="/" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
-                                Tài liệu
+                            <Link to="/instructors" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
+                                Giảng viên
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
@@ -213,21 +218,22 @@ export default function NavBar() {
                 </section>
             </div>
             <div className="hidden md:block">
-                <Link className={`${buttonVariants({ variant: "theme" })} uppercase`}
-                    to={'/sign-in'}>Đăng nhập</Link>
-                {/* {(!authData || !authData.role) ? (
-                    <Link className={`${buttonVariants({ variant: "theme" })} uppercase`}
-                        to={'/sign-in'}>Đăng nhập</Link>
+                {(!authData || !authData.role) ? (
+                    <button onClick={() => navigate('/sign-in')} className="relative w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                        Đăng nhập
+                        <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
+                    </button>
                 ) : (
                     <>
-                        <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
+                        {/* <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
                             isLoading={isSubmitting}
                             disabled={isSubmitting}>
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
-                        {confirmDialog}
+                        {confirmDialog} */}
+                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} role={authData.role}/>
                     </>
-                )} */}
+                )}
             </div>
         </div>
     )

@@ -1,10 +1,9 @@
-
-
 import * as React from "react"
 import {
-    BookOpen,
     CircleUserRound,
-    History
+    FileClock,
+    History,
+    Music
 } from "lucide-react"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "../ui/sidebar"
 import TopNav from "./top-nav"
@@ -32,6 +31,30 @@ const data = {
                 }
             ],
         },
+        {
+            title: "Học tập",
+            url: "",
+            icon: Music,
+            isActive: true,
+            items: [
+                {
+                    title: "Lịch học của tôi",
+                    url: "/account/scheduler",
+                },
+                {
+                    title: "Lớp của tôi",
+                    url: "/account/class",
+                },
+                {
+                    title: "Bài thi của tôi",
+                    url: "/account/my-exams",
+                },
+                {
+                    title: "Lịch sử đơn từ",
+                    url: "/account/applications"
+                }
+            ],
+        }
         // {
         //     title: "Luyện thi bằng lái",
         //     url: "",
@@ -78,7 +101,7 @@ export function AppSidebar({ ...props }: Props) {
                 <NavOthers items={data.otherNavItems} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser  />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

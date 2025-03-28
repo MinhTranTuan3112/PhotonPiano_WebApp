@@ -3,3 +3,8 @@ node_modules
 /.cache
 /build
 .env
+/dev/
+/.vercel/
+/.idea/
+
+.env.production

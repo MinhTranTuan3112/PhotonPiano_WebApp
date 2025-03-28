@@ -1,3 +1,4 @@
+import { SignUpRequest } from "../types/account/account";
 import axiosInstance from "../utils/axios-instance";
 
 
@@ -11,11 +12,10 @@ export async function fetchSignIn(email: string, password: string) {
     return response;
 }
 
-export async function fetchSignUp(email: string, password: string) {
-    
+export async function fetchSignUp({ ...args }: SignUpRequest) {
+
     const response = await axiosInstance.post('/auth/sign-up', {
-        email,
-        password
+        ...args
     });
 
     return response;
@@ -45,5 +45,17 @@ export async function fetchSendForgotPasswordEmail(email: string) {
     });
 
     return response;
-    
+
+}
+
+export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) {
+
+    const response = await axiosInstance.get('/auth/current-info', {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+
 }

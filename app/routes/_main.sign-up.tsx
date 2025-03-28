@@ -12,7 +12,6 @@ import { signUpSchema } from '~/lib/utils/schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form';
-import { fetchSignUp } from '~/lib/services/auth';
 import { getErrorDetailsInfo } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -47,11 +46,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { email, password } = data;
 
-        const response = await fetchSignUp(email, password);
+        // const response = await fetchSignUp(email, password);
 
+        // return {
+        //     success: response.status === 201
+        // }
 
         return {
-            success: response.status === 201
+            success: true
         }
 
     } catch (error) {

@@ -86,7 +86,7 @@ const Button = React.forwardRef<
   ) => {
     const Comp = asChild ? Slot : "button";
     const isExpandIconVariant = variant === 'expandIcon' || variant === 'expandIconTheme';
-    
+
     return (
       <Comp
         className={cn(

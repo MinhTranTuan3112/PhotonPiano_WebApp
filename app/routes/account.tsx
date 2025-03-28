@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
+import React from "react";
 import { AppSidebar } from "~/components/sidebar/app-sidebar";
 import {
     Breadcrumb,
@@ -15,22 +16,77 @@ import {
     SidebarProvider,
     SidebarTrigger
 } from "~/components/ui/sidebar";
+import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
 
-function getBreadcrumbPageName(pathname: string) {
-    let pageName = 'Quản lý thông tin';
-
-    switch (pathname) {
-        case '/account/profile':
-            pageName = 'Cá nhân';
+function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
+    const defaultNavItem = {
+        name: "Quản lý thông tin",
+        url: "/account/profile",
+    };
+    let otherNavItems: BreadcumbNavItem[] = []
+    switch (true) {
+        case pathname === '/account/profile':
+            otherNavItems = [
+                {
+                    name: "Thông tin cá nhân",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
             break;
-        case '/account/transactions':
-            pageName = 'Lịch sử giao dịch';
+        case pathname === '/account/class':
+            otherNavItems = [
+                {
+                    name: "Lớp của tôi",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname === '/account/transactions':
+            otherNavItems = [
+                {
+                    name: "Lịch sử giao dịch",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+
+        case pathname === '/account/applications':
+            otherNavItems = [
+                {
+                    name: "Lịch sử đơn từ",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        case pathname.startsWith('/account/my-exams'):
+            const param = pathname.replace('/account/my-exams', "")
+            otherNavItems = [
+                {
+                    name: "Các bài thi của tôi",
+                    url: '/account/my-exams',
+                    isCurrentPage: param.length === 0
+                }
+            ]
+            if (param.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết bài thi",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
             break;
         default:
             break;
     }
 
-    return pageName;
+    return [
+        defaultNavItem,
+        ...otherNavItems
+    ]
 }
 
 export default function AccountLayout() {
@@ -38,7 +94,7 @@ export default function AccountLayout() {
     const { pathname } = useLocation();
 
     return (
-        <SidebarProvider>
+        <SidebarProvider className="">
             <AppSidebar />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
@@ -47,15 +103,25 @@ export default function AccountLayout() {
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <Breadcrumb>
                             <BreadcrumbList>
-                                <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="" className={buttonVariants({ variant: "linkHover2" })}>
-                                        Quản lý thông tin
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>{getBreadcrumbPageName(pathname)}</BreadcrumbPage>
-                                </BreadcrumbItem>
+                                {
+                                    getBreadcrumbPageName(pathname).map((breadcumb, index) => (
+                                        <React.Fragment key={`${breadcumb.name}_${index}`}>
+                                            <BreadcrumbItem className="hidden md:block">
+                                                {
+                                                    !breadcumb.isCurrentPage ? (
+                                                        <BreadcrumbLink href={breadcumb.url} className={buttonVariants({ variant: "linkHover2" })}>
+                                                            {breadcumb.name}
+                                                        </BreadcrumbLink>
+                                                    ) : (
+                                                        <BreadcrumbPage>{breadcumb.name}</BreadcrumbPage>
+                                                    )
+                                                }
+
+                                            </BreadcrumbItem>
+                                            <BreadcrumbSeparator className="hidden md:block" />
+                                        </React.Fragment>
+                                    ))
+                                }
                             </BreadcrumbList>
                         </Breadcrumb>
                     </div>

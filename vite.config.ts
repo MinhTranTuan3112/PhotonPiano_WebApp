@@ -3,6 +3,7 @@ import { vercelPreset } from "@vercel/remix/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
+
 declare module "@remix-run/node" {
   interface Future {
     v3_singleFetch: true;
@@ -22,5 +23,12 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
+    {
+      name: 'log-env',
+      configResolved() {
+        console.log('VITE_API_BASE_URL:', process.env.VITE_API_BASE_URL);
+        console.log('VITE_IS_DEVELOPMENT:', process.env.VITE_IS_DEVELOPMENT);
+      },
+    }
   ],
 });

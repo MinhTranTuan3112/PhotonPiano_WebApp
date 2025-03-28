@@ -7,13 +7,20 @@ import {
   ScrollRestoration,
   useRouteError,
 } from "@remix-run/react";
-import type { ErrorResponse, LinksFunction, MetaFunction } from "@remix-run/node";
+import type { ErrorResponse, LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
 import "./tailwind.css";
-
+import { DndContext } from '@dnd-kit/core';
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
+import { getAuth } from "./lib/utils/auth";
+import { fetchGoogleOAuthCallback } from "./lib/services/auth";
+import { AuthResponse } from "./lib/types/auth-response";
+import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
+import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import AuthProvider from "./lib/contexts/auth-context";
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,6 +42,50 @@ export const links: LinksFunction = () => [
   },
 ];
 
+export async function loader({ request }: LoaderFunctionArgs) {
+
+  try {
+
+    const { searchParams } = new URL(request.url);
+
+    const code = searchParams.get('code') as string;
+
+    if (!code) {
+      const authData = await getAuth(request);
+
+      const idToken = authData.idToken;
+
+      return {
+        role: authData.role,
+        currentAccountFirebaseId: authData.accountId,
+        idToken
+      };
+    }
+
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+
+    const callbackResponse = await fetchGoogleOAuthCallback(code, baseUrl);
+
+    const { idToken, refreshToken, expiresIn, role }: AuthResponse = await callbackResponse.data;
+
+    const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
+
+    const headers = new Headers();
+
+    headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
+    headers.append("Set-Cookie", await refreshTokenCookie.serialize(refreshToken));
+    headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
+    headers.append("Set-Cookie", await roleCookie.serialize(role));
+
+    return Response.json({ role }, { headers });
+
+  } catch (error) {
+
+    return null;
+  }
+}
+
 export function ErrorBoundary() {
   let error = useRouteError();
   if (isRouteErrorResponse(error)) {
@@ -53,6 +104,8 @@ export function ErrorBoundary() {
   }
 }
 
+const queryClient = new QueryClient();
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -64,10 +117,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
-        <Toaster richColors={true} theme={"light"} />
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <DndContext>
+              {children}
+              <ScrollRestoration />
+              {/*Deploy thì bật lại*/}
+              {/* <script src="https://cdn.jsdelivr.net/npm/disable-devtool@latest" {...{ "disable-devtool-auto": "" }}></script> */}
+              <Scripts />
+              <Toaster richColors={true} theme={"light"} />
+            </DndContext>
+          </AuthProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

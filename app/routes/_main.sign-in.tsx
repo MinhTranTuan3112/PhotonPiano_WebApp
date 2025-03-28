@@ -13,13 +13,14 @@ import { PasswordInput } from '~/components/ui/password-input'
 import { toast } from 'sonner'
 import { fetchSignIn } from '~/lib/services/auth'
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime'
-import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
 import { isAxiosError } from 'axios'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { AuthResponse } from '~/lib/types/auth-response'
 import { signInSchema } from '~/lib/utils/schemas'
 import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
+import { Role } from '~/lib/types/account/account'
 
 type Props = {}
 
@@ -45,7 +46,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (response.status === 200) {
 
-            const { idToken, refreshToken, expiresIn, role }: AuthResponse = await response.data;
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
@@ -55,8 +56,17 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await refreshTokenCookie.serialize(refreshToken));
             headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
             headers.append("Set-Cookie", await roleCookie.serialize(role));
-
-            return redirect('/', { headers });
+            headers.append("Set-Cookie", await accountIdCookie.serialize(localId));
+            switch (role) {
+                case Role.Instructor :
+                    return redirect('/teacher/scheduler', { headers });
+                case Role.Staff :
+                    return redirect('/staff/scheduler', { headers });
+                case Role.Administrator :
+                    return redirect('/admin/settings', { headers });
+                default:
+                    return redirect('/', { headers });
+            }
         }
 
 
