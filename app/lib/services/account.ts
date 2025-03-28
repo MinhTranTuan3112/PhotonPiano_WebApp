@@ -97,3 +97,37 @@ export async function fetchTeachDetail(id : string, idToken : string) {
 
     return response;
 }
+
+export async function fetchTeachers({
+    page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
+    levels = [], q, accountStatus = [],
+}:
+    Partial<QueryPagedRequest & {
+        levels: string[];
+        q?: string;
+        accountStatus : number[];
+    }>
+) {
+
+    let url = `/accounts/teachers?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+
+    if (q) {
+        url += `&q=${q}`
+    }
+
+    if (levels.length > 0) {
+        levels.forEach(level => {
+            url += `&levels=${level}`;
+        })
+    }
+
+    if (accountStatus.length > 0) {
+        accountStatus.forEach(status => {
+            url += `&statuses=${status}`;
+        })
+    }
+
+    const response = await axiosInstance.get(url);
+
+    return response;
+}
