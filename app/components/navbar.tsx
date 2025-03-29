@@ -45,10 +45,10 @@ const components: { title: string; href: string; description: string }[] = [
 ]
 
 const navItems = [
-    { name: "Home", href: "/" },
-    { name: "About", href: "/about" },
-    { name: "Services", href: "/services" },
-    { name: "Contact", href: "/contact" },
+    { name: "Trang chủ", href: "/" },
+    { name: "Thông tin cá nhân", href: "/account/profile" },
+    { name: "Tin tức", href: "/news" },
+    { name: "Giảng viên", href: "/instructors" },
 ]
 
 

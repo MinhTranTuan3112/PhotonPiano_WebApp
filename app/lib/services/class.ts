@@ -4,10 +4,11 @@ import axiosInstance from "../utils/axios-instance";
 import { getErrorDetailsInfo } from "../utils/error";
 
 export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
-    levels = [], statuses = [] 
+    levels = [], statuses = [], isPublic 
 }: Partial<QueryPagedRequest & {
     levels: string[],
-    statuses: number[]
+    statuses: number[],
+    isPublic? : boolean
 }>) {
 
     let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -22,6 +23,10 @@ export async function fetchClasses({ page = 1, pageSize = 10, sortColumn = 'Id',
         statuses.forEach(status => {
             url += `&statuses=${status}`;
         })
+    }
+
+    if (isPublic){
+        url += `&is-public=${isPublic}`;
     }
 
     const response = await axiosInstance.get(url);
@@ -195,6 +200,25 @@ export async function fetchPublishAClass({id, idToken }: {
     idToken: string
 }) {
     const response = await axiosInstance.patch(`/classes/${id}/publishing`, {}, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+
+export async function fetchChangeAClass({oldClassId, newClassId, studentId, idToken }: {
+    oldClassId : string,
+    newClassId : string,
+    studentId : string,
+    idToken: string
+}) {
+    const response = await axiosInstance.put(`/classes/student-class`, {
+        oldClassId : oldClassId,
+        newClassId : newClassId,
+        studentFirebaseId : studentId
+    }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }

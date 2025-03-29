@@ -1,6 +1,7 @@
 import { ActionFunctionArgs } from "@remix-run/node";
 import { fetchDeleteStudentClass } from "~/lib/services/class";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
+import { formEntryToString } from "~/lib/utils/form";
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -13,9 +14,9 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const formData = await request.formData();
-        const studentId = formData.get("studentId")?.toString();
-        const classId = formData.get("classId")?.toString();
-        const token = formData.get("idToken")?.toString();
+        const studentId = formEntryToString(formData.get("studentId"));
+        const classId = formEntryToString(formData.get("classId"));
+        const token = formEntryToString(formData.get("idToken"))
 
         if (!token) {
             return {
