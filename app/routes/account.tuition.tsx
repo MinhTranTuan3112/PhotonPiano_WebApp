@@ -131,15 +131,15 @@ export default function TuitionPage() {
     }
 
     return (
-        <div className="p-6 bg-white text-black">
-            <div className="max-w-4xl mx-auto">
+        <div className="p-4 bg-white text-black">
+            <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-4">
-                    <Button
+                    {/* <Button
                         onClick={() => navigate("/")}
                         className="bg-transparent text-black hover:bg-gray-100 transition-colors"
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" /> Trở lại
-                    </Button>
+                    </Button> */}
                     <Button
                         onClick={() => setIsFilterModalOpen(true)}
                         className="bg-black text-white hover:bg-gray-800 transition-colors"

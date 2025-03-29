@@ -408,7 +408,7 @@ const AttendancePage = () => {
             <div className="max-w-7xl mx-auto">
                 <Button
                     onClick={() => navigate(-1)}
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-full"
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-lg"
                 >
                     Quay lại
                 </Button>
@@ -421,7 +421,7 @@ const AttendancePage = () => {
                 <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <Button
                         onClick={() => setShowAbsentees(!showAbsentees)}
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-full"
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg"
                     >
                         <UserX className="w-5 h-5 mr-2" />
                         {showAbsentees ? "Ẩn" : "Hiển thị"} Vắng mặt
@@ -477,7 +477,7 @@ const AttendancePage = () => {
                 <div className="relative flex-1 sm:flex-none">
                     <Button
                         onClick={() => document.getElementById('excelImport')?.click()}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-full"
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg"
                     >
                         <Upload className="w-5 h-5 mr-2" />
                         Nhập từ Excel
@@ -550,7 +550,7 @@ const AttendancePage = () => {
                                         <img
                                             src={detail.studentAccount.avatarUrl || "/placeholder.svg?height=48&width=48"}
                                             alt="Student Avatar"
-                                            className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-full border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
+                                            className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
                                         />
                                     </div>
                                 </td>
@@ -628,7 +628,7 @@ const AttendancePage = () => {
                 <div className="mt-6 flex justify-center">
                     <Button
                         onClick={handleSubmit}
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-full px-4 py-2 md:px-6 md:py-3"
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg px-4 py-2 md:px-6 md:py-3"
                     >
                         Xác nhận điểm danh
                     </Button>
@@ -648,7 +648,7 @@ const AttendancePage = () => {
                                                     .avatarUrl || "/placeholder.svg?height=64&width=64"
                                             }
                                             alt="Student Avatar"
-                                            className="h-16 w-16 rounded-full border-2 border-white/70 object-cover shadow-md"
+                                            className="h-16 w-16 rounded-lg border-2 border-white/70 object-cover shadow-md"
                                         />
                                         <Badge
                                             className={`absolute -bottom-1 -right-1 ${
@@ -986,7 +986,7 @@ const AttendancePage = () => {
                                                                         {/* Image counter */}
                                                                         {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                             .gestureUrls.length > 1 && (
-                                                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                                                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
                                                                                 {currentImageIndex + 1} /{" "}
                                                                                 {
                                                                                     sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
