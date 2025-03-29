@@ -206,10 +206,10 @@ export default function NavBar() {
                             <SheetTitle className="mb-3">Menu</SheetTitle>
                             <nav className="flex flex-col gap-4">
                                 {navItems.map((item, index) => {
-                                    console.log()
+                                    console.log(authData)
                                     return (
                                         (authData && authData.role && item.role.includes(authData.role as Role) ||
-                                            (!authData && item.role.includes(Role.Guest))) && (
+                                            ((!authData || !authData.role) && item.role.includes(Role.Guest))) && (
                                             <React.Fragment key={item.name}>
                                                 <Link
                                                     to={item.href}
