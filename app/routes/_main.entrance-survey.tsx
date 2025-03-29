@@ -25,6 +25,12 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import { fetchSignIn } from '~/lib/services/auth';
+import { isAxiosError } from 'axios';
+import { AuthResponse } from '~/lib/types/auth-response';
+import { getCurrentTimeInSeconds } from '~/lib/utils/datetime';
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie';
+import { Role } from '~/lib/types/account/account';
 
 type Props = {}
 
@@ -108,22 +114,54 @@ export async function action({ request }: ActionFunctionArgs) {
             return { success: false, errors, defaultValues };
         }
 
-        const response = await fetchSendEntranceSurveyAnswers({
+        const sendEntranceSurveyResponse = await fetchSendEntranceSurveyAnswers({
             ...data, surveyAnswers: data.surveyAnswers.map(s => ({
                 surveyQuestionId: s.questionId,
                 answers: s.answers.length > 0 ? s.answers : s.otherAnswer ? [s.otherAnswer] : []
             }))
         });
 
-        return {
-            success: response.status === 200
+        const signInResponse = await fetchSignIn(data.email, data.password);
+
+        if (signInResponse.status === 200) {
+
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await signInResponse.data;
+
+            const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
+
+            const headers = new Headers();
+
+            headers.append("Set-Cookie", await idTokenCookie.serialize(idToken));
+            headers.append("Set-Cookie", await refreshTokenCookie.serialize(refreshToken));
+            headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
+            headers.append("Set-Cookie", await roleCookie.serialize(role));
+            headers.append("Set-Cookie", await accountIdCookie.serialize(localId));
+            switch (role) {
+                case Role.Instructor:
+                    return redirect('/teacher/scheduler', { headers });
+                case Role.Staff:
+                    return redirect('/staff/scheduler', { headers });
+                case Role.Administrator:
+                    return redirect('/admin/settings', { headers });
+                default:
+                    return redirect('/', { headers });
+            }
+
         }
+
 
     } catch (error) {
         console.error({ error });
 
         if (isRedirectError(error)) {
             throw error;
+        }
+
+        if (isAxiosError(error) && error.response?.status === 401) {
+            return {
+                success: false,
+                error: 'Email hoặc mật khẩu không đúng',
+            }
         }
 
         const { message, status } = getErrorDetailsInfo(error);
@@ -135,8 +173,6 @@ export async function action({ request }: ActionFunctionArgs) {
         }
     }
 }
-
-
 
 export default function EntranceSurveyPage({ }: Props) {
 
@@ -187,8 +223,8 @@ function EntranceSurveyForm() {
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận gửi khảo sát',
-        description: 'Bạn có chắc chắn muốn gửi khảo sát này không?',
+        title: 'Xác nhận gửi khảo sát và đăng ký tài khoản Photon Piano?',
+        description: 'Bạn có chắc chắn muốn gửi khảo sát và đăng ký tài khoản không?',
         onConfirm: handleSubmit,
         confirmText: 'Gửi'
     });
@@ -370,12 +406,6 @@ function EntranceSurveyForm() {
     ];
 
     useEffect(() => {
-
-
-        if (fetcher.data?.success && fetcher.data.success === true) {
-            toast.success('Đăng ký thành công! Cảm ơn bạn đã chọn Photon Piano!');
-            return;
-        }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
             toast.error(fetcher.data.error);
