@@ -39,7 +39,7 @@ const data = {
                     url: "/staff/scheduler",
                 },
                 {
-                    title: "Quản lý lịch thi đầu vào",
+                    title: "Quản lý lịch thi",
                     url: "/staff/entrance-tests",
                 },
                 {

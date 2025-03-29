@@ -117,7 +117,7 @@ export const FileUpload = ({
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             layout
-                                            className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800 "
+                                            className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800 truncate max-w-20"
                                         >
                                             {file.type}
                                         </motion.p>

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Delete, Pencil, Save, Trash } from 'lucide-react'
+import { Delete, Import, Pencil, Save, Trash } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -27,6 +27,9 @@ import { Room } from '~/lib/types/room/room'
 import { requireAuth } from '~/lib/utils/auth'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
+import { fetchAllMinimalCriterias } from '~/lib/services/criteria'
+import { MinimalCriteria } from '~/lib/types/criteria/criteria'
+import { useImportResultDialog } from '~/hooks/use-import-result-dialog'
 
 type Props = {}
 
@@ -66,9 +69,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             }
         });
 
+        const fetchCriteriasResponse = await fetchAllMinimalCriterias({ idToken });
+
+        const criterias: MinimalCriteria[] = await fetchCriteriasResponse.data;
 
         return {
             promise,
+            criterias,
             idToken,
             role,
             id
@@ -186,7 +193,7 @@ const resolver = zodResolver(updateEntranceTestSchema);
 
 function EntranceTestDetailsContent() {
 
-    const { idToken } = useLoaderData<typeof loader>();
+    const { idToken, criterias } = useLoaderData<typeof loader>();
 
     const entranceTestValue = useAsyncValue();
 
@@ -224,6 +231,11 @@ function EntranceTestDetailsContent() {
             handleSubmit();
         }
     })
+
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents
+    });
 
     useEffect(() => {
 
@@ -425,9 +437,16 @@ function EntranceTestDetailsContent() {
         <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
         <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
         {/* <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' /> */}
+
         <div className="my-8">
+            <div className="flex justify-end">
+                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
+            </div>
             <ResultTable data={entranceTest.entranceTestStudents} />
         </div>
+
+
         {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
         <div className='flex flex-col md:flex-row justify-center gap-4'>
             {
@@ -459,6 +478,7 @@ function EntranceTestDetailsContent() {
             </Button>
         </div>
 
+        {importResultDialog}
         {confirmDialog}
     </>
 }
