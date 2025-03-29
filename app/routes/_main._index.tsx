@@ -8,7 +8,7 @@ import { getAuth } from "~/lib/utils/auth";
 
 
 
-export default function Index() {
+export default function Index() { 
 
   return (
     <div className="flex min-h-screen flex-col">
