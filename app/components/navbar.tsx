@@ -10,6 +10,7 @@ import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { loader } from "~/root"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import AccountDropdown from "./auth/account-dropdown"
+import { Role } from "~/lib/types/account/account"
 
 const components: { title: string; href: string; description: string }[] = [
     {
@@ -45,10 +46,14 @@ const components: { title: string; href: string; description: string }[] = [
 ]
 
 const navItems = [
-    { name: "Trang chủ", href: "/" },
-    { name: "Thông tin cá nhân", href: "/account/profile" },
-    { name: "Tin tức", href: "/news" },
-    { name: "Giảng viên", href: "/instructors" },
+    { name: "Trang chủ", href: "/", role: [Role.Guest, Role.Administrator, Role.Instructor, Role.Staff, Role.Student] },
+    { name: "Quản lý học tập", href: "/account/scheduler", role: [Role.Student] },
+    { name: "Quản lý dạy học", href: "/teacher/scheduler", role: [Role.Instructor] },
+    { name: "Quản lý thông tin", href: "/staff/scheduler", role: [Role.Staff] },
+    { name: "Quản lý trung tâm", href: "/admin/scheduler", role: [Role.Administrator] },
+    { name: "Tin tức", href: "/news", role: [Role.Guest, Role.Administrator, Role.Instructor, Role.Staff, Role.Student] },
+    { name: "Giảng viên", href: "/instructors", role: [Role.Guest, Role.Administrator, Role.Instructor, Role.Staff, Role.Student] },
+    { name: "Đăng nhập", href: "/sign-in", role: [Role.Guest] },
 ]
 
 
@@ -59,7 +64,7 @@ export default function NavBar() {
     const [isOpen, setIsOpen] = React.useState(false);
 
     const [isScrolling, setIsScrolling] = React.useState(false);
-    
+
     const { pathname } = useLocation();
 
     React.useEffect(() => {
@@ -200,18 +205,25 @@ export default function NavBar() {
                         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                             <SheetTitle className="mb-3">Menu</SheetTitle>
                             <nav className="flex flex-col gap-4">
-                                {navItems.map((item, index) => (
-                                    <React.Fragment key={item.name}>
-                                        <Link
-                                            to={item.href}
-                                            className="block px-3 py-2 text-base font-medium"
-                                            onClick={() => setIsOpen(false)}
-                                        >
-                                            {item.name}
-                                        </Link>
-                                        {index < navItems.length - 1 && <Separator />}
-                                    </React.Fragment>
-                                ))}
+                                {navItems.map((item, index) => {
+                                    console.log()
+                                    return (
+                                        (authData && authData.role && item.role.includes(authData.role as Role) ||
+                                            (!authData && item.role.includes(Role.Guest))) && (
+                                            <React.Fragment key={item.name}>
+                                                <Link
+                                                    to={item.href}
+                                                    className="block px-3 py-2 text-base font-medium"
+                                                    onClick={() => setIsOpen(false)}
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                                {index < navItems.length - 1 && <Separator />}
+                                            </React.Fragment>
+                                        )
+                                    )
+                                }
+                                )}
                             </nav>
                         </SheetContent>
                     </Sheet>
@@ -231,7 +243,7 @@ export default function NavBar() {
                             {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
                         </Button>
                         {confirmDialog} */}
-                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} role={authData.role}/>
+                        <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} role={authData.role} />
                     </>
                 )}
             </div>

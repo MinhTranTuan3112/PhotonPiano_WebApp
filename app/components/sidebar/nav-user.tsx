@@ -11,12 +11,30 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { useAuth } from "~/lib/contexts/auth-context"
 import { Skeleton } from "../ui/skeleton"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import { useFetcher } from "@remix-run/react"
+import { action } from "~/routes/sign-out"
 
 export function NavUser({
-   
+
 }: {
-    
-}) {
+
+    }) {
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận đăng xuất?',
+        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        onConfirm: () => {
+            fetcher.submit(null, {
+                method: 'POST',
+                action: '/sign-out',
+            });
+        },
+        confirmText: 'Đăng xuất',
+    });
 
     const { isMobile } = useSidebar();
 
@@ -81,13 +99,14 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => handleOpenModal()} disabled={isSubmitting}>
                             <LogOut />
                             Đăng xuất
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
+            {confirmDialog}
         </SidebarMenu>
     )
 }
