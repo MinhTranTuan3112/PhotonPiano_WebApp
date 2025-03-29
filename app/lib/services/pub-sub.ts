@@ -21,7 +21,7 @@ export class PubSub {
         this.hub = new HubConnectionBuilder()
             .withUrl(API_PUB_SUB_URL , {
                 skipNegotiation : true,
-                transport: HttpTransportType.WebSockets
+                // transport: HttpTransportType.WebSockets
             })
             .withAutomaticReconnect()
             .configureLogging(LogLevel.Information)
