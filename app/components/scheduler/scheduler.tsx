@@ -83,7 +83,7 @@ const LoadingOverlay: React.FC = () => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600 border-solid"></div>
+                <div className="animate-spin rounded-lg h-12 w-12 border-t-4 border-indigo-600 border-solid"></div>
                 <p className="mt-4 text-indigo-800 font-semibold">Đang xử lý...</p>
             </div>
         </div>
@@ -429,7 +429,7 @@ export const Scheduler = ({
                     <div className="control flex flex-col mb-4 sm:mb-0">
                         <span className="mb-1 font-semibold text-indigo-800">Tuần:</span>
                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
-                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
                                 <SelectValue placeholder="Select week" />
                             </SelectTrigger>
                             <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
@@ -446,7 +446,7 @@ export const Scheduler = ({
                     <div className="control flex flex-col">
                         <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
                         <Select value={year.toString()} onValueChange={handleYearChange}>
-                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
                                 <SelectValue placeholder="Select year" />
                             </SelectTrigger>
                             <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
@@ -462,7 +462,7 @@ export const Scheduler = ({
                         <Button
                             variant="outline"
                             onClick={() => setIsFilterModalOpen(true)}
-                            className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                            className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                             disabled={isFilterLoading} // Disable while loading
                         >
                             <Filter className="mr-2 h-4 w-4" /> Bộ lọc
@@ -476,7 +476,7 @@ export const Scheduler = ({
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber - 1)}
                         disabled={weekNumber <= 1 || isLoading}
-                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-full shadow-md transition-all duration-200"
+                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-lg shadow-md transition-all duration-200"
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
@@ -489,7 +489,7 @@ export const Scheduler = ({
                         size="icon"
                         onClick={() => handleWeekChange(weekNumber + 1)}
                         disabled={weekNumber >= 52 || isLoading}
-                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-full shadow-md transition-all duration-200"
+                        className="bg-white border-blue-300 text-blue-800 hover:bg-blue-100 rounded-lg shadow-md transition-all duration-200"
                     >
                         <ChevronRight className="h-5 w-5" />
                     </Button>
@@ -797,7 +797,7 @@ export const Scheduler = ({
                                 <Button
                                     variant="outline"
                                     onClick={resetFilters}
-                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
+                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
                                     disabled={isFilterLoading} // Disable while loading
                                 >
                                     Thiết lập lại
@@ -805,14 +805,14 @@ export const Scheduler = ({
                                 <Button
                                     variant="outline"
                                     onClick={() => setIsFilterModalOpen(false)}
-                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-full transition-all duration-200"
+                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
                                     disabled={isFilterLoading} 
                                 >
                                     Hủy
                                 </Button>
                                 <Button
                                     onClick={applyFilters}
-                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                     disabled={isFilterLoading} 
                                 >
                                     {isFilterLoading ? "Đang áp dụng..." : "Xác nhận"}

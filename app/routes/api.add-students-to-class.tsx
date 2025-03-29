@@ -3,6 +3,7 @@ import { boolean } from "zod";
 import { fetchAddStudentsToClass, fetchDeleteStudentClass } from "~/lib/services/class";
 import { ErrorSimple } from "~/lib/types/error";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
+import { formEntryToString, formEntryToStrings } from "~/lib/utils/form";
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -15,10 +16,10 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const formData = await request.formData();
-        const studentIds = formData.getAll("studentFirebaseIds").toString().split(',');
-        const classId = formData.get("classId")?.toString();
-        const isAutoFill = formData.get("isAutoFill")?.toString() === "true";
-        const token = formData.get("idToken")?.toString();
+        const studentIds = formEntryToStrings(formData.getAll("studentFirebaseIds").toString());
+        const classId = formEntryToString(formData.get("classId"));
+        const isAutoFill = formEntryToString(formData.get("isAutoFill")) === "true";
+        const token = formEntryToString(formData.get("idToken"));
 
         console.log(isAutoFill)
 

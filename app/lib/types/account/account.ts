@@ -13,6 +13,7 @@ export type Account = {
     shortDescription?: string;
     avatarUrl?: string;
     level?: Level;
+    levelId?: string;
     status: number;
     desiredLevel?: string;
     desiredTargets: string[];
@@ -21,6 +22,10 @@ export type Account = {
     studentStatus?: StudentStatus;
     role: Role;
 };
+
+export type AccountDetail = {
+    currentClass? : Class
+} & Account
 
 export type TeacherDetail = {
     instructorEntranceTests : EntranceTest[],

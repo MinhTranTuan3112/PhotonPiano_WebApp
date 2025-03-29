@@ -1,6 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from "react";
 import EnrollDialog from '../entrance-tests/enroll-dialog';
+import { useAuth } from '~/lib/contexts/auth-context';
+import { useNavigate } from '@remix-run/react';
 
 const slides = [
     {
@@ -22,11 +24,11 @@ const slides = [
 ]
 
 export function Carousel() {
-
+    const { currentAccount } = useAuth()
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [isOpenEnrollDialog, setIsOpenEnrollDialog] = useState(false);
-
+    const navigate = useNavigate()
     const moveSlide = useCallback((direction: 'prev' | 'next') => {
         if (isTransitioning) return;
 
@@ -71,12 +73,19 @@ export function Carousel() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
                             <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">{slide.title}</h1>
                             <p className="mt-6 max-w-2xl text-lg leading-8">{slide.description}</p>
-                            {index === 0 && (
-                                <button onClick={() => setIsOpenEnrollDialog(!isOpenEnrollDialog)} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Đăng ký ngay
-                                    <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
-                                </button>
-                            )}
+                            {
+                                (index === 0 && (!currentAccount || currentAccount.studentStatus === 0)) && (
+                                    <button onClick={() => {
+                                        if (currentAccount)
+                                            setIsOpenEnrollDialog(!isOpenEnrollDialog)
+                                        else 
+                                            navigate('/entrance-survey')
+                                    }} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Đăng ký ngay
+                                        <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
+                                    </button>
+                                )
+                            }
                         </div>
                     </div>
                 ))}

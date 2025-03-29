@@ -57,7 +57,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const { idToken, role } = await requireAuth(request);
 
         if (role !== Role.Student) {
-            return redirect('/');
+            return redirect('/sign-in');
         }
 
         const promise = fetchCurrentAccountInfo({ idToken }).then((response) => {

@@ -131,3 +131,16 @@ export async function fetchTeachers({
 
     return response;
 }
+
+export async function fetchAccountDetail(id : string, idToken : string) {
+
+    let url = `/accounts/${id}`;
+
+    const response = await axiosInstance.get(url, {
+        headers : {
+            Authorization : `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
