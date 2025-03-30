@@ -13,7 +13,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return { isOpenDialog }
 }
 
-
 export default function Index() {
   const { isOpenDialog } = useLoaderData<typeof loader>();
 
