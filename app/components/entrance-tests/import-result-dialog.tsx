@@ -14,6 +14,7 @@ import { action } from '~/routes/import-entrance-test-result';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 
+
 export type ImportResultDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
@@ -49,6 +50,7 @@ export default function ImportResultDialog({
             // Add headers
             const headerRow = ['Người học', 'Lý thuyết'];
             criterias.forEach(criteria => headerRow.push(criteria.name));
+            headerRow.push('Nhận xét')
             sheet.addRow(headerRow);
 
             // 🔹 Lock only the header row (Row 1)
@@ -78,6 +80,8 @@ export default function ImportResultDialog({
                     const scoreCell = addedRow.getCell(colIndex);
                     scoreCell.protection = { locked: false }; // Ensure editable scores
                 }
+
+                addedRow.getCell(row.length + 1).protection = { locked: false }; // Unlock the comment cell
             });
 
             // 🔹 Protect the sheet while allowing unlocked cells to be edited
@@ -88,7 +92,6 @@ export default function ImportResultDialog({
                 insertRows: false,
                 deleteRows: false,
             });
-
 
 
             // Generate buffer
@@ -137,11 +140,13 @@ export default function ImportResultDialog({
                         score: parseFloat(row.getCell(colIndex + 3).value?.toString() || '0') || 0, // Fix reading issue
                     }));
 
+                    const comment = row.getCell(criterias.length + 3).value?.toString() || '';
 
-                    console.log({ fullName, theoraticalScore, entranceTestResultsFromFile });
+                    console.log({ fullName, theoraticalScore, entranceTestResultsFromFile, comment });
 
                     const results = entranceTestResultsFromFile.map(result => {
                         return {
+                            instructorComment: comment,
                             entranceTestStudentId: entranceTestStudents.find(s => s.fullName === fullName)?.id || '',
                             id: '',
                             criteriaId: result.criteriaId,
@@ -157,6 +162,7 @@ export default function ImportResultDialog({
                                 return {
                                     ...student,
                                     theoraticalScore,
+                                    instructorComment: comment,
                                     entranceTestResults: student.entranceTestResults.length > 0 ? student.entranceTestResults.map(result => {
                                         const newResult = entranceTestResultsFromFile.find(r => r.criteriaId === result.criteriaId);
                                         return newResult ? { ...result, score: newResult.score } : result;
@@ -167,11 +173,10 @@ export default function ImportResultDialog({
                         })
                     );
 
+                    setIsImported(true);
                 });
-
             };
 
-            setIsImported(true);
         } catch (error) {
             console.error("Error reading file:", error);
         }
@@ -253,8 +258,8 @@ export default function ImportResultDialog({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent>
-                    <ScrollArea className='px-2 h-[80vh]'>
+                <DialogContent className='min-w-[1000px]'>
+                    <ScrollArea className='px-2 h-[80vh] '>
                         <DialogHeader>
                             <DialogTitle>Nhập điểm qua file Excel</DialogTitle>
                             <DialogDescription>
@@ -280,9 +285,10 @@ export default function ImportResultDialog({
                                         <TableHead>Lý thuyết</TableHead>
                                         {criterias.map(criteria => (
                                             <TableHead key={criteria.id}>{criteria.name}
-                                                &#40;{criteria.weight} %&#41;
+                                                &#40;{criteria.weight}%&#41;
                                             </TableHead>
                                         ))}
+                                        <TableHead>Nhận xét</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -293,6 +299,7 @@ export default function ImportResultDialog({
                                             {student.entranceTestResults.map(result => (
                                                 <TableCell key={result.criteriaId}>{result.score}</TableCell>
                                             ))}
+                                            <TableCell>{student.instructorComment || 'Không có'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -306,12 +313,12 @@ export default function ImportResultDialog({
                         )}
                         <DialogFooter className='flex flex-row justify-center items-center'>
                             <Button type="button" disabled={!file || isSubmitting} onClick={handleFileUpload}>Nhập điểm</Button>
-                            {isImported && (
-                                <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
-                                    onClick={handleOpenConfirmDialog}>
-                                    Lưu
-                                </Button>
-                            )}
+
+                            <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
+                                onClick={handleOpenConfirmDialog}>
+                                Lưu
+                            </Button>
+
                         </DialogFooter>
                     </ScrollArea>
                 </DialogContent>
