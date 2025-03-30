@@ -2,13 +2,17 @@ import { MinimalCriteria } from '~/lib/types/criteria/criteria';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Download, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import ExcelJS from 'exceljs';
 import FileSaver from 'file-saver';
 import { FileUpload } from '../ui/file-upload';
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '../ui/table';
 import { ScrollArea } from '../ui/scroll-area';
+import { useFetcher } from '@remix-run/react';
+import { action } from '~/routes/import-entrance-test-result';
+import { toast } from 'sonner';
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 
 export type ImportResultDialogProps = {
     isOpen: boolean;
@@ -173,70 +177,146 @@ export default function ImportResultDialog({
         }
     };
 
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Đã nhập điểm thành công!');
+            setIsOpen(false);
+            setIsImported(false);
+            setFile(undefined);
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.error(fetcher.data.error);
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+
+
+    const handleSubmit = () => {
+
+        // const updateRequest = {
+        //     entranceTestId: entranceTestStudents[0].entranceTestId,
+        //     updateRequests: entranceTestStudents.map(student => ({
+        //         studentId: student.id,
+        //         theoraticalScore: student.theoraticalScore,
+        //         scores: student.entranceTestResults.map(result => ({
+        //             criteriaId: result.criteriaId,
+        //             score: result.score
+        //         }))
+        //     }))
+        // };
+        console.log({ entranceTestStudents });
+
+        const formData = new FormData();
+
+        formData.append("entranceTestId", entranceTestStudents[0].entranceTestId);
+
+        // Serialize the nested array into a JSON string
+        formData.append("updateRequests", JSON.stringify(
+            entranceTestStudents.map(student => ({
+                studentId: student.studentFirebaseId,
+                theoraticalScore: student.theoraticalScore,
+                instructorComment: student.instructorComment || "", // Ensure it's included even if empty
+                scores: student.entranceTestResults.map(result => ({
+                    criteriaId: result.criteriaId,
+                    score: result.score
+                }))
+            }))
+        ));
+
+
+        fetcher.submit(formData, {
+            action: '/import-entrance-test-result',
+            method: 'POST'
+        });
+    }
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận nhập điểm',
+        description: 'Bạn có chắc chắn muốn nhập điểm cho học viên?',
+        onConfirm: handleSubmit,
+        confirmText: 'Lưu',
+    });
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
-                <ScrollArea className='px-2 h-[80vh]'>
-                    <DialogHeader>
-                        <DialogTitle>Nhập điểm qua file Excel</DialogTitle>
-                        <DialogDescription>
-                            Tải về file mẫu và nhập điểm của học viên vào file Excel.
-                            Sau đó, chọn file Excel đã nhập và nhấn nút "Lưu thay đổi" để cập nhật điểm.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-4 my-4">
-                        <h1 className='font-bold'>Nhập điểm qua file Excel</h1>
-                        <Button type='button' Icon={Download} iconPlacement='left' onClick={handleDownload}
-                            isLoading={isDownloadingFile} disabled={isDownloadingFile}>Tải về template nhập điểm</Button>
-                        <p>Nhập file</p>
-                        <FileUpload onChange={(files) => {
-                            setFile(files[0]);
-                        }} />
-                    </div>
-                    {isImported && (
-                        <Table>
-                            <TableCaption>Điểm xem trước sau khi nhập từ file.</TableCaption>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Học viên</TableHead>
-                                    <TableHead>Lý thuyết</TableHead>
-                                    {criterias.map(criteria => (
-                                        <TableHead key={criteria.id}>{criteria.name}
-                                            &#40;{criteria.weight} %&#41;
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {entranceTestStudents.map((student) => (
-                                    <TableRow key={student.id}>
-                                        <TableCell>{student.fullName}</TableCell>
-                                        <TableCell>{student.theoraticalScore}</TableCell>
-                                        {student.entranceTestResults.map(result => (
-                                            <TableCell key={result.criteriaId}>{result.score}</TableCell>
+        <>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogContent>
+                    <ScrollArea className='px-2 h-[80vh]'>
+                        <DialogHeader>
+                            <DialogTitle>Nhập điểm qua file Excel</DialogTitle>
+                            <DialogDescription>
+                                Tải về file mẫu và nhập điểm của học viên vào file Excel.
+                                Sau đó, chọn file Excel đã nhập và nhấn nút "Lưu thay đổi" để cập nhật điểm.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-4 my-4">
+                            <h1 className='font-bold'>Nhập điểm qua file Excel</h1>
+                            <Button type='button' Icon={Download} iconPlacement='left' onClick={handleDownload}
+                                isLoading={isDownloadingFile} disabled={isDownloadingFile || isSubmitting}>Tải về template nhập điểm</Button>
+                            <p>Nhập file</p>
+                            <FileUpload onChange={(files) => {
+                                setFile(files[0]);
+                            }} />
+                        </div>
+                        {isImported && (
+                            <Table>
+                                <TableCaption>Điểm xem trước sau khi nhập từ file.</TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Học viên</TableHead>
+                                        <TableHead>Lý thuyết</TableHead>
+                                        {criterias.map(criteria => (
+                                            <TableHead key={criteria.id}>{criteria.name}
+                                                &#40;{criteria.weight} %&#41;
+                                            </TableHead>
                                         ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                            {/* <TableFooter>
-                                <TableRow>
-                                    <TableCell colSpan={3}>Total</TableCell>
-                                    <TableCell className="text-right">$2,500.00</TableCell>
-                                </TableRow>
-                            </TableFooter> */}
-                        </Table>
-                    )}
-                    <DialogFooter className='flex flex-row justify-center items-center'>
-                        <Button type="button" disabled={!file} onClick={handleFileUpload}>Nhập điểm</Button>
-                        {isImported && (
-                            <Button type='button'>
-                                Lưu
-                            </Button>
+                                </TableHeader>
+                                <TableBody>
+                                    {entranceTestStudents.map((student) => (
+                                        <TableRow key={student.id}>
+                                            <TableCell>{student.fullName}</TableCell>
+                                            <TableCell>{student.theoraticalScore}</TableCell>
+                                            {student.entranceTestResults.map(result => (
+                                                <TableCell key={result.criteriaId}>{result.score}</TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                                {/* <TableFooter>
+                                    <TableRow>
+                                        <TableCell colSpan={3}>Total</TableCell>
+                                        <TableCell className="text-right">$2,500.00</TableCell>
+                                    </TableRow>
+                                </TableFooter> */}
+                            </Table>
                         )}
-                    </DialogFooter>
-                </ScrollArea>
-            </DialogContent>
-        </Dialog>
+                        <DialogFooter className='flex flex-row justify-center items-center'>
+                            <Button type="button" disabled={!file || isSubmitting} onClick={handleFileUpload}>Nhập điểm</Button>
+                            {isImported && (
+                                <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
+                                    onClick={handleOpenConfirmDialog}>
+                                    Lưu
+                                </Button>
+                            )}
+                        </DialogFooter>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+            {confirmDialog}
+        </>
     );
 };
