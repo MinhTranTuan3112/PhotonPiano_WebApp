@@ -1,4 +1,5 @@
 import { Class } from "../class/class";
+import { StudentClassWithClass } from "../class/student-class";
 import { EntranceTest } from "../entrance-test/entrance-test";
 
 export type Account = {
@@ -25,6 +26,7 @@ export type Account = {
 
 export type AccountDetail = {
     currentClass? : Class
+    studentClasses : StudentClassWithClass[]
 } & Account
 
 export type TeacherDetail = {

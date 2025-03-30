@@ -1,4 +1,5 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { Carousel } from "~/components/home/carousel";
 import { NewsSection } from "~/components/home/news";
 import { PianoPromo } from "~/components/home/promo";
@@ -6,14 +7,20 @@ import { RegistrationSection } from "~/components/home/registration-section";
 import { FeatureSection } from "~/components/home/what-we-do";
 import { getAuth } from "~/lib/utils/auth";
 
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const isOpenDialog = url.searchParams.get('enroll-now') === "true"
+  return { isOpenDialog }
+}
 
 
 export default function Index() {
+  const { isOpenDialog } = useLoaderData<typeof loader>();
 
   return (
     <div className="flex min-h-screen flex-col">
       <article className="flex-1">
-        <Carousel />
+        <Carousel isOpenDialog={isOpenDialog} />
         {/* MissionSection */}
         <section className="relative flex justify-center py-24 bg-gradient-to-b from-purple-700 via-blue-600 to-teal-500">
           <div className="absolute inset-0 bg-black/20" />

@@ -24,7 +24,7 @@ const data = {
             items: [
                 {
                     title: "Thông tin cá nhân",
-                    url: "/info",
+                    url: "/staff/profile",
                 }
             ],
         },

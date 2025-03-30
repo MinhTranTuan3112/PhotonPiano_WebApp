@@ -47,7 +47,7 @@ const entranceSurveySchema = z.object({
     password: z.string({ message: 'Mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
     confirmPassword: z.string({ message: 'Xác nhận mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
     phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }),
-    shortDescription: z.string({ message: 'Vui lòng giới thiệu về bản thân.' }).min(1, { message: 'Vui lòng giới thiệu về bản thân.' }),
+    // shortDescription: z.string({ message: 'Vui lòng giới thiệu về bản thân.' }).min(1, { message: 'Vui lòng giới thiệu về bản thân.' }),
     isTermsAgreed: z.literal<boolean>(true, { errorMap: () => ({ message: "Vui lòng đọc và chấp thuận với điều khoản, chính sách của Photon Piano", }), }),
     surveyAnswers: z.array(z.object({
         questionId: z.string(),
@@ -144,7 +144,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 case Role.Administrator:
                     return redirect('/admin/settings', { headers });
                 default:
-                    return redirect('/', { headers });
+                    return redirect('/?enroll-now=true', { headers });
             }
 
         }
@@ -377,7 +377,7 @@ function EntranceSurveyForm() {
                             {errors.confirmPassword && <p className='text-sm text-red-600'>{errors.confirmPassword.message}</p>}
                         </div>
                     </div>
-                    <div className='flex gap-4 items-start'>
+                    {/* <div className='flex gap-4 items-start'>
                         <Label htmlFor="shortDescription" className="w-32">
                             Mô tả trình độ
                         </Label>
@@ -386,7 +386,7 @@ function EntranceSurveyForm() {
                                 rows={3} />
                             {errors.shortDescription && <p className='text-sm text-red-600'>{errors.shortDescription.message}</p>}
                         </div>
-                    </div>
+                    </div> */}
                     <div className='flex gap-4 items-center'>
                         <Controller
                             name='isTermsAgreed'

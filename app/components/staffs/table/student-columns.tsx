@@ -40,7 +40,7 @@ export function LevelBadge({ level }: {
     level?: Level
 }) {
     return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name : 'Chưa xác định'}
+        {level ? level.name.split("(")[0] : 'Chưa xác định'}
     </Badge>
 }
 
@@ -121,14 +121,15 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: "Thao tác",
         header: "Hành động",
         cell: ({ row, table }) => {
-            return <ActionsDropdown table={table} />
+            return <ActionsDropdown table={table} row={row}/>
         }
     }
 ]
 
 
-function ActionsDropdown({ table }: {
+function ActionsDropdown({ table, row }: {
     table: Table<Account>
+    row : Row<Account>
 }) {
 
     const [arrangeDialogProps, setArrangeDialogProps] = useState<{
@@ -150,7 +151,7 @@ function ActionsDropdown({ table }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.accountFirebaseId}`}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" disabled={table.getSelectedRowModel().rows.length === 0}
