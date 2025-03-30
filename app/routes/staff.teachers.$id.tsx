@@ -14,7 +14,7 @@ import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
 export async function loader({ params, request }: LoaderFunctionArgs) {
     const { idToken, role } = await requireAuth(request);
     if (role !== 4) return redirect('/');
-    if (!params.id) return redirect('/staff/classes');
+    if (!params.id) return redirect('/staff/teachers');
 
     const promise = fetchTeachDetail(params.id, idToken).then((response) => {
         const teacher = response.data as TeacherDetail;
@@ -69,7 +69,13 @@ export default function StaffTeacherDetailPage() {
                                     <h2 className="text-2xl font-semibold">{teacher.fullName || teacher.userName}</h2>
                                     <p className="text-gray-600">{teacher.email}</p>
                                     <p className="text-gray-600">{teacher.phone}</p>
-                                </div>
+                                    <p className="text-gray-500"><span className='font-bold'>Level:</span> {teacher.level?.name.split("(")[0] || 'N/A'}</p>
+                                    <div className='flex flex-col lg:flex-row lg:place-content-between w-full'>
+                                        <p className="text-gray-500"><span className='font-bold'>Địa chỉ:</span> {teacher.address}</p>
+                                        <p className="text-gray-500"><span className='font-bold'>Giới tính:</span> {teacher.gender}</p>
+                                        <p className="text-gray-500"><span className='font-bold'>Ngày sinh:</span> {teacher.dateOfBirth}</p>
+                                    </div>
+                                    <p className="text-gray-500"><span className='font-bold'>Giới thiệu:</span> {teacher.shortDescription}</p>                                </div>
                             </div>
 
                             <div className="mt-6">

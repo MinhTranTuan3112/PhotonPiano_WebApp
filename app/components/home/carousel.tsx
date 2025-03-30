@@ -23,11 +23,11 @@ const slides = [
     }
 ]
 
-export function Carousel() {
+export function Carousel({isOpenDialog} : {isOpenDialog : boolean}) {
     const { currentAccount } = useAuth()
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isOpenEnrollDialog, setIsOpenEnrollDialog] = useState(false);
+    const [isOpenEnrollDialog, setIsOpenEnrollDialog] = useState(isOpenDialog);
     const navigate = useNavigate()
     const moveSlide = useCallback((direction: 'prev' | 'next') => {
         if (isTransitioning) return;

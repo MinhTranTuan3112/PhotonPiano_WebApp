@@ -1,3 +1,4 @@
+import { ImportResultsFormData } from "~/routes/import-entrance-test-result";
 import { UpdateEntranceTest } from "../types/entrance-test/entrance-test";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
@@ -138,7 +139,7 @@ export async function fetchUpdateEntranceTestResults({
     theoraticalScore?: number,
     updateScoreRequests?: {
         criteriaId: string,
-        score: number  
+        score: number
     }[]
 }) {
 
@@ -158,8 +159,23 @@ export async function fetchEntranceTestStudentDetails({
     studentId: string,
     idToken: string
 }) {
-    
+
     const response = await axiosInstance.get(`/entrance-tests/${id}/students/${studentId}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
+
+export async function fetchUpdateStudentsEntranceTestResults({
+    idToken, entranceTestId, ...data
+}: {
+    idToken: string,
+} & ImportResultsFormData) {
+
+    const response = await axiosInstance.put(`/entrance-tests/${entranceTestId}/results`, { ...data }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }
