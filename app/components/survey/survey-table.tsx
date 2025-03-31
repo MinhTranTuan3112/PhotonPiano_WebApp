@@ -3,8 +3,12 @@ import { Survey } from "~/lib/types/survey/survey";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { Eye, MoreHorizontal } from "lucide-react";
-import { useNavigate } from "@remix-run/react";
+import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { useFetcher, useNavigate } from "@remix-run/react";
+import { action } from "~/routes/staff.surveys._index";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export const columns: ColumnDef<Survey>[] = [
     {
@@ -56,26 +60,77 @@ function ActionDropdown({ row }: {
     row: Row<Survey>
 }) {
 
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
 
-    return <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Thao tác</span>
-                <MoreHorizontal className="h-4 w-4" />
-            </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                navigate(`/staff/surveys/${row.original.id}`)
-            }}>
-                <Eye />
-                Xem
-            </DropdownMenuItem>
+    const fetcher = useFetcher<typeof action>();
 
-        </DropdownMenuContent>
-    </DropdownMenu>
+    const isSubmitting = fetcher.state === 'submitting';
+
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận xóa',
+        description: 'Bạn có chắc chắn muốn xóa khảo sát này?',
+        confirmText: 'Xóa',
+        confirmButtonClassname: 'bg-red-600 text-white',
+        onConfirm: () => {
+
+            const formData = new FormData();
+
+            formData.append('id', row.original.id);
+
+            fetcher.submit(formData, {
+                action: '/staff/surveys',
+                method: 'POST'
+            })
+        }
+    });
+
+    useEffect(() => {
+
+
+        if (fetcher.data?.success === true) {
+            toast.success('Xóa khảo sát thành công');
+            return;
+        }
+
+        if (fetcher.data?.success === false ) {
+            toast.error('Xóa khảo sát thất bại: ' + fetcher.data.error);
+            return;
+        }
+
+        return () => {
+
+        }
+        
+    }, [fetcher.data]);
+
+
+
+    return <>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Thao tác</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                    navigate(`/staff/surveys/${row.original.id}`)
+                }}>
+                    <Eye />
+                    Xem
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer text-red-600" disabled={isSubmitting}
+                    onClick={handleOpenConfirmDialog}>
+                    <Trash2 />
+                    Xóa
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+        {confirmDialog}
+    </>
 }

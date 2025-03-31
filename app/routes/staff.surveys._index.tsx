@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Await, Form, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
 import { CirclePlus, RotateCcw, Search } from "lucide-react";
 import { Suspense } from "react";
@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import GenericDataTable from "~/components/ui/generic-data-table";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { fetchSurveys } from "~/lib/services/survey";
+import { fetchDeleteSurvey, fetchSurveys } from "~/lib/services/survey";
 import { Role } from "~/lib/types/account/account";
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
 import { Survey } from "~/lib/types/survey/survey";
@@ -71,6 +71,46 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const { message, status } = getErrorDetailsInfo(error);
 
         throw new Response(message, { status });
+    }
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        const formData = await request.formData();
+
+        const id = formData.get('id') as string;
+
+        if (!id) {
+            throw new Error('Id không hợp lệ');
+        }
+
+        const response = await fetchDeleteSurvey({ id, idToken });
+
+        return {
+            success: response.status === 204
+        }
+
+    } catch (error) {
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        return {
+            success: false,
+            error: message,
+            status
+        }
     }
 }
 
