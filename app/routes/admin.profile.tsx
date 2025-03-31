@@ -1,9 +1,8 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, MapPinHouse, Upload, Lock } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, Upload, Lock } from 'lucide-react'
 import { z } from 'zod'
-import { accountInfoSchema } from '~/lib/utils/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import { Suspense, useEffect } from 'react'
@@ -28,6 +27,23 @@ import { fetchUpdateAccountInfo } from '~/lib/services/account'
 import { useAuth } from '~/lib/contexts/auth-context'
 import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 type Props = {}
+
+const accountInfoSchema = z
+    .object({
+        avatarUrl: z.string().optional(), // Optional URL for existing avatar
+        email: z
+            .string({ message: "Email không được để trống." })
+            .email({ message: "Email không hợp lệ." }),
+        fullName: z
+            .string({ message: "Họ và tên không được để trống." })
+            .min(1, { message: "Họ và tên không được để trống." }),
+        userName: z
+            .string({ message: "Tên người dùng không được để trống." })
+            .min(1, { message: "Tên người dùng không được để trống." }),
+        phone: z
+            .string({ message: "Số điện thoại không được để trống." })
+            .min(10, { message: "Số điện thoại không hợp lệ." }),
+    });
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
 
@@ -57,7 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Instructor) {
+        if (role !== Role.Staff) {
             return redirect('/');
         }
 
@@ -149,7 +165,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 }
 
-export default function AccountProfilePage({ }: Props) {
+export default function AdminProfilePage({ }: Props) {
 
     const { promise } = useLoaderData<typeof loader>();
 
@@ -159,10 +175,6 @@ export default function AccountProfilePage({ }: Props) {
                 <div className="space-y-6">
                     <div>
                         <h3 className="text-lg font-bold">Thông tin hồ sơ cá nhân</h3>
-                        <p className="text-sm text-muted-foreground">
-                            Đây là những thông tin cá nhân quan trọng của bạn
-                            mà <strong>Photon Piano</strong> sử dụng để liên lạc với bạn.
-                        </p>
                     </div>
                     <Separator />
                     <Suspense fallback={<LoadingSkeleton />}>
@@ -202,7 +214,6 @@ function ProfileForm() {
         resolver,
         defaultValues: {
             ...account,
-            dateOfBirth: account.dateOfBirth ? new Date(account.dateOfBirth || '') : new Date()
         },
         fetcher
     });
@@ -254,7 +265,7 @@ function ProfileForm() {
     }, [fetcher.data]);
 
     return <>
-        <Form onSubmit={handleOpenConfirmationDialog} method='POST' action='/teacher/profile' navigate={false}
+        <Form onSubmit={handleOpenConfirmationDialog} method='POST' action='/admin/profile' navigate={false}
             className='flex flex-col gap-5'>
 
             <Avatar className='size-32 inline-block relative left-1/2 -translate-x-1/2'>
@@ -294,9 +305,9 @@ function ProfileForm() {
                     id='userName'
                     type='text'
                     placeholder='Nhập tên người dùng...' />
-                <p className="text-sm text-muted-foreground mt-2">Đây là tên người dùng được hiển thị công khai của bạn.
+                {/* <p className="text-sm text-muted-foreground mt-2">Đây là tên người dùng được hiển thị công khai của bạn.
                     Bạn có thể dùng họ và tên hoặc biệt danh của mình.
-                </p>
+                </p> */}
                 {errors.userName && <p className='text-sm text-red-600'>{errors.userName.message}</p>}
             </div>
 
@@ -308,10 +319,10 @@ function ProfileForm() {
                     id='email'
                     placeholder='Nhập email...'
                     readOnly />
-                <p className="text-sm text-muted-foreground mt-2">
+                {/* <p className="text-sm text-muted-foreground mt-2">
                     <strong>Photon Piano</strong> sẽ sử dụng email này để liên lạc với bạn về vấn đề hỗ trợ đăng ký học ở trung tâm, lịch thi đầu vào
                     lịch học trung tâm và các thông báo khác.
-                </p>
+                </p> */}
                 {errors.email && <p className='text-sm text-red-600'>{errors.email.message}</p>}
             </div>
 
@@ -323,81 +334,12 @@ function ProfileForm() {
                     name='phone' type='text'
                     id='phone'
                     placeholder='Nhập số điện thoại..' />
-                <p className="text-sm text-muted-foreground mt-2">
+                {/* <p className="text-sm text-muted-foreground mt-2">
                     Số điện thoại này sẽ được sử dụng để liên lạc với bạn trong trường hợp cần thiết.
-                </p>
+                </p> */}
                 {errors.phone && <p className='text-sm text-red-600'>{errors.phone.message}</p>}
             </div>
 
-            <div className="flex flex-col gap-2">
-                <Label>Ngày sinh</Label>
-                <Controller
-                    control={control}
-                    name='dateOfBirth'
-                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                        <DatePickerInput
-                            value={value}
-                            onChange={onChange}
-                            onBlur={onBlur}
-                            ref={ref}
-                            className='w-full'
-                            placeholder='Chọn ngày sinh'
-                        />
-                    )}
-                />
-                {errors.dateOfBirth && <p className='text-sm text-red-600'>{errors.dateOfBirth.message}</p>}
-            </div>
-
-            <div className="">
-                <Label htmlFor='address'>Địa chỉ</Label>
-                <Input
-                    {...register('address')}
-                    startContent={<MapPinHouse />}
-                    name='address'
-                    type='text'
-                    id='address'
-                    placeholder='Nhập địa chỉ...' />
-                <p className="text-sm text-muted-foreground mt-2">
-                    Địa chỉ này sẽ được sử dụng để gửi hồ sơ, tài liệu quan trọng nếu cần thiết.
-                </p>
-                {errors.address && <p className='text-sm text-red-600'>{errors.address.message}</p>}
-            </div>
-
-            <div className="">
-                <Label>Giới tính</Label>
-                <Controller
-                    control={control}
-                    name='gender'
-                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                        <Select value={value?.toString()} onValueChange={onChange}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Chọn giới tính" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectLabel>Giới tính</SelectLabel>
-                                    <SelectItem value={Gender.Male.toString()}>Nam</SelectItem>
-                                    <SelectItem value={Gender.Female.toString()}>Nữ</SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.gender && <p className='text-sm text-red-600'>{errors.gender.message}</p>}
-            </div>
-
-            <div className="">
-                <Label htmlFor='shortDescription'>Mô tả ngắn về bản thân</Label>
-                <Textarea
-                    {...register('shortDescription')}
-                    name='shortDescription'
-                    id='shortDescription'
-                    placeholder='Nhập mô tả ngắn về bản thân...' />
-                <p className="text-sm text-muted-foreground mt-2">
-                    Mô tả ngắn về bản thân giúp người khác hiểu rõ bạn hơn.
-                </p>
-                {errors.shortDescription && <p className='text-sm text-red-600'>{errors.shortDescription.message}</p>}
-            </div>
 
             <div className='flex gap-4  mt-4'>
 
@@ -410,9 +352,10 @@ function ProfileForm() {
                 <ForgotPasswordDialog trigger={
                     <Button type='button' variant={'outline'} Icon={Lock} iconPlacement='left'>
                         Yêu cầu đặt lại mật khẩu
-                    </Button>} />
+                    </Button>}/>
 
             </div>
+
         </Form>
         {imagesDialog}
         {confirmDialog}

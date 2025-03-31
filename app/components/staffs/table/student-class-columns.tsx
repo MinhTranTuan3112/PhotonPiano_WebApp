@@ -1,4 +1,4 @@
-import { ColumnDef, Table } from "@tanstack/react-table";
+import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import {
     MoreHorizontal, Mail, Phone, User,
     Trash,
@@ -135,15 +135,16 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             accessorKey: "Thao tác",
             header: "Hành động",
             cell: ({ row, table }) => {
-                return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} />
+                return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} row={row} />
             }
         }
     ]
 }
 
 
-function ActionsDropdown({ table, deleteAction }: {
+function ActionsDropdown({ table, deleteAction, row }: {
     table: Table<StudentClassWithStudent>,
+    row: Row<StudentClassWithStudent>,
     deleteAction : () => void
 }) {
 
@@ -158,7 +159,7 @@ function ActionsDropdown({ table, deleteAction }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.studentFirebaseId}`}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">

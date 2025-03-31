@@ -1,7 +1,7 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, MapPinHouse, Upload } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, MapPinHouse, Upload, Lock } from 'lucide-react'
 import { z } from 'zod'
 import { accountInfoSchema } from '~/lib/utils/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +26,7 @@ import { requireAuth } from '~/lib/utils/auth'
 import { fetchCurrentAccountInfo } from '~/lib/services/auth'
 import { fetchUpdateAccountInfo } from '~/lib/services/account'
 import { useAuth } from '~/lib/contexts/auth-context'
+import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -414,12 +415,20 @@ function ProfileForm() {
                 {errors.shortDescription && <p className='text-sm text-red-600'>{errors.shortDescription.message}</p>}
             </div>
 
-            <Button type="submit" variant={'default'}
-                isLoading={isSubmitting}
-                disabled={isSubmitting}
-                className='md:max-w-[30%] mt-4'>
-                {isSubmitting ? 'Đang cập nhật' : 'Cập nhật thông tin'}
-            </Button>
+            <div className='flex gap-4  mt-4'>
+
+                <Button type="submit" variant={'default'}
+                    isLoading={isSubmitting}
+                    disabled={isSubmitting}
+                    className='md:max-w-[30%]'>
+                    {isSubmitting ? 'Đang cập nhật' : 'Cập nhật thông tin'}
+                </Button>
+                <ForgotPasswordDialog trigger={
+                    <Button type='button' variant={'outline'} Icon={Lock} iconPlacement='left'>
+                        Yêu cầu đặt lại mật khẩu
+                    </Button>} />
+
+            </div>
         </Form>
         {imagesDialog}
         {confirmDialog}
