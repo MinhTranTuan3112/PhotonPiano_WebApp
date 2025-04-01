@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FetcherWithComponents, Form, useRouteLoaderData } from '@remix-run/react';
+import { FetcherWithComponents, Form } from '@remix-run/react';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
@@ -9,7 +9,6 @@ import { Button } from '../ui/button';
 import { Controller } from 'react-hook-form';
 import GenericCombobox from '../ui/generic-combobox';
 import { Survey } from '~/lib/types/survey/survey';
-import { loader } from '~/root';
 import { fetchSurveys } from '~/lib/services/survey';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 
@@ -17,7 +16,7 @@ export const surveyConfigSchema = z.object({
     instrumentName: z.string().nonempty({ message: 'Tên nhạc cụ không được để trống' }),
     instrumentFrequencyInResponse: z.coerce.number().min(1, { message: 'Tần suất xuất hiện của tên nhạc cụ phải lớn hơn 0' }),
     entranceSurveyId: z.string({ message: 'Vui lòng chọn bài khảo sát đầu vào' }).nonempty({ message: 'Vui lòng chọn bài khảo sát đầu vào' }),
-    maxQuestionsPerSuvrey: z.coerce.number().min(1, { message: 'Số lượng câu hỏi tối đa phải lớn hơn 0' }),
+    maxQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Số lượng câu hỏi tối đa phải lớn hơn 0' }),
     minQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Số lượng câu hỏi tối thiểu phải lớn hơn 0' }),
 });
 
@@ -135,12 +134,12 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
 
                 <div className="flex flex-row">
                     <Label className='w-[25%]'>Số câu hỏi tối đa trong 1 bài khảo sát:</Label>
-                    <Input {...register('maxQuestionsPerSuvrey')}
+                    <Input {...register('maxQuestionsPerSurvey')}
                         placeholder='Nhập số lượng câu hỏi tối đa trong 1 bài khảo sát...'
                         type='number'
                         className='max-w-[20%]' />
                 </div>
-                {errors.maxQuestionsPerSuvrey && <p className='text-red-500 text-sm'>{errors.maxQuestionsPerSuvrey.message}</p>}
+                {errors.maxQuestionsPerSurvey && <p className='text-red-500 text-sm'>{errors.maxQuestionsPerSurvey.message}</p>}
 
 
                 <div className="my-2">

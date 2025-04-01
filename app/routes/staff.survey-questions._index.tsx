@@ -118,7 +118,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
                 return {
                     success: createResponse.status === 201,
-                    action: 'create'
+                    questionAction: 'create'
                 }
 
             case 'update':
@@ -136,7 +136,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
                 return {
                     success: updateResponse.status === 204,
-                    action: 'update'
+                    questionAction: 'update'
                 }
             default:
                 return {
@@ -157,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         return {
             success: false,
-            message,
+            error: message,
             status
         }
     }
@@ -169,6 +169,7 @@ function SearchForm() {
 
     return <Form method="GET" className="my-4 flex flex-row gap-3">
         <Input placeholder="Tìm kiếm câu hỏi..." name="q"
+
             defaultValue={searchParams.get('q') || undefined} />
 
         <Button type="submit" Icon={Search} iconPlacement="left">Tìm kiếm</Button>
@@ -188,17 +189,24 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
         },
         requiresUpload: true,
         requiresAgeInputs: true,
-        isEditing: false
+        isEditing: false,
+        fetcher
     });
 
     useEffect(() => {
 
+        console.log(fetcher.data);
+
         if (fetcher.data?.success === true) {
             let message = '';
 
-            switch (fetcher.data.action) {
+            switch (fetcher.data.questionAction) {
                 case 'create':
                     message = 'Câu hỏi đã được tạo thành công.';
+                    break;
+
+                case 'update':
+                    message = 'Câu hỏi đã được cập nhật thành công.';
                     break;
 
                 default:
@@ -206,9 +214,18 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
             }
 
             if (message) {
-                toast.success(message);
+                toast.success(message, {
+                    position: 'top-center'
+                });
             }
 
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toast.error('Có lỗi xảy ra: ' + fetcher.data.error, {
+                position: 'top-center'
+            });
             return;
         }
 

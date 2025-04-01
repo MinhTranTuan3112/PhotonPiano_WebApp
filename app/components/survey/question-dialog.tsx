@@ -1,4 +1,4 @@
-import { Form } from '@remix-run/react';
+import { FetcherWithComponents, Form } from '@remix-run/react';
 import { Button } from '../ui/button';
 import {
     Dialog,
@@ -41,6 +41,7 @@ export type QuestionDialogProps = {
     requiresAgeInputs?: boolean;
     requiresAnswersDataDisplay?: boolean;
     idToken?: string;
+    fetcher?: FetcherWithComponents<any>;
 } & Partial<CreateQuestionFormData>;
 
 export const createQuestionSchema = z.object({
@@ -77,6 +78,7 @@ export default function QuestionDialog({
     requiresUpload = false,
     requiresAnswersDataDisplay = false,
     idToken,
+    fetcher,
     ...defaultData
 }: QuestionDialogProps) {
 
@@ -102,7 +104,8 @@ export default function QuestionDialog({
             type: defaultData?.type || QuestionType.MultipleChoice,
             allowOtherAnswer: defaultData?.allowOtherAnswer || false,
             isRequired: true,
-        }
+        },
+        fetcher
     });
 
     const options = watch('options');
@@ -139,10 +142,10 @@ export default function QuestionDialog({
             setIsOpen(false);
             reset();
             setNewOption('');
-            toast.success(!isEditing ? 'Thêm thành công!' : 'Cập nhật thành công!', {
-                position: 'top-center',
-                duration: 1250
-            });
+            // toast.success(!isEditing ? 'Thêm thành công!' : 'Cập nhật thành công!', {
+            //     position: 'top-center',
+            //     duration: 1250
+            // });
         },
         confirmText: isEditing ? 'Cập nhật' : 'Thêm'
     });

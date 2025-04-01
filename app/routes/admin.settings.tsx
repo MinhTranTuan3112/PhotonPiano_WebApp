@@ -11,10 +11,10 @@ import { buttonVariants } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator'
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchSystemConfigs } from '~/lib/services/system-config';
+import { fetchSystemConfigs, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS } from '~/lib/utils/config-name';
+import { ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS } from '~/lib/utils/config-name';
 import { getErrorDetailsInfo } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -66,25 +66,31 @@ type SettingsFormData = {
 export async function action({ request }: ActionFunctionArgs) {
     try {
 
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Administrator) {
+            return redirect('/');
+        }
+
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<SettingsFormData>(request, zodResolver(settingsSchema));
 
         console.log({ data });
 
-        switch (data?.module) {
-            case 'entrance-tests':
+        if (errors) {
+            console.log({ errors });
+            return { success: false, errors, defaultValues };
+        }
 
+        switch (data?.module) {
+            case 'survey':
+                await fetchUpdateSurveySystemConfig({ idToken, ...data });
                 break;
 
             default:
                 break;
         }
 
-
-        if (errors) {
-            console.log({ errors });
-            return { success: false, errors, defaultValues };
-        }
 
         return {
             success: true
@@ -174,7 +180,7 @@ export default function AdminSettingsPage({ }: Props) {
                                     isSubmitting={isSubmitting}
                                     idToken={idToken}
                                     minQuestionsPerSurvey={parseInt(configs.find(c => c.configName === MIN_QUESTIONS_PER_SURVEY)?.configValue || '1')}
-                                    maxQuestionsPerSuvrey={parseInt(configs.find(c => c.configName === MAX_STUDENTS)?.configValue || '10')}
+                                    maxQuestionsPerSurvey={parseInt(configs.find(c => c.configName === MAX_QUESTIONS_PER_SURVEY)?.configValue || '10')}
                                     instrumentName={configs.find(c => c.configName === INSTRUMENT_NAME)?.configValue || 'Piano'}
                                     entranceSurveyId={configs.find(c => c.configName === ENTRANCE_SURVEY)?.configValue || undefined}
                                     instrumentFrequencyInResponse={parseInt(configs.find(c => c.configName === INSTRUMENT_FREQUENCY_IN_RESPONSE)?.configValue || '0')}
