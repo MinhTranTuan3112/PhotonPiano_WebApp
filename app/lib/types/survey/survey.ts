@@ -35,6 +35,16 @@ export type LearnerSurveyWithAnswers = {
     learnerAnswers: LearnerAnswer[];
 } & LearnerSurvey;
 
+export type LearnerAnswerWithQuestion = {
+    surveyQuestion : SurveyQuestion;
+} & LearnerAnswer
+
+export type LearnerSurveyWithAnswersDetail = {
+    learnerAnswers: LearnerAnswerWithQuestion[];
+    pianoSurvey : Survey;
+    createdAt : string;
+} & LearnerSurvey;
+
 export type PianoSurveyQuestion = {
     surveyId: string;
     questionId: string;
