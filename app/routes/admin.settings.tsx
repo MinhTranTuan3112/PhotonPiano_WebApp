@@ -11,10 +11,10 @@ import { buttonVariants } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator'
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchSystemConfigs, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
+import { fetchSystemConfigs, fetchUpdateEntranceTestSystemConfig, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS } from '~/lib/utils/config-name';
+import { ALLOW_ENTRANCE_TEST_REGISTERING, ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_TEST, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS, MIN_STUDENTS_IN_TEST } from '~/lib/utils/config-name';
 import { getErrorDetailsInfo } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -85,6 +85,10 @@ export async function action({ request }: ActionFunctionArgs) {
         switch (data?.module) {
             case 'survey':
                 await fetchUpdateSurveySystemConfig({ idToken, ...data });
+                break;
+
+            case 'entrance-tests':
+                await fetchUpdateEntranceTestSystemConfig({ idToken, ...data });
                 break;
 
             default:
@@ -162,7 +166,10 @@ export default function AdminSettingsPage({ }: Props) {
                                 <EntranceTestConfigForm
                                     fetcher={fetcher}
                                     isSubmitting={isSubmitting}
-                                    maxStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MAX_STUDENTS_IN_EXAM)?.configValue || '1')} />
+                                    minStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MIN_STUDENTS_IN_TEST)?.configValue || '1')}
+                                    maxStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MAX_STUDENTS_IN_TEST)?.configValue || '1')}
+                                    allowEntranceTestRegistering={configs.find(c => c.configName === ALLOW_ENTRANCE_TEST_REGISTERING)?.configValue === "true" || true}
+                                />
                             </TabsContent>
                             <TabsContent value="classes">
                                 <ClassesConfigForm
