@@ -117,7 +117,7 @@ function ActionDropdown({ row }: {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error(fetcher.data.message);
+            toast.error(fetcher.data.error);
             return
         }
 

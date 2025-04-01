@@ -71,6 +71,23 @@ export async function fetchUpdateSurvey({
     return response;
 }
 
+export async function fetchDeleteSurvey({
+    id, idToken
+}: {
+    id: string;
+    idToken: string;
+}) {
+
+    const response = await axiosInstance.delete(`/piano-surveys/${id}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+
+}
+
 export async function fetchEntranceSurvey() {
 
     const response = await axiosInstance.get('/piano-surveys/entrance-survey');

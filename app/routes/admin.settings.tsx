@@ -1,77 +1,144 @@
-import { LoaderFunctionArgs } from '@remix-run/node';
-import { Await, Form, redirect, useLoaderData } from '@remix-run/react'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { Await, isRouteErrorResponse, Link, redirect, useFetcher, useLoaderData, useLocation, useRouteError } from '@remix-run/react'
+import { RotateCcw } from 'lucide-react';
 import { Suspense } from 'react';
-import { Controller } from 'react-hook-form';
-import { useRemixForm } from 'remix-hook-form';
-import { z } from 'zod'
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
+import { getValidatedFormData } from 'remix-hook-form';
+import { z } from 'zod';
+import ClassesConfigForm, { ClassSettingsFormData, classSettingsSchema } from '~/components/settings/classes-config-form';
+import EntranceTestConfigForm, { EntranceTestSettingsFormData, entranceTestSettingsSchema } from '~/components/settings/entrance-test-form';
+import { buttonVariants } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator'
 import { Skeleton } from '~/components/ui/skeleton';
-import { Switch } from '~/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { Toggle } from '~/components/ui/toggle';
-import { fetchSystemConfigs } from '~/lib/services/system-config';
+import { fetchSystemConfigs, fetchUpdateEntranceTestSystemConfig, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, MAX_STUDENTS, MAX_STUDENTS_IN_EXAM, MIN_STUDENTS } from '~/lib/utils/config-name';
+import { ALLOW_ENTRANCE_TEST_REGISTERING, ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_TEST, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS, MIN_STUDENTS_IN_TEST } from '~/lib/utils/config-name';
+import { getErrorDetailsInfo } from '~/lib/utils/error';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+import SurveyConfigForm, { SurveyConfigFormData, surveyConfigSchema } from '~/components/settings/survey-config-form';
+import { Role } from '~/lib/types/account/account';
 
 type Props = {}
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 
-    const { idToken, role } = await requireAuth(request);
+    try {
+        const { idToken, role } = await requireAuth(request);
 
-    if (role !== 3) {
-        return redirect('/');
+        if (role !== Role.Administrator) {
+            return redirect('/');
+        }
+
+        const { searchParams } = new URL(request.url);
+
+        const promise = fetchSystemConfigs({ idToken }).then((res) => {
+            return res.data as SystemConfig[]
+        });
+
+
+        return {
+            promise, idToken
+        }
+    } catch (error) {
+
+        console.error({ error });
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
     }
 
-    const { searchParams } = new URL(request.url);
-
-    const promise = fetchSystemConfigs({ idToken }).then((res) => {
-        return res.data as SystemConfig[]
-    });
-
-
-    return {
-        promise, idToken
-    }
 }
 
 const settingsSchema = z.object({
-    maxStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
-});
-const classSettingsSchema = z.object({
-    maxStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
-    minStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
-    deadlineChangingClass: z.coerce.number().min(0, { message: 'Giá trị không âm' }),
-    allowSkippingLevel: z.boolean().default(false),
-});
+    module: z.string()
+}).merge(entranceTestSettingsSchema.partial())
+    .merge(classSettingsSchema.partial())
+    .merge(surveyConfigSchema.partial());
 
-type SettingsFormData = z.infer<typeof settingsSchema>;
-type ClassSettingsFormData = z.infer<typeof classSettingsSchema>;
+type SettingsFormData = {
+    module: 'entrance-tests' | 'classes' | 'survey';
+} & Partial<EntranceTestSettingsFormData & ClassSettingsFormData & SurveyConfigFormData>;
+
+export async function action({ request }: ActionFunctionArgs) {
+    try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Administrator) {
+            return redirect('/');
+        }
+
+        const { errors, data, receivedValues: defaultValues } =
+            await getValidatedFormData<SettingsFormData>(request, zodResolver(settingsSchema));
+
+        console.log({ data });
+
+        if (errors) {
+            console.log({ errors });
+            return { success: false, errors, defaultValues };
+        }
+
+        switch (data?.module) {
+            case 'survey':
+                await fetchUpdateSurveySystemConfig({ idToken, ...data });
+                break;
+
+            case 'entrance-tests':
+                await fetchUpdateEntranceTestSystemConfig({ idToken, ...data });
+                break;
+
+            default:
+                break;
+        }
+
+
+        return {
+            success: true
+        }
+
+    } catch (error) {
+        console.error({ error });
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        return {
+            success: false,
+            error: message,
+            status
+        }
+    }
+}
+
 
 export default function AdminSettingsPage({ }: Props) {
-    const { promise, idToken } = useLoaderData<typeof loader>()
 
-    const {
-        handleSubmit,
-        formState: { errors },
-        control,
-        register
-    } = useRemixForm<SettingsFormData>({
-        mode: 'onSubmit',
-    })
+    const { promise, idToken } = useLoaderData<typeof loader>();
 
-    const {
-        handleSubmit: handleClassSubmit,
-        formState: { errors: classErrors },
-        control: classControl,
-        register: classRegister
-    } = useRemixForm<ClassSettingsFormData>({
-        mode: 'onSubmit',
-    })
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Cập nhật cấu hình thành công');
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toast.error('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
 
     return (
         <article className='px-10'>
@@ -83,101 +150,54 @@ export default function AdminSettingsPage({ }: Props) {
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise} >
                     {(configs) => (
-                        <Tabs defaultValue='entrance-test'>
-                            <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4">
-                                <TabsTrigger value="entrance-test">
+                        <Tabs defaultValue='entrance-tests'>
+                            <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                                <TabsTrigger value="entrance-tests">
                                     Thi đầu vào
                                 </TabsTrigger>
                                 <TabsTrigger value="classes">
-                                    Quản lý lớp
+                                    Lớp học
+                                </TabsTrigger>
+                                <TabsTrigger value="survey">
+                                    Khảo sát
                                 </TabsTrigger>
                             </TabsList>
-                            <TabsContent value="entrance-test">
-                                <h2 className="text-base font-bold">Cấu hình thi đầu vào</h2>
-                                <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến thi đầu vào</p>
-
-                                <Form method='POST' className='my-4' onSubmit={handleSubmit} action='/'>
-                                    <div className="flex flex-row">
-                                        <Label className='w-[25%] flex items-center'>Số học viên tối đa trong 1 ca thi:</Label>
-                                        <Input {...register('maxStudentsPerEntranceTest')}
-                                            defaultValue={configs.find(c => c.configName === MAX_STUDENTS_IN_EXAM)?.configValue}
-                                            placeholder='Nhập số lượng học viên tối đa trong 1 ca thi...'
-                                            type='number'
-                                            className='max-w-[50%]' />
-                                        {errors.maxStudentsPerEntranceTest && <p className='text-red-500'>{errors.maxStudentsPerEntranceTest.message}</p>}
-
-                                    </div>
-                                    <Button type='submit'>Lưu</Button>
-                                </Form>
+                            <TabsContent value="entrance-tests">
+                                <EntranceTestConfigForm
+                                    fetcher={fetcher}
+                                    isSubmitting={isSubmitting}
+                                    minStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MIN_STUDENTS_IN_TEST)?.configValue || '1')}
+                                    maxStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MAX_STUDENTS_IN_TEST)?.configValue || '1')}
+                                    allowEntranceTestRegistering={configs.find(c => c.configName === ALLOW_ENTRANCE_TEST_REGISTERING)?.configValue === "true" || true}
+                                />
                             </TabsContent>
                             <TabsContent value="classes">
-                                <h2 className="text-base font-bold">Cấu hình lớp</h2>
-                                <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến xếp lớp và quản lý lớp</p>
-
-                                <Form method='POST' className='my-4' onSubmit={handleClassSubmit} action='/'>
-                                    <div>
-                                        <div className="flex flex-row mb-4 gap-2">
-                                            <Label className='w-1/2 lg:w-1/4 flex items-center'>Sĩ số tối đa cho 1 lớp:</Label>
-                                            <Input {...classRegister('maxStudents')}
-                                                defaultValue={configs.find(c => c.configName === MAX_STUDENTS)?.configValue}
-                                                placeholder='Nhập giá trị...'
-                                                type='number'
-                                                className='w-36' />
-                                            {classErrors.maxStudents && <p className='text-red-500'>{classErrors.maxStudents.message}</p>}
-                                        </div>
-                                        <div className="flex flex-row mb-4 gap-2">
-                                            <Label className='w-1/2 lg:w-1/4 flex items-center'>Sĩ số tối thiểu để mở lớp:</Label>
-                                            <Input {...classRegister('minStudents')}
-                                                defaultValue={configs.find(c => c.configName === MIN_STUDENTS)?.configValue}
-                                                placeholder='Nhập giá trị...'
-                                                type='number'
-                                                className='w-36' />
-                                            {classErrors.minStudents && <p className='text-red-500'>{classErrors.minStudents.message}</p>}
-                                        </div>
-                                        <div className="flex flex-row mb-4 gap-2">
-                                            <Label className='w-1/2 lg:w-1/4 flex items-center'>Được phép học vượt Level:</Label>
-                                            <Controller
-                                                control={classControl}
-                                                name='allowSkippingLevel'
-                                                defaultValue={configs.find(c => c.configName === ALLOW_SKIPPING_LEVEL)?.configValue === "true"}
-                                                render={({ field: { onChange, onBlur, value, ref } }) => (
-                                                    <div>
-                                                        <Switch checked={value} onCheckedChange={onChange}
-                                                            className='m-0' />
-                                                    </div>
-                                                )}
-                                            />
-                                            {classErrors.allowSkippingLevel && <p className='text-red-500'>{classErrors.allowSkippingLevel.message}</p>}
-                                        </div>
-                                        <div className="flex flex-row mb-4 gap-2">
-                                            <Label className='flex items-center'>Hạn chót đổi lớp </Label>
-                                            <div>
-                                                <Input {...classRegister('deadlineChangingClass')}
-                                                    defaultValue={configs.find(c => c.configName === DEADLINE_CHANGING_CLASS)?.configValue}
-                                                    placeholder='Nhập giá trị...'
-                                                    type='number'
-                                                    className='w-24' />
-                                                {classErrors.deadlineChangingClass && <p className='text-red-500'>{classErrors.deadlineChangingClass.message}</p>}
-                                            </div>
-
-                                            <Label className='w-1/2 lg:w-1/4 flex items-center'> ngày trước khi lớp bắt đầu học</Label>
-
-                                        </div>
-                                    </div>
-
-                                    <Button type='submit'>Lưu</Button>
-                                </Form>
+                                <ClassesConfigForm
+                                    fetcher={fetcher}
+                                    isSubmitting={isSubmitting}
+                                    minStudents={parseInt(configs.find(c => c.configName === MIN_STUDENTS)?.configValue || '1')}
+                                    maxStudents={parseInt(configs.find(c => c.configName === MAX_STUDENTS)?.configValue || '10')}
+                                    allowSkippingLevel={configs.find(c => c.configName === ALLOW_SKIPPING_LEVEL)?.configValue === "true"}
+                                    deadlineChangingClass={parseInt(configs.find(c => c.configName === DEADLINE_CHANGING_CLASS)?.configValue || '1')}
+                                />
+                            </TabsContent>
+                            <TabsContent value='survey'>
+                                <SurveyConfigForm
+                                    fetcher={fetcher}
+                                    isSubmitting={isSubmitting}
+                                    idToken={idToken}
+                                    minQuestionsPerSurvey={parseInt(configs.find(c => c.configName === MIN_QUESTIONS_PER_SURVEY)?.configValue || '1')}
+                                    maxQuestionsPerSurvey={parseInt(configs.find(c => c.configName === MAX_QUESTIONS_PER_SURVEY)?.configValue || '10')}
+                                    instrumentName={configs.find(c => c.configName === INSTRUMENT_NAME)?.configValue || 'Piano'}
+                                    entranceSurveyId={configs.find(c => c.configName === ENTRANCE_SURVEY)?.configValue || undefined}
+                                    instrumentFrequencyInResponse={parseInt(configs.find(c => c.configName === INSTRUMENT_FREQUENCY_IN_RESPONSE)?.configValue || '0')}
+                                />
                             </TabsContent>
                         </Tabs>
                     )}
                 </Await>
-
             </Suspense>
-
-
-
             <Separator className="my-4" />
-
         </article>
     )
 }
@@ -186,4 +206,35 @@ function LoadingSkeleton() {
     return <div className="flex justify-center items-center my-4">
         <Skeleton className="w-full h-[500px] rounded-md" />
     </div>
+}
+
+export function ErrorBoundary() {
+
+    const error = useRouteError();
+
+    const { pathname, search } = useLocation();
+
+    return (
+        <article className="px-10">
+            <h1 className="text-xl font-extrabold">Cấu hình hệ thống</h1>
+            <p className='text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến đào tạo,...</p>
+
+            <Separator className="my-4" />
+
+            <div className="flex flex-col gap-5 justify-center items-center">
+                <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
+                    'Có lỗi đã xảy ra.'} </h1>
+                <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
+                      flex flex-row gap-1`}
+                    to={pathname ? `${pathname}${search}` : '/'}
+                    replace={true}
+                    reloadDocument={false}>
+                    <RotateCcw /> Thử lại
+                </Link>
+            </div>
+
+            <Separator className="my-4" />
+
+        </article>
+    );
 }

@@ -1,6 +1,8 @@
 import { Class } from "../class/class";
 import { StudentClassWithClass } from "../class/student-class";
 import { EntranceTest } from "../entrance-test/entrance-test";
+import { FreeSlot } from "../free-slot/free-slot";
+import { LearnerSurveyWithAnswers, LearnerSurveyWithAnswersDetail } from "../survey/survey";
 
 export type Account = {
     accountFirebaseId: string;
@@ -26,7 +28,9 @@ export type Account = {
 
 export type AccountDetail = {
     currentClass? : Class
-    studentClasses : StudentClassWithClass[]
+    studentClasses : StudentClassWithClass[],
+    learnerSurveys : LearnerSurveyWithAnswersDetail[],
+    freeSlots : FreeSlot[]
 } & Account
 
 export type TeacherDetail = {

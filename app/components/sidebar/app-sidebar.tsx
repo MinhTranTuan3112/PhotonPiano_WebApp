@@ -29,6 +29,10 @@ const data = {
                 {
                     title: "Thông tin cá nhân",
                     url: "/account/profile",
+                },
+                {
+                    title: "Khung giờ của bạn",
+                    url: "/account/free-slots",
                 }
             ],
         },

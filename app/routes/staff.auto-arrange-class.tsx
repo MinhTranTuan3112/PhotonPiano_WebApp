@@ -102,7 +102,7 @@ const arrangeClassesSchema = z.object({
         .refine((date: Date) => date > addDays(new Date(), -1), {
             message: "Tuần bắt đầu phải sau hôm nay"
         }),
-    shifts: z.array(z.string()).min(1, { message: `Phải chọn ít nhất 1 ca học` }),
+    // shifts: z.array(z.string()).min(1, { message: `Phải chọn ít nhất 1 ca học` }),
     idToken: z.string(),
 });
 
@@ -161,7 +161,6 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function StaffAutoArrangeClass({ }: Props) {
     const { currentAccount } = useAuth()
     const { promise, idToken, configPromise } = useLoaderData<typeof loader>();
-    const [isDefineStudentCount, setIsDefineStudentCount] = useState(false)
 
     const loadingMessage = "Đang thực hiện, vui lòng chờ!"
     const [searchParams, setSearchParams] = useSearchParams();
@@ -181,7 +180,6 @@ export default function StaffAutoArrangeClass({ }: Props) {
         fetcher,
         defaultValues: {
             idToken: idToken,
-            shifts: []
         }
     });
 
@@ -293,6 +291,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     </div>
 
                                     {/* Class Session Selection */}
+                                    {/*
                                     <div className='space-y-2'>
                                         <span className='font-bold'>Chọn buổi học:</span>
                                         <div>
@@ -329,9 +328,9 @@ export default function StaffAutoArrangeClass({ }: Props) {
 
 
                                     </div>
-
+                                    */}
                                     {/* Buttons */}
-                                    <div className='flex flex-wrap justify-center gap-4'>
+                                    <div className='flex flex-wrap justify-center gap-4 mt-4'>
                                         <Button type='submit' Icon={CalendarSync} iconPlacement='left' className='px-8'>Bắt đầu xếp lớp</Button>
                                         <Button type='button' variant={'outline'} Icon={Calendar} iconPlacement='left'>Xem lịch nghỉ</Button>
                                     </div>
@@ -368,7 +367,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                                                 <tr key={c.id} className="border hover:bg-gray-100 transition">
                                                                     <td className="py-2 px-4 border">{c.name}</td>
                                                                     <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
-                                                                    <td className="py-2 px-4 border">{c.startTime ? new Date(c.startTime).toLocaleDateString() : ""}</td>
+                                                                    <td className="py-2 px-4 border">{c.scheduleDescription}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>

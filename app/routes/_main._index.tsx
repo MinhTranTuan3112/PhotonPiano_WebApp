@@ -1,10 +1,12 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import ActionDialog from "~/components/home/action-dialog";
 import { Carousel } from "~/components/home/carousel";
 import { NewsSection } from "~/components/home/news";
 import { PianoPromo } from "~/components/home/promo";
 import { RegistrationSection } from "~/components/home/registration-section";
 import { FeatureSection } from "~/components/home/what-we-do";
+import { useAuth } from "~/lib/contexts/auth-context";
 import { getAuth } from "~/lib/utils/auth";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -15,9 +17,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export default function Index() {
   const { isOpenDialog } = useLoaderData<typeof loader>();
+  const { currentAccount } = useAuth()
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col relative">
       <article className="flex-1">
         <Carousel isOpenDialog={isOpenDialog} />
         {/* MissionSection */}
@@ -39,6 +42,11 @@ export default function Index() {
         <NewsSection />
         <RegistrationSection />
       </article>
+      {
+        (currentAccount?.studentStatus === 1 || currentAccount?.studentStatus === 2 || currentAccount?.studentStatus === 3) && (
+          <ActionDialog account={currentAccount} />
+        )
+      }
     </div>
   );
 
