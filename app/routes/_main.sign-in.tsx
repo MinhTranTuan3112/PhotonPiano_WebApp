@@ -87,7 +87,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        throw new Response(message, { status });
+        return {
+            success: false,
+            status : status,
+            error: message,
+        }
     }
 
 }
