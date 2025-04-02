@@ -46,7 +46,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (response.status === 200) {
 
-            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = response.data;
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
