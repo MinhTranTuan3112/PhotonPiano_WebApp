@@ -22,12 +22,6 @@ interface CompactSlotViewProps {
 export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewProps) => {
     const [expanded, setExpanded] = useState(false)
 
-    // Count slots by status
-    const notStartedCount = slots.filter(
-        (slot) =>
-            slot.status !== SlotStatus.Cancelled && slot.status !== SlotStatus.Ongoing && slot.status !== SlotStatus.Finished,
-    ).length
-
     return (
         <div className="space-y-2">
             {/* Summary card - always visible */}
@@ -59,7 +53,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                 {/* Status badge */}
                 <div className="mt-3">
                     <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                        {notStartedCount} Chưa Bắt Đầu
+                        Xem Thêm
                     </Badge>
                 </div>
             </div>

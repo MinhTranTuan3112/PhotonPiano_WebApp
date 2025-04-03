@@ -321,7 +321,7 @@ export const Scheduler = ({
 
         try {
             setIsLoading(true);
-            console.log("Starting replace-then-cancel process...");
+   
 
             // Step 1: Create the replacement slot first
             const roomId = selectedBlankSlot.roomId;
@@ -348,7 +348,7 @@ export const Scheduler = ({
                 idToken
             );
             const newSlot = response.data;
-            console.log(`New slot created successfully: ${newSlot.id}`);
+  
 
             // Step 2: Cancel the original slot only if replacement succeeds
             console.log("Calling fetchCancelSlot with:", {
@@ -356,7 +356,7 @@ export const Scheduler = ({
                 cancelReason,
             });
             await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
-            console.log(`Slot ${selectedSlotToCancel.id} cancelled successfully`);
+     
 
             // Update local state (optional, since we'll refresh)
             const updatedSlots = slots
@@ -375,7 +375,7 @@ export const Scheduler = ({
             setSelectedBlankSlot(null);
 
             // Refresh the page
-            console.log("Refreshing page...");
+   
             navigate(0); // This reloads the current page
         } catch (error) {
             console.error("Error in replace-then-cancel process:", error);
