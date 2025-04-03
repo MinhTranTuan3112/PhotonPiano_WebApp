@@ -37,3 +37,57 @@ export async function fetchAllMinimalCriterias({
 
     return response;
 }
+
+export async function fetchCreateCriteria({ name, weight, description, criteriaFor, idToken }: {
+    name : string,
+    weight : number,
+    description : string,
+    criteriaFor : CriteriaFor,
+    idToken : string
+}) {
+    const response = await axiosInstance.post(`/criterias`, {
+        name,
+        weight,
+        description,
+        for : criteriaFor,
+        idToken : idToken
+    },{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}
+
+export async function fetchUpdateCriteria({updateCriteria, criteriaFor, idToken }: {
+    updateCriteria : {
+        id : string
+        name? : string,
+        weight? : number,
+        description? : string,
+    }[],
+    criteriaFor : CriteriaFor,
+    idToken : string
+}) {
+    const response = await axiosInstance.put(`/criterias`, {
+        updateCriteria,
+        for : criteriaFor
+    },{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}
+
+export async function fetchDeleteCriteria({ id, idToken }: {
+    id : string,
+    idToken : string
+}) {
+    const response = await axiosInstance.delete(`/criterias/${id}`,{
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+    return response;
+}
