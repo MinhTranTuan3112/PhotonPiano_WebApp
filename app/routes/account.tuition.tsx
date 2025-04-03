@@ -106,6 +106,102 @@ export default function TuitionPage() {
         setIsModalOpen(false)
     }
 
+    const handlePrintInvoice = () => {
+        if (!selectedFee) return;
+
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) return;
+
+
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Giấy báo học phí</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 20px;
+                        background-color: #f4f4f4;
+                    }
+                    .invoice-container {
+                        max-width: 600px;
+                        margin: 40px auto;
+                        padding: 20px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                        text-align: center;
+                    }
+                    .invoice-header {
+                        font-size: 24px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        margin-bottom: 20px;
+                    }
+                    .invoice-subtitle {
+                        font-size: 18px;
+                        margin-bottom: 10px;
+                        color: #555;
+                    }
+                    .invoice-details {
+                        text-align: left;
+                        font-size: 16px;
+                        margin-top: 20px;
+                    }
+                    .invoice-details p {
+                        margin: 8px 0;
+                    }
+                    .divider {
+                        height: 1px;
+                        background-color: #ddd;
+                        margin: 20px 0;
+                    }
+                    .signature {
+                        text-align: right;
+                        margin-top: 40px;
+                        font-size: 16px;
+                        font-style: italic;
+                    }
+                    .footer-note {
+                        margin-top: 20px;
+                        font-size: 14px;
+                        color: #888;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="invoice-container">
+                    <div class="invoice-header">PhotonPiano</div>
+                    <div class="invoice-subtitle">Giấy báo học phí</div>
+                    
+                    <div class="divider"></div>
+
+                    <div class="invoice-details">
+                        <p><strong>Học viên:</strong> ${selectedFee.studentClass.studentFullName}</p>
+                        <p><strong>Lớp:</strong> ${selectedFee.studentClass.className}</p>
+                        <p><strong>Thời gian:</strong> ${formatDate(selectedFee.startDate)} đến ${formatDate(selectedFee.endDate)}</p>
+                        <p><strong>Số tiền:</strong> ${selectedFee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</p>
+                        <p><strong>Trạng thái thanh toán:</strong> ${PaymentStatusText[selectedFee.paymentStatus]}</p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="signature">Người lập hóa đơn</div>
+
+                    <div class="footer-note">Vui lòng thanh toán trước ngày hết hạn để tránh gián đoạn học tập.</div>
+                </div>
+                <script>
+                    window.print();
+                </script>
+            </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+    };
+
+
     const handleFilterSubmit = (event: React.FormEvent) => {
         event.preventDefault()
         const newSearchParams = new URLSearchParams()
@@ -229,6 +325,7 @@ export default function TuitionPage() {
                     </div>
                 ))}
             </div>
+            
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="bg-white text-black">
@@ -243,6 +340,14 @@ export default function TuitionPage() {
                             Thời gian: {formatDate(selectedFee?.startDate)} đến {formatDate(selectedFee?.endDate)}
                         </p>
                         <p className="mb-4 text-sm font-medium">Lớp: {selectedFee?.studentClass.className}</p>
+
+                        <Button
+                            type="button"
+                            onClick={handlePrintInvoice}
+                            className="w-full bg-gray-200 text-black hover:bg-gray-300 transition-colors py-2 px-4 rounded mt-2"
+                        >
+                            In giấy báo học phí
+                        </Button>
                         
                         <Button
                             type="submit"
