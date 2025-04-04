@@ -225,7 +225,7 @@ function ActionDialog({
         fetcher
     });
 
-    const { status: currentStatus } = getFormValues();
+    const { status: currentStatus } = getFormValues(); 
 
     useEffect(() => {
 

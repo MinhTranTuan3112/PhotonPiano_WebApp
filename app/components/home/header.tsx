@@ -2,7 +2,7 @@ import { Menu, Music, Piano } from 'lucide-react';
 import React from "react";
 
 export function Header() {
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false); 
 
     return (
         <header className="fixed top-0 z-50 w-full">
