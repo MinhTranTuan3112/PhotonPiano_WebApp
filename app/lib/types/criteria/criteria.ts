@@ -1,7 +1,8 @@
 export type Criteria = {
     id : string,
     name : string,
-    weight : number
+    weight : number,
+    description : string,
     for: CriteriaFor;
 }
 
