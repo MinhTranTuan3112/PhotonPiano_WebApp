@@ -41,7 +41,7 @@ export async function fetchAllMinimalCriterias({
 export async function fetchCreateCriteria({ name, weight, description, criteriaFor, idToken }: {
     name : string,
     weight : number,
-    description : string,
+    description? : string,
     criteriaFor : CriteriaFor,
     idToken : string
 }) {
