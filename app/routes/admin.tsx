@@ -13,7 +13,7 @@ import {
     BreadcrumbSeparator
 } from "~/components/ui/breadcrumb";
 import { buttonVariants } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
+import { Separator } from "~/components/ui/separator"; 
 import {
     Sidebar,
     SidebarContent,
