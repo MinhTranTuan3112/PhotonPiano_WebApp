@@ -58,11 +58,11 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await roleCookie.serialize(role));
             headers.append("Set-Cookie", await accountIdCookie.serialize(localId));
             switch (role) {
-                case Role.Instructor :
+                case Role.Instructor:
                     return redirect('/teacher/scheduler', { headers });
-                case Role.Staff :
+                case Role.Staff:
                     return redirect('/staff/scheduler', { headers });
-                case Role.Administrator :
+                case Role.Administrator:
                     return redirect('/admin/settings', { headers });
                 default:
                     return redirect('/', { headers });
@@ -89,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         return {
             success: false,
-            status : status,
+            status: status,
             error: message,
         }
     }
@@ -102,7 +102,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const baseUrl = `${protocol}//${host}`;
 
-    return { baseUrl };
+    return Response.json({ baseUrl }, {
+        status: 200
+    });
 }
 
 export default function SignInPage({ }: Props) {
