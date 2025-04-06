@@ -1,7 +1,7 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
@@ -50,13 +50,13 @@ export const columns: ColumnDef<EntranceTest>[] = [
         enableSorting: false,
         enableHiding: false,
     },
-    {
-        accessorKey: "Mã đợt thi",
-        header: () => <div>Mã đợt thi</div>,
-        cell: ({ row }) => {
-            return <div className="font-bold">{row.original.id}</div>
-        }
-    },
+    // {
+    //     accessorKey: "Mã đợt thi",
+    //     header: () => <div>Mã đợt thi</div>,
+    //     cell: ({ row }) => {
+    //         return <div className="font-bold">{row.original.id}</div>
+    //     }
+    // },
     {
         accessorKey: "Tên đợt thi",
         header: "Tên đợt thi",

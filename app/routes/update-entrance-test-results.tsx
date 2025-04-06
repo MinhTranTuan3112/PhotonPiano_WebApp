@@ -22,7 +22,9 @@ export async function action({ request }: ActionFunctionArgs) {
         console.log({ data });
 
         if (errors) {
-            return { success: false, errors, defaultValues };
+            return Response.json({ success: false, errors, defaultValues }, {
+                status: 400
+            });
         }
 
         const response = await fetchUpdateEntranceTestResults({
@@ -39,9 +41,11 @@ export async function action({ request }: ActionFunctionArgs) {
             }) : undefined
         });
 
-        return {
+        return Response.json({
             success: response.status === 204
-        }
+        }, {
+            status: 200
+        })
 
     } catch (error) {
 
@@ -53,10 +57,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json( {
             success: false,
             error: message,
+        }, {
             status
-        }
+        });
     }
 }

@@ -50,7 +50,7 @@ export default function ImportResultDialog({
             // Add headers
             const headerRow = ['Người học', 'Lý thuyết'];
             criterias.forEach(criteria => headerRow.push(criteria.name));
-            headerRow.push('Nhận xét')
+            // headerRow.push('Nhận xét')
             sheet.addRow(headerRow);
 
             // 🔹 Lock only the header row (Row 1)
@@ -81,7 +81,7 @@ export default function ImportResultDialog({
                     scoreCell.protection = { locked: false }; // Ensure editable scores
                 }
 
-                addedRow.getCell(row.length + 1).protection = { locked: false }; // Unlock the comment cell
+                // addedRow.getCell(row.length + 1).protection = { locked: false }; // Unlock the comment cell
             });
 
             // 🔹 Protect the sheet while allowing unlocked cells to be edited
@@ -140,13 +140,10 @@ export default function ImportResultDialog({
                         score: parseFloat(row.getCell(colIndex + 3).value?.toString() || '0') || 0, // Fix reading issue
                     }));
 
-                    const comment = row.getCell(criterias.length + 3).value?.toString() || '';
-
-                    console.log({ fullName, theoraticalScore, entranceTestResultsFromFile, comment });
+                    console.log({ fullName, theoraticalScore, entranceTestResultsFromFile });
 
                     const results = entranceTestResultsFromFile.map(result => {
                         return {
-                            instructorComment: comment,
                             entranceTestStudentId: entranceTestStudents.find(s => s.fullName === fullName)?.id || '',
                             id: '',
                             criteriaId: result.criteriaId,
@@ -162,7 +159,6 @@ export default function ImportResultDialog({
                                 return {
                                     ...student,
                                     theoraticalScore,
-                                    instructorComment: comment,
                                     entranceTestResults: student.entranceTestResults.length > 0 ? student.entranceTestResults.map(result => {
                                         const newResult = entranceTestResultsFromFile.find(r => r.criteriaId === result.criteriaId);
                                         return newResult ? { ...result, score: newResult.score } : result;

@@ -261,7 +261,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     }, [fetcher.data]);
 
 
-    const practicalScore = getValues().scores.reduce((acc, result) => result.score * result.weight + acc, 0);
+    const practicalScore = getValues().scores.reduce((acc, result) => (result.score * result.weight / 100) + acc, 0);
 
     return <>
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
@@ -273,11 +273,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
-                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' onSubmit={(e) => {
-                        e.preventDefault();
-                        console.log(getValues());
-                        handleOpenModal();
-                    }} navigate={false}>
+                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' navigate={false}>
                         <div className="">
                             <div className="">
                                 <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét của giảng viên:</Label>
@@ -329,7 +325,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                 readOnly={role !== Role.Instructor} /> : result.score}
 
                                         </TableCell>
-                                        <TableCell className='text-center'>{result.weight * 100}%</TableCell>
+                                        <TableCell className='text-center'>{result.weight}%</TableCell>
                                     </TableRow>
                                 ))}
                                 <TableRow>
@@ -350,8 +346,8 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                         </Table>
                         {errors.scores && <div className="text-red-600">{errors.scores.message}</div>}
                         <DialogFooter>
-                            <Button type="submit" isLoading={isSubmitting}
-                                disabled={isSubmitting}>
+                            <Button type="button" isLoading={isSubmitting}
+                                disabled={isSubmitting} onClick={handleOpenModal}>
                                 {isSubmitting ? 'Đang lưu...' : 'Lưu'}
                             </Button>
                         </DialogFooter>

@@ -166,11 +166,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        });
     }
 }
 
