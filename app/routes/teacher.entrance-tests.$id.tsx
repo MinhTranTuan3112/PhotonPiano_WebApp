@@ -8,6 +8,7 @@ import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import ResultTable from '~/components/entrance-tests/result-table'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import { DatePickerInput } from '~/components/ui/date-picker-input'
 import GenericCombobox from '~/components/ui/generic-combobox'
@@ -156,9 +157,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         };
         const response = await fetchUpdateEntranceTest(updateRequest);
 
-        return {
+        return Response.json({
             success: response.status === 204
-        }
+        }, {
+            status: 200
+        })
 
     } catch (error) {
 
@@ -170,11 +173,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        });
     }
 }
 
@@ -387,7 +391,13 @@ function EntranceTestDetailsContent() {
                                         }}
                                         idToken={idToken}
                                         mapItem={(item) => ({
-                                            label: item?.fullName || item?.email,
+                                            label: <div className="flex flex-row justify-center items-center">
+                                                <Avatar>
+                                                    <AvatarImage src={item.avatarUrl || "/images/noavatar.png"} alt="@shadcn" />
+                                                    <AvatarFallback>{item.fullName || item.email}</AvatarFallback>
+                                                </Avatar>
+                                                <span className='ml-2'>{item.fullName || item.email}</span>
+                                            </div>,
                                             value: item?.accountFirebaseId
                                         })}
                                         placeholder='Chọn người gác thi'
@@ -401,9 +411,13 @@ function EntranceTestDetailsContent() {
                             />
                             {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
                         </>
-                        : <strong className="">
-                            Gv: {entranceTest.instructorName}
-                        </strong>
+                        : <div className="flex flex-row justify-center items-center">
+                            <Avatar>
+                                <AvatarImage src={entranceTest.instructor?.avatarUrl || "/images/noavatar.png"} alt="@shadcn" />
+                                <AvatarFallback>{entranceTest.instructor?.fullName || entranceTest.instructor?.email}</AvatarFallback>
+                            </Avatar>
+                            <span className='ml-2'>{entranceTest.instructor?.fullName || entranceTest.instructor?.email}</span>
+                        </div>
                     }
                 </div>
             </div>
@@ -443,23 +457,7 @@ function EntranceTestDetailsContent() {
                     </Button>
                 )
             }
-            <Button className={`font-bold px-12 ${entranceTest.isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}>
-                {
-                    entranceTest.isAnnouncedScore ? (
-                        <>
-                            <Delete className='mr-4' />
-                            Hủy công bố điểm số
-                        </>
-                    ) : (
-                        <>
-                            <Pencil className='mr-4' />
-                            Công bố điểm số
-                        </>
-                    )
-                }
-            </Button>
         </div>
-
         {confirmDialog}
     </>
 }

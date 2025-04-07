@@ -11,7 +11,7 @@ import { PagedResult } from '~/lib/types/query/paged-result'
 type Props<T> = {
     queryKey: string;
     fetcher: (query: Partial<{ keyword: string } & QueryPagedRequest> & { idToken: string }) => Promise<PagedResult<T>>;
-    mapItem: (item: T) => { label: string; value: string };  // Mapping function
+    mapItem: (item: T) => { label: string | React.ReactNode; value: string };  // Mapping function
     idToken: string;
     defaultValue?: string;
     onChange?: (value: string) => void;

@@ -7,7 +7,6 @@ import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
 
-
 const importResultSchema = z.object({
     entranceTestId: z.string(),
     updateRequests: z.array(z.object({
@@ -50,9 +49,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const response = await fetchUpdateStudentsEntranceTestResults({ idToken, ...data });
 
-        return {
+        return Response.json({
             success: response.status === 204
-        }
+        }, {
+            status: 200
+        })
 
     } catch (error) {
         console.error({ error });
@@ -63,10 +64,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        })
     }
 }

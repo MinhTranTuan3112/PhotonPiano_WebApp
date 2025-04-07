@@ -79,19 +79,22 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         if (isAxiosError(error) && error.response?.status === 401) {
-            return {
+            return Response.json({
                 success: false,
                 error: 'Email hoặc mật khẩu không đúng',
-            }
+            }, {
+                status: 401
+            })
         }
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
-            status: status,
             error: message,
-        }
+        }, {
+            status
+        });
     }
 
 }

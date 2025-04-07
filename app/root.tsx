@@ -10,7 +10,6 @@ import {
 import type { ErrorResponse, LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
 import "./tailwind.css";
-import { DndContext } from '@dnd-kit/core';
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
