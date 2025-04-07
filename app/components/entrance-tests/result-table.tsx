@@ -41,6 +41,7 @@ import { action } from '~/routes/update-entrance-test-results';
 import { LevelBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
 import { Controller } from 'react-hook-form';
+import { formatScore } from '~/lib/utils/score';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -330,11 +331,11 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 ))}
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm thực hành:</TableCell>
-                                    <TableCell colSpan={2} className='font-bold text-center'>{practicalScore}</TableCell>
+                                    <TableCell colSpan={2} className='font-bold text-center'>{formatScore(practicalScore)}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold text-red-600'>Điểm trung bình tổng:</TableCell>
-                                    <TableCell colSpan={2} className='font-bold text-center text-red-600'>{entranceTestStudent.bandScore || 'Chưa có'}</TableCell>
+                                    <TableCell colSpan={2} className='font-bold text-center text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : 'Chưa có'}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold'>Level được xếp:</TableCell>
