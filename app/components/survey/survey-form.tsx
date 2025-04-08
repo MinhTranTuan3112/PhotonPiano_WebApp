@@ -251,7 +251,20 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
 
                                 onQuestionsChange={(questions) => {
                                     setFormValue('questions', questions);
-                                }} />
+                                }}
+
+                                handleAllowOtherOptionsChange={(checked, index) => (
+                                    setFormValue('questions', questions.map((q, i) => {
+                                        if (i === index) {
+                                            return {
+                                                ...q,
+                                                allowOtherAnswer: checked
+                                            }
+                                        }
+                                        return q;
+                                    }))
+                                )}
+                            />
                         ) : <div className='flex flex-col items-center max-w-[50%]'>
                             <div className="flex items-center justify-center size-10 rounded-lg border border-border bg-background mb-3">
                                 <Inbox className="w-6 h-6 text-foreground" />
@@ -290,6 +303,7 @@ function QuestionCard({
     handleRequiredChange,
     handleQuestionContentChange,
     handleQuestionOptionsChange,
+    handleAllowOtherOptionsChange
 }: {
     question: CreateQuestionFormData
     index: number
@@ -297,6 +311,7 @@ function QuestionCard({
     handleRequiredChange: (checked: boolean) => void
     handleQuestionContentChange: (content: string) => void
     handleQuestionOptionsChange: (options: string[]) => void
+    handleAllowOtherOptionsChange: (checked: boolean) => void
 }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: question.id || index,
@@ -478,6 +493,15 @@ function QuestionCard({
                         />
                         <Label className="font-bold">Bắt buộc</Label>
                     </div>
+
+                    <div className="flex flex-row gap-1 my-3 items-center">
+                        <Switch
+                            checked={question.allowOtherAnswer}
+                            onCheckedChange={handleAllowOtherOptionsChange}
+                            className=""
+                        />
+                        <Label className="font-bold">Cho phép câu trả lời khác</Label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -490,7 +514,8 @@ function QuestionsContent({
     handleRemoveQuestion,
     handleRequiredChange,
     handleQuestionContentChange,
-    handleQuestionOptionsChange
+    handleQuestionOptionsChange,
+    handleAllowOtherOptionsChange,
 }: {
     questions: CreateQuestionFormData[];
     onQuestionsChange: (questions: CreateQuestionFormData[]) => void;
@@ -498,6 +523,7 @@ function QuestionsContent({
     handleRequiredChange: (checked: boolean, index: number) => void;
     handleQuestionContentChange: (content: string, index: number) => void;
     handleQuestionOptionsChange: (options: string[], index: number) => void;
+    handleAllowOtherOptionsChange: (checked: boolean, index: number) => void;
 }) {
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -542,7 +568,9 @@ function QuestionsContent({
                                 handleQuestionOptionsChange={(options) => {
                                     handleQuestionOptionsChange(options, index);
                                 }}
-
+                                handleAllowOtherOptionsChange={(checked) => (
+                                    handleAllowOtherOptionsChange(checked, index)
+                                )}
                                 index={index} />
                             {index !== questions.length - 1 && <div className="flex justify-center max-w-[50%]">
                                 <ChevronDown className="animate-bounce" />
