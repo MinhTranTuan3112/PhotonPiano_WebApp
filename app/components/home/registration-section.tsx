@@ -31,7 +31,7 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        Ready to Start Your Musical Journey?
+                        Sẵn sang để bắt đầu hành trình âm nhạc cùng phím đàn piano của bạn?
                     </motion.h2>
                     <motion.p
                         className="text-xl text-white/80 mb-8"
@@ -39,7 +39,7 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        Join our community of passionate musicians and unlock your potential with expert guidance and innovative learning tools.
+                        Đăng ký ngay hôm nay để khám phá những điều tuyệt vời mà chúng tôi đã chuẩn bị cho bạn!
                     </motion.p>
                     {
                         (!currentAccount || currentAccount.studentStatus === 0) && (
