@@ -8,13 +8,15 @@ type Props = {
 
 export function useImportResultDialog({
     criterias,
-    entranceTestStudents
+    entranceTestStudents,
+    role
 }: Props) {
 
     const [isOpen, setIsOpen] = useState(false);
 
-    const dialog =(
+    const dialog = (
         <ImportResultDialog
+            role={role}
             isOpen={isOpen}
             setIsOpen={setIsOpen}
             criterias={criterias}

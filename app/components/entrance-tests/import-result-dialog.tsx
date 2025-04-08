@@ -13,6 +13,7 @@ import { useFetcher } from '@remix-run/react';
 import { action } from '~/routes/import-entrance-test-result';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
+import { Role } from '~/lib/types/account/account';
 
 
 export type ImportResultDialogProps = {
@@ -20,13 +21,15 @@ export type ImportResultDialogProps = {
     setIsOpen: (isOpen: boolean) => void;
     criterias: MinimalCriteria[];
     entranceTestStudents: EntranceTestStudentWithResults[];
+    role: Role;
 }
 
 export default function ImportResultDialog({
     isOpen,
     setIsOpen,
     entranceTestStudents: initialEntranceTestStudents,
-    criterias
+    criterias,
+    role
 }: ImportResultDialogProps) {
 
     const [isDownloadingFile, setIsDownloadingFile] = useState(false);
@@ -44,47 +47,58 @@ export default function ImportResultDialog({
             const workbook = new ExcelJS.Workbook();
             const sheet = workbook.addWorksheet('Kết quả thi');
 
-            // 🔹 Set all cells to be UNLOCKED by default
-            sheet.columns = [{ width: 30 }, { width: 30 }, ...criterias.map(() => ({ width: 30 }))];
+            const includeTheory = role === Role.Staff;
+            const includeComment = role === Role.Instructor;
 
-            // Add headers
-            const headerRow = ['Người học', 'Lý thuyết'];
-            criterias.forEach(criteria => headerRow.push(criteria.name));
-            // headerRow.push('Nhận xét')
-            sheet.addRow(headerRow);
+            // Set column widths
+            const baseColumns = [
+                { header: 'Người học', key: 'fullName', width: 30 },
+                ...(includeTheory ? [{ header: 'Lý thuyết', key: 'theory', width: 20 }] : []),
+                ...criterias.map((c, i) => ({
+                    header: c.name,
+                    key: `criteria_${i}`,
+                    width: 20
+                })),
+                ...(includeComment ? [{ header: 'Nhận xét', key: 'comment', width: 40 }] : []),
+            ];
+            sheet.columns = baseColumns;
 
-            // 🔹 Lock only the header row (Row 1)
+            // Add header styles
             const header = sheet.getRow(1);
             header.eachCell(cell => {
-                cell.protection = { locked: true }; // Lock headers only
+                cell.protection = { locked: true };
                 cell.font = { bold: true };
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FFD3D3D3' } // Light gray background
+                    fgColor: { argb: 'FFD3D3D3' }
                 };
             });
 
-            entranceTestStudents.forEach((student) => {
-                const row = [student.fullName, student.theoraticalScore?.toString() || '0'];
+            entranceTestStudents.forEach(student => {
+                const row: (string | number)[] = [student.fullName || ''];
 
-                criterias.forEach(criteria => {
-                    const result = student.entranceTestResults.find(r => r.criteriaId === criteria.id);
-                    row.push(result?.score?.toString() || '0');
+                if (includeTheory) {
+                    row.push(student.theoraticalScore || 0);
+                }
+
+                criterias.forEach(c => {
+                    const score = student.entranceTestResults.find(r => r.criteriaId === c.id)?.score || 0;
+                    row.push(score);
                 });
+
+                if (includeComment) row.push(student.instructorComment || '');
 
                 const addedRow = sheet.addRow(row);
 
-                // 🔹 Unlock the theory score column (Column B) and criteria columns (Column C onwards)
-                for (let colIndex = 2; colIndex < row.length + 1; colIndex++) {
-                    const scoreCell = addedRow.getCell(colIndex);
-                    scoreCell.protection = { locked: false }; // Ensure editable scores
+                // Unlock editable cells
+                const startCol = includeTheory ? 2 : 2;
+                const endCol = addedRow.cellCount;
+                for (let i = startCol; i <= endCol; i++) {
+                    addedRow.getCell(i).protection = { locked: false };
                 }
-
-                // addedRow.getCell(row.length + 1).protection = { locked: false }; // Unlock the comment cell
             });
 
-            // 🔹 Protect the sheet while allowing unlocked cells to be edited
             await sheet.protect('mypassword', {
                 selectLockedCells: false,
                 selectUnlockedCells: true,
@@ -93,17 +107,12 @@ export default function ImportResultDialog({
                 deleteRows: false,
             });
 
-
-            // Generate buffer
             const buffer = await workbook.xlsx.writeBuffer();
-
-            // Create Blob and trigger download
             const blob = new Blob([buffer], {
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
 
             FileSaver.saveAs(blob, 'template.xlsx');
-
         } catch (error) {
             console.error('Error generating Excel file:', error);
         } finally {
@@ -111,58 +120,61 @@ export default function ImportResultDialog({
         }
     };
 
+
     const handleFileUpload = async () => {
-        if (!file) {
-            return;
-        }
+        if (!file) return;
 
         try {
             const reader = new FileReader();
             reader.readAsArrayBuffer(file);
             reader.onload = async (e) => {
-                if (!e.target?.result) {
-                    return;
-                }
+                if (!e.target?.result) return;
 
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(e.target.result as ArrayBuffer);
-                const sheet = workbook.worksheets[0]; // Get the first sheet
+                const sheet = workbook.worksheets[0];
+
+                const includeTheory = role === Role.Staff;
+                const includeComment = role === Role.Instructor;
 
                 sheet.eachRow((row, rowIndex) => {
-                    if (rowIndex === 1) {
-                        return;
-                    } // Skip headers
+                    if (rowIndex === 1) return; // skip header
 
-                    const fullName = row.getCell(1).text; // Column A
-                    const theoraticalScore = parseFloat(row.getCell(2).text) || 0; // Column B
-                    const entranceTestResultsFromFile = criterias.map((criteria, colIndex) => ({
-                        criteriaId: criteria.id,
-                        score: parseFloat(row.getCell(colIndex + 3).value?.toString() || '0') || 0, // Fix reading issue
-                    }));
+                    let colIndex = 1;
 
-                    console.log({ fullName, theoraticalScore, entranceTestResultsFromFile });
+                    const fullName = row.getCell(colIndex++).text;
+                    const theoraticalScore = includeTheory ? parseFloat(row.getCell(colIndex++).text) || 0 : undefined;
 
-                    const results = entranceTestResultsFromFile.map(result => {
+                    const entranceTestResultsFromFile = criterias.map(() => {
                         return {
-                            entranceTestStudentId: entranceTestStudents.find(s => s.fullName === fullName)?.id || '',
-                            id: '',
-                            criteriaId: result.criteriaId,
-                            score: result.score,
-                            criteriaName: criterias.find(c => c.id === result.criteriaId)?.name || '',
-                            weight: criterias.find(c => c.id === result.criteriaId)?.weight || 0,
+                            score: parseFloat(row.getCell(colIndex++).text) || 0
                         };
-                    })
+                    });
+
+                    const instructorComment = includeComment ? row.getCell(colIndex)?.text || '' : undefined;
+
+                    console.log({ instructorComment });
+
+
+                    const studentId = entranceTestStudents.find(s => s.fullName === fullName)?.id || '';
+
+                    const results = criterias.map((criteria, index) => ({
+                        entranceTestStudentId: studentId,
+                        id: '',
+                        criteriaId: criteria.id,
+                        score: entranceTestResultsFromFile[index].score,
+                        criteriaName: criteria.name,
+                        weight: criteria.weight,
+                    }));
 
                     setEntranceTestStudents(prev =>
                         prev.map(student => {
                             if (student.fullName === fullName) {
                                 return {
                                     ...student,
-                                    theoraticalScore,
-                                    entranceTestResults: student.entranceTestResults.length > 0 ? student.entranceTestResults.map(result => {
-                                        const newResult = entranceTestResultsFromFile.find(r => r.criteriaId === result.criteriaId);
-                                        return newResult ? { ...result, score: newResult.score } : result;
-                                    }) : results
+                                    theoraticalScore: includeTheory ? theoraticalScore : student.theoraticalScore,
+                                    instructorComment: includeComment ? instructorComment : student.instructorComment,
+                                    entranceTestResults: results
                                 };
                             }
                             return student;
@@ -172,11 +184,12 @@ export default function ImportResultDialog({
                     setIsImported(true);
                 });
             };
-
         } catch (error) {
             console.error("Error reading file:", error);
         }
     };
+
+
 
     const fetcher = useFetcher<typeof action>();
 
