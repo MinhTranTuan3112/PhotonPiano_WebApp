@@ -28,17 +28,16 @@ export default function Index() {
           <div className="absolute inset-0 bg-black/20" />
           <div className="container relative">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-white uppercase sm:text-4xl">Our Mission</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-white uppercase sm:text-4xl">Sứ mệnh của chúng tôi</h2>
               <p className="mt-6 text-lg leading-8 text-white/90">
-                To positively impact the motivation, achievement, and self-confidence of underserved students by integrating music education
-                into the core curriculum of under-resourced schools.
+                Photon Piano cam kết mang đến môi trường học tập chuyên nghiệp và truyền cảm hứng, giúp học viên ở mọi lứa tuổi phát triển kỹ năng, nuôi dưỡng đam mê và tự tin thể hiện bản thân qua âm nhạc.
               </p>
             </div>
           </div>
         </section>
 
         <FeatureSection />
-        <PianoPromo />
+        {/* <PianoPromo /> */}
         <NewsSection />
         <RegistrationSection />
       </article>

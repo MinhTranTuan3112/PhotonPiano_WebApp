@@ -239,7 +239,8 @@ function EntranceTestDetailsContent() {
 
     const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
         criterias: criterias,
-        entranceTestStudents: entranceTest.entranceTestStudents
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role: Role.Staff
     });
 
     useEffect(() => {

@@ -103,9 +103,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const response = await fetchUpdateSurvey({ ...updateRequest });
 
-        return {
+        return Response.json({
             success: response.status === 204
-        }
+        }, {
+            status: 200
+        })
 
     } catch (error) {
         console.error({ error });
@@ -116,11 +118,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        })
     }
 }
 

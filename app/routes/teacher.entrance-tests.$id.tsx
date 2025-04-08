@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Delete, Pencil, Save, Trash } from 'lucide-react'
+import { Delete, Import, Pencil, Save, Trash } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -17,10 +17,13 @@ import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Skeleton } from '~/components/ui/skeleton'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
+import { useImportResultDialog } from '~/hooks/use-import-result-dialog'
 import { fetchAccounts } from '~/lib/services/account'
+import { fetchAllMinimalCriterias } from '~/lib/services/criteria'
 import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { fetchRooms } from '~/lib/services/rooms'
 import { Account, Role } from '~/lib/types/account/account'
+import { MinimalCriteria } from '~/lib/types/criteria/criteria'
 import { UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
@@ -66,12 +69,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             }
         });
 
+        const fetchCriteriasResponse = await fetchAllMinimalCriterias({ idToken });
+
+        const criterias: MinimalCriteria[] = await fetchCriteriasResponse.data;
+
 
         return {
             promise,
             idToken,
             role,
-            id
+            id,
+            criterias
         }
 
     } catch (error) {
@@ -186,7 +194,7 @@ const resolver = zodResolver(updateEntranceTestSchema);
 
 function EntranceTestDetailsContent() {
 
-    const { idToken, role } = useLoaderData<typeof loader>();
+    const { idToken, role, criterias } = useLoaderData<typeof loader>();
 
     const entranceTestValue = useAsyncValue();
 
@@ -222,6 +230,12 @@ function EntranceTestDetailsContent() {
             handleSubmit();
         }
     })
+
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role: Role.Instructor
+    });
 
     useEffect(() => {
 
@@ -447,6 +461,10 @@ function EntranceTestDetailsContent() {
         <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
         <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
         <div className="my-8">
+            <div className="flex justify-end">
+                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
+            </div>
             <ResultTable data={entranceTest.entranceTestStudents} />
         </div>
         <div className='flex flex-col md:flex-row justify-center gap-4'>
@@ -459,6 +477,7 @@ function EntranceTestDetailsContent() {
             }
         </div>
         {confirmDialog}
+        {importResultDialog}
     </>
 }
 

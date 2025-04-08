@@ -35,7 +35,7 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export const surveySchema = z.object({
@@ -237,6 +237,18 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                                         return q;
                                     }));
                                 }}
+                                handleQuestionOptionsChange={(options, index) => (
+                                    setFormValue('questions', questions.map((q, i) => {
+                                        if (i === index) {
+                                            return {
+                                                ...q,
+                                                options: options
+                                            }
+                                        }
+                                        return q;
+                                    }))
+                                )}
+
                                 onQuestionsChange={(questions) => {
                                     setFormValue('questions', questions);
                                 }} />
@@ -276,70 +288,200 @@ function QuestionCard({
     index,
     handleRemoveQuestion,
     handleRequiredChange,
-    handleQuestionContentChange
+    handleQuestionContentChange,
+    handleQuestionOptionsChange,
 }: {
-    question: CreateQuestionFormData,
-    index: number;
-    handleRemoveQuestion: () => void;
-    handleRequiredChange: (checked: boolean) => void;
-    handleQuestionContentChange: (content: string) => void;
+    question: CreateQuestionFormData
+    index: number
+    handleRemoveQuestion: () => void
+    handleRequiredChange: (checked: boolean) => void
+    handleQuestionContentChange: (content: string) => void
+    handleQuestionOptionsChange: (options: string[]) => void
 }) {
-
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id || index })
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: question.id || index,
+    })
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
     }
 
-    return <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
-        <div className="rounded-md p-2 shadow-lg max-w-[50%] flex flex-row items-center">
+    const [newOption, setNewOption] = useState("")
 
-            <div
-                {...attributes}
-                {...listeners}
-                className="cursor-grab touch-none flex items-center justify-center p-1 rounded-md hover:bg-muted"
-            >
-                <GripVertical className="h-5 w-5 text-muted-foreground" />
-            </div>
+    // Track local option values for editing
+    const [localOptions, setLocalOptions] = useState<Record<number, string>>({})
 
-            <div className="flex flex-col w-full">
-                <div className="flex justify-between items-center w-full gap-3">
-                    <div className="font-bold my-3 flex flex-row items-center gap-1 w-full">
-                        <div className="">{index + 1}. </div>
-                        <Input placeholder='Nhập câu hỏi' value={question.questionContent} onChange={(e) => {
-                            const newContent = e.target.value;
+    // Initialize local options from question.options
+    useEffect(() => {
+        const initialLocalOptions: Record<number, string> = {}
+        question.options?.forEach((option, idx) => {
+            initialLocalOptions[idx] = option
+        })
+        setLocalOptions(initialLocalOptions)
+    }, [question.id]) // Only reset when question ID changes
 
-                            if (!newContent || newContent.trim() === '') {
-                                toast.error('Nội dung câu hỏi không được để trống!');
-                                return;
-                            }
+    // Handle option input change without immediate parent sync
+    const handleOptionChange = useCallback((value: string, optionIndex: number) => {
+        setLocalOptions((prev) => ({
+            ...prev,
+            [optionIndex]: value,
+        }))
+    }, [])
 
-                            handleQuestionContentChange(newContent);
-                        }} />
-                    </div>
-                    <Button type='button' variant={'outline'} size={'icon'}
-                        className='size-8 rounded-full'
-                        onClick={handleRemoveQuestion}>
-                        <Trash2 className='size-6 text-red-600' />
-                    </Button>
+    // Sync a specific option with parent
+    const syncOption = useCallback(
+        (optionIndex: number) => {
+            const newOptions = [...(question.options || [])]
+            newOptions[optionIndex] = localOptions[optionIndex]
+            handleQuestionOptionsChange(newOptions)
+        },
+        [question.options, localOptions, handleQuestionOptionsChange],
+    )
+
+    // Handle option removal
+    const handleRemoveOption = useCallback(
+        (optionIndex: number) => {
+            // Update local state
+            const newLocalOptions = { ...localOptions }
+            delete newLocalOptions[optionIndex]
+
+            // Reindex remaining options
+            const reindexedOptions: Record<number, string> = {}
+            let newIndex = 0
+            Object.keys(newLocalOptions).forEach((key) => {
+                const idx = Number.parseInt(key)
+                if (idx < optionIndex) {
+                    reindexedOptions[newIndex] = newLocalOptions[idx]
+                    newIndex++
+                } else if (idx > optionIndex) {
+                    reindexedOptions[newIndex] = newLocalOptions[idx]
+                    newIndex++
+                }
+            })
+
+            setLocalOptions(reindexedOptions)
+
+            // Update parent
+            const newOptions = (question.options || []).filter((_, i) => i !== optionIndex)
+            handleQuestionOptionsChange(newOptions)
+        },
+        [localOptions, question.options, handleQuestionOptionsChange],
+    )
+
+    // Add new option
+    const handleAddOption = useCallback(() => {
+        if (!newOption || newOption.trim() === "") {
+            toast.error("Nội dung lựa chọn không được để trống!")
+            return
+        }
+
+        // Update parent
+        const updatedOptions = [...(question.options || []), newOption]
+        handleQuestionOptionsChange(updatedOptions)
+
+        // Update local state
+        setLocalOptions((prev) => ({
+            ...prev,
+            [updatedOptions.length - 1]: newOption,
+        }))
+
+        setNewOption("")
+    }, [newOption, question.options, handleQuestionOptionsChange])
+
+    // Handle Enter key press to add new option
+    const handleKeyPress = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === "Enter") {
+                e.preventDefault()
+                handleAddOption()
+            }
+        },
+        [handleAddOption],
+    )
+
+    return (
+        <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
+            <div className="rounded-md p-2 shadow-lg max-w-[50%] flex flex-row items-center">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab touch-none flex items-center justify-center p-1 rounded-md hover:bg-muted"
+                >
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <div className="flex flex-col gap-2">
-                    {question.options?.map((option, index) => (
-                        <div className="rounded-md border border-gray-300 p-2" key={`${option}_${index}`}>
-                            {option}
+
+                <div className="flex flex-col w-full">
+                    <div className="flex justify-between items-center w-full gap-3">
+                        <div className="font-bold my-3 flex flex-row items-center gap-1 w-full">
+                            <div className="">{index + 1}. </div>
+                            <Input
+                                placeholder="Nhập câu hỏi"
+                                value={question.questionContent}
+                                onChange={(e) => {
+                                    const newContent = e.target.value
+
+                                    if (!newContent || newContent.trim() === "") {
+                                        toast.error("Nội dung câu hỏi không được để trống!")
+                                        return
+                                    }
+
+                                    handleQuestionContentChange(newContent)
+                                }}
+                            />
                         </div>
-                    ))}
-                </div>
-                <div className="flex flex-row gap-1 my-2 items-center">
-                    <Switch checked={question.isRequired} onCheckedChange={handleRequiredChange}
-                        className='data-[state=checked]:bg-red-600' />
-                    <Label className='font-bold'>Bắt buộc</Label>
+                        <Button
+                            type="button"
+                            variant={"outline"}
+                            size={"icon"}
+                            className="size-8 rounded-full"
+                            onClick={handleRemoveQuestion}
+                        >
+                            <Trash2 className="size-6 text-red-600" />
+                        </Button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        {question.options?.map((option, optionIndex) => (
+                            <div className="flex flex-row gap-2 items-center" key={`option_${optionIndex}`}>
+                                <Input
+                                    placeholder="Nhập lựa chọn..."
+                                    value={localOptions[optionIndex] !== undefined ? localOptions[optionIndex] : option}
+                                    onChange={(e) => handleOptionChange(e.target.value, optionIndex)}
+                                    onBlur={() => syncOption(optionIndex)}
+                                />
+
+                                <Button type="button" size={"icon"} onClick={() => handleRemoveOption(optionIndex)} variant={"outline"}>
+                                    <Trash2 className="text-red-600" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-row gap-2 items-center justify-center my-2">
+                        <Input
+                            placeholder="Nhập lựa chọn mới..."
+                            value={newOption}
+                            onChange={(e) => setNewOption(e.target.value)}
+                            onKeyDown={handleKeyPress}
+                        />
+
+                        <Button type="button" variant={"outline"} size={"icon"} onClick={handleAddOption}>
+                            <CirclePlus />
+                        </Button>
+                    </div>
+
+                    <div className="flex flex-row gap-1 my-2 items-center">
+                        <Switch
+                            checked={question.isRequired}
+                            onCheckedChange={handleRequiredChange}
+                            className="data-[state=checked]:bg-red-600"
+                        />
+                        <Label className="font-bold">Bắt buộc</Label>
+                    </div>
                 </div>
             </div>
-
         </div>
-    </div>
+    )
 }
 
 function QuestionsContent({
@@ -347,13 +489,15 @@ function QuestionsContent({
     onQuestionsChange,
     handleRemoveQuestion,
     handleRequiredChange,
-    handleQuestionContentChange
+    handleQuestionContentChange,
+    handleQuestionOptionsChange
 }: {
     questions: CreateQuestionFormData[];
     onQuestionsChange: (questions: CreateQuestionFormData[]) => void;
     handleRemoveQuestion: (index: number) => void;
     handleRequiredChange: (checked: boolean, index: number) => void;
     handleQuestionContentChange: (content: string, index: number) => void;
+    handleQuestionOptionsChange: (options: string[], index: number) => void;
 }) {
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -394,6 +538,11 @@ function QuestionsContent({
                                 handleQuestionContentChange={(content) => {
                                     handleQuestionContentChange(content, index);
                                 }}
+
+                                handleQuestionOptionsChange={(options) => {
+                                    handleQuestionOptionsChange(options, index);
+                                }}
+
                                 index={index} />
                             {index !== questions.length - 1 && <div className="flex justify-center max-w-[50%]">
                                 <ChevronDown className="animate-bounce" />
