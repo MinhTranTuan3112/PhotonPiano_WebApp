@@ -326,3 +326,33 @@ export async function importStudentClassScoresFromExcel({
 
   return response;
 }
+
+export async function fetchStudentClasses({
+  idToken,
+  accountId,
+  page = 1,
+  pageSize = 10,
+  sortColumn = "Id",
+  orderByDesc = true,
+}: {
+  idToken: string;
+  accountId: string;
+  page?: number;
+  pageSize?: number;
+  sortColumn?: string;
+  orderByDesc?: boolean;
+}) {
+  if (!idToken) {
+    throw new Error("Authentication token is required");
+  }
+
+  const url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}&student-id=${accountId}`;
+
+  const response = await axiosInstance.get(url, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+
+  return response;
+}
