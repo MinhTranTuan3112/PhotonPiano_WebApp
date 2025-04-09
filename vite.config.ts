@@ -2,7 +2,7 @@ import { vitePlugin as remix } from "@remix-run/dev";
 import { vercelPreset } from "@vercel/remix/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-
+import { netlifyPlugin } from "@netlify/remix-adapter/plugin";
 
 declare module "@remix-run/node" {
   interface Future {
@@ -23,12 +23,13 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
+    netlifyPlugin(),
     {
       name: 'log-env',
       configResolved() {
         console.log('VITE_API_BASE_URL:', process.env.VITE_API_BASE_URL);
         console.log('VITE_IS_DEVELOPMENT:', process.env.VITE_IS_DEVELOPMENT);
       },
-    }
+    },
   ],
 });
