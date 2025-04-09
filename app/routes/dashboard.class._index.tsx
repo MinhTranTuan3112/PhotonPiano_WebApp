@@ -90,17 +90,21 @@ type LoaderData = {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-    const { idToken, role } = await requireAuth(request)
+    const { idToken, role, accountId } = await requireAuth(request)
 
     if (role !== Role.Instructor) {
         return redirect("/")
     }
 
     try {
+        if (!accountId) {
+            return json({ error: "User ID not found" }, { status: 400 })
+        }
         const classesResponse = await fetchTeacherClasses({
             page: 1,
             pageSize: 8,
             idToken, // Pass idToken for authentication
+            accountId,
         })
         return json<LoaderData>({ classes: classesResponse.data })
     } catch (error) {

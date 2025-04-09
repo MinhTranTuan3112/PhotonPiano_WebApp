@@ -361,6 +361,7 @@ export async function fetchChangeAClass({
 export interface TeacherClassQueryParams extends Partial<QueryPagedRequest> {
   keyword?: string;
   idToken: string;
+  accountId: string;
 }
 
 export interface ClassDetailsResponse {
@@ -380,12 +381,13 @@ export async function fetchTeacherClasses({
   orderByDesc = false,
   keyword,
   idToken,
+  accountId,
 }: TeacherClassQueryParams) {
   if (!idToken) {
     throw new Error("Authentication token is required");
   }
 
-  let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+  let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}&teacher-id=${accountId}`;
   if (keyword) {
     url += `&keyword=${keyword}`;
   }
