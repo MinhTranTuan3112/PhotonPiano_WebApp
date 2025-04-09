@@ -652,7 +652,7 @@ export const Scheduler = ({
                                 <div className="flex space-x-4 justify-end">
                                     {role === 2 && (
                                         <Button
-                                            onClick={() => (window.location.href = `/attendance/${selectedSlot.id}`)}
+                                            onClick={() => (window.location.href = `/teacher/scheduler/attendance/${selectedSlot.id}`)}
                                             disabled={
                                                 !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
                                             }
