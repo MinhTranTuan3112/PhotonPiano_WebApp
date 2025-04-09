@@ -33,7 +33,7 @@ function PaymentMethodBadge({ method }: { method: number }) {
     return badge;
 }
 
-function PaymentStatusBadge({ status }: { status: number }) {
+export function PaymentStatusBadge({ status }: { status: number }) {
     let badge = <></>;
 
     switch (status) {
