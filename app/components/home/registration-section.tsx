@@ -1,8 +1,11 @@
 import { Link } from "@remix-run/react";
 import { motion } from "framer-motion";
 import { UserPlus, Music, Sparkles } from 'lucide-react';
+import { useAuth } from "~/lib/contexts/auth-context";
 
 export function RegistrationSection() {
+    const { currentAccount } = useAuth()
+
     return (
         <section className="relative py-24 overflow-hidden">
             {/* Background gradient */}
@@ -28,7 +31,7 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        Ready to Start Your Musical Journey?
+                        Sẵn sang để bắt đầu hành trình âm nhạc cùng phím đàn piano của bạn?
                     </motion.h2>
                     <motion.p
                         className="text-xl text-white/80 mb-8"
@@ -36,21 +39,26 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        Join our community of passionate musicians and unlock your potential with expert guidance and innovative learning tools.
+                        Đăng ký ngay hôm nay để khám phá những điều tuyệt vời mà chúng tôi đã chuẩn bị cho bạn!
                     </motion.p>
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.4 }}
-                    >
-                        <Link
-                            to="/get-started"
-                            className="inline-flex items-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
-                        >
-                            <UserPlus className="w-5 h-5" />
-                            Đăng ký ngay
-                        </Link>
-                    </motion.div>
+                    {
+                        (!currentAccount || currentAccount.studentStatus === 0) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.4 }}
+                            >
+                                <Link
+                                    to="/entrance-survey"
+                                    className="inline-flex items-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
+                                >
+                                    <UserPlus className="w-5 h-5" />
+                                    Đăng ký ngay
+                                </Link>
+                            </motion.div>
+                        )
+                    }
+
                 </div>
 
                 {/* Decorative musical elements */}

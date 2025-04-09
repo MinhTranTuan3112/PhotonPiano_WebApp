@@ -34,6 +34,27 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
                 }
             ]
             break;
+
+        case pathname === '/account/tuition':
+            otherNavItems = [
+                {
+                    name: "Học phí",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+        
+        case pathname === '/account/free-slots':
+            otherNavItems = [
+                {
+                    name: "Khung giờ của bạn",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+
         case pathname === '/account/class':
             otherNavItems = [
                 {
@@ -43,6 +64,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
                 }
             ]
             break;
+
         case pathname === '/account/transactions':
             otherNavItems = [
                 {

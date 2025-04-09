@@ -1,3 +1,9 @@
+import { Class } from "../class/class";
+import { StudentClassWithClass } from "../class/student-class";
+import { EntranceTest } from "../entrance-test/entrance-test";
+import { FreeSlot } from "../free-slot/free-slot";
+import { LearnerSurveyWithAnswers, LearnerSurveyWithAnswersDetail } from "../survey/survey";
+
 export type Account = {
     accountFirebaseId: string;
     userName: string;
@@ -10,6 +16,7 @@ export type Account = {
     shortDescription?: string;
     avatarUrl?: string;
     level?: Level;
+    levelId?: string;
     status: number;
     desiredLevel?: string;
     desiredTargets: string[];
@@ -18,6 +25,18 @@ export type Account = {
     studentStatus?: StudentStatus;
     role: Role;
 };
+
+export type AccountDetail = {
+    currentClass? : Class
+    studentClasses : StudentClassWithClass[],
+    learnerSurveys : LearnerSurveyWithAnswersDetail[],
+    freeSlots : FreeSlot[]
+} & Account
+
+export type TeacherDetail = {
+    instructorEntranceTests : EntranceTest[],
+    instructorClasses : Class[]
+} & Account
 
 export type AwaitingLevelCount = {
     level? : Level,

@@ -20,6 +20,7 @@ import { AuthResponse } from '~/lib/types/auth-response'
 import { signInSchema } from '~/lib/utils/schemas'
 import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
+import { Role } from '~/lib/types/account/account'
 
 type Props = {}
 
@@ -45,7 +46,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         if (response.status === 200) {
 
-            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = response.data;
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
@@ -56,8 +57,16 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await expirationCookie.serialize(expirationTime.toString()));
             headers.append("Set-Cookie", await roleCookie.serialize(role));
             headers.append("Set-Cookie", await accountIdCookie.serialize(localId));
-
-            return redirect('/', { headers });
+            switch (role) {
+                case Role.Instructor:
+                    return redirect('/teacher/scheduler', { headers });
+                case Role.Staff:
+                    return redirect('/staff/scheduler', { headers });
+                case Role.Administrator:
+                    return redirect('/admin/settings', { headers });
+                default:
+                    return redirect('/', { headers });
+            }
         }
 
 
@@ -70,15 +79,22 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         if (isAxiosError(error) && error.response?.status === 401) {
-            return {
+            return Response.json({
                 success: false,
                 error: 'Email hoặc mật khẩu không đúng',
-            }
+            }, {
+                status: 401
+            })
         }
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        throw new Response(message, { status });
+        return Response.json({
+            success: false,
+            error: message,
+        }, {
+            status
+        });
     }
 
 }
@@ -89,7 +105,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const baseUrl = `${protocol}//${host}`;
 
-    return { baseUrl };
+    return Response.json({ baseUrl }, {
+        status: 200
+    });
 }
 
 export default function SignInPage({ }: Props) {

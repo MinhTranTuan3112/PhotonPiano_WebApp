@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
-import { CircleUserRound, LayoutDashboard, Settings } from "lucide-react";
+import { CircleUserRound, LayoutDashboard, Pen, Settings } from "lucide-react";
 import React from "react";
 import { NavMain } from "~/components/sidebar/nav-main";
 import { NavUser } from "~/components/sidebar/nav-user";
@@ -13,7 +13,7 @@ import {
     BreadcrumbSeparator
 } from "~/components/ui/breadcrumb";
 import { buttonVariants } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
+import { Separator } from "~/components/ui/separator"; 
 import {
     Sidebar,
     SidebarContent,
@@ -135,6 +135,18 @@ const data = {
             url: "/admin/dashboard",
             icon: LayoutDashboard,
             isActive: true,
+        },       
+        {
+            title: "Quản lý level đào tạo",
+            url: "/admin/levels",
+            icon: Settings,
+            isActive: true,
+        },
+        {
+            title: "Quản lý tiêu chí đánh giá",
+            url: "/admin/criteria",
+            icon: Pen,
+            isActive: true,
         },
         {
             title: "Cấu hình hệ thống",
@@ -142,12 +154,6 @@ const data = {
             icon: Settings,
             isActive: true,
         },
-        {
-            title: "Quản lý level đào tạo",
-            url: "/admin/levels",
-            icon: Settings,
-            isActive: true,
-        }
     ]
 }
 

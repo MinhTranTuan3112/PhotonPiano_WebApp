@@ -2,19 +2,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { useFetcher } from '@remix-run/react'
-import { useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { action } from '~/routes/auth'
 
-type Props = {}
+type Props = {
+    trigger?: ReactNode // Allowing optional custom trigger
+}
 
-export default function ForgotPasswordDialog({ }: Props) {
+export default function ForgotPasswordDialog({ trigger }: Props) {
 
     const fetcher = useFetcher<typeof action>();
 
     useEffect(() => {
-
         if (fetcher.data?.success === true) {
             toast.success('Gửi yêu cầu đổi mật khẩu thành công!', {
                 description: 'Vui lòng kiểm tra email của bạn để đổi mật khẩu',
@@ -28,11 +29,6 @@ export default function ForgotPasswordDialog({ }: Props) {
             });
             return;
         }
-
-        return () => {
-
-        }
-
     }, [fetcher.data]);
 
     const isSubmitting = fetcher.state === 'submitting';
@@ -40,11 +36,15 @@ export default function ForgotPasswordDialog({ }: Props) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <div className="my-3 text-right">
-                    <Button type='button' className='font-bold text-base text-black/70' variant={'linkHover2'}>
-                        Quên mật khẩu?
-                    </Button>
-                </div>
+                {trigger ? (
+                    trigger
+                ) : (
+                    <div className="my-3 text-right">
+                        <Button type='button' className='font-bold text-base text-black/70' variant={'linkHover2'}>
+                            Quên mật khẩu?
+                        </Button>
+                    </div>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

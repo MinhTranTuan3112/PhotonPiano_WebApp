@@ -1,6 +1,7 @@
 import * as React from "react"
 import {
     CircleUserRound,
+    DollarSign,
     FileClock,
     History,
     Music
@@ -28,6 +29,10 @@ const data = {
                 {
                     title: "Thông tin cá nhân",
                     url: "/account/profile",
+                },
+                {
+                    title: "Khung giờ của bạn",
+                    url: "/account/free-slots",
                 }
             ],
         },
@@ -38,6 +43,10 @@ const data = {
             isActive: true,
             items: [
                 {
+                    title: "Lịch học của tôi",
+                    url: "/account/scheduler",
+                },
+                {
                     title: "Lớp của tôi",
                     url: "/account/class",
                 },
@@ -45,9 +54,22 @@ const data = {
                     title: "Bài thi của tôi",
                     url: "/account/my-exams",
                 },
+                
                 {
                     title: "Lịch sử đơn từ",
                     url: "/account/applications"
+                }
+            ],
+        },
+        {
+            title: "Tài chính",
+            url: "",
+            icon: DollarSign,
+            isActive: true,
+            items: [
+                {
+                    title: "Học phí",
+                    url: "/account/tuition",
                 }
             ],
         }

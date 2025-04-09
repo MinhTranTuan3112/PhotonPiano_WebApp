@@ -11,12 +11,30 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { useAuth } from "~/lib/contexts/auth-context"
 import { Skeleton } from "../ui/skeleton"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import { useFetcher } from "@remix-run/react"
+import { action } from "~/routes/sign-out"
 
 export function NavUser({
-   
+
 }: {
-    
-}) {
+
+    }) {
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận đăng xuất?',
+        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        onConfirm: () => {
+            fetcher.submit(null, {
+                method: 'POST',
+                action: '/sign-out',
+            });
+        },
+        confirmText: 'Đăng xuất',
+    });
 
     const { isMobile } = useSidebar();
 
@@ -32,7 +50,7 @@ export function NavUser({
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "https://github.com/shadcn.png"} alt={currentAccount?.userName} />
+                                <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "/images/noavatar.png"} alt={currentAccount?.userName} />
                                 <AvatarFallback className="rounded-lg">
                                     <Skeleton className="rounded-full" />
                                 </AvatarFallback>
@@ -53,7 +71,7 @@ export function NavUser({
                         <DropdownMenuLabel className="p-0 font-normal">
                             <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                 <Avatar className="h-8 w-8 rounded-lg">
-                                    <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "https://github.com/shadcn.png"} alt={currentAccount?.userName} />
+                                    <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "/images/noavatar.png"} alt={currentAccount?.userName} />
                                     <AvatarFallback className="rounded-lg">
                                         <Skeleton className="rounded-full" />
                                     </AvatarFallback>
@@ -81,13 +99,14 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer">
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => handleOpenModal()} disabled={isSubmitting}>
                             <LogOut />
                             Đăng xuất
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
+            {confirmDialog}
         </SidebarMenu>
     )
 }

@@ -12,6 +12,7 @@ import { EntranceTestStudentDetail } from '~/lib/types/entrance-test/entrance-te
 import { requireAuth } from '~/lib/utils/auth';
 import { ENTRANCE_TEST_STATUSES, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { formatScore } from '~/lib/utils/score';
 
 type Props = {}
 
@@ -273,7 +274,7 @@ function EntranceTestStudentContent() {
                     >
                       <td className="py-3 px-4 text-gray-800 font-medium">{result.criteriaName}</td>
                       <td className="py-3 px-4 text-center font-bold text-gray-700">
-                        {result.score}
+                        {formatScore(result.score)}
                       </td>
                     </tr>
                   ))}
@@ -282,7 +283,7 @@ function EntranceTestStudentContent() {
               <div className='mt-4 flex flex-col items-center'>
                 <div className='font-bold text-xl'>
                   <span>Điểm tổng kết : </span>
-                  <span className='text-2xl text-red-500'>{entranceTestStudent.bandScore}</span>
+                  <span className='text-2xl text-red-500'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore || 0) : '(Chưa có)'}</span>
                 </div>
                 <div className='font-bold text-lg'>
                   <span>Xếp hạng trình độ : </span>

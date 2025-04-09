@@ -1,31 +1,34 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from "react";
 import EnrollDialog from '../entrance-tests/enroll-dialog';
+import { useAuth } from '~/lib/contexts/auth-context';
+import { useNavigate } from '@remix-run/react';
 
 const slides = [
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
+        // ?height=1000&width=1200
+        url: "/images/banner1.jpg?height=1000&width=1200",
         title: "THI ĐẦU VÀO 2025",
         description: "Trung tâm Photon Piano trân trọng thông báo lịch thi đầu vào mới nhất 2025",
     },
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
+        url: "/images/banner2.png?height=1000&width=1200",
         title: "Learn from the Best",
-        description: "Expert instructors dedicated to your musical growth",
+        description: "Các giảng viên chuyên gia tận tâm giúp bạn phát triển âm nhạc",
     },
     {
-        url: "app/lib/assets/images/placeholder.jpg?height=1000&width=1200",
-        title: "Unlock Your Potential",
-        description: "Personalized lessons to help you achieve your musical goals",
+        url: "/images/banner3.jpg?height=1000&width=1200",
+        title: "Mở khóa tiềm năng",
+        description: "Lộ trình học đảm bảo giúp bạn đạt được mục tiêu âm nhạc của mình",
     }
 ]
 
-export function Carousel() {
-
+export function Carousel({isOpenDialog} : {isOpenDialog : boolean}) {
+    const { currentAccount } = useAuth()
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isOpenEnrollDialog, setIsOpenEnrollDialog] = useState(false);
-
+    const [isOpenEnrollDialog, setIsOpenEnrollDialog] = useState(isOpenDialog);
+    const navigate = useNavigate()
     const moveSlide = useCallback((direction: 'prev' | 'next') => {
         if (isTransitioning) return;
 
@@ -66,16 +69,23 @@ export function Carousel() {
                             alt={`Carousel Slide ${index + 1}`}
                             className="h-full w-full object-cover brightness-75"
                         />
-                        <div className="absolute inset-0 bg-black/30" />
+                        <div className="absolute inset-0 bg-black/50" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
                             <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">{slide.title}</h1>
                             <p className="mt-6 max-w-2xl text-lg leading-8">{slide.description}</p>
-                            {index === 0 && (
-                                <button onClick={() => setIsOpenEnrollDialog(!isOpenEnrollDialog)} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Đăng ký ngay
-                                    <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
-                                </button>
-                            )}
+                            {
+                                (index === 0 && (!currentAccount || currentAccount.studentStatus === 0)) && (
+                                    <button onClick={() => {
+                                        if (currentAccount)
+                                            setIsOpenEnrollDialog(!isOpenEnrollDialog)
+                                        else 
+                                            navigate('/entrance-survey')
+                                    }} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Đăng ký ngay
+                                        <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
+                                    </button>
+                                )
+                            }
                         </div>
                     </div>
                 ))}

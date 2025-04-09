@@ -1,19 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react';
-import { Search, CalendarSync, RotateCcw } from 'lucide-react';
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
+import { useQuery } from '@tanstack/react-query';
+import { Search, CalendarSync, RotateCcw, Loader2 } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import { studentColumns } from '~/components/staffs/table/student-columns';
+import { teacherColumns } from '~/components/staffs/table/teacher-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccounts } from '~/lib/services/account';
-import { Account, Role } from '~/lib/types/account/account';
+import { fetchLevels } from '~/lib/services/level';
+import { Account, Level, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
@@ -39,9 +42,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       pageSize: Number.parseInt(searchParams.get('size') || '10'),
       sortColumn: searchParams.get('column') || 'Id',
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
-      roles: [Role.Student],
+      roles: [Role.Instructor],
       levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
-      studentStatuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
+      accountStatus: getParsedParamsArray({ paramsValue: searchParams.get('status') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
       idToken
     };
@@ -95,21 +98,18 @@ export const searchSchema = z.object({
 type SearchFormData = z.infer<typeof searchSchema>;
 const resolver = zodResolver(searchSchema);
 
-const levelOptions = LEVEL.map((level, index) => {
-  return {
-    label: `Level ${index + 1}`,
-    value: index.toString(),
-    icon: undefined
-  }
-});
 
-const studentStatusOptions = STUDENT_STATUS.map((status, index) => {
-  return {
-    label: status,
-    value: index.toString(),
-    icon: undefined
-  }
-})
+const statusOptions = [
+  {
+    label: "Hoạt động",
+    value: "0"
+  },
+  {
+    label: "Không hoạt động",
+    value: "1"
+  },
+]
+
 function SearchForm() {
 
   const {
@@ -122,12 +122,31 @@ function SearchForm() {
     resolver
   });
 
+  const { data, isLoading: isLoadingLevels } = useQuery({
+    queryKey: ['levels'],
+    queryFn: async () => {
+      const response = await fetchLevels();
+
+      return await response.data;
+    }
+  });
+
+  const levels = data ? data as Level[] : [];
+
+  const levelOptions = levels.map((level, index) => {
+    return {
+      label: level.name,
+      value: level.id.toString(),
+      icon: undefined
+    }
+  })
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
     className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
-    <Controller
+    {isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
       name='levels'
       control={control}
       render={({ field: { onChange, onBlur, value, ref } }) => (
@@ -139,12 +158,13 @@ function SearchForm() {
           className='w-full'
           onValueChange={onChange} />
       )}
-    />
+    />}
+
     <Controller
       name='statuses'
       control={control}
       render={({ field: { onChange, onBlur, value, ref } }) => (
-        <MultiSelect options={studentStatusOptions}
+        <MultiSelect options={statusOptions}
           value={value}
           defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
           placeholder='Trạng thái'
@@ -166,28 +186,25 @@ function SearchForm() {
   </Form>
 }
 
-export default function StaffStudentsPage({ }: Props) {
-
+export default function StaffTeachersPage({ }: Props) {
+  const navigate = useNavigate()
   const { promise, query } = useLoaderData<typeof loader>();
 
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Danh sách học viên</h3>
+      <h3 className="text-lg font-medium">Danh sách giảng viên</h3>
       <p className="text-sm text-muted-foreground">
-        Quản lý danh sách học viên và xếp lớp thông minh
+        Quản lý các thông tin của giảng viên
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
-        <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left'>Xếp lớp tự động</Button>
-        </div>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise} >
           {({ accountsPromise, metadata }) => (
             <Await resolve={accountsPromise}>
               <GenericDataTable
-                columns={studentColumns}
+                columns={teacherColumns}
                 emptyText='Không có học viên nào.'
                 metadata={metadata}
               />
@@ -206,21 +223,21 @@ function LoadingSkeleton() {
 }
 
 export function ErrorBoundary() {
-
+  const navigate = useNavigate()
   const error = useRouteError();
 
   const { pathname, search } = useLocation();
 
   return (
     <article className="px-8">
-      <h3 className="text-lg font-medium">Danh sách học viên</h3>
+      <h3 className="text-lg font-medium">Danh sách giảng viên</h3>
       <p className="text-sm text-muted-foreground">
-        Quản lý danh sách học viên và xếp lớp thông minh
+        Quản lý các thông tin của giảng viên
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left'>Xếp lớp tự động</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
         </div>
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">

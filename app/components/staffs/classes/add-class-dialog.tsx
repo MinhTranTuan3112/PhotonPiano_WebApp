@@ -1,6 +1,6 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, Suspense, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog'
-import { Form, useFetcher, useNavigation, useSearchParams } from '@remix-run/react'
+import { Await, Form, useFetcher, useNavigation, useSearchParams } from '@remix-run/react'
 import { DatePickerInput } from '~/components/ui/date-picker-input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
@@ -17,12 +17,15 @@ import { ActionResult } from '~/lib/types/action-result';
 import { Controller } from 'react-hook-form';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
+import { Level } from '~/lib/types/account/account';
+import { Loader2 } from 'lucide-react';
 
 
 type Props = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
-    idToken: string
+    idToken: string,
+    levelPromise: Promise<Level[]>
 }
 
 const addClassSchema = z.object({
@@ -34,7 +37,7 @@ const addClassSchema = z.object({
 type AddSlotSchema = z.infer<typeof addClassSchema>;
 const resolver = zodResolver(addClassSchema)
 
-export default function AddClassDialog({ isOpen, setIsOpen, idToken }: Props) {
+export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromise }: Props) {
     // const [selectedRoomId, setSelectedRoomId] = useState<string>()
     const navigation = useNavigation();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -94,11 +97,14 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken }: Props) {
                                             </SelectTrigger>
                                             <SelectGroup>
                                                 <SelectContent>
-                                                    {
-                                                        LEVEL.map((level, index) => (
-                                                            <SelectItem value={index.toString()} key={index}>LEVEL {index + 1} - ({level})</SelectItem>
-                                                        ))
-                                                    }
+                                                    <Suspense fallback={<Loader2 className='animate-spin' />}>
+                                                        <Await resolve={levelPromise}>
+                                                            {(levels) =>
+                                                                levels.map(l => (
+                                                                    <SelectItem value={l.id} key={l.id}>{l.name.split('(')[0]}</SelectItem>
+                                                                ))}
+                                                        </Await>
+                                                    </Suspense>
                                                 </SelectContent>
                                             </SelectGroup>
                                         </Select>

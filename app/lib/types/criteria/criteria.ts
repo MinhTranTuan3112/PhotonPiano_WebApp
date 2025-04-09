@@ -1,9 +1,10 @@
 export type Criteria = {
-  id: string;
-  name: string;
-  weight: number;
-  for: CriteriaFor;
-};
+    id : string,
+    name : string,
+    weight : number,
+    description : string,
+    for: CriteriaFor;
+}
 
 export type MinimalCriteria = Pick<Criteria, "id" | "name" | "weight">;
 

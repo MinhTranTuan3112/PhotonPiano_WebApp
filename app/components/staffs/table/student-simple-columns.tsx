@@ -4,6 +4,7 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Mail, Music2 } from 'lucide-react';
 import { Account, Level } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 
 const getLevelStyle = (level?: number) => {
     switch (level) {
@@ -79,6 +80,11 @@ export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: 
             accessorKey: 'Level',
             header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
             cell: ({ row }) => <LevelBadge level={row.original.level} />
+        },
+        {
+            accessorKey: 'Hành động',
+            header: () => <div className="flex flex-row gap-1 items-center"></div>,
+            cell: ({ row }) => <Button onClick={() =>   window.open(`/staff/students/${row.original.accountFirebaseId}`, '_blank')}>Xem</Button>
         }
     ];
 }

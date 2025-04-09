@@ -1,14 +1,18 @@
+import { Class } from "../class/class";
+
 export enum SlotStatus
 {
     NotStarted,
     Ongoing,
-    Finished
+    Finished,
+    Cancelled
 }
 
 export const SlotStatusText = {
     [SlotStatus.NotStarted] : "Chưa Bắt Đầu",
     [SlotStatus.Ongoing] : "Đang Diễn Ra",
-    [SlotStatus.Finished] : "Đã Kết Thúc"
+    [SlotStatus.Finished] : "Đã Kết Thúc",
+    [SlotStatus.Cancelled] : "Đã Hủy"
 }
 
 export enum AttendanceStatus {
@@ -57,13 +61,19 @@ export type Slot = {
 export type SlotStudentModel = {
     slotId : string;
     studentFirebaseId: string;
-    attendanceStatus: number;
+    attendanceStatus: AttendanceStatus;
+    attendanceComment?: string;
+    gestureComment?: string;
+    gestureUrl?: string;
+    fingerNoteComment?: string;
+    pedalComment?: string;
     studentAccount: {
         userName: string | null;
         fullName: string | null;
         email: string
         avatarUrl : string | null
-    }
+    },
+    
 };
 
 export type StudentAttendanceModel =  {
@@ -84,17 +94,18 @@ export type SlotDetail = {
         status: number;
         capacity: number;
     };
-    class: {
-        id: string;
-        instructorId: string;
-        instructorName: string;
-        status: number;
-        name: string;
-        level: number;
-    };
+    class: Class;
     slotStudents: SlotStudentModel[] | null;
     numberOfStudents: number;
+    slotNote: string | null;
     attendanceStatus?: AttendanceStatus;
+}
+
+export type BlankSlotModel = {
+    date: string,
+    shift: Shift,
+    roomId: string, 
+    roomName?: string,
 }
 
 

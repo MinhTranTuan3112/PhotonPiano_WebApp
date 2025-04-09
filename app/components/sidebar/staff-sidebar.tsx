@@ -8,6 +8,7 @@ import TopNav from "./top-nav"
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 
+
 const data = {
     user: {
         name: "shadcn",
@@ -23,7 +24,7 @@ const data = {
             items: [
                 {
                     title: "Thông tin cá nhân",
-                    url: "/info",
+                    url: "/staff/profile",
                 }
             ],
         },
@@ -34,12 +35,20 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Quản lý lịch thi đầu vào",
+                    title: "Lịch học",
+                    url: "/staff/scheduler",
+                },
+                {
+                    title: "Quản lý lịch thi",
                     url: "/staff/entrance-tests",
                 },
                 {
                     title: "Danh sách học viên",
                     url: "/staff/students",
+                },
+                {
+                    title: "Danh sách giảng viên",
+                    url: "/staff/teachers",
                 },
                 {
                     title: "Danh sách lớp",
@@ -53,7 +62,14 @@ const data = {
                     title: 'Danh sách đơn từ',
                     url: '/staff/applications',
                 },
-                
+                {
+                    title: 'Quản lý khảo sát',
+                    url: '/staff/surveys'
+                },
+                {
+                    title: 'Quản lý câu hỏi khảo sát',
+                    url: '/staff/survey-questions'
+                }
             ],
         }
     ]

@@ -1,8 +1,9 @@
-import { ColumnDef, Table } from "@tanstack/react-table";
+import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import {
     MoreHorizontal, Mail, Phone, User,
     Trash,
-    Shuffle
+    Shuffle,
+    Music2
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -36,11 +37,11 @@ const getLevelStyle = (level?: number) => {
     }
 };
 
-function LevelBadge({ level }: {
+export function LevelBadge({ level }: {
     level?: Level
 }) {
     return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name : 'Chưa xếp'}
+        {level ? level.name.split('(')[0] : 'Chưa xác định'}
     </Badge>
 }
 
@@ -116,13 +117,13 @@ export function studentClassColumns({ handleDeleteConfirm }: {
                 return <div>{row.original.student.phone}</div>
             }
         },
-        // {
-        //     accessorKey: 'Level',
-        //     header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
-        //     cell: ({ row }) => {
-        //         return <LevelBadge level={row.original.level} />
-        //     }
-        // },
+        {
+            accessorKey: 'Level',
+            header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
+            cell: ({ row }) => {
+                return <LevelBadge level={row.original.student.level} />
+            }
+        },
         {
             accessorKey: 'Trạng thái',
             header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
@@ -134,15 +135,16 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             accessorKey: "Thao tác",
             header: "Hành động",
             cell: ({ row, table }) => {
-                return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} />
+                return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} row={row} />
             }
         }
     ]
 }
 
 
-function ActionsDropdown({ table, deleteAction }: {
+function ActionsDropdown({ table, deleteAction, row }: {
     table: Table<StudentClassWithStudent>,
+    row: Row<StudentClassWithStudent>,
     deleteAction : () => void
 }) {
 
@@ -157,7 +159,7 @@ function ActionsDropdown({ table, deleteAction }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.studentFirebaseId}`}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">

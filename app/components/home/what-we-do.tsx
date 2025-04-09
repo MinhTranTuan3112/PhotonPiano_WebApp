@@ -3,18 +3,18 @@ import { Music, Headphones, Users } from 'lucide-react';
 
 const cards = [
     {
-        title: "Personalized Instruction",
-        description: "One-on-one lessons tailored to your unique learning style and musical goals.",
+        title: "Khơi dậy đam mê âm nhạc",
+        description: "Khơi dậy đam mê âm nhạc và nuôi dưỡng tinh thần nghệ thuật trong từng cá nhân.",
         icon: Music,
     },
     {
-        title: "Advanced Technology",
-        description: "Integrate digital tools with traditional piano instruction for enhanced learning.",
+        title: "Cơ sở vật chất hiện đại",
+        description: "Trải nghiệm học tập với cơ sở vật chất hiện đại và công nghệ tiên tiến.",
         icon: Headphones,
     },
     {
-        title: "Collaborative Environment",
-        description: "Join ensemble classes and duet sessions to improve your musical collaboration skills.",
+        title: "Môi trường học tập năng động, thực tiễn, cởi mở",
+        description: "Tạo cơ hội biểu diễn, giao lưu và phát triển kỹ năng trình diễn trên sân khấu.",
         icon: Users,
     },
 ]
@@ -36,9 +36,9 @@ export function FeatureSection() {
                     transition={{ duration: 0.6 }}
                     className="mb-16 text-center"
                 >
-                    <h2 className="text-sm uppercase tracking-wider text-gray-600 font-semibold">OUR APPROACH</h2>
+                    <h2 className="text-sm uppercase tracking-wider text-gray-600 font-semibold">ĐÀO TẠO KHÁC BIỆT</h2>
                     <h3 className="mt-2 text-4xl font-bold text-gray-900">
-                        The Photon Piano Academy Difference
+                        Photon Piano cung cấp chương trình đào tạo piano độc đáo
                     </h3>
                 </motion.div>
 

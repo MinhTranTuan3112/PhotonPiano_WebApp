@@ -3,76 +3,6 @@ import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 import { getErrorDetailsInfo } from "../utils/error";
 
-export interface TeacherClassQueryParams extends Partial<QueryPagedRequest> {
-  keyword?: string;
-  idToken: string;
-}
-
-export interface ClassDetailsResponse {
-  id: string;
-  idToken: string;
-}
-
-export interface GradeTemplateResponse {
-  id: string;
-  idToken: string;
-}
-
-export async function fetchTeacherClasses({
-  page = 1,
-  pageSize = 5,
-  sortColumn = "Id",
-  orderByDesc = false,
-  keyword,
-  idToken,
-}: TeacherClassQueryParams) {
-  if (!idToken) {
-    throw new Error("Authentication token is required");
-  }
-
-  let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
-  if (keyword) {
-    url += `&keyword=${keyword}`;
-  }
-
-  const response = await axiosInstance.get(url, {
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-  });
-  return response;
-}
-
-export async function fetchClassDetails({ id, idToken }: ClassDetailsResponse) {
-  if (!idToken) {
-    throw new Error("Authentication token is required");
-  }
-  let url = `/classes/${id}`;
-  const response = await axiosInstance.get(url, {
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-  });
-  return response;
-}
-
-export async function fetchGradeTemplate({
-  id,
-  idToken,
-}: GradeTemplateResponse) {
-  if (!idToken) {
-    throw new Error("Authentication token is required");
-  }
-  let url = `/student-class/${id}/grade-template`;
-  const response = await axiosInstance.get(url, {
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
-    responseType: "blob",
-  });
-  return response;
-}
-
 export async function fetchClasses({
   page = 1,
   pageSize = 10,
@@ -80,10 +10,12 @@ export async function fetchClasses({
   orderByDesc = true,
   levels = [],
   statuses = [],
+  isPublic,
 }: Partial<
   QueryPagedRequest & {
-    levels: number[];
+    levels: string[];
     statuses: number[];
+    isPublic?: boolean;
   }
 >) {
   let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -98,6 +30,10 @@ export async function fetchClasses({
     statuses.forEach((status) => {
       url += `&statuses=${status}`;
     });
+  }
+
+  if (isPublic) {
+    url += `&is-public=${isPublic}`;
   }
 
   const response = await axiosInstance.get(url);
@@ -184,13 +120,13 @@ export async function fetchCreateClass({
   level,
   idToken,
 }: {
-  level: Level;
+  level: string;
   idToken: string;
 }) {
   const response = await axiosInstance.post(
     `/classes/`,
     {
-      level: level,
+      levelId: level,
     },
     {
       headers: {
@@ -206,21 +142,24 @@ export async function fetchUpdateClass({
   level,
   name,
   instructorId,
+  scheduleDescription,
   idToken,
 }: {
   id: string;
   name?: string;
   instructorId?: string;
-  level?: Level;
+  scheduleDescription?: string;
+  level?: string;
   idToken: string;
 }) {
   const response = await axiosInstance.put(
     `/classes/`,
     {
-      level: level,
+      levelId: level,
       id: id,
       name: name,
       instructorId: instructorId,
+      scheduleDescription: scheduleDescription,
     },
     {
       headers: {
@@ -354,5 +293,137 @@ export async function fetchStudentClasses({
     },
   });
 
+  return response;
+}
+export async function fetchClearScheduleClass({
+  id,
+  idToken,
+}: {
+  id: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.delete(`/classes/${id}/schedule`, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+
+  return response;
+}
+export async function fetchPublishAClass({
+  id,
+  idToken,
+}: {
+  id: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.patch(
+    `/classes/${id}/publishing`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export async function fetchChangeAClass({
+  oldClassId,
+  newClassId,
+  studentId,
+  idToken,
+}: {
+  oldClassId: string;
+  newClassId: string;
+  studentId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.put(
+    `/classes/student-class`,
+    {
+      oldClassId: oldClassId,
+      newClassId: newClassId,
+      studentFirebaseId: studentId,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export interface TeacherClassQueryParams extends Partial<QueryPagedRequest> {
+  keyword?: string;
+  idToken: string;
+}
+
+export interface ClassDetailsResponse {
+  id: string;
+  idToken: string;
+}
+
+export interface GradeTemplateResponse {
+  id: string;
+  idToken: string;
+}
+
+export async function fetchTeacherClasses({
+  page = 1,
+  pageSize = 5,
+  sortColumn = "Id",
+  orderByDesc = false,
+  keyword,
+  idToken,
+}: TeacherClassQueryParams) {
+  if (!idToken) {
+    throw new Error("Authentication token is required");
+  }
+
+  let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
+  if (keyword) {
+    url += `&keyword=${keyword}`;
+  }
+
+  const response = await axiosInstance.get(url, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  return response;
+}
+
+export async function fetchClassDetails({ id, idToken }: ClassDetailsResponse) {
+  if (!idToken) {
+    throw new Error("Authentication token is required");
+  }
+  let url = `/classes/${id}`;
+  const response = await axiosInstance.get(url, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
+  return response;
+}
+
+export async function fetchGradeTemplate({
+  id,
+  idToken,
+}: GradeTemplateResponse) {
+  if (!idToken) {
+    throw new Error("Authentication token is required");
+  }
+  let url = `/student-class/${id}/grade-template`;
+  const response = await axiosInstance.get(url, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+    responseType: "blob",
+  });
   return response;
 }

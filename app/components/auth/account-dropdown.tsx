@@ -1,4 +1,4 @@
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useNavigate } from "@remix-run/react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import {
     DropdownMenu,
@@ -15,11 +15,12 @@ import { LogOut } from "lucide-react";
 import NotificationBell from "../notification/notification-bell";
 import { useAuth } from "~/lib/contexts/auth-context";
 import { Skeleton } from "../ui/skeleton";
+import { Role } from "~/lib/types/account/account";
 
 
 type Props = {}
 
-export default function AccountDropdown({ accountFirebaseId }: { accountFirebaseId: string }) {
+export default function AccountDropdown({ accountFirebaseId, role }: { accountFirebaseId: string, role: Role }) {
 
     const fetcher = useFetcher<typeof action>();
 
@@ -39,13 +40,15 @@ export default function AccountDropdown({ accountFirebaseId }: { accountFirebase
         confirmText: 'Đăng xuất',
     });
 
+    const navigate = useNavigate()
+
     return (
         <>
             <div className="flex flex-row gap-5">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Avatar className="cursor-pointer border-[3px] border-gray-300 border-solid ">
-                            <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "https://github.com/shadcn.png"} alt="@shadcn" />
+                            <AvatarImage src={currentAccount?.avatarUrl ? currentAccount.avatarUrl : "/images/noavatar.png"} alt="@shadcn" />
                             <AvatarFallback>
                                 <Skeleton className="rounded-full" />
                             </AvatarFallback>
@@ -55,7 +58,22 @@ export default function AccountDropdown({ accountFirebaseId }: { accountFirebase
                         <DropdownMenuLabel>Xin chào, {currentAccount?.fullName || currentAccount?.userName}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem className="cursor-pointer">
+                            <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                                switch (role) {
+                                    case Role.Administrator:
+                                        navigate("/admin/settings");
+                                        break;
+                                    case Role.Student:
+                                        navigate("/account/scheduler");
+                                        break;
+                                    case Role.Instructor:
+                                        navigate("/teacher/scheduler");
+                                        break;
+                                    case Role.Staff:
+                                        navigate("/staff/scheduler");
+                                        break;
+                                }
+                            }}>
                                 Quản lý thông tin
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
@@ -63,7 +81,7 @@ export default function AccountDropdown({ accountFirebaseId }: { accountFirebase
                         <DropdownMenuGroup>
                             <DropdownMenuItem onClick={() => handleOpenModal()} disabled={isSubmitting}
                                 className="cursor-pointer">
-                                <LogOut /> Đăng xuất    
+                                <LogOut /> Đăng xuất
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                     </DropdownMenuContent>

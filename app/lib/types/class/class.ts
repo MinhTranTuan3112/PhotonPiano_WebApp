@@ -2,19 +2,23 @@ import { Account, Level, Role } from "../account/account";
 import { StudentClass } from "./student-class";
 
 export type Class = {
-  id: string;
-  name: string;
-  totalSlots: number;
-  requiredSlots: number;
-  capacity: number;
-  instructor?: Account;
-  studentNumber: number;
-  level: Level;
-  status: number;
-  isPublic: boolean;
-  minimumStudents: number;
-  startDate?: string;
-};
+    id : string,
+    name : string,
+    totalSlots : number,
+    requiredSlots : number,
+    capacity : number,
+    instructor? : Account,
+    instructorId? : string,
+    instructorName? : string,
+    scheduleDescription? : string,
+    studentNumber : number,
+    level : Level,
+    levelId: string,
+    status : number,
+    isPublic : boolean,
+    minimumStudents : number,
+    startTime? : string
+}
 const teacher = {
   accountFirebaseId: "abc",
   userName: "Thanh Hung",

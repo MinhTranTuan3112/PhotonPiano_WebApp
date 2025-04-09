@@ -1,21 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
+import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
 import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { Button } from '~/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '~/components/ui/alert-dialog';
+import { Button, buttonVariants } from '~/components/ui/button';
 import { DatePickerInput } from '~/components/ui/date-picker-input';
 import GenericCombobox from '~/components/ui/generic-combobox';
 import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
+import { Textarea } from '~/components/ui/textarea';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchRooms } from '~/lib/services/rooms';
 import { fetchSlotById } from '~/lib/services/scheduler';
+import { Level } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { Room } from '~/lib/types/room/room';
@@ -54,6 +57,7 @@ export const addSlotSchema = z.object({
     date: z.coerce.date({ message: 'Ngày không hợp lệ.' }).optional(),
     action: z.string(),
     slotId: z.string(),
+    reason: z.string().optional(),
     idToken: z.string(),
 });
 
@@ -91,9 +95,9 @@ const getAttendanceStyle = (attendance: number) => {
     }
 };
 function LevelBadge({ level }: {
-    level: number
+    level: Level
 }) {
-    return <div className={`${getLevelStyle(level)} uppercase w-full text-center my-1 p-2 rounded-lg`}>LEVEL {level + 1} - {LEVEL[level]}</div>
+    return <div className={`uppercase w-full text-center my-1 p-2 rounded-lg`}>{level.name}</div>
 }
 function StatusBadge({ status }: {
     status: number
@@ -130,12 +134,14 @@ export default function StaffClassSlotDetail() {
     );
 }
 
+
 function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: string }) {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams();
     const editFetcher = useFetcher<ActionResult>();
     const deleteFetcher = useFetcher<ActionResult>();
     const [isEdit, setIsEditing] = useState(false)
+    const [isOpenConfirmEdit, setIsOpenConfirmEdit] = useState(false)
 
     const { loadingDialog: loadingEditDialog } = useLoadingDialog({
         fetcher: editFetcher,
@@ -153,6 +159,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     const {
         handleSubmit,
         formState: { errors },
+        register,
         control
     } = useRemixForm<AddSlotSchema>({
         mode: "onSubmit",
@@ -166,13 +173,17 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
         }
     });
 
-    const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
-        title: 'Xác nhận sửa buổi học',
-        description: 'Bạn có chắc chắn muốn sửa buổi học này không?',
-        onConfirm: () => {
-            handleSubmit();
-        }
-    })
+    // const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
+    //     title: 'Xác nhận sửa buổi học',
+    //     description: 'Bạn có chắc chắn muốn sửa buổi học này không?',
+    //     onConfirm: () => {
+    //         handleSubmit();
+    //     }
+    // })
+
+    const handleEdit = () => {
+        handleSubmit();
+    }
 
     const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
         title: 'Xác nhận xóa buổi học',
@@ -197,7 +208,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     return (
         <div>
 
-            <Form onSubmit={handleOpenEditModal}>
+            <Form onSubmit={() => setIsOpenConfirmEdit(true)}>
                 <div className='flex flex-col sm:flex-row place-content-between gap-2 mb-8'>
                     <Button type='button' variant={'outline'} onClick={() => navigate(-1)}><ArrowLeftCircle className='mr-4' /> Trở về</Button>
                     <div className='flex gap-2'>
@@ -323,12 +334,38 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                     } />
                     <DetailItem label="Trạng thái" labelIcon={<Music />} value={<StatusBadge status={slot.status} />} />
                 </div>
+                <AlertDialog open={isOpenConfirmEdit} onOpenChange={setIsOpenConfirmEdit}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Cập nhật buổi học</AlertDialogTitle>
+                            <AlertDialogDescription>Hãy cung cấp lý do cho sự thay đổi này</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <Textarea {...register("reason")} />
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className={
+                                buttonVariants({ variant: 'outline' })
+                            }>Hủy bỏ</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleEdit} className={
+                                buttonVariants({ variant: 'theme' })
+                            }>Xác nhận</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </Form>
 
             <h3 className="text-xl font-semibold text-gray-700 mb-3">Thông tin lớp</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <DetailItem label="Tên lớp" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Chưa có lớp'}</p>} />
-                <DetailItem label="Giảng viên" value={<p className="text-lg font-medium text-gray-800">{slot.class?.instructorName || 'Chưa có giảng viên'}</p>} />
+
+                <DetailItem label="Giảng viên" value={
+                    slot.class?.instructor ? (
+                        <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
+                            {slot.class?.instructor?.fullName || slot.class?.instructor?.userName}
+                        </Link>
+                    ) : (
+                        <p className="text-lg font-medium text-gray-800">Chưa có giảng viên</p>
+                    )
+                } />
                 <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
                 <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
             </div>
@@ -370,11 +407,10 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
             {loadingDeleteDialog}
             {loadingEditDialog}
             {confirmDeleteDialog}
-            {confirmEditDialog}
         </div>
     );
 
-    
+
 }
 
 function DetailItem({ label, value, labelIcon }: { label: string; value: ReactNode, labelIcon?: ReactNode }) {

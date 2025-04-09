@@ -1,3 +1,5 @@
+import { Role } from "./account/account";
+
 export type AuthResponse = {
     displayName: string | null;
     email: string;
@@ -7,5 +9,5 @@ export type AuthResponse = {
     localId: string;
     refreshToken: string;
     registered?: boolean;
-    role: string;
+    role: Role;
 };

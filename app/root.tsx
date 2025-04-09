@@ -10,7 +10,6 @@ import {
 import type { ErrorResponse, LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 
 import "./tailwind.css";
-import { DndContext } from '@dnd-kit/core';
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
@@ -119,14 +118,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <DndContext>
-              {children}
-              <ScrollRestoration />
-              {/*Deploy thì bật lại*/}
-              {/* <script src="https://cdn.jsdelivr.net/npm/disable-devtool@latest" {...{ "disable-devtool-auto": "" }}></script> */}
-              <Scripts />
-              <Toaster richColors={true} theme={"light"} />
-            </DndContext>
+            {children}
+            <ScrollRestoration />
+            {/*Deploy thì bật lại*/}
+            {/* <script src="https://cdn.jsdelivr.net/npm/disable-devtool@latest" {...{ "disable-devtool-auto": "" }}></script> */}
+            <Scripts />
+            <Toaster richColors={true} theme={"light"} />
           </AuthProvider>
         </QueryClientProvider>
       </body>

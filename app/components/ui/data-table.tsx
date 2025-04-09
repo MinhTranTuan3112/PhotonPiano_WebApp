@@ -34,6 +34,7 @@ type DataTableProps<TData, TValue> = {
     emptyContent?: React.ReactNode;
     extraHeaderContent?: React.ReactNode;
     enableColumnDisplayOptions?: boolean;
+    enablePagination?: boolean;
     defaultPageSize?: number;
     pageSizeOptions?: number[];
     manualPagination?: boolean;
@@ -41,8 +42,8 @@ type DataTableProps<TData, TValue> = {
     onPageSizeChange?: (pageSize: number) => void;
     totalPages?: number;
     totalCount?: number;
-    pageParamName? : string;
-    sizeParamName? : string;
+    pageParamName?: string;
+    sizeParamName?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -52,6 +53,7 @@ export function DataTable<TData, TValue>({
     extraHeaderContent,
     emptyContent = "Không có kết quả.",
     enableColumnDisplayOptions = true,
+    enablePagination = true,
     defaultPageSize = 5,
     pageSizeOptions = [5, 10, 20, 30, 40, 50],
     manualPagination = false,
@@ -118,7 +120,7 @@ export function DataTable<TData, TValue>({
             onRowSelectionChange(table.getFilteredSelectedRowModel().rows);
         }
     }, [rowSelection])
-    
+
     return (
         <>
             <div className="flex flex-col items-end gap-5 py-4">
@@ -210,51 +212,58 @@ export function DataTable<TData, TValue>({
                     <strong>&#40;Tổng cộng: {totalCount}&#41;</strong>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">Số dòng tối đa</p>
-                    <Select
-                        value={`${table.getState().pagination.pageSize}`}
-                        onValueChange={(newPageSize) => {
-                            if (manualPagination === false) {
-                                table.setPageSize(Number(newPageSize))
-                            } else {
-                                onPageSizeChange?.(Number(newPageSize));
-                            }
-                        }}
-                    >
-                        <SelectTrigger className="h-8 w-[70px]">
-                            <SelectValue placeholder={table.getState().pagination.pageSize} />
-                        </SelectTrigger>
-                        <SelectContent side="top">
-                            {pageSizeOptions.map((size) => (
-                                <SelectItem key={size} value={`${size}`}>
-                                    {size}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                {enablePagination && (
+                    <>
+                        <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium">Số dòng tối đa</p>
+                            <Select
+                                value={`${table.getState().pagination.pageSize}`}
+                                onValueChange={(newPageSize) => {
+                                    if (manualPagination === false) {
+                                        table.setPageSize(Number(newPageSize))
+                                    } else {
+                                        onPageSizeChange?.(Number(newPageSize));
+                                    }
+                                }}
+                            >
+                                <SelectTrigger className="h-8 w-[70px]">
+                                    <SelectValue placeholder={table.getState().pagination.pageSize} />
+                                </SelectTrigger>
+                                <SelectContent side="top">
+                                    {pageSizeOptions.map((size) => (
+                                        <SelectItem key={size} value={`${size}`}>
+                                            {size}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                <div className="flex items-center justify-end space-x-2 py-4">
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={manualPagination ? () => handlePageChange(page - 1) : () => table.previousPage()}
-                        disabled={manualPagination ? (page <= 1) : !table.getCanPreviousPage()}
-                    >
-                        <ChevronLeft />
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-full"
-                        onClick={manualPagination ? () => handlePageChange(page + 1) : () => table.nextPage()}
-                        disabled={manualPagination ? (page === totalPages) : !table.getCanNextPage()}
-                    >
-                        <ChevronRight />
-                    </Button>
-                </div>
+                        <div className="flex items-center justify-end space-x-2 py-4">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="rounded-full"
+                                onClick={manualPagination ? () => handlePageChange(page - 1) : () => table.previousPage()}
+                                disabled={manualPagination ? (page <= 1) : !table.getCanPreviousPage()}
+                            >
+                                <ChevronLeft />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="rounded-full"
+                                onClick={manualPagination ? () => handlePageChange(page + 1) : () => table.nextPage()}
+                                disabled={manualPagination ? (page === totalPages) : !table.getCanNextPage()}
+                            >
+                                <ChevronRight />
+                            </Button>
+                        </div>
+                    </>
+                )}
+
+
+
             </div>
 
         </>

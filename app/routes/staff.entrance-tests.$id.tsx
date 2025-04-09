@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Delete, Pencil, Save, Trash } from 'lucide-react'
+import { Delete, Import, Pencil, Save, Trash } from 'lucide-react'
 import { Suspense, useEffect } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -27,6 +27,10 @@ import { Room } from '~/lib/types/room/room'
 import { requireAuth } from '~/lib/utils/auth'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
+import { fetchAllMinimalCriterias } from '~/lib/services/criteria'
+import { MinimalCriteria } from '~/lib/types/criteria/criteria'
+import { useImportResultDialog } from '~/hooks/use-import-result-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 
 type Props = {}
 
@@ -66,9 +70,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             }
         });
 
+        const fetchCriteriasResponse = await fetchAllMinimalCriterias({ idToken });
+
+        const criterias: MinimalCriteria[] = await fetchCriteriasResponse.data;
 
         return {
             promise,
+            criterias,
             idToken,
             role,
             id
@@ -160,9 +168,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         };
         const response = await fetchUpdateEntranceTest(updateRequest);
 
-        return {
+        return Response.json({
             success: response.status === 204
-        }
+        }, {
+            status: 200
+        });
 
     } catch (error) {
 
@@ -174,11 +184,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        });
+
     }
 }
 
@@ -186,7 +198,7 @@ const resolver = zodResolver(updateEntranceTestSchema);
 
 function EntranceTestDetailsContent() {
 
-    const { idToken } = useLoaderData<typeof loader>();
+    const { idToken, criterias } = useLoaderData<typeof loader>();
 
     const entranceTestValue = useAsyncValue();
 
@@ -225,6 +237,12 @@ function EntranceTestDetailsContent() {
         }
     })
 
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role: Role.Staff
+    });
+
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
@@ -255,7 +273,7 @@ function EntranceTestDetailsContent() {
                     Tên bài thi
                 </Label>
                 <Input  {...register('name')} id="name" className="col-span-3"
-                    placeholder='Nhập tên đợt thi...' />
+                    placeholder='Nhập tên đợt thi...' readOnly={true}/>
                 {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
             </div>
             <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full'>
@@ -384,7 +402,13 @@ function EntranceTestDetailsContent() {
                                 }}
                                 idToken={idToken}
                                 mapItem={(item) => ({
-                                    label: item?.fullName || item?.email,
+                                    label: <div className="flex flex-row justify-center items-center">
+                                        <Avatar className=''>
+                                            <AvatarImage src={item.avatarUrl || "/images/noavatar.png"} alt="@shadcn" />
+                                            <AvatarFallback>{item.fullName || item.email}</AvatarFallback>
+                                        </Avatar>
+                                        <span className='ml-2'>{item.fullName || item.email}</span>
+                                    </div>,
                                     value: item?.accountFirebaseId
                                 })}
                                 placeholder='Chọn người gác thi'
@@ -425,9 +449,16 @@ function EntranceTestDetailsContent() {
         <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
         <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
         {/* <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' /> */}
+
         <div className="my-8">
+            <div className="flex justify-end">
+                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
+            </div>
             <ResultTable data={entranceTest.entranceTestStudents} />
         </div>
+
+
         {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
         <div className='flex flex-col md:flex-row justify-center gap-4'>
             {
@@ -437,28 +468,10 @@ function EntranceTestDetailsContent() {
                     </Button>
                 )
             }
-            <Button className={`font-bold px-12 ${entranceTest.isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-                type='button' onClick={() => {
-                    setFormValue('isAnnouncedScore', !entranceTest.isAnnouncedScore);
-                    handleSubmit();
-                }}>
-                {
-                    entranceTest.isAnnouncedScore === true ? (
-                        <>
-                            <Delete className='mr-4'
-                            />
-                            Hủy công bố điểm số
-                        </>
-                    ) : (
-                        <>
-                            <Pencil className='mr-4' />
-                            Công bố điểm số
-                        </>
-                    )
-                }
-            </Button>
+            <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id} />
         </div>
 
+        {importResultDialog}
         {confirmDialog}
     </>
 }
@@ -478,4 +491,73 @@ function ComboboxSkeleton() {
         <Skeleton className="w-full h-[100px] rounded-md" />
         <Skeleton className="w-full h-[100px] rounded-md" />
     </div>
+}
+
+function PublishScoreSection({
+    isAnnouncedScore,
+    id
+}: {
+    isAnnouncedScore: boolean
+    id: string,
+}) {
+
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xác nhận công bố điểm số',
+        description: 'Bạn có chắc chắn muốn công bố điểm số cho ca thi này không?',
+        onConfirm: () => {
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('isAnnouncedScore', (!isAnnouncedScore).toString());
+            fetcher.submit(formData, {
+                action: '/publish-test-results',
+                method: "POST"
+            });
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Công bố điểm số thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.error(fetcher.data.error, {
+                position: 'top-center'
+            });
+            return;
+        }
+
+        return () => {
+            
+        }
+
+    }, [fetcher.data]);
+
+
+    return <>
+        <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting} disabled={isSubmitting}>
+            {
+                isAnnouncedScore === true ? (
+                    <>
+                        <Delete className='mr-4'
+                        />
+                        Hủy công bố điểm số
+                    </>
+                ) : (
+                    <>
+                        <Pencil className='mr-4' />
+                        Công bố điểm số
+                    </>
+                )
+            }
+        </Button>
+        {confirmDialog}
+    </>
 }

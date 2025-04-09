@@ -20,11 +20,14 @@ import useProgressTracking from '~/hooks/use-progress-tracking';
 import { useAuth } from '~/lib/contexts/auth-context';
 import { fetchAccounts, fetchWaitingStudentsOfAllLevel } from '~/lib/services/account';
 import { fetchAutoArrange } from '~/lib/services/class';
+import { fetchSystemConfigs } from '~/lib/services/system-config';
 import { Account, AwaitingLevelCount, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { Class } from '~/lib/types/class/class';
+import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
+import { MAX_STUDENTS, MIN_STUDENTS } from '~/lib/utils/config-name';
 import { LEVEL } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from '~/lib/utils/form';
@@ -62,8 +65,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
             }
         });
 
+        const configPromise = fetchSystemConfigs({ idToken }).then((response) => {
+
+            const configs = response.data as SystemConfig[]
+
+            return {
+                configs,
+            }
+        });
+
         return {
-            promise, idToken
+            promise, configPromise, idToken
         }
 
     } catch (error) {
@@ -90,7 +102,7 @@ const arrangeClassesSchema = z.object({
         .refine((date: Date) => date > addDays(new Date(), -1), {
             message: "Tuần bắt đầu phải sau hôm nay"
         }),
-    shifts: z.array(z.string()).min(1, { message: `Phải chọn ít nhất 1 ca học` }),
+    // shifts: z.array(z.string()).min(1, { message: `Phải chọn ít nhất 1 ca học` }),
     idToken: z.string(),
 });
 
@@ -148,12 +160,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function StaffAutoArrangeClass({ }: Props) {
     const { currentAccount } = useAuth()
-    const { promise, idToken } = useLoaderData<typeof loader>();
-    const [isDefineStudentCount, setIsDefineStudentCount] = useState(false)
+    const { promise, idToken, configPromise } = useLoaderData<typeof loader>();
 
-    const loadingMessage = "Đang thực hiện, vui lòng không đóng hộp thoại này!"
+    const loadingMessage = "Đang thực hiện, vui lòng chờ!"
     const [searchParams, setSearchParams] = useSearchParams();
     const [isOpenLoading, setIsOpenLoading] = useState(false);
+    const [result, setResult] = useState(false);
 
     const { progress, progressMessage } = useProgressTracking(currentAccount?.accountFirebaseId ?? "")
     const fetcher = useFetcher<ActionResult>();
@@ -168,7 +180,6 @@ export default function StaffAutoArrangeClass({ }: Props) {
         fetcher,
         defaultValues: {
             idToken: idToken,
-            shifts: []
         }
     });
 
@@ -181,16 +192,27 @@ export default function StaffAutoArrangeClass({ }: Props) {
     })
 
     const handleDialogChange = (open: boolean) => {
-
-        setIsOpenLoading(open)
+        setResult(false)
+        if (open) {
+            setIsOpenLoading(true)
+        } else {
+            if (result) {
+                setIsOpenLoading(false)
+            }
+        }
     }
 
+    useEffect(() => {
+        if (fetcher.data) {
+            setResult(true)
+        }
+    }, [fetcher.data])
 
     useEffect(() => {
         if (fetcher.state === "submitting") {
             setIsOpenLoading(true); // Open dialog on request start
         }
-    }, [fetcher.state, fetcher.data])
+    }, [fetcher.state])
 
     return (
         <div>
@@ -199,11 +221,27 @@ export default function StaffAutoArrangeClass({ }: Props) {
                 <p className="text-sm text-muted-foreground">
                     Chỉ vài thao tác cơ bản để xếp lớp tất cả học viên 1 cách tự động
                 </p>
+                <Suspense fallback={<LoadingSkeleton height={100} />}>
+                    <Await resolve={configPromise}>
+                        {(data) => (
+                            <div className='grid grid-cols-2 w-full mt-4'>
+                                <div className='flex gap-2'>
+                                    <span className='font-bold'>Sĩ số lớp tối thiểu :</span>
+                                    <span className=''>{data.configs.find(c => c.configName === MIN_STUDENTS)?.configValue}</span>
+                                </div>
+                                <div className='flex gap-2'>
+                                    <span className='font-bold'>Sĩ số lớp tối đa :</span>
+                                    <span className=''>{data.configs.find(c => c.configName === MAX_STUDENTS)?.configValue}</span>
+                                </div>
+                            </div>
+                        )}
+                    </Await>
+                </Suspense>
                 <Form onSubmit={handleOpentModal} method='POST'>
                     <Suspense fallback={<LoadingSkeleton />}>
                         <Await resolve={promise}>
                             {(data) => (
-                                <div className='mt-8 space-y-6'>
+                                <div className='mt-4 space-y-6'>
                                     <div className='text-lg font-semibold'>Tổng số học sinh cần xếp lớp: <span className='font-bold'>{data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0)}</span></div>
 
                                     {/* Level Breakdown */}
@@ -217,7 +255,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     </div>
 
                                     {/* Student Selection */}
-                                    <div className='flex flex-wrap gap-4 items-center'>
+                                    {/* <div className='flex flex-wrap gap-4 items-center'>
                                         <span className='font-bold'>Chọn số học viên:</span>
                                         <Controller
                                             control={control}
@@ -233,7 +271,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                         />
                                         {errors.studentNumber && <div className='text-red-500'>{errors.studentNumber.message}</div>}
                                         <Checkbox checked={isDefineStudentCount} onCheckedChange={() => setIsDefineStudentCount(!isDefineStudentCount)} /> <span className='italic text-sm'>Xác định số học viên cụ thể</span>
-                                    </div>
+                                    </div> */}
 
                                     {/* Start Week Selection */}
                                     <div className='flex flex-wrap gap-4 items-center'>
@@ -253,6 +291,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     </div>
 
                                     {/* Class Session Selection */}
+                                    {/*
                                     <div className='space-y-2'>
                                         <span className='font-bold'>Chọn buổi học:</span>
                                         <div>
@@ -289,9 +328,9 @@ export default function StaffAutoArrangeClass({ }: Props) {
 
 
                                     </div>
-
+                                    */}
                                     {/* Buttons */}
-                                    <div className='flex flex-wrap justify-center gap-4'>
+                                    <div className='flex flex-wrap justify-center gap-4 mt-4'>
                                         <Button type='submit' Icon={CalendarSync} iconPlacement='left' className='px-8'>Bắt đầu xếp lớp</Button>
                                         <Button type='button' variant={'outline'} Icon={Calendar} iconPlacement='left'>Xem lịch nghỉ</Button>
                                     </div>
@@ -303,8 +342,8 @@ export default function StaffAutoArrangeClass({ }: Props) {
                 {confirmDialog}
                 <Dialog onOpenChange={handleDialogChange} open={isOpenLoading}>
                     <DialogTitle />
-                    <DialogContent className=''>
-                        {(fetcher.data?.success === true) ? (
+                    <DialogContent className='' preventClosing={!result}>
+                        {(result && fetcher.data?.success === true) ? (
                             <div className="text-center">
                                 <p className="font-bold text-xl text-green-600">XẾP LỚP HOÀN TẤT</p>
                                 <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
@@ -328,7 +367,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                                                 <tr key={c.id} className="border hover:bg-gray-100 transition">
                                                                     <td className="py-2 px-4 border">{c.name}</td>
                                                                     <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
-                                                                    <td className="py-2 px-4 border">{c.startDate ? new Date(c.startDate).toLocaleDateString() : ""}</td>
+                                                                    <td className="py-2 px-4 border">{c.scheduleDescription}</td>
                                                                 </tr>
                                                             ))}
                                                         </tbody>
@@ -339,7 +378,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     )
                                 })()}
                             </div>
-                        ) : (fetcher.data?.success === false && fetcher.data.error) ? (
+                        ) : (result && fetcher.data?.success === false && fetcher.data.error) ? (
                             <div className="text-center">
                                 <p className="font-bold text-xl text-red-600">THẤT BẠI</p>
                                 <XCircle size={100} className="text-red-600 mx-auto mt-4" />
@@ -361,8 +400,8 @@ export default function StaffAutoArrangeClass({ }: Props) {
         </div>
     )
 }
-function LoadingSkeleton() {
+function LoadingSkeleton({ height = 500 }: { height?: number }) {
     return <div className="flex justify-center items-center my-4">
-        <Skeleton className="w-full h-[500px] rounded-md" />
+        <Skeleton className={`w-full h-[${height}px] rounded-md`} />
     </div>
 }
