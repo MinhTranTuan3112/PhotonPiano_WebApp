@@ -11,13 +11,13 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 export const columns: ColumnDef<Survey>[] = [
-    {
-        accessorKey: 'Mã khảo sát',
-        header: 'Mã khảo sát',
-        cell: ({ row }) => {
-            return <div className="font-bold">{row.original.id}</div>
-        }
-    },
+    // {
+    //     accessorKey: 'Mã khảo sát',
+    //     header: 'Mã khảo sát',
+    //     cell: ({ row }) => {
+    //         return <div className="font-bold">{row.original.id}</div>
+    //     }
+    // },
     {
         accessorKey: 'Tên khảo sát',
         header: 'Tên khảo sát',

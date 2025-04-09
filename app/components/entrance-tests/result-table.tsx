@@ -72,17 +72,24 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: 'Mã học viên',
-        header: 'Mã học viên',
+        accessorKey: 'Email',
+        header: 'Email',
         cell: ({ row }) => {
-            return <div>{row.original.studentFirebaseId}</div>
+            return <div>{row.original.student.email}</div>
+        }
+    },
+    {
+        accessorKey: 'SĐT',
+        header: 'SĐT',
+        cell: ({ row }) => {
+            return <div>{row.original.student.phone}</div>
         }
     },
     {
         accessorKey: 'Tên học viên',
         header: 'Tên học viên',
         cell: ({ row }) => {
-            return <div>{row.original.fullName}</div>
+            return <div>{row.original.student.fullName || row.original.student.userName}</div>
         }
     },
     {

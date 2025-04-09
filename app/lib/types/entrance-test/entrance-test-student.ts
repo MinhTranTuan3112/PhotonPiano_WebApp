@@ -1,4 +1,4 @@
-import { Level } from "../account/account";
+import { Account, Level } from "../account/account";
 import { Criteria } from "../criteria/criteria";
 import { EntranceTest } from "./entrance-test";
 import { EntranceTestResult } from "./entrance-test-result"
@@ -13,6 +13,7 @@ export type EntranceTestStudent = {
     level?: Level;
     theoraticalScore?: number;
     instructorComment?: string;
+    student : Account;
 }
 
 export type EntranceTestStudentWithResults = {
