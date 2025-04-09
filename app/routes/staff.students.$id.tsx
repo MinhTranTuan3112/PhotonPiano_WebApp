@@ -149,7 +149,7 @@ export default function StaffStudentDetailPage() {
 
                             {/* Days of the week (Check if a free slot exists) */}
                             {Array.from({ length: 7 }).map((_, dayIndex) => {
-                              const hasSlot = student.freeSlots.some(slot => slot.dayOfWeek === dayIndex + 1 && slot.shift === shift);
+                              const hasSlot = student.freeSlots.some(slot => slot.dayOfWeek === dayIndex && slot.shift === shift);
 
                               return (
                                 <td key={dayIndex} className="border border-gray-300 px-4 py-2 text-center">
