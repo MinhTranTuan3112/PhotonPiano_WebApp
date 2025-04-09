@@ -31,6 +31,8 @@ type Props = {
 
 export default function ArticleForm({ isEdit = false, fetcher, isSubmitting, ...defaultData }: Props) {
 
+    console.log({ ...defaultData });
+
     const {
         handleSubmit,
         formState: { errors },
@@ -45,13 +47,14 @@ export default function ArticleForm({ isEdit = false, fetcher, isSubmitting, ...
         defaultValues: {
             ...defaultData,
             isPublished: defaultData.isPublished || false,
+            thumbnail: defaultData.thumbnail || undefined,
         },
         submitConfig: {
             action: !isEdit ? '/staff/articles/create' : `/staff/articles/${defaultData.slug}`,
             method: "POST"
         }
     });
-    
+
     const isPublished = watch('isPublished');
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
