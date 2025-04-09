@@ -4,12 +4,12 @@ import { Check, Edit, Eye, Info, Save } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { Progress } from "~/components/ui/progress"
 import { Badge } from "~/components/ui/badge"
-import type { ScoreDetailsDialogProps } from "~/lib/types/criteria/criteria"
 import React from "react"
 import { Input } from "./input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { batchUpdateStudentScores } from "~/lib/services/student-class"
+import { ScoreDetailsDialogProps } from "~/lib/types/student-class-score/studentScore"
 
 export function ScoreDetailsDialog({
     studentName,
