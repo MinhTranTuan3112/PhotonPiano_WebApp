@@ -1,20 +1,47 @@
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
-import { json, LoaderFunction, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { ArrowUpRight, Award, BarChart3, BookOpen, Calendar, ChevronLeft, CircleCheck, CircleDashed, CircleX, Clock, FileDown, FileSpreadsheet, FileText, Gauge, Hourglass, Layers, Link, MoreHorizontal, Search, Settings, Sparkles, Trash2, Upload, Users } from "lucide-react";
-import React from "react";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
-import { Input } from "~/components/ui/input";
-import { Progress } from "~/components/ui/progress";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { fetchClassDetails, fetchGradeTemplate, importStudentClassScoresFromExcel } from "~/lib/services/class";
-import { Role } from "~/lib/types/account/account";
-import { requireAuth } from "~/lib/utils/auth";
-import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
-
+import { Avatar, AvatarFallback } from "@radix-ui/react-avatar"
+import { json, type LoaderFunction, redirect } from "@remix-run/node"
+import { useLoaderData } from "@remix-run/react"
+import {
+    ArrowUpRight,
+    Award,
+    BarChart3,
+    BookOpen,
+    Calendar,
+    ChevronLeft,
+    CircleCheck,
+    CircleDashed,
+    CircleX,
+    Clock,
+    FileDown,
+    FileSpreadsheet,
+    FileText,
+    Gauge,
+    Hourglass,
+    Layers,
+    Link,
+    Search,
+    Sparkles,
+    Upload,
+    Users,
+    Eye,
+} from "lucide-react"
+import React from "react"
+import { Badge } from "~/components/ui/badge"
+import { Button } from "~/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Progress } from "~/components/ui/progress"
+import { ScoreDetailsDialog } from "~/components/ui/score-details-dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import {
+    fetchClassDetails,
+    fetchGradeTemplate,
+    importStudentClassScoresFromExcel,
+} from "~/lib/services/class"
+import { fetchStudentClassScores } from "~/lib/services/student-class"
+import { Role } from "~/lib/types/account/account"
+import { requireAuth } from "~/lib/utils/auth"
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 
 const getStatusBadge = (status: number) => {
     switch (status) {
@@ -24,21 +51,21 @@ const getStatusBadge = (status: number) => {
                     <CircleDashed className="h-3 w-3" />
                     Scheduled
                 </Badge>
-            );
+            )
         case 1:
             return (
                 <Badge variant="secondary" className="font-medium flex items-center gap-1">
                     <Hourglass className="h-3 w-3" />
                     In Progress
                 </Badge>
-            );
+            )
         case 2:
             return (
                 <Badge className="bg-green-100 text-green-800 hover:bg-green-200 font-medium flex items-center gap-1">
                     <CircleCheck className="h-3 w-3" />
                     Completed
                 </Badge>
-            );
+            )
         default:
             return (
                 <Badge variant="outline" className="font-medium flex items-center gap-1">
@@ -47,7 +74,7 @@ const getStatusBadge = (status: number) => {
                 </Badge>
             )
     }
-};
+}
 
 const getShiftName = (shift: number) => {
     switch (shift) {
@@ -64,7 +91,7 @@ const getShiftName = (shift: number) => {
         default:
             return `Shift ${shift}`
     }
-};
+}
 
 const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A"
@@ -73,10 +100,10 @@ const formatDate = (dateString: string | null | undefined) => {
     } catch (error) {
         return "Invalid Date"
     }
-};
+}
 
 export const loader: LoaderFunction = async ({ request, params }) => {
-    const { idToken, role } = await requireAuth(request);
+    const { idToken, role } = await requireAuth(request)
     if (role !== Role.Instructor) {
         return redirect("/")
     }
@@ -89,7 +116,6 @@ export const loader: LoaderFunction = async ({ request, params }) => {
             id: params.id,
             idToken,
         })
-        console.log(response.data);
         return json({ ...response.data, idToken })
     } catch (error) {
         console.error({ error })
@@ -101,16 +127,39 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         const { message, status } = getErrorDetailsInfo(error)
         throw new Response(message, { status })
     }
-};
+}
 
 export default function TeacherClassDetailsPage() {
-    const classDetailsData = useLoaderData<typeof loader>();
-    const [searchTerm, setSearchTerm] = React.useState("");
-    const [activeSection, setActiveSection] = React.useState("overview");
-    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-    const [isUploading, setIsUploading] = React.useState(false);
-    const [uploadError, setUploadError] = React.useState<string | null>(null);
-    const [uploadSuccess, setUploadSuccess] = React.useState(false);
+    const classDetailsData = useLoaderData<typeof loader>()
+    const [searchTerm, setSearchTerm] = React.useState("")
+    const [activeSection, setActiveSection] = React.useState("overview")
+    const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+    const [isUploading, setIsUploading] = React.useState(false)
+    const [uploadError, setUploadError] = React.useState<string | null>(null)
+    const [uploadSuccess, setUploadSuccess] = React.useState(false)
+    const [classScores, setClassScores] = React.useState<any>(null)
+    const [isLoadingScores, setIsLoadingScores] = React.useState(false)
+
+    React.useEffect(() => {
+        async function loadScores() {
+            if (activeSection === "grades" && classDetailsData.idToken && !classScores) {
+                try {
+                    setIsLoadingScores(true)
+                    const response = await fetchStudentClassScores({
+                        classId: classDetailsData.id,
+                        idToken: classDetailsData.idToken,
+                    })
+                    setClassScores(response.data)
+                } catch (error) {
+                    console.error("Error loading scores:", error)
+                } finally {
+                    setIsLoadingScores(false)
+                }
+            }
+        }
+
+        loadScores()
+    }, [activeSection, classDetailsData.id, classDetailsData.idToken, classScores])
 
     const handleDownloadTemplate = React.useCallback(async () => {
         try {
@@ -136,8 +185,7 @@ export default function TeacherClassDetailsPage() {
         } catch (error) {
             console.error("Error downloading template:", error)
         }
-    }, [classDetailsData.id, classDetailsData.idToken, classDetailsData.name]);
-
+    }, [classDetailsData.id, classDetailsData.idToken, classDetailsData.name])
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -147,7 +195,7 @@ export default function TeacherClassDetailsPage() {
             setUploadSuccess(false)
             console.log("File selected:", file.name)
         }
-    };
+    }
 
     const handleUploadAndProcess = async () => {
         if (!selectedFile || !classDetailsData.idToken) {
@@ -184,6 +232,13 @@ export default function TeacherClassDetailsPage() {
                     })
                     // Update the class details data with the refreshed data
                     Object.assign(classDetailsData, response.data)
+
+                    // Also refresh the scores data
+                    const scoresResponse = await fetchStudentClassScores({
+                        classId: classDetailsData.id,
+                        idToken: classDetailsData.idToken,
+                    })
+                    setClassScores(scoresResponse.data)
                 } catch (error) {
                     console.error("Error refreshing class data:", error)
                 }
@@ -194,14 +249,15 @@ export default function TeacherClassDetailsPage() {
         } finally {
             setIsUploading(false)
         }
-    };
+    }
 
-    const slots = classDetailsData.slots || [];
-    const currentDate = new Date();
-    const completedSlots = slots.filter((slot: any) => slot.status === 2).length;
-    const requiredSlots = classDetailsData.requiredSlots || 0;
-    const pastSlots = slots.filter((slot: any) => slot.status === 2).slice(0, 5);
-    const progressPercentage = classDetailsData.requiredSlots > 0 ? (completedSlots / classDetailsData.requiredSlots) * 100 : 0
+    const slots = classDetailsData.slots || []
+    const currentDate = new Date()
+    const completedSlots = slots.filter((slot: any) => slot.status === 2).length
+    const requiredSlots = classDetailsData.requiredSlots || 0
+    const pastSlots = slots.filter((slot: any) => slot.status === 2).slice(0, 5)
+    const progressPercentage =
+        classDetailsData.requiredSlots > 0 ? (completedSlots / classDetailsData.requiredSlots) * 100 : 0
     const upcomingSlots = slots
         .filter((slot: any) => {
             try {
@@ -210,12 +266,12 @@ export default function TeacherClassDetailsPage() {
                 return false
             }
         })
-        .slice(0, 5);
+        .slice(0, 5)
     const filteredStudents = classDetailsData.studentClasses.filter(
         (studentClass: any) =>
             studentClass.student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             studentClass.student.email.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+    )
     return (
         <div className="bg-[#f8fafc] dark:bg-gray-950 min-h-screen">
             <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 top-0 z-10">
@@ -232,7 +288,9 @@ export default function TeacherClassDetailsPage() {
                             </h1>
                             <div className="flex items-center gap-2">
                                 <Badge
-                                    variant={classDetailsData.status === 1 ? "default" : classDetailsData.status === 2 ? "success" : "outline"}
+                                    variant={
+                                        classDetailsData.status === 1 ? "default" : classDetailsData.status === 2 ? "success" : "outline"
+                                    }
                                     className="text-xs"
                                 >
                                     {classDetailsData.status === 0 ? "Pending" : classDetailsData.status === 1 ? "Active" : "Completed"}
@@ -245,42 +303,17 @@ export default function TeacherClassDetailsPage() {
                             </div>
                         </div>
                     </div>
-                    {/*Action Button (Not Needed ?) */}
-                    {/* 
-                    <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4" />
-                                    <span>Export Report</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="flex items-center gap-2">
-                                    <Settings className="h-4 w-4" />
-                                    <span>Settings</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="flex items-center gap-2 text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                    <span>Delete Class</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div> */}
                 </div>
 
                 {/* Section Navigation */}
                 <div className="px-4 pb-0">
                     <div className="flex space-x-1 overflow-x-auto pb-3 scrollbar-hide">
-                        <Button variant={activeSection === "overview" ? "default" : "ghost"}
-                            size="sm" onClick={() => setActiveSection("overview")}
-                            className="rounded-full">
+                        <Button
+                            variant={activeSection === "overview" ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setActiveSection("overview")}
+                            className="rounded-full"
+                        >
                             <BookOpen className="h-4 w-4 mr-2" />
                             Overview
                         </Button>
@@ -339,7 +372,9 @@ export default function TeacherClassDetailsPage() {
                                     </div>
                                     <Progress
                                         value={
-                                            classDetailsData.capacity ? ((classDetailsData.studentNumber || 0) / classDetailsData.capacity) * 100 : 0
+                                            classDetailsData.capacity
+                                                ? ((classDetailsData.studentNumber || 0) / classDetailsData.capacity) * 100
+                                                : 0
                                         }
                                         className="h-1 mt-4"
                                     />
@@ -391,7 +426,9 @@ export default function TeacherClassDetailsPage() {
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <p className="text-sm font-medium text-muted-foreground mb-1">Price</p>
-                                            <div className="text-2xl font-bold">{(classDetailsData.pricePerSlots || 0).toLocaleString()} VND</div>
+                                            <div className="text-2xl font-bold">
+                                                {(classDetailsData.pricePerSlots || 0).toLocaleString()} VND
+                                            </div>
                                             <p className="text-xs text-muted-foreground mt-1">Per session</p>
                                         </div>
                                         <div className="bg-amber-50 dark:bg-amber-900/20 p-2 rounded-full">
@@ -757,10 +794,27 @@ export default function TeacherClassDetailsPage() {
                         {/* Student Grades Table */}
                         <Card className="border-none shadow-md">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                                    <Award className="h-5 w-5 text-amber-500" />
-                                    Student Grades
-                                </CardTitle>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                        <Award className="h-5 w-5 text-amber-500" />
+                                        Student Grades
+                                    </CardTitle>
+
+                                    {/* View More Details button that uses ScoreDetailsDialog with class data */}
+                                    {isLoadingScores ? (
+                                        <Button variant="outline" size="sm" disabled className="gap-1">
+                                            <Clock className="h-4 w-4 animate-spin" />
+                                            Loading...
+                                        </Button>
+                                    ) : classScores ? (
+                                        <ScoreDetailsDialog isClassView={true} classData={classScores} idToken={classDetailsData.idToken} />
+                                    ) : (
+                                        <Button variant="outline" size="sm" disabled className="gap-1">
+                                            <Eye className="h-4 w-4" />
+                                            No Data Available
+                                        </Button>
+                                    )}
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 <Table>
@@ -770,7 +824,7 @@ export default function TeacherClassDetailsPage() {
                                             <TableHead>GPA</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Certificate</TableHead>
-                                            <TableHead>Comments</TableHead>
+                                            <TableHead>Comments</TableHead>                                          
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -831,11 +885,24 @@ export default function TeacherClassDetailsPage() {
                                                             {studentClass?.instructorComment || "No comments"}
                                                         </p>
                                                     </TableCell>
+                                                    {/* <TableCell className="text-center">
+                                                        {isLoadingScores ? (
+                                                            <span className="text-muted-foreground text-sm">Loading...</span>
+                                                        ) : studentClass?.criteriaScores?.length > 0 ? (
+                                                            <ScoreDetailsDialog
+                                                                studentName={studentClass?.student?.fullName || "Unknown"}
+                                                                gpa={studentClass?.gpa || 0}
+                                                                criteriaScores={studentClass?.criteriaScores || []}
+                                                            />
+                                                        ) : (
+                                                            <span className="text-muted-foreground text-sm">No scores</span>
+                                                        )}
+                                                    </TableCell> */}
                                                 </TableRow>
                                             ))
                                         ) : (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                                     <div className="flex flex-col items-center justify-center">
                                                         <Award className="h-10 w-10 text-muted-foreground mb-2" />
                                                         <p>No students found</p>
