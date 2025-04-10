@@ -43,6 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     orderByDesc: searchParams.get('desc') === 'true' ? false : true,
     levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }),
     statuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
+    idToken : idToken
   };
 
   const promise = fetchClasses({ ...query }).then((response) => {
