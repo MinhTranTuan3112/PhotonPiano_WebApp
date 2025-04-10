@@ -4,10 +4,12 @@ import axiosInstance from "../utils/axios-instance";
 
 export async function fetchArticles({
     page, pageSize, sortColumn, orderByDesc,
-    keyword
+    keyword,
+    idToken
 }: {
 } & Partial<QueryPagedRequest & {
-    keyword: string
+    keyword: string,
+    idToken: string
 }>) {
     let url = `/articles?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
@@ -15,7 +17,11 @@ export async function fetchArticles({
         url += `&q=${keyword}`;
     }
 
-    const response = await axiosInstance.get(url);
+    const response = await axiosInstance.get(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
 
     return response;
 }

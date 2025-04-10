@@ -20,7 +20,7 @@ type Props = {}
 export async function loader({ request }: LoaderFunctionArgs) {
     try {
 
-        const { role } = await requireAuth(request);
+        const { role, idToken } = await requireAuth(request);
 
         if (role !== Role.Staff) {
             return redirect('/');
@@ -34,6 +34,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             sortColumn: searchParams.get('column') || 'Id',
             orderByDesc: searchParams.get('desc') === 'true' ? true : false,
             keyword: searchParams.get('q') || undefined,
+            idToken
         };
 
         const promise = fetchArticles({ ...query }).then((response) => {
@@ -168,7 +169,7 @@ function ArticleCardsList() {
 
     return <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
         {articles.map((article) => (
-            <ArticleCard {...article} role={Role.Staff} key={article.id} />
+            <ArticleCard {...article} hasPublishBadge={true} key={article.id} hasAuth={true} />
         ))}
     </div>
 }

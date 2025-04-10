@@ -1,6 +1,5 @@
 import { Article } from '~/lib/types/news/article'
 import DOMPurify from "isomorphic-dompurify";
-import { Role } from '~/lib/types/account/account';
 import PlaceholderImage from '../../lib/assets/images/placeholder.jpg'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Calendar, ChevronsRight } from 'lucide-react';
@@ -9,16 +8,17 @@ import { useNavigate } from '@remix-run/react';
 import { PublishBadge } from './news-table';
 
 type Props = {
-    role: Role;
+    hasPublishBadge?: boolean;
+    hasAuth?: boolean;
 } & Article;
 
-export default function ArticleCard({ thumbnail, content, title, slug, isPublished, createdAt, role }: Props) {
+export default function ArticleCard({ thumbnail, content, title, slug, isPublished, createdAt, hasPublishBadge = false, hasAuth = false }: Props) {
 
     const navigate = useNavigate();
 
     return (
         <Card className={`transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 cursor-pointer relative`}
-            onClick={() => navigate(`/staff/articles/${slug}`)}>
+            onClick={() => navigate(hasAuth ? `/staff/articles/${slug}` : `/news/${slug}`)}>
             <CardHeader>
                 <img src={thumbnail || PlaceholderImage} alt={title} className="w-full h-48 object-cover rounded-t-lg mb-4 transition-transform duration-300 transform hover:scale-105" />
                 <CardTitle className="cursor-pointer hover:text-blue-600 transition-colors duration-300">{title}</CardTitle>
@@ -30,7 +30,7 @@ export default function ArticleCard({ thumbnail, content, title, slug, isPublish
                         <Calendar className="mr-1 h-4 w-4" />
                         {formatRFC3339ToDisplayableDate(createdAt, false)}
                     </span>
-                    {role === Role.Staff && (
+                    {hasPublishBadge && (
                         <PublishBadge isPublished={isPublished} />
                     )}
                     {/* <span className="flex items-center">

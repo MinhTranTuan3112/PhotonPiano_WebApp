@@ -25,7 +25,7 @@ export default function ArticleContent({ article, hasPublishStatusDisplay = fals
                 </div>
             )}
             {/* Hero section */}
-            <div className="w-full bg-muted py-12 md:py-16 lg:py-20">
+            <div className="w-full bg-muted py-12 md:py-16 lg:py-20 rounded-sm">
                 <div className="container px-4 md:px-6">
                     <div className="mx-auto max-w-3xl text-center">
                         {/* <p className="mb-2 text-sm font-medium uppercase tracking-wider text-primary">{article.category}</p> */}
