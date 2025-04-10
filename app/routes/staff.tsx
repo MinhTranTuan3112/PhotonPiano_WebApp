@@ -118,6 +118,43 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+
+        case pathname === '/staff/articles/create':
+            otherNavItems = [
+                {
+                    name: "Quản lý tin tức",
+                    url: '/staff/articles',
+                    isCurrentPage: false
+                },
+                {
+                    name: "Tạo bài viết mới",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+
+        case pathname.startsWith('/staff/articles'):
+
+            const articleParam = pathname.replace('/staff/articles', "");
+
+            otherNavItems = [
+                {
+                    name: "Quản lý tin tức",
+                    url: '/staff/articles',
+                    isCurrentPage: pathname === '/staff/articles'
+                }
+            ]
+
+            if (articleParam.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết bài viết",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+
+            break;
         case pathname.startsWith('/staff/entrance-tests'):
             const param = pathname.replace('/staff/entrance-tests', "")
             otherNavItems = [

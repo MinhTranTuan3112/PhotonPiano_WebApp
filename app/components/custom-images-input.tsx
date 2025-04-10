@@ -69,9 +69,12 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
 
         try {
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                mode: 'no-cors'
+            });
             const blob = await response.blob();
             const filename = url.split('/').pop() || 'image';
+            
             const size = formatFileSize(blob.size);
 
             const newFile = {
