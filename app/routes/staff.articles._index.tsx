@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react';
 import { PencilLine, RotateCcw, Search } from 'lucide-react';
 import { Suspense, useState } from 'react'
@@ -9,7 +9,7 @@ import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
 import { Skeleton } from '~/components/ui/skeleton';
-import { fetchArticles } from '~/lib/services/article';
+import { fetchArticles, fetchDeleteArticle } from '~/lib/services/article';
 import { Role } from '~/lib/types/account/account';
 import { Article } from '~/lib/types/news/article';
 import { requireAuth } from '~/lib/utils/auth';
@@ -73,6 +73,49 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 }
 
+
+export async function action({ request }: ActionFunctionArgs) {
+    try {
+
+        const { role, idToken } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
+        const formData = await request.formData();
+
+        const slug = formData.get('slug') as string;
+
+        if (!slug) {
+            throw new Error('Slug is required');
+        }
+
+        const response = await fetchDeleteArticle({ slug, idToken });
+
+        return Response.json({
+            success: true
+        }, {
+            status: 200
+        });
+
+    } catch (error) {
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        return Response.json({
+            success: false,
+            error: message
+        }, {
+            status
+        });
+    }
+}
 
 export default function NewsManagementPage({ }: Props) {
 

@@ -66,13 +66,13 @@ export async function fetchUpdateArticle({
 
 export async function fetchDeleteArticle({
     idToken,
-    id
+    slug
 }: {
     idToken: string;
-    id: string;
+    slug: string;
 }) {
 
-    const response = await axiosInstance.delete(`/articles/${id}`, {
+    const response = await axiosInstance.delete(`/articles/${slug}`, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

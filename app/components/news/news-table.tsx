@@ -1,13 +1,17 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Article } from "~/lib/types/news/article";
 import { Checkbox } from "../ui/checkbox";
-import { Clock, Eye, MoreHorizontal } from "lucide-react";
+import { Clock, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { useNavigate } from "@remix-run/react";
+import { useFetcher, useNavigate } from "@remix-run/react";
 import DOMPurify from "isomorphic-dompurify";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { action } from "~/routes/staff.articles._index";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 
 export function PublishBadge({
@@ -49,7 +53,9 @@ export const columns: ColumnDef<Article>[] = [
         accessorKey: "Tiêu đề",
         header: "Tiêu đề",
         cell: ({ row }) => {
-            return <div className="font-bold">{row.original.title}</div>
+            return <div className="font-bold flex flex-col gap-1">
+                {row.original.title}
+            </div>
         }
     },
     {
@@ -73,6 +79,18 @@ export const columns: ColumnDef<Article>[] = [
         },
         cell: ({ row }) => {
             return <div>{formatRFC3339ToDisplayableDate(row.original.createdAt, false)}</div>
+        }
+    },
+    {
+        accessorKey: 'Ngày xuất bản',
+        header: (header) => {
+            return <div className="flex flex-row items-center">
+                <Clock />
+                Ngày xuất bản
+            </div>
+        },
+        cell: ({ row }) => {
+            return <div>{row.original.publishedAt ? formatRFC3339ToDisplayableDate(row.original.publishedAt, false) : '(Chưa có)'}</div>
         }
     },
     {
@@ -100,6 +118,46 @@ function ActionDropdown({ row }: {
 
     const navigate = useNavigate();
 
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Xóa bài viết',
+        description: 'Bạn có chắc chắn muốn xóa bài viết này không?',
+        confirmText: 'Xóa',
+        confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
+        onConfirm: () => {
+            const formData = new FormData();
+            formData.append('slug', row.original.slug);
+
+            fetcher.submit(formData, {
+                method: 'POST',
+                action: '/staff/articles'
+            });
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Xóa bài viết thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toast.error(fetcher.data.error);
+            return;
+        }
+
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -122,9 +180,16 @@ function ActionDropdown({ row }: {
 
                 }}>
 
-                    Xuất bản
+                    {row.original.isPublished ? 'Hủy xuất bản' : 'Xuất bản'}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="cursor-pointer text-red-700" onClick={handleOpenConfirmDialog}
+                    disabled={isSubmitting}>
+                    <Trash2 />
+                    Xóa
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+        {confirmDialog}
     </>
 }

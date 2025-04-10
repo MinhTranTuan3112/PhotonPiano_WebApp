@@ -115,7 +115,7 @@ export default function StaffArticleDetailsPage({ }: Props) {
     return (
         <div className='px-10'>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end my-3">
                 <Button type='button' size={'icon'} variant={'outline'} className='rounded-full'
                     onClick={() => setIsEditing(!isEditing)}>
                     {!isEditing ? <PencilLine /> : <CircleX />}
@@ -127,7 +127,7 @@ export default function StaffArticleDetailsPage({ }: Props) {
                     {({ articlePromise }) => (
                         <Await resolve={articlePromise}>
                             {(article) => (
-                                <ArticleDetailsContent article={article} isEditing={isEditing} />
+                                <ArticleDetailsContent article={article} isEditing={isEditing} setIsEditing={setIsEditing} />
                             )}
                         </Await>
                     )}
@@ -140,10 +140,12 @@ export default function StaffArticleDetailsPage({ }: Props) {
 
 function ArticleDetailsContent({
     article,
-    isEditing
+    isEditing,
+    setIsEditing
 }: {
     article: ArticleDetails;
     isEditing: boolean;
+    setIsEditing: (isEditing: boolean) => void;
 }) {
 
     const fetcher = useFetcher<typeof action>();
@@ -154,21 +156,22 @@ function ArticleDetailsContent({
 
         if (fetcher.data?.success === true) {
             toast.success('Cập nhật bài viết thành công!');
+            setIsEditing(false);
             return;
         }
-        
+
         if (fetcher.data?.success === false) {
             toast.error(fetcher.data.error);
             return;
         }
 
         return () => {
-            
+
         }
     }, [fetcher.data]);
 
 
-    return !isEditing ? <ArticleContent article={article} />
+    return !isEditing ? <ArticleContent article={article} hasPublishStatusDisplay={true}/>
         : <ArticleForm {...article} fetcher={fetcher} isSubmitting={isSubmitting} isEdit={true} />
 }
 
