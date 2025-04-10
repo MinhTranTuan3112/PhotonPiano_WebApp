@@ -44,7 +44,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
             orderByDesc: searchParams.get('desc') === 'true' ? false : true,
             levels: [currentAccount.levelId ?? "0"],
             statuses: [0],
-            isPublic: true
+            isPublic: true,
+            idToken : idToken
         };
         const classPromise = fetchClasses({ ...query }).then((response) => {
             const classes: Class[] = response.data;

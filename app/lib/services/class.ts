@@ -11,11 +11,13 @@ export async function fetchClasses({
   levels = [],
   statuses = [],
   isPublic,
+  idToken
 }: Partial<
   QueryPagedRequest & {
     levels: string[];
     statuses: number[];
     isPublic?: boolean;
+    idToken : string
   }
 >) {
   let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -36,7 +38,11 @@ export async function fetchClasses({
     url += `&is-public=${isPublic}`;
   }
 
-  const response = await axiosInstance.get(url);
+  const response = await axiosInstance.get(url, {
+    headers : {
+        Authorization : `Bearer ${idToken}`
+    }
+});
 
   return response;
 }
