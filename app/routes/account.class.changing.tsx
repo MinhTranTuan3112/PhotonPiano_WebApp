@@ -196,6 +196,7 @@ export default function AccountClassChanging() {
                                             const deadlineDay = Number.parseInt(deadline.configValue)
                                             const closeDay = classStartDate ? addDays(new Date(classStartDate), -deadlineDay) : null;
                                             const today = new Date()
+                                            console.log(closeDay)
                                             return (!closeDay || today < closeDay) ? (
                                                 <div>
                                                     {
