@@ -49,7 +49,7 @@ const data = {
                 },
                 {
                     title: "Lớp của tôi",
-                    url: "/account/class",
+                    url: "/account/class_list",
                 },
                 {
                     title: "Bài thi của tôi",

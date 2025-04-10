@@ -1,0 +1,3 @@
+const form: {
+    [key: string]
+}

@@ -1,4 +1,3 @@
-
 import { redirect } from "@vercel/remix";
 import { getCurrentTimeInSeconds } from "./datetime";
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./cookie";
@@ -14,7 +13,7 @@ interface AuthData {
 
 // Calculate expiration timestamp in milliseconds
 function calculateExpiry(expiresIn: number): number {
-    return Date.now() + expiresIn * 1000; // converts seconds to milliseconds
+  return Date.now() + expiresIn * 1000; // converts seconds to milliseconds
 }
 
 async function parseAuthData(input: Request | AuthData): Promise<AuthData> {
@@ -33,37 +32,34 @@ async function parseAuthData(input: Request | AuthData): Promise<AuthData> {
 
 
 function isExpired(expirationTimeInSeconds: number) {
+  console.log({ expirationTimeInSeconds });
 
-    console.log({ expirationTimeInSeconds });
+  if (!expirationTimeInSeconds) {
+    return true;
+  }
 
-    if (!expirationTimeInSeconds) {
-        return true;
-    }
+  const currentTime = getCurrentTimeInSeconds();
 
-    const currentTime = getCurrentTimeInSeconds();
-
-    return currentTime >= expirationTimeInSeconds;
+  return currentTime >= expirationTimeInSeconds;
 }
 
 export async function requireAuth(request: Request) {
-
-    const cookies = request.headers.get("Cookie") || "";
+  const cookies = request.headers.get("Cookie") || "";
 
     const idToken = await idTokenCookie.parse(cookies) as string;
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
     const role = await roleCookie.parse(cookies) as number;
     const accountId = await accountIdCookie.parse(cookies) as string;
+  // Redirect if no refresh token is present (not logged in)
+  if (!refreshToken) {
+    console.log("No refresh token, redirecting to /sign-in");
+    throw redirect("/sign-in");
+  }
 
-    // Redirect if no refresh token is present (not logged in)
-    if (!refreshToken) {
-        console.log("No refresh token, redirecting to /sign-in");
-        throw redirect("/sign-in");
-    }
-
-    // If idToken is missing or expired, try refreshing it
-    if (!idToken || isExpired(idTokenExpiry)) {
-        console.log("ID token missing or expired, attempting to refresh");
+  // If idToken is missing or expired, try refreshing it
+  if (!idToken || isExpired(idTokenExpiry)) {
+    console.log("ID token missing or expired, attempting to refresh");
 
         const newTokens = await refreshIdToken(refreshToken);
         if (newTokens) {
@@ -71,6 +67,7 @@ export async function requireAuth(request: Request) {
                 idToken: newTokens.idToken,
                 refreshToken: newTokens.refreshToken,
                 role,
+                accountId : newTokens.accountId,
                 headers: newTokens.headers
             };
         } else {
@@ -78,12 +75,11 @@ export async function requireAuth(request: Request) {
             throw redirect("/sign-in");
         }
     }
-
     return { idToken, refreshToken, role, accountId };
 }
 
 export async function getAuth(request: Request) {
-    const cookies = request.headers.get("Cookie") || "";
+  const cookies = request.headers.get("Cookie") || "";
 
     const idToken = await idTokenCookie.parse(cookies) as string;
     const refreshToken = await refreshTokenCookie.parse(cookies) as string;
@@ -95,8 +91,7 @@ export async function getAuth(request: Request) {
 }
 
 export async function refreshIdToken(refreshToken: string) {
-
-    const response = await fetchRefreshToken(refreshToken);
+  const response = await fetchRefreshToken(refreshToken);
 
     try {
 
