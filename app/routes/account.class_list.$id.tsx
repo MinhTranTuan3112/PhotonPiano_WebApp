@@ -1,7 +1,7 @@
 import { json, LoaderFunction, redirect } from "@remix-run/node"
 import { Link, useLoaderData } from "@remix-run/react"
 import { ca } from "date-fns/locale"
-import { ArrowLeftIcon, BellIcon, BookOpenIcon, CalendarIcon, CheckCircleIcon, ClockIcon, FileTextIcon, MusicIcon, PianoIcon, StarIcon, TrophyIcon, UserIcon } from "lucide-react"
+import { ArrowLeftIcon, BellIcon, BookOpenIcon, CalendarIcon, CheckCircleIcon, ClockIcon, FileTextIcon, MusicIcon, PianoIcon, RefreshCcw, StarIcon, TrophyIcon, UserIcon } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
@@ -157,6 +157,12 @@ export default function StudentClassDetailPage() {
                         <Button className="gap-2">
                             <PianoIcon className="h-4 w-4" />
                             Nhật ký luyện tập
+                        </Button>
+                    </Link>
+                    <Link to="/account/class/changing">
+                        <Button className="gap-2" variant={"outline"}>
+                            <RefreshCcw className="h-4 w-4" />
+                            Đổi lớp
                         </Button>
                     </Link>
                 </div>

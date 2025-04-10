@@ -51,7 +51,6 @@ export async function requireAuth(request: Request) {
     const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
     const role = await roleCookie.parse(cookies) as number;
     const accountId = await accountIdCookie.parse(cookies) as string;
-
   // Redirect if no refresh token is present (not logged in)
   if (!refreshToken) {
     console.log("No refresh token, redirecting to /sign-in");
@@ -68,6 +67,7 @@ export async function requireAuth(request: Request) {
                 idToken: newTokens.idToken,
                 refreshToken: newTokens.refreshToken,
                 role,
+                accountId : newTokens.accountId,
                 headers: newTokens.headers
             };
         } else {
@@ -75,7 +75,6 @@ export async function requireAuth(request: Request) {
             throw redirect("/sign-in");
         }
     }
-
     return { idToken, refreshToken, role, accountId };
 }
 

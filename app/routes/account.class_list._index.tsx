@@ -1,4 +1,4 @@
-import { json, LoaderFunction } from "@remix-run/node";
+import { json, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { ArrowUpDown, Eye, Filter, Music, Search, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -17,7 +17,7 @@ import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
 
-export const loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request } : LoaderFunctionArgs) {
     try {
         const { idToken, role, accountId } = await requireAuth(request)
         if (role !== Role.Student) {
@@ -51,7 +51,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function StudentClassList() {
     const { classes } = useLoaderData<{ classes: any[] }>()
-
     const [searchTerm, setSearchTerm] = React.useState("")
     const [filteredClasses, setFilteredClasses] = React.useState(classes)
     const [sortOption, setSortOption] = React.useState("name-asc")
