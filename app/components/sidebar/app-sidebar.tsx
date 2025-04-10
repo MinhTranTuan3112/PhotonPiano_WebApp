@@ -11,6 +11,7 @@ import TopNav from "./top-nav"
 import { NavMain } from "./nav-main"
 import NavOthers from "./nav-others"
 import { NavUser } from "./nav-user"
+import { is } from "date-fns/locale"
 
 
 const data = {
@@ -54,10 +55,14 @@ const data = {
                     title: "Bài thi của tôi",
                     url: "/account/my-exams",
                 },
-                
+
                 {
                     title: "Lịch sử đơn từ",
                     url: "/account/applications"
+                },
+                {
+                    title: "Chứng chỉ của tôi",
+                    url: "/account/certificates",
                 }
             ],
         },
@@ -73,6 +78,7 @@ const data = {
                 }
             ],
         }
+        ,
         // {
         //     title: "Luyện thi bằng lái",
         //     url: "",
@@ -119,7 +125,7 @@ export function AppSidebar({ ...props }: Props) {
                 <NavOthers items={data.otherNavItems} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser  />
+                <NavUser />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

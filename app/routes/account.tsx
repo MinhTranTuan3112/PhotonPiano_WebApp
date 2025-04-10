@@ -44,7 +44,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
                 }
             ]
             break;
-        
+
         case pathname === '/account/free-slots':
             otherNavItems = [
                 {
