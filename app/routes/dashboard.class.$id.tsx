@@ -610,7 +610,7 @@ export default function TeacherClassDetailsPage() {
                                                                             : "bg-red-100 text-red-800"
                                                                         }`}
                                                                 >
-                                                                    {studentClass.gpa?.toFixed(1)}
+                                                                    {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">Not graded</span>
@@ -856,7 +856,7 @@ export default function TeacherClassDetailsPage() {
                                                                         : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
-                                                                {studentClass.gpa?.toFixed(1)}
+                                                                {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
                                                             </span>
                                                         ) : (
                                                             <span className="text-muted-foreground">Not graded</span>
