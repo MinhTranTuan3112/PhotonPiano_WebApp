@@ -69,15 +69,15 @@ const getVietnameseWeekday = (date: Date): string => {
 }
 
 const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
-    // const currentDate = new Date();
-    // const slotDateObj = new Date(slotDate);
-    // const oneDayInMs = 24 * 60 * 60 * 1000;
-    // const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
-    //
-    // return currentDate > slotDateObj && differenceInDays <= 1;
+    const currentDate = new Date();
+    const slotDateObj = new Date(slotDate);
+    const oneDayInMs = 24 * 60 * 60 * 1000;
+    const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
+
+    return currentDate > slotDateObj && differenceInDays <= 1;
 
     // for demo
-    return true
+    // return true
 }
 
 const LoadingOverlay: React.FC = () => {
