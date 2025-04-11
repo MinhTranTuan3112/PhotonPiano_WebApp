@@ -73,7 +73,7 @@ function getBreadcrumbPageName({ pathname }: {
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết ca thi " + param.replace("/", ""),
+                    name: "Chi tiết ca thi",
                     url: pathname,
                     isCurrentPage: true
                 })
