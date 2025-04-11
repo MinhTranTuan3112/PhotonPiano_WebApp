@@ -71,11 +71,9 @@ const getVietnameseWeekday = (date: Date): string => {
 const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
     const currentDate = new Date();
     const slotDateObj = new Date(slotDate);
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
 
-    return currentDate > slotDateObj && differenceInDays <= 1;
-
+    // Compare the current date and time with the slot date and time
+    return currentDate.getTime() > slotDateObj.getTime();
     // for demo
     // return true
 }
@@ -654,7 +652,7 @@ export const Scheduler = ({
                                         <Button
                                             onClick={() => (window.location.href = `/teacher/scheduler/attendance/${selectedSlot.id}`)}
                                             disabled={
-                                                !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
+                                                isCurrentDatePastSlotDate(selectedSlot.date) === false || selectedSlot.status === SlotStatus.Cancelled
                                             }
                                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                         >
