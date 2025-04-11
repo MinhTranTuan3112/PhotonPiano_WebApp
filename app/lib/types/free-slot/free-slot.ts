@@ -4,7 +4,8 @@ export type FreeSlot = {
     id : string,
     dayOfWeek : number,
     shift : Shift,
-    accountId : string
+    accountId : string,
+    levelId? : string
 }
 
 export type CreateFreeSlot = {

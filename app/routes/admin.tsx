@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
-import { CircleUserRound, LayoutDashboard, Pen, Settings } from "lucide-react";
+import { Calendar1, CircleUserRound, DoorClosed, DoorOpen, LayoutDashboard, Pen, Settings } from "lucide-react";
 import React from "react";
 import { NavMain } from "~/components/sidebar/nav-main";
 import { NavUser } from "~/components/sidebar/nav-user";
@@ -146,6 +146,18 @@ const data = {
             title: "Quản lý tiêu chí đánh giá",
             url: "/admin/criteria",
             icon: Pen,
+            isActive: true,
+        },
+        {
+            title: "Quản lý phòng học",
+            url: "/admin/rooms",
+            icon: DoorClosed,
+            isActive: true,
+        },
+        {
+            title: "Quản lý ngày nghỉ",
+            url: "/admin/day-offs",
+            icon: Calendar1,
             isActive: true,
         },
         {
