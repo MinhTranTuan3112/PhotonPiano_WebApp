@@ -281,7 +281,7 @@ export function ScoreDetailsDialog({
                                                 : "bg-red-100 text-red-800"
                                             }`}
                                     >
-                                        {classStats.averageGPA.toFixed(1)}
+                                        {classStats.averageGPA?.toFixed(1)}
                                     </span>
                                 </div>
                             </div>
@@ -294,7 +294,7 @@ export function ScoreDetailsDialog({
                                     <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{classStats.passRate.toFixed(1)}%</div>
+                                    <div className="text-2xl font-bold">{classStats.passRate?.toFixed(1)}%</div>
                                     <Progress value={classStats.passRate} className="h-2 mt-2" />
                                 </CardContent>
                             </Card>
@@ -303,7 +303,7 @@ export function ScoreDetailsDialog({
                                     <CardTitle className="text-sm font-medium">Highest GPA</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{classStats.highestGPA.toFixed(1)}</div>
+                                    <div className="text-2xl font-bold">{classStats.highestGPA?.toFixed(1)}</div>
                                     <Progress value={classStats.highestGPA * 10} className="h-2 mt-2" />
                                 </CardContent>
                             </Card>
@@ -312,7 +312,7 @@ export function ScoreDetailsDialog({
                                     <CardTitle className="text-sm font-medium">Lowest GPA</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{classStats.lowestGPA.toFixed(1)}</div>
+                                    <div className="text-2xl font-bold">{classStats.lowestGPA?.toFixed(1)}</div>
                                     <Progress value={classStats.lowestGPA * 10} className="h-2 mt-2" />
                                 </CardContent>
                             </Card>
@@ -358,7 +358,7 @@ export function ScoreDetailsDialog({
                                                                             : "bg-red-100 text-red-800"
                                                                         }`}
                                                                 >
-                                                                    {student.gpa.toFixed(1)}
+                                                                    {student.gpa?.toFixed(1)}
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell className="text-center">
@@ -401,7 +401,7 @@ export function ScoreDetailsDialog({
                                                                                         : "bg-red-100 text-red-800"
                                                                                     }`}
                                                                             >
-                                                                                {displayScore.toFixed(1)}
+                                                                                {displayScore?.toFixed(1)}
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-muted-foreground">-</span>
@@ -438,7 +438,7 @@ export function ScoreDetailsDialog({
                                                         className={`font-medium ${student.gpa >= 7 ? "text-green-600" : student.gpa >= 5 ? "text-amber-600" : "text-red-600"
                                                             }`}
                                                     >
-                                                        {student.gpa.toFixed(1)}
+                                                        {student.gpa?.toFixed(1)}
                                                     </span>
                                                 </CardDescription>
                                             </CardHeader>
@@ -460,7 +460,7 @@ export function ScoreDetailsDialog({
                                                                         : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
-                                                                {criteria.score.toFixed(1)}
+                                                                {criteria.score?.toFixed(1)}
                                                             </span>
                                                         </div>
                                                     ))}
@@ -531,7 +531,7 @@ export function ScoreDetailsDialog({
                                             : "bg-red-100 text-red-800"
                                         }`}
                                 >
-                                    {gpa.toFixed(1)}
+                                    {gpa?.toFixed(1)}
                                 </span>
                             </div>
                             <Progress value={gpa * 10} className="h-2" />
@@ -579,7 +579,7 @@ export function ScoreDetailsDialog({
                                             fontWeight="bold"
                                             fill="currentColor"
                                         >
-                                            {gpa.toFixed(1)}
+                                            {gpa?.toFixed(1)}
                                         </text>
                                         <text x="50" y="65" textAnchor="middle" dominantBaseline="middle" fontSize="12" fill="currentColor">
                                             GPA
@@ -619,10 +619,10 @@ export function ScoreDetailsDialog({
                                                                 : "bg-red-100 text-red-800"
                                                             }`}
                                                     >
-                                                        {criteria.score.toFixed(1)}
+                                                        {criteria.score?.toFixed(1)}
                                                     </span>
                                                 </TableCell>
-                                                <TableCell className="text-right">{weightedScore.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">{weightedScore?.toFixed(2)}</TableCell>
                                             </TableRow>
                                         )
                                     })}
@@ -631,7 +631,7 @@ export function ScoreDetailsDialog({
                                             <TableCell colSpan={3} className="text-right">
                                                 Total GPA
                                             </TableCell>
-                                            <TableCell className="text-right">{gpa.toFixed(2)}</TableCell>
+                                            <TableCell className="text-right">{gpa?.toFixed(2)}</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>
@@ -658,7 +658,7 @@ export function ScoreDetailsDialog({
                                                         : "text-red-600"
                                                     }`}
                                             >
-                                                {criteria.score.toFixed(1)}/10
+                                                {criteria.score?.toFixed(1)}/10
                                             </span>
                                         </div>
                                         <Progress

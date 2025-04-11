@@ -20,15 +20,17 @@ import useProgressTracking from '~/hooks/use-progress-tracking';
 import { useAuth } from '~/lib/contexts/auth-context';
 import { fetchAccounts, fetchWaitingStudentsOfAllLevel } from '~/lib/services/account';
 import { fetchAutoArrange } from '~/lib/services/class';
+import { fetchAllFreeSlots, fetchFreeSlots } from '~/lib/services/free-slot';
 import { fetchSystemConfigs } from '~/lib/services/system-config';
 import { Account, AwaitingLevelCount, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { Class } from '~/lib/types/class/class';
 import { SystemConfig } from '~/lib/types/config/system-config';
+import { FreeSlot } from '~/lib/types/free-slot/free-slot';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { MAX_STUDENTS, MIN_STUDENTS } from '~/lib/utils/config-name';
-import { LEVEL } from '~/lib/utils/constants';
+import { LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from '~/lib/utils/form';
 
@@ -65,6 +67,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
             }
         });
 
+        const slotsPromise = fetchAllFreeSlots({ idToken }).then((response) => {
+            const freeSlots = response.data as FreeSlot[];
+
+            return { freeSlots };
+        });
+
         const configPromise = fetchSystemConfigs({ idToken }).then((response) => {
 
             const configs = response.data as SystemConfig[]
@@ -75,7 +83,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         });
 
         return {
-            promise, configPromise, idToken
+            promise, configPromise, idToken, slotsPromise
         }
 
     } catch (error) {
@@ -109,6 +117,46 @@ const arrangeClassesSchema = z.object({
 type ArrangeClassSchema = z.infer<typeof arrangeClassesSchema>;
 const resolver = zodResolver(arrangeClassesSchema)
 
+const densityColor = [
+    {
+        min: 0,
+        max: 0,
+        color: "#f2f5f0"
+    },
+    {
+        min: 1,
+        max: 5,
+        color: "#c1e6cb"
+    },
+    {
+        min: 6,
+        max: 10,
+        color: "#8dd9a1"
+    }, {
+        min: 11,
+        max: 15,
+        color: "#4bb868"
+    }, {
+        min: 16,
+        max: 20,
+        color: "#1f873b"
+    },
+    {
+        min: 21,
+        max: 999999,
+        color: "#095e20"
+    },
+]
+const dayOfWeekVn = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+
+const getTileColor = (freeSlots: FreeSlot[], dayOfWeek: number, shift: number, levelId?: string) => {
+    const freeSlotCount = freeSlots.filter(fs => fs.dayOfWeek === dayOfWeek && fs.shift === shift && levelId === fs.levelId).length
+    const filteredColor = densityColor.filter(d => d.min <= freeSlotCount && d.max >= freeSlotCount)
+    if (filteredColor.length === 0) {
+        return densityColor[0].color
+    }
+    return filteredColor[0].color
+}
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -160,7 +208,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function StaffAutoArrangeClass({ }: Props) {
     const { currentAccount } = useAuth()
-    const { promise, idToken, configPromise } = useLoaderData<typeof loader>();
+    const { promise, idToken, configPromise, slotsPromise } = useLoaderData<typeof loader>();
 
     const loadingMessage = "Đang thực hiện, vui lòng chờ!"
     const [searchParams, setSearchParams] = useSearchParams();
@@ -272,7 +320,56 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                         {errors.studentNumber && <div className='text-red-500'>{errors.studentNumber.message}</div>}
                                         <Checkbox checked={isDefineStudentCount} onCheckedChange={() => setIsDefineStudentCount(!isDefineStudentCount)} /> <span className='italic text-sm'>Xác định số học viên cụ thể</span>
                                     </div> */}
-
+                                    <div className='text-lg font-semibold my-4'>Biểu đồ khung giờ học viên</div>
+                                    <div className='grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 w-full'>
+                                        {densityColor.map((note, index) => (
+                                            <div className='flex gap-2 items-center' key={index}>
+                                                <div className={`rounded-sm w-4 h-4`} style={{ background: note.color }}></div>
+                                                {
+                                                    note.max > 100 ? (
+                                                        <div className='text-sm'>{note.min} +</div>
+                                                    ) : (
+                                                        <div className='text-sm'>{note.min} - {note.max}</div>
+                                                    )
+                                                }
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Suspense fallback={<LoadingSkeleton height={200} />}>
+                                        <Await resolve={slotsPromise}>
+                                            {(freeSlots) => (
+                                                <div className='grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2'>
+                                                    {data.awaitingLevelCounts.map((breakdown, index) => breakdown.level && (
+                                                        <div className='flex flex-col items-center py-4 px-2 border rounded-lg shadow-md bg-white' key={index}>
+                                                            <div className='font-bold text-center'>{breakdown.level.name.split("(")[0]}</div>
+                                                            <div className='grid grid-cols-8 gap-1 w-full'>
+                                                                <div></div>
+                                                                {
+                                                                    dayOfWeekVn.map(dow => (
+                                                                        <div className='text-sm' key={dow}>{dow}</div>
+                                                                    ))
+                                                                }
+                                                                {
+                                                                    SHIFT_TIME.map((s, index) => (
+                                                                        <>
+                                                                            <div className='text-xs'>
+                                                                                C{index + 1}
+                                                                            </div>
+                                                                            {
+                                                                                dayOfWeekVn.map((dow, dayIndex) => (
+                                                                                    <div className={`rounded-sm w-4 h-4`} style={{ background: getTileColor(freeSlots.freeSlots, dayIndex, index, breakdown.level?.id) }}></div>
+                                                                                ))
+                                                                            }
+                                                                        </>
+                                                                    ))
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </Await>
+                                    </Suspense>
                                     {/* Start Week Selection */}
                                     <div className='flex flex-wrap gap-4 items-center'>
                                         <span className='font-bold'>Chọn tuần bắt đầu:</span>
@@ -352,28 +449,31 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     return (
                                         <div>
                                             <div className='mt-4 font-bold'>Có {classes.length} lớp đã được tạo</div>
-                                            {
-                                                classes.length > 0 && (
-                                                    <table className="min-w-full border border-gray-300 shadow-md rounded-lg">
-                                                        <thead className="bg-gray-600 text-white">
-                                                            <tr>
-                                                                <th className="py-2 px-4 border">Tên lớp</th>
-                                                                <th className="py-2 px-4 border">Số học viên</th>
-                                                                <th className="py-2 px-4 border">Thời khóa biểu</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {classes.map((c) => (
-                                                                <tr key={c.id} className="border hover:bg-gray-100 transition">
-                                                                    <td className="py-2 px-4 border">{c.name}</td>
-                                                                    <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
-                                                                    <td className="py-2 px-4 border">{c.scheduleDescription}</td>
+                                            <div className='max-h-96 overflow-y-auto p-1'>
+                                                {
+                                                    classes.length > 0 && (
+                                                        <table className="min-w-full border border-gray-300 shadow-md rounded-lg">
+                                                            <thead className="bg-gray-600 text-white">
+                                                                <tr>
+                                                                    <th className="py-2 px-4 border">Tên lớp</th>
+                                                                    <th className="py-2 px-4 border">Số học viên</th>
+                                                                    <th className="py-2 px-4 border">Thời khóa biểu</th>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                )
-                                            }
+                                                            </thead>
+                                                            <tbody>
+                                                                {classes.map((c) => (
+                                                                    <tr key={c.id} className="border hover:bg-gray-100 transition">
+                                                                        <td className="py-2 px-4 border">{c.name}</td>
+                                                                        <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
+                                                                        <td className="py-2 px-4 border">{c.scheduleDescription}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    )
+                                                }
+                                            </div>
+
                                         </div>
                                     )
                                 })()}

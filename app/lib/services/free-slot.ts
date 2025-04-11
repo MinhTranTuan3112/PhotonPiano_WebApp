@@ -1,6 +1,18 @@
 import { CreateFreeSlot } from "../types/free-slot/free-slot";
 import axiosInstance from "../utils/axios-instance";
 
+export async function fetchAllFreeSlots({idToken }: {
+    idToken: string
+}) {
+
+    const response = await axiosInstance.get(`/free-slots/all`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
 export async function fetchFreeSlots({idToken }: {
     idToken: string
 }) {

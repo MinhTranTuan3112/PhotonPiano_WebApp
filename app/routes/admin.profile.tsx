@@ -73,7 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Staff) {
+        if (role !== Role.Administrator) {
             return redirect('/');
         }
 
