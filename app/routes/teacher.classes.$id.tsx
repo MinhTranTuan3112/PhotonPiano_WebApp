@@ -277,7 +277,7 @@ export default function TeacherClassDetailsPage() {
             <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 top-0 z-10">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link href="/dashboard/class" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/teacher/classes" className="text-muted-foreground hover:text-foreground transition-colors">
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
