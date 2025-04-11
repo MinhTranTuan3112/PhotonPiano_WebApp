@@ -291,7 +291,7 @@ export default function ImportResultDialog({
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Học viên</TableHead>
-                                        <TableHead>Lý thuyết</TableHead>
+                                        {role === Role.Staff && <TableHead>Lý thuyết</TableHead>}
                                         {criterias.map(criteria => (
                                             <TableHead key={criteria.id}>{criteria.name}
                                                 &#40;{criteria.weight}%&#41;
@@ -304,7 +304,7 @@ export default function ImportResultDialog({
                                     {entranceTestStudents.map((student) => (
                                         <TableRow key={student.id}>
                                             <TableCell>{student.fullName}</TableCell>
-                                            <TableCell>{student.theoraticalScore}</TableCell>
+                                            {role === Role.Staff && <TableCell>{student.theoraticalScore}</TableCell>}
                                             {student.entranceTestResults.map(result => (
                                                 <TableCell key={result.criteriaId}>{result.score}</TableCell>
                                             ))}
