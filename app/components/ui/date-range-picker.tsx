@@ -31,9 +31,38 @@ export default function DateRangePicker({
     }, [value]);
 
     const handleDateChange = (selectedDate: DateRange | undefined) => {
-        setDate(selectedDate);
-        onChange?.(selectedDate);
+        if (selectedDate) {
+            const from = selectedDate.from
+                ? new Date(selectedDate.from.getFullYear(), selectedDate.from.getMonth(), selectedDate.from.getDate())
+                : undefined;
+            const to = selectedDate.to
+                ? new Date(selectedDate.to.getFullYear(), selectedDate.to.getMonth(), selectedDate.to.getDate())
+                : undefined;
+
+            const normalizedRange = { from, to };
+
+            // ✅ Optional logging in local format to confirm:
+            console.log({
+                start: from ? format(from, 'yyyy-MM-dd') : null,
+                end: to ? format(to, 'yyyy-MM-dd') : null,
+            });
+
+            setDate(normalizedRange);
+
+            if (from && to) {
+                onChange?.({
+                    from: format(from, 'yyyy-MM-dd'),
+                    to: format(to, 'yyyy-MM-dd')
+                } as any);
+            }
+
+        } else {
+            setDate(undefined);
+            onChange?.(undefined);
+        }
     };
+
+
 
     return (
         <div className={cn("grid gap-2", className)}>
@@ -51,11 +80,11 @@ export default function DateRangePicker({
                         {date?.from ? (
                             date.to ? (
                                 <>
-                                    {format(date.from, "dd/MM/yyyy", { locale: vi })} -{" "}
-                                    {format(date.to, "dd/MM/yyyy", { locale: vi })}
+                                    {format(date.from, "dd/MM/yyyy", {})} -{" "}
+                                    {format(date.to, "dd/MM/yyyy", {})}
                                 </>
                             ) : (
-                                format(date.from, "dd/MM/yyyy", { locale: vi })
+                                format(date.from, "dd/MM/yyyy", {})
                             )
                         ) : (
                             <span>{placeholder}</span>
