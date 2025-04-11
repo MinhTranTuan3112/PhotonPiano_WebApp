@@ -80,8 +80,8 @@ export type CreateEntranceTestFormData = z.infer<typeof createEntranceTestSchema
 
 export const entranceTestArrangementSchema = z.object({
     date: z.object({
-        from: z.date({ message: 'Ngày thi không được để trống.' }),
-        to: z.date({ message: 'Ngày thi không được để trống.' }),
+        from: z.coerce.date({ message: 'Ngày thi không được để trống.' }),
+        to: z.coerce.date({ message: 'Ngày thi không được để trống.' }),
     }, {
         message: 'Vui lòng chọn đợt thi.',
     }).refine(
