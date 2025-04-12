@@ -3,11 +3,9 @@ import { useLoaderData } from "@remix-run/react";
 import ActionDialog from "~/components/home/action-dialog";
 import { Carousel } from "~/components/home/carousel";
 import { NewsSection } from "~/components/home/news";
-import { PianoPromo } from "~/components/home/promo";
 import { RegistrationSection } from "~/components/home/registration-section";
 import { FeatureSection } from "~/components/home/what-we-do";
 import { useAuth } from "~/lib/contexts/auth-context";
-import { getAuth } from "~/lib/utils/auth";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -16,13 +14,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function Index() {
-  const { isOpenDialog } = useLoaderData<typeof loader>();
+
+  const loaderData = useLoaderData<typeof loader>();
   const { currentAccount } = useAuth()
 
   return (
     <div className="flex min-h-screen flex-col relative">
       <article className="flex-1">
-        <Carousel isOpenDialog={isOpenDialog} />
+        <Carousel isOpenDialog={loaderData?.isOpenDialog} />
         {/* MissionSection */}
         <section className="relative flex justify-center py-24 bg-gradient-to-b from-purple-700 via-blue-600 to-teal-500">
           <div className="absolute inset-0 bg-black/20" />

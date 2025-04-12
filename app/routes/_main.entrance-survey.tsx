@@ -1,4 +1,3 @@
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react';
@@ -15,7 +14,6 @@ import { Label } from '~/components/ui/label';
 import { PasswordInput } from '~/components/ui/password-input';
 import { Skeleton } from '~/components/ui/skeleton';
 import StepperBar from '~/components/ui/stepper';
-import { Textarea } from '~/components/ui/textarea';
 import { UncheckableRadioGroup } from '~/components/ui/uncheckable-radio-group';
 import { fetchEntranceSurvey, fetchSendEntranceSurveyAnswers } from '~/lib/services/survey';
 import { QuestionType } from '~/lib/types/survey-question/survey-question';
@@ -25,7 +23,6 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
-import { fetchSignIn } from '~/lib/services/auth';
 import { isAxiosError } from 'axios';
 import { AuthResponse } from '~/lib/types/auth-response';
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime';
@@ -114,18 +111,19 @@ export async function action({ request }: ActionFunctionArgs) {
             return { success: false, errors, defaultValues };
         }
 
-        const sendEntranceSurveyResponse = await fetchSendEntranceSurveyAnswers({
+        const response = await fetchSendEntranceSurveyAnswers({
             ...data, surveyAnswers: data.surveyAnswers.map(s => ({
                 surveyQuestionId: s.questionId,
                 answers: s.answers.length > 0 ? s.answers : s.otherAnswer ? [s.otherAnswer] : []
             }))
         });
 
-        const signInResponse = await fetchSignIn(data.email, data.password);
+        if (response.status === 200) {
 
-        if (signInResponse.status === 200) {
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
 
-            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await signInResponse.data;
+            console.log({ idToken, refreshToken, expiresIn, role, localId });
+            
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
@@ -148,7 +146,6 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
         }
-
 
     } catch (error) {
         console.error({ error });
