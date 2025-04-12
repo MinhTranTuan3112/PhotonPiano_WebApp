@@ -101,10 +101,10 @@ export function NewsSection() {
     const [activeTabs, setActiveTabs] = React.useState(0);
     const [currentTabs, setCurrentTabs] = React.useState('Bí quyết học Piano');
 
-    React.useEffect(() => {
-        // Log the current section whenever it changes
-        console.log('Current Tab:', currentTabs)
-    }, [currentTabs]);
+    // React.useEffect(() => {
+    //     // Log the current section whenever it changes
+    //     console.log('Current Tab:', currentTabs)
+    // }, [currentTabs]);
 
     const handleTabChange = (index: number, tabName: string) => {
         setActiveTabs(index);
