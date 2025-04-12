@@ -1,50 +1,18 @@
 import * as React from "react"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { Await, Link, useLoaderData, useLocation, useNavigate, useNavigation, useRouteLoaderData, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useNavigate, useNavigation, useRouteLoaderData, useSubmit } from "@remix-run/react"
 import { cn } from "~/lib/utils"
 import { Button, buttonVariants } from "./ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet"
-import { Menu, Piano, X } from "lucide-react"
+import { Loader2, Menu, Piano, X } from "lucide-react"
 import { Separator } from "./ui/separator"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { loader } from "~/root"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import AccountDropdown from "./auth/account-dropdown"
 import { Level, Role } from "~/lib/types/account/account"
-import { Skeleton } from "./ui/skeleton"
-
-const components: { title: string; href: string; description: string }[] = [
-    {
-        title: "Blue Diamond (Beginner)",
-        href: "/",
-        description:
-            "Dành cho người mới bắt đầu, không cần kiến thức nền tảng về piano.",
-    },
-    {
-        title: "Diamond (Novice)",
-        href: "/",
-        description:
-            "Dành cho người đã biết cách chơi piano cơ bản.",
-    },
-    {
-        title: "Red Diamond (Intermediate)",
-        href: "/",
-        description:
-            "Dành cho người đã biết cách chơi piano và muốn nâng cao kỹ năng.",
-    },
-    {
-        title: "Black Diamond (Advanced)",
-        href: "/",
-        description:
-            "Dành cho người đã biết cách chơi piano và muốn nâng cao kỹ năng.",
-    },
-    {
-        title: "White Diamond (Virtuoso) ",
-        href: "/",
-        description:
-            "Dành cho người đã biết cách chơi piano và muốn nâng cao kỹ năng.",
-    }
-]
+import { useQuery } from "@tanstack/react-query"
+import { fetchLevels } from "~/lib/services/level"
 
 const navItems = [
     { name: "Trang chủ", href: "/", role: [Role.Guest, Role.Administrator, Role.Instructor, Role.Staff, Role.Student] },
@@ -57,14 +25,11 @@ const navItems = [
     { name: "Đăng nhập", href: "/sign-in", role: [Role.Guest] },
 ]
 
-
 type Props = {
-    fetchLevelsPromise: Promise<{
-        levelsPromise: Promise<Level[]>;
-    }>;
+
 }
 
-export default function NavBar({ fetchLevelsPromise }: Props) {
+export default function NavBar({ }: Props) {
 
     const authData = useRouteLoaderData<typeof loader>("root");
 
@@ -163,33 +128,9 @@ export default function NavBar({ fetchLevelsPromise }: Props) {
                                 </ul>
                             </NavigationMenuContent>
                         </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
-                            <React.Suspense fallback={<Skeleton className="w-full h-full" />}>
-                                <Await resolve={fetchLevelsPromise}>
-                                    {({ levelsPromise }) => (
-                                        <Await resolve={levelsPromise}>
-                                            {(levels) => (
-                                                    <NavigationMenuContent>
-                                                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                                                    {levels.map((level, index) => (
-                                                        <ListItem
-                                                            key={level.id}
-                                                            title={level.name}
-                                                            href={'/'}
-                                                        >
-                                                            {level.description}
-                                                        </ListItem>
-                                                    ))}
-                                                </ul>
-                                            </NavigationMenuContent>
-                                            )}
-                                        </Await>
-                                    )}
-                                </Await>
-                            </React.Suspense>
-                               
-                        </NavigationMenuItem>
+
+                        <LevelsDropdown />
+
                         {/* <NavigationMenuItem>
                             <Link to="/entrance-tests" className={`${navigationMenuTriggerStyle()} uppercase font-bold ${pathname.startsWith('/entrance-tests') ? buttonVariants({ variant: 'theme' }) : ''}`}>
                                 Thi xếp lớp đầu vào
@@ -224,7 +165,6 @@ export default function NavBar({ fetchLevelsPromise }: Props) {
                             <SheetTitle className="mb-3">Menu</SheetTitle>
                             <nav className="flex flex-col gap-4">
                                 {navItems.map((item, index) => {
-                                    console.log(authData)
                                     return (
                                         (authData && authData.role && item.role.includes(authData.role as Role) ||
                                             ((!authData || !authData.role) && item.role.includes(Role.Guest))) && (
@@ -249,18 +189,12 @@ export default function NavBar({ fetchLevelsPromise }: Props) {
             </div>
             <div className="hidden md:block">
                 {(!authData || !authData.role) ? (
-                    <button onClick={() => navigate('/sign-in')} className="relative w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                    <button onClick={() => navigate('/sign-in')} type="button" className="relative w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
                         Đăng nhập
                         <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
                     </button>
                 ) : (
                     <>
-                        {/* <Button className="uppercase" variant={'theme'} onClick={handleOpenModal}
-                            isLoading={isSubmitting}
-                            disabled={isSubmitting}>
-                            {isSubmitting ? 'Đang đăng xuất' : 'Đăng xuất'}
-                        </Button>
-                        {confirmDialog} */}
                         <AccountDropdown accountFirebaseId={authData.currentAccountFirebaseId} role={authData.role} />
                     </>
                 )}
@@ -295,3 +229,36 @@ const ListItem = React.forwardRef<
     )
 })
 ListItem.displayName = "ListItem"
+
+function LevelsDropdown() {
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['levels'],
+        queryFn: async () => {
+            const response = await fetchLevels();
+
+            return await response.data;
+        }
+    });
+
+    const levels = data ? data as Level[] : [];
+
+    return isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div> :
+        (<NavigationMenuItem>
+            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
+            <NavigationMenuContent>
+                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    {levels.map((level, index) => (
+                        <ListItem
+                            key={level.id}
+                            title={level.name}
+                            href={'/'}
+                        >
+                            {level.description}
+                        </ListItem>
+                    ))}
+                </ul>
+            </NavigationMenuContent>
+        </NavigationMenuItem>)
+
+}
