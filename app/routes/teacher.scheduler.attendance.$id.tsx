@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import { redirect, useLoaderData, useNavigate } from "@remix-run/react"
 import { motion } from "framer-motion"
 import {
     AlertTriangle,
@@ -22,7 +22,6 @@ import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent } from "~/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
-import { FileUpload } from "~/components/ui/file-upload"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Textarea } from "~/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
@@ -33,7 +32,6 @@ import { read, utils } from "xlsx"
 import {
     AlertDialog,
     AlertDialogAction,
-    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -43,14 +41,14 @@ import {
 } from "~/components/ui/alert-dialog";
 import { InfoIcon } from "lucide-react";
 import { useImagesDialog } from "~/hooks/use-images-dialog"
-
-import PlaceholderImage from '../lib/assets/images/placeholder.jpg'
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { Role } from "~/lib/types/account/account"
 
 
 // Extended SlotStudentModel to support multiple images
-interface ExtendedSlotStudentModel extends SlotStudentModel {
+type ExtendedSlotStudentModel = {
     gestureUrls: string[]
-}
+} & SlotStudentModel;
 
 // Function to validate if URL is a valid image URL
 const validateImageUrl = (url: string): boolean => {
@@ -84,14 +82,20 @@ const validateImageUrl = (url: string): boolean => {
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
-        const { idToken } = await requireAuth(request);
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Instructor) {
+            return redirect('/');
+        }
+
         const { id } = params;
         if (!id) {
             throw new Response("ID is required", { status: 400 });
         }
-        
+
         const response = await fetchSlotById(id, idToken);
-        const slotDetail: SlotDetail = response.data;
+        const slotDetail: SlotDetail = await response.data;
 
         const slotStudent: ExtendedSlotStudentModel[] = slotDetail.slotStudents!.map((student) => {
             let gestureUrls: string[] = [];
@@ -99,7 +103,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
             if (student.gestureUrl) {
                 try {
                     const parsedUrls = JSON.parse(student.gestureUrl);
-                    
+
                     if (Array.isArray(parsedUrls)) {
                         gestureUrls = parsedUrls;
                     } else if (typeof parsedUrls === 'string') {
@@ -129,14 +133,26 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
         });
 
         return { slotStudent, idToken, id };
+
     } catch (error) {
-        console.error("Failed to load attendance details:", error);
-        throw new Response("Failed to load attendance details", { status: 500 });
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+
     }
 };
 
 const AttendancePage = () => {
+
     const { slotStudent, idToken, id } = useLoaderData<typeof loader>()
+
     const [attendanceData, setAttendanceData] = useState<ExtendedSlotStudentModel[]>(slotStudent || [])
     const [showAbsentees, setShowAbsentees] = useState(false)
     const [flashingStudentId, setFlashingStudentId] = useState<string | null>(null)
@@ -519,7 +535,7 @@ const AttendancePage = () => {
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>
-                    <div className="relative flex-1 sm:flex-none">
+                    <div className="relative flex-1 sm:flex-none my-3">
                         <Button
                             onClick={() => document.getElementById('excelImport')?.click()}
                             className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg"
