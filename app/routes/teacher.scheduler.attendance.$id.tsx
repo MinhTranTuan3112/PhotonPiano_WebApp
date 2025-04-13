@@ -89,25 +89,20 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
         if (!id) {
             throw new Response("ID is required", { status: 400 });
         }
-        console.log(`Loading attendance details for slot ID: ${id}`);
+        
         const response = await fetchSlotById(id, idToken);
         const slotDetail: SlotDetail = response.data;
 
         const slotStudent: ExtendedSlotStudentModel[] = slotDetail.slotStudents!.map((student) => {
-            // Parse gestureUrl which might be a JSON string containing array of URLs
             let gestureUrls: string[] = [];
 
             if (student.gestureUrl) {
                 try {
-                    // Try to parse as JSON first (might be array or nested JSON string)
                     const parsedUrls = JSON.parse(student.gestureUrl);
-
-                    // Handle different possible formats
+                    
                     if (Array.isArray(parsedUrls)) {
-                        // Direct array of URLs
                         gestureUrls = parsedUrls;
                     } else if (typeof parsedUrls === 'string') {
-                        // Might be a nested JSON string
                         try {
                             const nestedParsed = JSON.parse(parsedUrls);
                             gestureUrls = Array.isArray(nestedParsed) ? nestedParsed : [parsedUrls];

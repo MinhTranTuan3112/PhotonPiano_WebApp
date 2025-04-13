@@ -18,7 +18,7 @@ import {
     Shift,
     type SlotDetail,
     SlotStatus,
-    SlotStatusText,
+    SlotStatusText, SlotStudentModel,
     type StudentAttendanceModel,
 } from "~/lib/types/Scheduler/slot"
 import {type IPubSubMessage, PubSub} from "~/lib/services/pub-sub"
@@ -69,15 +69,15 @@ const getVietnameseWeekday = (date: Date): string => {
 }
 
 const isCurrentDatePastSlotDate = (slotDate: string): boolean => {
-    const currentDate = new Date();
-    const slotDateObj = new Date(slotDate);
-    const oneDayInMs = 24 * 60 * 60 * 1000;
-    const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
-
-    return currentDate > slotDateObj && differenceInDays <= 1;
+    // const currentDate = new Date();
+    // const slotDateObj = new Date(slotDate);
+    // const oneDayInMs = 24 * 60 * 60 * 1000;
+    // const differenceInDays = (currentDate.getTime() - slotDateObj.getTime()) / oneDayInMs;
+    //
+    // return currentDate > slotDateObj && differenceInDays <= 1;
 
     // for demo
-    // return true
+    return true
 }
 
 const LoadingOverlay: React.FC = () => {
@@ -181,21 +181,63 @@ export const Scheduler = ({
         };
     }, [year, weekNumber, slots, idToken, currentAccount.accountFirebaseId]);
 
+
+    useEffect(() => {
+        fetchSlotsForWeek(year, weekNumber);
+    }, [year, weekNumber]);
+
     const fetchSlotsForWeek = async (year: number, week: number) => {
         try {
             const { startDate, endDate } = getWeekRange(year, week);
             const startTime = formatDateForAPI(startDate);
             const endTime = formatDateForAPI(endDate);
-
+            
             const response = await fetchSlots({
                 startTime,
                 endTime,
                 idToken,
                 ...filters,
-                studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : '',
+                studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
             });
 
-            setSlots(response.data);
+            let updatedSlots: SlotDetail[] = response.data;
+
+            if (role === 1 && currentAccount.accountFirebaseId) {
+                if (!currentAccount.accountFirebaseId.trim()) {
+                    console.warn("Empty accountFirebaseId for student role");
+                    setSlots(response.data);
+                    setStartDate(startDate);
+                    setEndDate(endDate);
+                    return;
+                }
+                updatedSlots = response.data.map((slot: SlotDetail) => {
+                    if (!slot.slotStudents || slot.slotStudents.length === 0) {
+                        console.warn(`No slotStudents for slot ${slot.id}`);
+                        return { ...slot, attendanceStatus: 0 };
+                    }
+                    const studentRecord = slot.slotStudents.find(
+                        (student: SlotStudentModel) => {
+                            const studentId = student.studentFirebaseId?.toLowerCase();
+                            const accountId = currentAccount.accountFirebaseId?.toLowerCase();
+                            console.log("Comparing IDs for slot", slot.id, ":", { studentId, accountId });
+                            if (!studentId || !accountId) {
+                                console.warn(`Missing IDs for slot ${slot.id}:`, { studentId, accountId });
+                                return false;
+                            }
+                            return studentId === accountId;
+                        }
+                    );
+                    if (!studentRecord) {
+                        console.warn(`No matching student record found for slot ${slot.id}`);
+                        return { ...slot, attendanceStatus: 0 };
+                    }
+                    const attendanceStatus = Number(studentRecord.attendanceStatus) || 0;
+                    console.log(`Attendance status for slot ${slot.id}:`, { slotStudents: slot.slotStudents, studentRecord, attendanceStatus });
+                    return { ...slot, attendanceStatus };
+                });
+            }
+
+            setSlots(updatedSlots);
             setStartDate(startDate);
             setEndDate(endDate);
         } catch (error) {
@@ -391,7 +433,6 @@ export const Scheduler = ({
         <div
             className="scheduler-page p-6 bg-gradient-to-b from-indigo-50 to-white min-h-screen relative"
             style={{
-                backgroundImage: "url(/piano-keys-pattern.png)",
                 backgroundSize: "cover",
                 backgroundPosition: "bottom",
             }}
@@ -517,18 +558,18 @@ export const Scheduler = ({
                                     <TableRow key={timeIndex} className="border-b bg-card hover:bg-muted/20">
                                         <TableCell className="text-center font-medium py-3 border-r">{time}</TableCell>
                                         {weekDates.map((date, dateIndex) => {
-                                            const currentDayString = formatDateForAPI(date)
+                                            const currentDayString = formatDateForAPI(date);
                                             const slotForDateAndShift = slots.filter(
                                                 (slot) => slot.date === currentDayString && shiftTimesMap[slot.shift] === time,
-                                            )
+                                            );
 
                                             return (
                                                 <TableCell
                                                     key={dateIndex}
                                                     className={cn("p-2 align-top h-[130px]", dateIndex < 6 ? "border-r border-border/60" : "")}
                                                 >
-                                                    {slotForDateAndShift.length <= 2 ? (
-                                                        // If there are only 1-2 slots, show them normally
+                                                    <div className="flex flex-col gap-2 "> {
+                                                    slotForDateAndShift.length <= 2 ? (
                                                         slotForDateAndShift.map((slot, idx) => (
                                                             <motion.div
                                                                 key={idx}
@@ -556,22 +597,44 @@ export const Scheduler = ({
                                                                     {slot.room?.name}
                                                                 </div>
                                                                 <div className="text-sm">{slot.class?.name}</div>
-                                                                <Badge
-                                                                    className="mt-2"
-                                                                    variant={
-                                                                        slot.status === SlotStatus.Cancelled
-                                                                            ? "outline"
-                                                                            : slot.status === SlotStatus.Finished
-                                                                                ? "default"
-                                                                                : slot.status === SlotStatus.Ongoing
-                                                                                    ? "secondary"
-                                                                                    : "outline"
-                                                                    }
-                                                                >
-                                                                    {role === 1 && slot.attendanceStatus !== undefined
-                                                                        ? AttendanceStatusText[slot.attendanceStatus]
-                                                                        : SlotStatusText[slot.status]}
-                                                                </Badge>
+                                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                                    {/* Badge for slotStatus */}
+                                                                    <Badge
+                                                                        className="text-xs"
+                                                                        variant={
+                                                                            slot.status === SlotStatus.Cancelled
+                                                                                ? "outline"
+                                                                                : slot.status === SlotStatus.Finished
+                                                                                    ? "default"
+                                                                                    : slot.status === SlotStatus.Ongoing
+                                                                                        ? "secondary"
+                                                                                        : "outline"
+                                                                        }
+                                                                    >
+                                                                        {(() => {
+                                                                            const displayText = SlotStatusText[slot.status];
+                                                                            return displayText;
+                                                                        })()}
+                                                                    </Badge>
+                                                                    {/* Badge for attendanceStatus (only for students) */}
+                                                                    {role === 1 && (
+                                                                        <Badge
+                                                                            className="text-xs"
+                                                                            variant={
+                                                                                slot.attendanceStatus === 1
+                                                                                    ? "success" // Present: green
+                                                                                    : slot.attendanceStatus === 2
+                                                                                        ? "destructive" // Absent: red
+                                                                                        : "outline" // NotYet: default
+                                                                            }
+                                                                        >
+                                                                            {(() => {
+                                                                                const displayText = AttendanceStatusText[slot.attendanceStatus ?? 0];
+                                                                                return displayText;
+                                                                            })()}
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
                                                                 {slot.status === SlotStatus.Cancelled && slot.slotNote && (
                                                                     <div className="text-xs mt-2 text-muted-foreground italic">
                                                                         Lý do hủy: {slot.slotNote}
@@ -580,11 +643,11 @@ export const Scheduler = ({
                                                             </motion.div>
                                                         ))
                                                     ) : (
-                                                        // If there are 3+ slots, use the compact view component
                                                         <CompactSlotView slots={slotForDateAndShift} onSlotClick={handleSlotClick} role={role} />
                                                     )}
+                                                    </div>
                                                 </TableCell>
-                                            )
+                                            );
                                         })}
                                     </TableRow>
                                 ))}
