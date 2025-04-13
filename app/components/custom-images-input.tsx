@@ -74,17 +74,17 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
             });
             const blob = await response.blob();
             const filename = url.split('/').pop() || 'image';
-            
+
             const size = formatFileSize(blob.size);
 
-            const newFile = {
-                id: crypto.randomUUID(),
-                url,
-                name: filename,
-                displaySize: size,
-            } as ImageFile;
+            // const newFile = {
+            //     id: crypto.randomUUID(),
+            //     url,
+            //     name: filename,
+            //     displaySize: size,
+            // } as ImageFile;
 
-            setImageFiles((prev) => [...prev, newFile]);
+            // setImageFiles((prev) => [...prev, newFile]);
             setImageUrls((prev) => [...prev, url]);
             inputRef.current.value = '';
 
@@ -140,6 +140,23 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
                             filename={file.name}
                             size={file.displaySize}
                             onDelete={() => handleDelete(file.id)}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {imageUrls.length > 0 && (
+                <div className="space-y-2">
+                    {imageUrls.filter(i => !i.startsWith('blob')).map((image) => (
+                        <ImagePreview
+                            isUploading={isUploading}
+                            key={image}
+                            src={image}
+                            filename={image}
+                            size={'(...)'}
+                            onDelete={() => {
+                                setImageUrls((prev) => prev.filter((url) => url !== image));
+                            }}
                         />
                     ))}
                 </div>
