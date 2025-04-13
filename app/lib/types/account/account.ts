@@ -70,6 +70,11 @@ export type Level = {
    nextLevelId?: string;
 }
 
+export type LevelDetails = {
+    accounts: Account[];
+    classes: Class[];
+} & Level;
+
 export const sampleLevels: Level[] = [
     {
         id: "1",
