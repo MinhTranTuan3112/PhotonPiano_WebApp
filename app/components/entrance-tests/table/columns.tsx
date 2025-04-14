@@ -96,7 +96,7 @@ export const columns: ColumnDef<EntranceTest>[] = [
         accessorKey: "Trạng thái",
         header: "Trạng thái",
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.status} />
+            return <StatusBadge status={row.original.testStatus} />
         }
     },
     {
