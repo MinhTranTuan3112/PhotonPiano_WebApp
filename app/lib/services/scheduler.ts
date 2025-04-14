@@ -292,3 +292,26 @@ export async function fetchDeleteSlot({ id, idToken }: {
     })
     return response;
 }
+
+export async function fetchAvailableTeachersForSlot(slotId: string, idToken: string) {
+    const response = await axiosInstance.get(`/scheduler/available-teachers-for-slot/${slotId}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchAssignTeacherToSlot(slotId: string, teacherFirebaseId: string, reason: string ,idToken: string) {
+    const response = await axiosInstance.post('/scheduler/assign-teacher-to-slot',
+        { slotId, teacherFirebaseId, reason },
+        {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            }
+        }
+    );
+
+    return response;
+}
