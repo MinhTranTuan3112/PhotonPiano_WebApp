@@ -4,6 +4,7 @@ import { Await, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/reac
 import { Suspense } from 'react';
 import { getValidatedFormData } from 'remix-hook-form';
 import LevelForm, { LevelFormData, levelSchema } from '~/components/level/level-form';
+import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { DataTable } from '~/components/ui/data-table';
 import { Skeleton } from '~/components/ui/skeleton';
@@ -141,12 +142,16 @@ function LevelDetailsContent() {
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="basic-info">Thông tin cơ bản</TabsTrigger>
             <TabsTrigger value="students">Danh sách học viên</TabsTrigger>
+            <TabsTrigger value="classes">Danh sách lớp</TabsTrigger>
         </TabsList>
         <TabsContent value="basic-info">
             <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} />
         </TabsContent>
         <TabsContent value="students">
             <DataTable data={level.accounts} columns={studentColumns} />
+        </TabsContent>
+        <TabsContent value='classes'>
+            <DataTable data={level.classes} columns={classColums} />
         </TabsContent>
     </Tabs>
 }
