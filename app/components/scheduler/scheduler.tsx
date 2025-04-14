@@ -3,7 +3,9 @@ import {useEffect, useState} from "react"
 import {useNavigate} from "@remix-run/react"
 import {getWeekRange} from "~/lib/utils/datetime"
 import {
+    fetchAssignTeacherToSlot,
     fetchAttendanceStatus,
+    fetchAvailableTeachersForSlot,
     fetchBlankSlots,
     fetchCancelSlot,
     fetchPublicNewSlot,
@@ -18,7 +20,8 @@ import {
     Shift,
     type SlotDetail,
     SlotStatus,
-    SlotStatusText, SlotStudentModel,
+    SlotStatusText,
+    SlotStudentModel,
     type StudentAttendanceModel,
 } from "~/lib/types/Scheduler/slot"
 import {type IPubSubMessage, PubSub} from "~/lib/services/pub-sub"
@@ -137,6 +140,13 @@ export const Scheduler = ({
     const [isOtherSelected, setIsOtherSelected] = useState<boolean>(false);
     const instructorMap = new Map(slots.map((slot) => [slot.class.instructorId, slot.class.instructorName]));
     const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]));
+    const [isChangeTeacherDialogOpen, setIsChangeTeacherDialogOpen] = useState<boolean>(false);
+    const [newTeacherId, setNewTeacherId] = useState<string>("");
+    const [availableTeachers, setAvailableTeachers] = useState<Array<{ accountFirebaseId: string, fullName: string }>>([]);
+    const [isTeacherLoading, setIsTeacherLoading] = useState<boolean>(false);
+    const [changeTeacherReason, setChangeTeacherReason] = useState<string>("");
+
+
 
     useEffect(() => {
         console.log("isLoading updated:", isLoading);
@@ -334,7 +344,7 @@ export const Scheduler = ({
         fetchCancelReasons();
     }, [idToken]);
 
-    const handleReasonChange = (e: { target: { value: never } }) => {
+    const handleReasonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
         if (value === "Khác") {
             setIsOtherSelected(true);
@@ -612,8 +622,7 @@ export const Scheduler = ({
                                                                         }
                                                                     >
                                                                         {(() => {
-                                                                            const displayText = SlotStatusText[slot.status];
-                                                                            return displayText;
+                                                                            return SlotStatusText[slot.status];
                                                                         })()}
                                                                     </Badge>
                                                                     {/* Badge for attendanceStatus (only for students) */}
@@ -674,12 +683,21 @@ export const Scheduler = ({
                                     </p>
                                     <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Tên giáo viên:</strong>{" "}
-                                        <span className="text-indigo-600">{selectedSlot.class.instructorName}</span>
+                                        <span className="text-indigo-600">{selectedSlot.teacher.fullName}</span>
                                     </p>
                                     <p className="flex items-center text-indigo-800">
                                         <strong className="mr-2">Sĩ số học sinh:</strong>{" "}
                                         <span className="text-indigo-600">{selectedSlot.numberOfStudents}</span>
                                     </p>
+                                    {selectedSlot.slotNote != "" &&
+                                        selectedSlot.slotNote && (
+                                            <p className="flex items-center text-indigo-800">
+                                                <strong className="mr-2">Ghi chú:</strong>{" "}
+                                                <span className="text-indigo-600">{selectedSlot.slotNote}</span>
+                                            </p>
+                                        )
+                                    }
+                                    
                                     {role === 1 && selectedSlot.slotStudents && (
                                         <>
                                             {selectedSlot.slotStudents
@@ -707,6 +725,15 @@ export const Scheduler = ({
                                                                 <span className="text-indigo-600">{student.pedalComment}</span>
                                                             </p>
                                                         )}
+                                                        {student.attendanceStatus && (
+                                                            <p className="flex items-center text-indigo-800">
+                                                                <strong className="mr-2">Trạng thái:</strong>{" "}
+                                                                <span className="text-indigo-600">
+                                                                    {AttendanceStatusText[student.attendanceStatus]}
+                                                                </span>
+                                                            </p>
+                                                        )}
+                                                   
                                                     </div>
                                                 ))}
                                         </>
@@ -717,7 +744,7 @@ export const Scheduler = ({
                                         <Button
                                             onClick={() => (window.location.href = `/teacher/scheduler/attendance/${selectedSlot.id}`)}
                                             disabled={
-                                                !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
+                                                isCurrentDatePastSlotDate(selectedSlot.date) === false || selectedSlot.status === SlotStatus.Cancelled
                                             }
                                             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                         >
@@ -736,6 +763,27 @@ export const Scheduler = ({
                                                 className="font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                             >
                                                 Chi tiết buổi học
+                                            </Button>
+
+                                            <Button
+                                                onClick={async () => {
+                                                    try {
+                                                        setIsTeacherLoading(true);
+                                                        const response = await fetchAvailableTeachersForSlot(selectedSlot.id, idToken);
+                                                        setAvailableTeachers(response.data);
+                                                        setNewTeacherId("");
+                                                        setChangeTeacherReason("");
+                                                        setIsChangeTeacherDialogOpen(true);
+                                                    } catch (error) {
+                                                        console.error("Failed to fetch available teachers:", error);
+                                                    } finally {
+                                                        setIsTeacherLoading(false);
+                                                    }
+                                                }}
+                                                disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
+                                                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                            >
+                                                Thay đổi giáo viên
                                             </Button>
                                             <Button
                                                 onClick={() => {
@@ -1226,12 +1274,135 @@ export const Scheduler = ({
                                 >
                                     Hủy bỏ
                                 </Button>
+                                
                                 <Button
                                     onClick={handleReplaceThenCancel}
                                     disabled={isLoading || !cancelReason.trim() || !selectedBlankSlot || blankSlots.length === 0}
                                     className="bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                 >
                                     {isLoading ? "Đang xử lý..." : "Xác nhận"}
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isChangeTeacherDialogOpen} onOpenChange={setIsChangeTeacherDialogOpen}>
+                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+                        <DialogHeader>
+                            <DialogTitle className="text-indigo-900">Thay đổi giáo viên</DialogTitle>
+                        </DialogHeader>
+                        <div className="p-6">
+                            {selectedSlot && (
+                                <div className="space-y-2 mb-4">
+                                    <p className="text-indigo-800">
+                                        <strong>Phòng:</strong> <span className="text-indigo-600">{selectedSlot.room?.name}</span>
+                                    </p>
+                                    <p className="text-indigo-800">
+                                        <strong>Lớp:</strong> <span className="text-indigo-600">{selectedSlot.class?.name}</span>
+                                    </p>
+                                    <p className="text-indigo-800">
+                                        <strong>Giáo viên hiện tại:</strong> <span className="text-indigo-600">{selectedSlot.class.instructorName}</span>
+                                    </p>
+                                    <p className="text-indigo-800">
+                                        <strong>Thời gian:</strong>{" "}
+                                        <span className="text-indigo-600">
+              {shiftTimesMap[selectedSlot.shift]} - {selectedSlot.date}
+            </span>
+                                    </p>
+                                </div>
+                            )}
+                            <div className="mt-4">
+                                <label htmlFor="newTeacher" className="text-indigo-800 font-semibold">
+                                    Chọn giáo viên mới <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    id="newTeacher"
+                                    value={newTeacherId}
+                                    onChange={(e) => setNewTeacherId(e.target.value)}
+                                    className="w-full mt-1 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
+                                    required
+                                >
+                                    <option value="" disabled>
+                                        Chọn giáo viên mới
+                                    </option>
+                                    {availableTeachers.map((teacher) => (
+                                        <option key={teacher.accountFirebaseId} value={teacher.accountFirebaseId}>
+                                            {teacher.fullName}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="mt-4">
+                                    <label htmlFor="changeReason" className="text-indigo-800 font-semibold">
+                                        Lý do thay đổi <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="changeReason"
+                                        value={changeTeacherReason}
+                                        onChange={(e) => setChangeTeacherReason(e.target.value)}
+                                        className="w-full mt-1 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
+                                        placeholder="Nhập lý do thay đổi giáo viên"
+                                        required
+                                    />
+                                </div>
+
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-6">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsChangeTeacherDialogOpen(false);
+                                        setNewTeacherId("");
+                                        setChangeTeacherReason("");
+                                    }}
+                                    className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
+                                    disabled={isTeacherLoading}
+                                >
+                                    Hủy bỏ
+                                </Button>
+                                <Button
+                                    onClick={async () => {
+                                        if (!newTeacherId || !selectedSlot) return;
+
+                                        try {
+                                            setIsTeacherLoading(true);
+                                            await fetchAssignTeacherToSlot(selectedSlot.id, newTeacherId, changeTeacherReason, idToken);
+
+                                            // Refresh the slot data
+                                            const response = await fetchSlotById(selectedSlot.id, idToken);
+                                            const updatedSlot = response.data;
+
+                                            // Update the slots list
+                                            setSlots(slots.map(slot =>
+                                                slot.id === selectedSlot.id ? updatedSlot : slot
+                                            ));
+
+                                            setSelectedSlot(updatedSlot);
+                                            setIsChangeTeacherDialogOpen(false);
+                                            setNewTeacherId("");
+                                            setChangeTeacherReason("");
+
+                                            // Optional: Show success message
+                                            alert("Thay đổi giáo viên thành công!");
+                                        } catch (error) {
+                                            console.error("Failed to assign teacher:", error);
+                                            alert("Có lỗi xảy ra khi thay đổi giáo viên!");
+                                        } finally {
+                                            setIsTeacherLoading(false);
+                                        }
+                                    }}
+                                    disabled={!newTeacherId || !changeTeacherReason.trim() || isTeacherLoading}
+                                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                >
+                                    {isTeacherLoading ? (
+                                        <span className="flex items-center">
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+              Đang xử lý...
+            </span>
+                                    ) : (
+                                        "Xác nhận thay đổi"
+                                    )}
                                 </Button>
                             </div>
                         </div>

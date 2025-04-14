@@ -99,6 +99,15 @@ export type SlotDetail = {
     numberOfStudents: number;
     slotNote: string | null;
     attendanceStatus?: AttendanceStatus;
+    teacher: TeacherModel;
+}
+
+export type TeacherModel = {
+    id: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    avatarUrl: string | null;
 }
 
 export type BlankSlotModel = {
