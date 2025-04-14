@@ -45,6 +45,7 @@ export type Slot = {
     shift: Shift;
     date: string;
     status: SlotStatus;
+    teacherId?: string;
     room: {
         id: string;
         name: string;
@@ -99,12 +100,15 @@ export type SlotDetail = {
     numberOfStudents: number;
     slotNote: string | null;
     attendanceStatus?: AttendanceStatus;
+    teacherId?: string;
     teacher: TeacherModel;
 }
 
 export type TeacherModel = {
+    accountFirebaseId : string;
     id: string;
     fullName: string;
+    userName: string;
     email: string;
     phoneNumber: string;
     avatarUrl: string | null;

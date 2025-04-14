@@ -259,12 +259,13 @@ export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }:
     return response;
 }
 
-export async function fetchUpdateSlot({ id, shift, date, roomId, reason, idToken }: {
+export async function fetchUpdateSlot({ id, shift, date, roomId, reason, teacherId, idToken }: {
     id : string,
     shift? : number,
     date? : string,
     roomId? : string,
     reason? : string,
+    teacherId? : string,
     idToken : string
 }) {
     const response = await axiosInstance.put(`/scheduler`, {
@@ -272,7 +273,8 @@ export async function fetchUpdateSlot({ id, shift, date, roomId, reason, idToken
         shift : shift,
         date : date,
         roomId : roomId,
-        reason : reason
+        reason : reason,
+        teacherId : teacherId
     },{
         headers: {
             Authorization: `Bearer ${idToken}`,
