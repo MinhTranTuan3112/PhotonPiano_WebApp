@@ -33,7 +33,7 @@ export enum Shift {
 }
 
 export const AttendanceStatusText = {
-    [AttendanceStatus.NotYet]: "Chưa Bắt Đầu",
+    [AttendanceStatus.NotYet]: "Chưa điểm danh",
     [AttendanceStatus.Attended]: "Có mặt",
     [AttendanceStatus.Absent]: "Vắng mặt"
 };

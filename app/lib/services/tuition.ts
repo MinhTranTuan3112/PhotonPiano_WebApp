@@ -10,7 +10,6 @@ export async function fetchTuition({ page = 1, pageSize = 10, sortColumn = 'Id',
     startTime: string | null,
     endTime: string | null,
     paymentStatuses: number[],
-
 }>) {
 
     const params  = new URLSearchParams();
