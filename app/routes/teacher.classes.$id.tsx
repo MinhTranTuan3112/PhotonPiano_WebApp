@@ -33,6 +33,7 @@ import { Input } from "~/components/ui/input"
 import { Progress } from "~/components/ui/progress"
 import { ScoreDetailsDialog } from "~/components/ui/score-details-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import {
     fetchClassDetails,
     fetchGradeTemplate,
@@ -276,6 +277,17 @@ export default function TeacherClassDetailsPage() {
             studentClass.student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             studentClass.student.email.toLowerCase().includes(searchTerm.toLowerCase()),
     )
+
+    // Add confirmation dialog for file upload
+    const { open: openUploadConfirmation, dialog: uploadConfirmationDialog } = useConfirmationDialog({
+        title: "Xác nhận tải lên",
+        description: "Bạn có chắc chắn muốn tải lên và xử lý tệp này không? Điều này sẽ cập nhật điểm số của học sinh.",
+        onConfirm: handleUploadAndProcess,
+        confirmText: "Tải lên",
+        cancelText: "Hủy",
+        confirmButtonClassname: "bg-green-600 hover:bg-green-700 text-white",
+    })
+
     return (
         <div className="bg-[#f8fafc] dark:bg-gray-950 min-h-screen">
             <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 top-0 z-10">
@@ -775,7 +787,7 @@ export default function TeacherClassDetailsPage() {
 
                                         <Button
                                             className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
-                                            onClick={handleUploadAndProcess}
+                                            onClick={openUploadConfirmation}
                                             disabled={!selectedFile || isUploading}
                                         >
                                             {isUploading ? (
@@ -792,6 +804,14 @@ export default function TeacherClassDetailsPage() {
                                         </Button>
                                     </div>
                                 </div>
+
+
+                                {uploadError && <div className="mt-4 bg-red-50 text-red-700 p-3 rounded-md text-sm">{uploadError}</div>}
+                                {uploadSuccess && (
+                                    <div className="mt-4 bg-green-50 text-green-700 p-3 rounded-md text-sm">
+                                        Grades uploaded and processed successfully!
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -854,10 +874,10 @@ export default function TeacherClassDetailsPage() {
                                                         {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                             <span
                                                                 className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                        ? "bg-green-100 text-green-800"
-                                                                        : studentClass.gpa >= 5
-                                                                            ? "bg-amber-100 text-amber-800"
-                                                                            : "bg-red-100 text-red-800"
+                                                                    ? "bg-green-100 text-green-800"
+                                                                    : studentClass.gpa >= 5
+                                                                        ? "bg-amber-100 text-amber-800"
+                                                                        : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
                                                                 {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : 'Not graded'}
@@ -921,6 +941,7 @@ export default function TeacherClassDetailsPage() {
                     </div>
                 )}
             </div>
+            {uploadConfirmationDialog}
         </div>
     )
 }
