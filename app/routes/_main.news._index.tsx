@@ -260,7 +260,7 @@ function ArticlesContent({
 
     const navigate = useNavigate();
 
-    return <>
+    return articles.length > 0 ? <>
         <div className={`relative rounded-lg overflow-hidden mb-12 group ${styles.animateFadeIn}`}>
             <img src={`${topArticle.thumbnail || placeholderImg}`} alt="Hero image" className="w-full h-[400px] object-cover transition-transform duration-300 transform group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
@@ -285,7 +285,7 @@ function ArticlesContent({
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </Form>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articles.map((article, index) => (
                 <ArticleCard {...article} hasPublishBadge={false} key={article.id} hasAuth={false} />
@@ -293,6 +293,8 @@ function ArticlesContent({
         </div>
 
 
+    </> : <>
+        <p className="text-3xl font-bold text-center">Không có bài viết nào.</p>
     </>
 };
 
