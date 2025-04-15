@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Account } from "../account/account";
 import { Room } from "../room/room";
-import { EntranceTestStudent, EntranceTestStudentWithResults } from "./entrance-test-student";
+import { EntranceTestStudent, EntranceTestStudentWithResults } from "./entrance-test-student"; 
 
 export type EntranceTest = {
     id: string,
