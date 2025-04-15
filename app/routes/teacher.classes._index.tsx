@@ -549,7 +549,7 @@ export default function TeacherClassListPage() {
                                             <span className="ml-2 text-sm text-neutral-500">students</span>
                                         </div>
 
-                                        <Link to={`/dashboard/class/${cls.id}`}>
+                                        <Link to={`/teacher/classes/${cls.id}`}>
                                             <Button
                                                 variant="ghost"
                                                 className={`text-neutral-600 hover:text-neutral-900 group-hover:bg-neutral-100 group-hover:${colors.text} transition-all duration-200`}
@@ -644,7 +644,7 @@ export default function TeacherClassListPage() {
                                     </div>
 
                                     <div className="col-span-1 text-right">
-                                        <Link to={`/dashboard/class/${cls.id}`}>
+                                        <Link to={`/teacher/classes/${cls.id}`}>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
