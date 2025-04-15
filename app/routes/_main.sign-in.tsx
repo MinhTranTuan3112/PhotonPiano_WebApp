@@ -128,7 +128,7 @@ export default function SignInPage({ }: Props) {
     useEffect(() => {
 
         if (actionData?.success === false && actionData?.error) {
-            toast.error(actionData?.error, {
+            toast.warning(actionData?.error, {
                 position: 'top-center',
             });
             return;

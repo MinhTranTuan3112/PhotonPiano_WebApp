@@ -387,7 +387,7 @@ function QuestionCard({
     // Add new option
     const handleAddOption = useCallback(() => {
         if (!newOption || newOption.trim() === "") {
-            toast.error("Nội dung lựa chọn không được để trống!")
+            toast.warning("Nội dung lựa chọn không được để trống!")
             return
         }
 
@@ -437,7 +437,7 @@ function QuestionCard({
                                     const newContent = e.target.value
 
                                     if (!newContent || newContent.trim() === "") {
-                                        toast.error("Nội dung câu hỏi không được để trống!")
+                                        toast.warning("Nội dung câu hỏi không được để trống!")
                                         return
                                     }
 

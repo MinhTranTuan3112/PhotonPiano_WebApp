@@ -95,7 +95,7 @@ function ActionDropdown({ row }: {
         }
 
         if (fetcher.data?.success === false ) {
-            toast.error('Xóa khảo sát thất bại: ' + fetcher.data.error);
+            toast.warning('Xóa khảo sát thất bại: ' + fetcher.data.error);
             return;
         }
 

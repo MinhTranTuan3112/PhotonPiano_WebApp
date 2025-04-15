@@ -315,7 +315,7 @@ export default function TuitionPage() {
             const tuitionId = selectedFee?.id;
 
             if (!tuitionId) {
-                toast.error("Vui lòng chọn học phí cần thanh toán!", {
+                toast.warning("Vui lòng chọn học phí cần thanh toán!", {
                     position: 'top-center',
                     duration: 1250
                 });
@@ -338,7 +338,7 @@ export default function TuitionPage() {
     useEffect(() => {
 
         if (fetcher.data?.success === false) {
-            toast.error(fetcher.data.error, {
+            toast.warning(fetcher.data.error, {
                 position: 'top-center',
                 duration: 1250
             });

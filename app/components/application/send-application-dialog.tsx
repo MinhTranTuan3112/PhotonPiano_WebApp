@@ -109,7 +109,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error);
             return;
         }
 

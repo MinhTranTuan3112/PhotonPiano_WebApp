@@ -130,7 +130,7 @@ export default function AdminSettingsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
+            toast.warning('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
             return;
         }
 
