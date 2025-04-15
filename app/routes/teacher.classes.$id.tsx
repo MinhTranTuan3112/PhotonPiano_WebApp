@@ -33,6 +33,7 @@ import { Input } from "~/components/ui/input"
 import { Progress } from "~/components/ui/progress"
 import { ScoreDetailsDialog } from "~/components/ui/score-details-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import {
     fetchClassDetails,
     fetchGradeTemplate,
@@ -229,18 +230,22 @@ export default function TeacherClassDetailsPage() {
                     const response = await fetchClassDetails({
                         id: classDetailsData.id,
                         idToken: classDetailsData.idToken,
-                    })
-                    // Update the class details data with the refreshed data
-                    Object.assign(classDetailsData, response.data)
+                    });
 
-                    // Also refresh the scores data
+                    // This ensures the UI reflects the changes immediately
+                    Object.assign(classDetailsData, response.data);
+
+                    // Force a re-render by setting state
+                    setClassScores(null); // Clear existing scores
+
+                    // Fetch fresh scores data
                     const scoresResponse = await fetchStudentClassScores({
                         classId: classDetailsData.id,
                         idToken: classDetailsData.idToken,
-                    })
-                    setClassScores(scoresResponse.data)
+                    });
+                    setClassScores(scoresResponse.data);
                 } catch (error) {
-                    console.error("Error refreshing class data:", error)
+                    console.error("Error refreshing class data:", error);
                 }
             }
         } catch (error) {
@@ -272,12 +277,23 @@ export default function TeacherClassDetailsPage() {
             studentClass.student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             studentClass.student.email.toLowerCase().includes(searchTerm.toLowerCase()),
     )
+
+    // Add confirmation dialog for file upload
+    const { open: openUploadConfirmation, dialog: uploadConfirmationDialog } = useConfirmationDialog({
+        title: "Xác nhận tải lên",
+        description: "Bạn có chắc chắn muốn tải lên và xử lý tệp này không? Điều này sẽ cập nhật điểm số của học sinh.",
+        onConfirm: handleUploadAndProcess,
+        confirmText: "Tải lên",
+        cancelText: "Hủy",
+        confirmButtonClassname: "bg-green-600 hover:bg-green-700 text-white",
+    })
+
     return (
         <div className="bg-[#f8fafc] dark:bg-gray-950 min-h-screen">
             <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 top-0 z-10">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link href="/dashboard/class" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/teacher/classes" className="text-muted-foreground hover:text-foreground transition-colors">
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
@@ -771,7 +787,7 @@ export default function TeacherClassDetailsPage() {
 
                                         <Button
                                             className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
-                                            onClick={handleUploadAndProcess}
+                                            onClick={openUploadConfirmation}
                                             disabled={!selectedFile || isUploading}
                                         >
                                             {isUploading ? (
@@ -788,6 +804,14 @@ export default function TeacherClassDetailsPage() {
                                         </Button>
                                     </div>
                                 </div>
+
+
+                                {uploadError && <div className="mt-4 bg-red-50 text-red-700 p-3 rounded-md text-sm">{uploadError}</div>}
+                                {uploadSuccess && (
+                                    <div className="mt-4 bg-green-50 text-green-700 p-3 rounded-md text-sm">
+                                        Grades uploaded and processed successfully!
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -824,7 +848,7 @@ export default function TeacherClassDetailsPage() {
                                             <TableHead>GPA</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Certificate</TableHead>
-                                            <TableHead>Comments</TableHead>                                          
+                                            <TableHead>Comments</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -856,7 +880,7 @@ export default function TeacherClassDetailsPage() {
                                                                         : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
-                                                                {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
+                                                                {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : 'Not graded'}
                                                             </span>
                                                         ) : (
                                                             <span className="text-muted-foreground">Not graded</span>
@@ -917,6 +941,7 @@ export default function TeacherClassDetailsPage() {
                     </div>
                 )}
             </div>
+            {uploadConfirmationDialog}
         </div>
     )
 }
