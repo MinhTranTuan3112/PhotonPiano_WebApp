@@ -229,18 +229,22 @@ export default function TeacherClassDetailsPage() {
                     const response = await fetchClassDetails({
                         id: classDetailsData.id,
                         idToken: classDetailsData.idToken,
-                    })
-                    // Update the class details data with the refreshed data
-                    Object.assign(classDetailsData, response.data)
+                    });
 
-                    // Also refresh the scores data
+                    // This ensures the UI reflects the changes immediately
+                    Object.assign(classDetailsData, response.data);
+
+                    // Force a re-render by setting state
+                    setClassScores(null); // Clear existing scores
+
+                    // Fetch fresh scores data
                     const scoresResponse = await fetchStudentClassScores({
                         classId: classDetailsData.id,
                         idToken: classDetailsData.idToken,
-                    })
-                    setClassScores(scoresResponse.data)
+                    });
+                    setClassScores(scoresResponse.data);
                 } catch (error) {
-                    console.error("Error refreshing class data:", error)
+                    console.error("Error refreshing class data:", error);
                 }
             }
         } catch (error) {
@@ -824,7 +828,7 @@ export default function TeacherClassDetailsPage() {
                                             <TableHead>GPA</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Certificate</TableHead>
-                                            <TableHead>Comments</TableHead>                                          
+                                            <TableHead>Comments</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -850,13 +854,13 @@ export default function TeacherClassDetailsPage() {
                                                         {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                             <span
                                                                 className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : studentClass.gpa >= 5
-                                                                        ? "bg-amber-100 text-amber-800"
-                                                                        : "bg-red-100 text-red-800"
+                                                                        ? "bg-green-100 text-green-800"
+                                                                        : studentClass.gpa >= 5
+                                                                            ? "bg-amber-100 text-amber-800"
+                                                                            : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
-                                                                {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
+                                                                {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : 'Not graded'}
                                                             </span>
                                                         ) : (
                                                             <span className="text-muted-foreground">Not graded</span>
