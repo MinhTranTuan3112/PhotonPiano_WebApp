@@ -446,7 +446,7 @@ function EntranceTestDetailsContent() {
                 </div>
                 <div className='flex gap-4'>
                     <span className='font-bold'>Trạng thái :</span>
-                    <span className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</span>
+                    <span className={getStatusStyle(entranceTest.testStatus)}>{ENTRANCE_TEST_STATUSES[entranceTest.testStatus]}</span>
                 </div>
             </div>
             <div className='mt-4 flex justify-end flex-wrap gap-4'>

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -16,13 +17,14 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { Textarea } from '~/components/ui/textarea';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
+import { fetchAccounts } from '~/lib/services/account';
 import { fetchRooms } from '~/lib/services/rooms';
 import { fetchSlotById } from '~/lib/services/scheduler';
-import { Level } from '~/lib/types/account/account';
+import { Account, Level, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { Room } from '~/lib/types/room/room';
-import { SlotDetail } from '~/lib/types/Scheduler/slot';
+import { SlotDetail, TeacherModel } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { ATTENDANCE_STATUS, CLASS_STATUS, LEVEL, SHIFT_TIME, SLOT_STATUS } from '~/lib/utils/constants';
 
@@ -58,6 +60,7 @@ export const addSlotSchema = z.object({
     action: z.string(),
     slotId: z.string(),
     reason: z.string().optional(),
+    teacherId: z.string().optional(),
     idToken: z.string(),
 });
 
@@ -66,16 +69,16 @@ export type AddSlotSchema = z.infer<typeof addSlotSchema>;
 const resolver = zodResolver(addSlotSchema)
 
 
-const getLevelStyle = (level: number) => {
-    switch (level) {
-        case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
-        case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
-        case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
-        case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
-        case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
-        default: return "text-black font-semibold";
-    }
-};
+// const getLevelStyle = (level: number) => {
+//     switch (level) {
+//         case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
+//         case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
+//         case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
+//         case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
+//         case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
+//         default: return "text-black font-semibold";
+//     }
+// };
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -97,7 +100,15 @@ const getAttendanceStyle = (attendance: number) => {
 function LevelBadge({ level }: {
     level: Level
 }) {
-    return <div className={`uppercase w-full text-center my-1 p-2 rounded-lg`}>{level.name}</div>
+    return <div
+        className="uppercase w-full text-center my-1 p-2 rounded-lg font-semibold"
+        style={{
+            backgroundColor: `${level.themeColor}33`, // 20% opacity
+            color: level.themeColor
+        }}
+    >
+        {level.name}
+    </div>
 }
 function StatusBadge({ status }: {
     status: number
@@ -351,25 +362,81 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                <h3 className="text-xl font-semibold text-gray-700 mb-3">Thông tin lớp</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <DetailItem label="Tên lớp" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Chưa có lớp'}</p>} />
+
+                    <DetailItem label="Giảng viên" value={
+
+                        isEdit ? (
+                            <div>
+                                <Controller
+                                    control={control}
+                                    name='teacherId'
+                                    defaultValue={slot.teacherId}
+                                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                                        <GenericCombobox<TeacherModel>
+                                            className=''
+                                            idToken={idToken}
+                                            queryKey='teachers'
+                                            fetcher={async (query) => {
+                                                const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
+
+                                                const headers = response.headers;
+
+                                                const metadata: PaginationMetaData = {
+                                                    page: parseInt(headers['x-page'] || '1'),
+                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                };
+                                                const data = response.data as TeacherModel[]
+                                                return {
+                                                    data: data,
+                                                    metadata
+                                                };
+                                            }}
+                                            mapItem={(item) => ({
+                                                label: item?.fullName || item?.userName,
+                                                value: item?.accountFirebaseId
+                                            })}
+                                            prechosenItem={slot.teacher}
+                                            placeholder='Chọn giảng viên'
+                                            emptyText='Không tìm thấy dữ liệu.'
+                                            errorText='Lỗi khi tải danh sách giảng viên.'
+                                            value={value}
+                                            onChange={onChange}
+                                            maxItemsDisplay={10}
+                                        />
+                                    )}
+                                />
+
+                            </div>
+                        ) : (
+                            slot.teacherId ? (
+                                <span>
+                                    <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
+                                        {slot.teacher?.fullName || slot.teacher?.userName}
+                                    </Link>
+                                    {
+                                        slot.teacherId !== slot.class.instructorId && (
+                                            <span>(Dạy thay)</span>
+                                        )
+                                    }
+                                </span>
+
+                            ) : (
+                                <p className="text-lg font-medium text-gray-800">Chưa có giảng viên</p>
+                            )
+                        )
+                    }
+
+                    />
+                    <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
+                    <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
+                </div>
             </Form>
-
-            <h3 className="text-xl font-semibold text-gray-700 mb-3">Thông tin lớp</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <DetailItem label="Tên lớp" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Chưa có lớp'}</p>} />
-
-                <DetailItem label="Giảng viên" value={
-                    slot.class?.instructor ? (
-                        <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
-                            {slot.class?.instructor?.fullName || slot.class?.instructor?.userName}
-                        </Link>
-                    ) : (
-                        <p className="text-lg font-medium text-gray-800">Chưa có giảng viên</p>
-                    )
-                } />
-                <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
-                <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
-            </div>
-
             {slot.slotStudents && (
                 <div>
                     <h3 className="text-xl font-semibold text-gray-700 mb-3">Điểm danh buổi học</h3>

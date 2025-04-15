@@ -1,9 +1,7 @@
-import React from 'react'
 import { EntranceTest } from '~/lib/types/entrance-test/entrance-test'
 import { Button } from '../ui/button'
-import { ArrowRight, CircleArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants'
-import { Separator } from '../ui/separator'
 import { useNavigate } from '@remix-run/react'
 
 type Props = {
@@ -32,7 +30,7 @@ export default function MyTestCard({ entranceTest }: Props) {
                 <div className='flex-grow'>
                     <div className='flex justify-between'>
                         <div className='font-bold text-xl'>{entranceTest.name}</div>
-                        <div className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</div>
+                        <div className={getStatusStyle(entranceTest.testStatus)}>{ENTRANCE_TEST_STATUSES[entranceTest.testStatus]}</div>
                     </div>
                     <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 mt-4'>
                         <div>
