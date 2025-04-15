@@ -73,12 +73,31 @@ function getBreadcrumbPageName({ pathname }: {
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết ca thi " + param.replace("/", ""),
+                    name: "Chi tiết ca thi",
                     url: pathname,
                     isCurrentPage: true
                 })
             }
             break;
+
+        case pathname.startsWith('/teacher/scheduler'):
+            const attendanceParam = pathname.replace('/teacher/scheduler', "")
+            otherNavItems = [
+                {
+                    name: "Lịch dạy của tôi",
+                    url: '/teacher/scheduler',
+                    isCurrentPage: attendanceParam.length === 0
+                }
+            ]
+            if (attendanceParam.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết thông tin điểm danh trong lớp",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+            break;
+
         default:
             break;
     }

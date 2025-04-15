@@ -7,10 +7,9 @@ type Props = {
 }
 
 export default function MainLayout({ children }: Props) {
-
     return (
         <>
-            <NavBar />
+            <NavBar  />
 
             <main>
                 {children || <Outlet />}

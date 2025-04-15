@@ -140,7 +140,15 @@ const getStatusStyle = (status: number) => {
 function LevelBadge({ level }: {
   level: Level
 }) {
-  return <div className={`uppercase w-5/6 text-center my-1 p-2 rounded-lg`}>{level.name.split('(')[0]}</div>
+  return <div
+    className="uppercase w-full text-center my-1 p-2 rounded-lg font-semibold"
+    style={{
+      backgroundColor: `${level.themeColor}33`, // 20% opacity
+      color: level.themeColor
+    }}
+  >
+    {level.name}
+  </div>
 }
 function StatusBadge({ status }: {
   status: number
@@ -633,8 +641,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         <Form onSubmit={handleOpenEditModal}>
           <div className='my-4 flex gap-2'>
             <Input {...register("description")} placeholder="Nhập mô tả lịch học..."
-              className='flex-grow' 
-              defaultValue={classInfo.scheduleDescription}/>
+              className='flex-grow'
+              defaultValue={classInfo.scheduleDescription} />
             <Button>Cập nhật</Button>
           </div>
         </Form>

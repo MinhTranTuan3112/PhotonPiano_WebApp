@@ -68,6 +68,7 @@ export type Level = {
    minimumScore: number;
    isGenreDivided: boolean;
    nextLevelId?: string;
+   themeColor? : string;
 }
 
 export const sampleLevels: Level[] = [

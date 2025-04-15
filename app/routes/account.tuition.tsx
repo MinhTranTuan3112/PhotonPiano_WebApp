@@ -261,9 +261,10 @@ export default function TuitionPage() {
                     <div class="invoice-details">
                         <p><strong>Học viên:</strong> ${selectedFee.studentClass.studentFullName}</p>
                         <p><strong>Lớp:</strong> ${selectedFee.studentClass.className}</p>
-                        <p><strong>Thời gian:</strong> ${formatDate(selectedFee.startDate)} đến ${formatDate(selectedFee.endDate)}</p>
+                        <p><strong>Thời gian:</strong> ${formatDate(selectedFee.startDate)} đến ${formatDate(selectedFee.endDate)} (dự kiến)</p>
                         <p><strong>Số tiền:</strong> ${selectedFee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</p>
                         <p><strong>Trạng thái thanh toán:</strong> ${PaymentStatusText[selectedFee.paymentStatus]}</p>
+                         <p><strong>Hạn chót đóng học phí:</strong> ${selectedFee.deadline}</p>
                     </div>
 
                     <div class="divider"></div>
@@ -407,6 +408,9 @@ export default function TuitionPage() {
                         </div>
                         <div className="text-sm text-gray-600 mb-2">
                             {formatDate(fee.startDate)} đến {formatDate(fee.endDate)}
+                        </div>
+                        <div className="text-sm text-red-600 mb-2">
+                            Hạn chót: {fee.deadline ? formatDate(fee.deadline) : "Không xác định"}
                         </div>
                         <div className="text-sm font-medium mb-2">Lớp: {fee.studentClass.className}</div>
                         <div className="text-sm text-gray-600 mb-2">Học viên: {fee.studentClass.studentFullName}</div>

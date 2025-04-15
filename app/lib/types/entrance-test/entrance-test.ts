@@ -17,6 +17,14 @@ export type EntranceTest = {
     registerStudents: number,
     isAnnouncedScore: boolean,
     isOpen: boolean
+    testStatus: EntranceTestStatus;
+}
+
+export enum EntranceTestStatus
+{
+    NotStarted,
+    OnGoing,
+    Ended
 }
 
 export type CreateEntranceTest = {
@@ -57,7 +65,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         instructorName: "HungDepTrai",
         registerStudents: 20,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.NotStarted
     },
     {
         id: "b",
@@ -71,7 +80,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         instructorName: "HungDepTrai",
         registerStudents: 10,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.OnGoing
     },
     {
         id: "c",
@@ -84,7 +94,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         registerStudents: 15,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.Ended
     },
     {
         id: "d",
@@ -98,7 +109,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         instructorName: "Thien An",
         registerStudents: 5,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.NotStarted
     },
     {
         id: "e",
@@ -112,7 +124,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         instructorName: "Thien An",
         registerStudents: 7,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.NotStarted
     },
     {
         id: "f",
@@ -125,7 +138,8 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         registerStudents: 8,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.NotStarted
     },
     {
         id: "g",
@@ -135,6 +149,7 @@ export const sampleEntranceTests: EntranceTest[] = [
         status: 0,
         registerStudents: 5,
         isAnnouncedScore: true,
-        isOpen: true
+        isOpen: true,
+        testStatus: EntranceTestStatus.NotStarted
     }
 ]

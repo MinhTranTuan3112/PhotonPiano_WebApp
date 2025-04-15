@@ -41,6 +41,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { date, shiftOptions, studentIds } = data;
 
+        console.log({ start: date.from, end: date.to, shiftOptions, studentIds });
+
         const arrangeRequest = {
             startDate: date.from,
             endDate: date.to,
@@ -48,12 +50,14 @@ export async function action({ request }: ActionFunctionArgs) {
             studentIds,
             idToken
         }
-        
+
         const response = await fetchAutoArrangeEntranceTests({ ...arrangeRequest });
 
-        return {
-            success: response.status === 201
-        }
+        return Response.json({
+            success: true
+        }, {
+            status: 200
+        })
 
 
     } catch (error) {
