@@ -28,7 +28,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         const totalImages = imageFiles.length + acceptedFiles.length;
 
         if (totalImages > maxImages) {
-            toast.error(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
+            toast.warning(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
             return;
         }
 
@@ -63,7 +63,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         }
 
         if (imageFiles.length >= maxImages) {
-            toast.error(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
+            toast.warning(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
             return;
         }
 
@@ -90,7 +90,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
 
         } catch (error) {
             console.error('Error fetching image:', error);
-            toast.error('Không thể tải ảnh từ đường link đã nhập.');
+            toast.warning('Không thể tải ảnh từ đường link đã nhập.');
         }
 
     }, [imageFiles, maxImages, setImageUrls]);

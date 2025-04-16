@@ -1,9 +1,10 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useAsyncValue, useLoaderData } from '@remix-run/react';
+import { Await, useAsyncValue, useLoaderData, useLocation, useRouteError } from '@remix-run/react';
 import { Music2 } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
+import { Separator } from '~/components/ui/separator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchEntranceTestStudentDetails } from '~/lib/services/entrance-tests';
 import { Role } from '~/lib/types/account/account';
@@ -165,6 +166,8 @@ function EntranceTestStudentContent() {
 
   const entranceTestStudent = entranceTestStudentValue as EntranceTestStudentDetail;
 
+  const practicalScore = entranceTestStudent.entranceTestResults.reduce((acc, result) => (result.score * result.weight / 100) + acc, 0);
+
   return <div className='mt-8'>
     <div>
       <div className="flex place-content-between">
@@ -263,7 +266,8 @@ function EntranceTestStudentContent() {
                 <thead>
                   <tr className="bg-gradient-to-r from-black to-gray-700 text-white rounded-t-xl">
                     <th className="text-left py-3 px-4 font-medium rounded-tl-xl">Tiêu chí</th>
-                    <th className="text-center py-3 px-4 font-medium rounded-tr-xl">Điểm</th>
+                    <th className="text-center py-3 px-4 font-medium">Điểm</th>
+                    <th className="text-center py-3 px-4 font-medium rounded-tr-xl">Trọng số</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,14 +276,26 @@ function EntranceTestStudentContent() {
                       key={result.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-gray-800 font-medium">{result.criteriaName}</td>
+                      <td className="py-3 px-4 text-gray-800 font-medium">{result.criteria.name}</td>
                       <td className="py-3 px-4 text-center font-bold text-gray-700">
                         {formatScore(result.score)}
                       </td>
+                      <td className="py-3 px-4 text-center font-bold text-gray-700">
+                        {result.weight}%
+                      </td>
                     </tr>
                   ))}
+                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm thực hành &#40;50%&#41;</td>
+                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(practicalScore)}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm lý thuyết &#40;50%&#41;</td>
+                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : '(Chưa có)'}</td>
+                  </tr>
                 </tbody>
               </table>
+
               <div className='mt-4 flex flex-col items-center'>
                 <div className='font-bold text-xl'>
                   <span>Điểm tổng kết : </span>
@@ -314,3 +330,17 @@ function LoadingSkeleton() {
     <Skeleton className="h-[300px] w-full rounded-md" />
   </div>
 }
+
+// export function ErrorBoundary() {
+//   return <div className="flex flex-col justify-center items-center my-24 p-8 bg-gray-200 text-black rounded-lg shadow-lg relative">
+//     {/* Background Images */}
+//     <img src="/images/notes_flows.png" alt="Musical Notes" className="absolute top-0 left-0 opacity-10 w-full" />
+//     <img src="/images/grand_piano_1.png" alt="Grand Piano" className="absolute bottom-0 right-0 opacity-20 w-1/3" />
+
+//     {/* Icon and Heading */}
+//     <div className="flex flex-col items-center relative z-10">
+//       <h1 className="text-xl font-extrabold">Chưa có kết quả</h1>
+//       <h2 className="text-base font-bold mt-2">Bạn vui lòng chờ kết quả thi được công bố nhé</h2>
+//     </div>
+//   </div>
+// }

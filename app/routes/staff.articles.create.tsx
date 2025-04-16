@@ -65,7 +65,7 @@ export default function CreateArticlePage({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === false) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error);
             return;
         }
 
