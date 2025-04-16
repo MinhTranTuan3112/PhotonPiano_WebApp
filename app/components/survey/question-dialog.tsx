@@ -156,8 +156,8 @@ export default function QuestionDialog({
                 reset();
                 setIsOpen(open);
             }}>
-                <DialogContent className="">
-                    <ScrollArea className='h-96 px-4'>
+                <DialogContent className="min-w-[1000px]">
+                    <ScrollArea className='h-[30rem] px-4'>
                         <DialogHeader>
                             <DialogTitle>{isEditing ? 'Cập nhật câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
                             <DialogDescription>

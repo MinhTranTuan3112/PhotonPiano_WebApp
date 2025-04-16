@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchSystemConfigs, fetchUpdateEntranceTestSystemConfig, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_ENTRANCE_TEST_REGISTERING, ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_TEST, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS, MIN_STUDENTS_IN_TEST } from '~/lib/utils/config-name';
+import { ALLOW_ENTRANCE_TEST_REGISTERING, ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_TEST, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS, MIN_STUDENTS_IN_TEST, TEST_FEE } from '~/lib/utils/config-name';
 import { getErrorDetailsInfo } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -130,7 +130,7 @@ export default function AdminSettingsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
+            toast.warning('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
             return;
         }
 
@@ -166,6 +166,7 @@ export default function AdminSettingsPage({ }: Props) {
                                 <EntranceTestConfigForm
                                     fetcher={fetcher}
                                     isSubmitting={isSubmitting}
+                                    testFee={parseInt(configs.find(c => c.configName === TEST_FEE)?.configValue || '100000') || 0}
                                     minStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MIN_STUDENTS_IN_TEST)?.configValue || '1')}
                                     maxStudentsPerEntranceTest={parseInt(configs.find(c => c.configName === MAX_STUDENTS_IN_TEST)?.configValue || '1')}
                                     allowEntranceTestRegistering={configs.find(c => c.configName === ALLOW_ENTRANCE_TEST_REGISTERING)?.configValue === "true" || true}

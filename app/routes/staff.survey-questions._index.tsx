@@ -223,7 +223,7 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error('Có lỗi xảy ra: ' + fetcher.data.error, {
+            toast.warning('Có lỗi xảy ra: ' + fetcher.data.error, {
                 position: 'top-center'
             });
             return;

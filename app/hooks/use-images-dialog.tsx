@@ -95,7 +95,7 @@ export function useImagesDialog({
         }
 
         if (fetcher.data?.success === false) {
-            toast.error(`Upload ảnh thất bại. Vui lòng thử lại sau. ${fetcher.data?.error}`);
+            toast.warning(`Upload ảnh thất bại. Vui lòng thử lại sau. ${fetcher.data?.error}`);
             return;
         }
 

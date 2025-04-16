@@ -8,11 +8,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { Controller } from "react-hook-form";
 import { Switch } from "../ui/switch";
+import { Slider } from "../ui/slider";
 
 export const entranceTestSettingsSchema = z.object({
     minStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
     maxStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
     allowEntranceTestRegistering: z.coerce.boolean(),
+    testFee: z.coerce.number().min(0, { message: 'Lệ phí thi phải lớn hơn hoặc bằng 0' }),
+    theoryPercentage: z.coerce.number().min(0, { message: 'Tỉ lệ lý thuyết phải lớn hơn hoặc bằng 0' }),
+    practicePercentage: z.coerce.number().min(0, { message: 'Tỉ lệ thực hành phải lớn hơn hoặc bằng 0' }),
 });
 
 export type EntranceTestSettingsFormData = z.infer<typeof entranceTestSettingsSchema>;
@@ -29,7 +33,9 @@ export default function EntranceTestConfigForm({
     const { handleSubmit,
         formState: { errors },
         control,
-        register
+        register,
+        setValue: setFormValue,
+        watch
     } = useRemixForm<EntranceTestSettingsFormData & { module: string }>({
         mode: 'onSubmit',
         resolver: zodResolver(entranceTestSettingsSchema.extend({
@@ -37,7 +43,9 @@ export default function EntranceTestConfigForm({
         })),
         defaultValues: {
             module: 'entrance-tests',
-            ...defaultData
+            ...defaultData,
+            theoryPercentage: defaultData.theoryPercentage || 50,
+            practicePercentage: defaultData.practicePercentage || 50
         },
         submitConfig: {
             action: '/admin/settings',
@@ -45,6 +53,10 @@ export default function EntranceTestConfigForm({
         },
         fetcher
     });
+
+    const theoryPercentage = watch('theoryPercentage');
+
+    const practicePercentage = watch('practicePercentage');
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Lưu cấu hình',
@@ -87,6 +99,34 @@ export default function EntranceTestConfigForm({
                         className='max-w-[10%]' />
                 </div>
                 {errors.maxStudentsPerEntranceTest && <p className='text-red-500 text-sm'>{errors.maxStudentsPerEntranceTest.message}</p>}
+
+                <div className="flex flex-row max-w-[30%]">
+                    <Label className='w-[30%] flex items-center'>Lệ phí thi: </Label>
+                    <Input {...register('testFee')}
+                        placeholder='Nhập lệ phí thi...'
+                        type='number' />
+                    <div className="flex items-center ml-1">đ</div>
+                </div>
+                {errors.testFee && <p className='text-red-500 text-sm'>{errors.testFee.message}</p>}
+
+                <div className="max-w-[50%]">
+                    <h1 className="text-base font-bold">Tỉ trọng điểm thi:</h1>
+                    <br />
+                    <div className="flex justify-between mb-2">
+                        <div className="text-center">
+                            <div className="text-2xl font-bold">{theoryPercentage}%</div>
+                            <div className="text-sm text-muted-foreground">Lý thuyết</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-bold">{100 - theoryPercentage}%</div>
+                            <div className="text-sm text-muted-foreground">Thực hành</div>
+                        </div>
+                    </div>
+                    <Slider value={[theoryPercentage]} max={100} step={1} onValueChange={(value) => {
+                        setFormValue('theoryPercentage', value[0]);
+                        setFormValue('practicePercentage', 100 - value[0]);
+                    }}/>
+                </div>
 
                 <div className="my-2">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}

@@ -128,7 +128,7 @@ export default function SignInPage({ }: Props) {
     useEffect(() => {
 
         if (actionData?.success === false && actionData?.error) {
-            toast.error(actionData?.error, {
+            toast.warning(actionData?.error, {
                 position: 'top-center',
             });
             return;
@@ -228,7 +228,7 @@ export default function SignInPage({ }: Props) {
 
                     <div className="mt-4 text-center">
                         Chưa có tài khoản?
-                        <Link className={`${buttonVariants({ variant: "linkHover2" })} uppercase`} to={'/sign-up'}>Đăng ký ngay</Link>
+                        <Link className={`${buttonVariants({ variant: "linkHover2" })} uppercase`} to={'/entrance-survey'}>Đăng ký ngay</Link>
                     </div>
 
                 </div>
