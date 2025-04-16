@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Criteria } from "../criteria/criteria";
 
 export type EntranceTestResult = {
     id: string,
@@ -8,6 +9,11 @@ export type EntranceTestResult = {
     weight: number;
     score: number
 }
+
+export type EntranceTestResultWithCriteria = EntranceTestResult & {
+    criteria: Criteria;
+}
+
 export type UpdateEntranceTestResult = Omit<EntranceTestResult, 'criteriaId' | 'score'>
     & Partial<Pick<EntranceTestResult, 'criteriaId' | 'score'>>;
 

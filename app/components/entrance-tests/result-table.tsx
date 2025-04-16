@@ -13,7 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Form, useFetcher, useLoaderData } from '@remix-run/react';
+import { Form, useFetcher, useLoaderData, useNavigate } from '@remix-run/react';
 import { UpdateEntranceTestResultsFormData, updateEntranceTestResultsSchema } from '~/lib/types/entrance-test/entrance-test-result';
 import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -79,13 +79,6 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         }
     },
     {
-        accessorKey: 'SĐT',
-        header: 'SĐT',
-        cell: ({ row }) => {
-            return <div>{row.original.student.phone}</div>
-        }
-    },
-    {
         accessorKey: 'Tên học viên',
         header: 'Tên học viên',
         cell: ({ row }) => {
@@ -140,6 +133,8 @@ function ActionDropdown({ row }: {
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
+    const navigate = useNavigate();
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -151,7 +146,7 @@ function ActionDropdown({ row }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/staff/students/${row.original.studentFirebaseId}`)}>
                     <User /> Xem thông tin
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
@@ -258,6 +253,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         if (fetcher.data?.success === false && fetcher.data?.error) {
             toast.warning(fetcher.data?.error, {
                 position: 'top-center',
+                duration: 5000
             });
             return;
         }
@@ -273,36 +269,24 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
     return <>
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
-            <DialogContent>
+            <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
-                    <DialogTitle>Chi tiết kết quả thi đầu vào</DialogTitle>
+                    <DialogTitle>Chi tiết kết quả thi đầu vào piano</DialogTitle>
                     <DialogDescription>
-                        Thông tin chi tiết về kết quả thi đầu vào của học viên <strong>{entranceTestStudent.fullName}</strong>.
+                        Thông tin chi tiết về kết quả thi đầu vào piano của học viên <strong>{entranceTestStudent.student.fullName}</strong>.
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
                     <Form method='POST' className='flex flex-col gap-3 px-4 w-full' navigate={false}>
                         <div className="">
                             <div className="">
-                                <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét của giảng viên:</Label>
+                                <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét:</Label>
                                 {role === Role.Instructor ? <Textarea {...register('instructorComment')}
                                     id='instructorComment'
                                     placeholder='Nhập nhận xét của giảng viên...'
                                     readOnly={role !== Role.Instructor} /> : <p>{entranceTestStudent.instructorComment}</p>}
                             </div>
                             {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
-                        </div>
-                        <div className="">
-                            <div className="">
-                                <Label htmlFor='theoraticalScore'>Điểm lý thuyết</Label>
-                                <Input {...register('theoraticalScore')}
-                                    type='number'
-                                    id='theoraticalScore'
-                                    placeholder='Nhập điểm lý thuyết...'
-                                    readOnly={role !== Role.Staff}
-                                    step={'any'} />
-                            </div>
-                            {errors.theoraticalScore && <div className="text-red-600">{errors.theoraticalScore.message}</div>}
                         </div>
                         <Table>
                             <TableCaption>Chi tiết điểm số.</TableCaption>
@@ -321,7 +305,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 </TableRow> : getValues().scores.map((result, index) => (
                                     <TableRow key={result.id} className='w-full'>
                                         <TableCell>{result.criteriaName}</TableCell>
-                                        <TableCell className='font-bold text-center'>
+                                        <TableCell className='font-bold'>
                                             {role === Role.Instructor ? <Input
                                                 defaultValue={result.score}
                                                 type='number'
@@ -330,19 +314,40 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                     const newScore = Number.parseFloat(e.target.value);
                                                     setValue(`scores.${index}.score`, newScore);
                                                 }}
-                                                readOnly={role !== Role.Instructor} /> : result.score}
+                                                readOnly={role !== Role.Instructor} /> :  
+                                                result.score ? formatScore(result.score) : '(Chưa có)'}
 
                                         </TableCell>
-                                        <TableCell className='text-center'>{result.weight}%</TableCell>
+                                        <TableCell className=''>{result.weight}%</TableCell>
                                     </TableRow>
                                 ))}
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm thực hành:</TableCell>
-                                    <TableCell colSpan={2} className='font-bold text-center'>{formatScore(practicalScore)}</TableCell>
+                                    <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
+                                    <TableCell>50%</TableCell>
                                 </TableRow>
                                 <TableRow>
+                                    <TableCell className='font-bold'>Điểm lý thuyết:</TableCell>
+                                    <TableCell className='font-bold'>
+                                        {role === Role.Staff ? <>
+                                            <Input {...register('theoraticalScore')}
+                                                type='number'
+                                                id='theoraticalScore'
+                                                placeholder='Nhập điểm lý thuyết...'
+                                                readOnly={role !== Role.Staff}
+                                                step={'any'}
+                                                className='' />
+                                            {errors.theoraticalScore && <div className="text-red-600 text-sm">{errors.theoraticalScore.message}</div>}
+                                        </> : <div>
+                                            {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
+                                        </div>}
+                                    </TableCell>
+                                    <TableCell>50%</TableCell>
+                                </TableRow>
+
+                                <TableRow>
                                     <TableCell className='font-bold text-red-600'>Điểm trung bình tổng:</TableCell>
-                                    <TableCell colSpan={2} className='font-bold text-center text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : 'Chưa có'}</TableCell>
+                                    <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : 'Chưa có'}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold'>Level được xếp:</TableCell>
