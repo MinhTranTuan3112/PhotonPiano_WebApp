@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { fetchDeleteStudentFromTest } from "~/lib/services/entrance-tests";
+import { fetchAddStudentsToEntranceTest } from "~/lib/services/entrance-tests";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
@@ -15,24 +15,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const formData = await request.formData();
 
-        const testId = formData.get('testId') as string;
-        const studentId = formData.get('studentId') as string;
+        const studentIds = formData.getAll('studentIds') as string[];
 
-        if (!testId) {
-            return Response.json({
-                success: false,
-                error: 'Test ID is required'
-            })
-        }
+        const entranceTestId = formData.get('entranceTestId') as string;
 
-        if (!studentId) {
-            return Response.json({
-                success: false,
-                error: 'Student ID is required'
-            })
-        }
-
-        const response = await fetchDeleteStudentFromTest({ entranceTestId: testId, studentId, idToken });
+        const response = await fetchAddStudentsToEntranceTest({
+            idToken,
+            entranceTestId,
+            studentIds
+        });
 
         return Response.json({
             success: true
@@ -54,6 +45,6 @@ export async function action({ request }: ActionFunctionArgs) {
             error: message,
         }, {
             status
-        });
+        })
     }
 }

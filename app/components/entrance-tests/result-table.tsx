@@ -1,4 +1,4 @@
-import { ColumnDef, Row } from '@tanstack/react-table';
+import { ColumnDef, Row, Table as TanstackTable } from '@tanstack/react-table';
 import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
@@ -38,7 +38,7 @@ import { MinimalCriteria } from '~/lib/types/criteria/criteria';
 import { Level, Role } from '~/lib/types/account/account';
 import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
-import { action as actionDeleteStudentFromTest } from '~/routes/remove-student-from-test';
+import { action as deleteStudentsFromTestAction } from '~/routes/remove-students-from-test';
 import { LevelBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
 import { formatScore } from '~/lib/utils/score';
@@ -132,8 +132,8 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
     {
         accessorKey: 'Hành động',
         header: 'Hành động',
-        cell: ({ row }) => {
-            return <ActionDropdown row={row} />
+        cell: ({ row, table }) => {
+            return <ActionDropdown row={row} table={table} />
         }
     }
 ]
@@ -144,12 +144,13 @@ export default function ResultTable({ data }: Props) {
     );
 };
 
-function ActionDropdown({ row }: {
-    row: Row<EntranceTestStudentWithResults>
+function ActionDropdown({ row, table }: {
+    row: Row<EntranceTestStudentWithResults>,
+    table: TanstackTable<EntranceTestStudentWithResults>
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
-    const fetcher = useFetcher<typeof actionDeleteStudentFromTest>();
+    const fetcher = useFetcher<typeof deleteStudentsFromTestAction>();
 
     const isSubmitting = fetcher.state === 'submitting';
 
@@ -163,10 +164,18 @@ function ActionDropdown({ row }: {
         onConfirm: () => {
             const formData = new FormData();
             formData.append('testId', row.original.entranceTestId);
-            formData.append('studentId', row.original.studentFirebaseId);
+
+            const selectedRows = table.getSelectedRowModel().rows;
+
+            const studentIds = selectedRows.length > 0 ? selectedRows.map((row) => row.original.studentFirebaseId) : [row.original.studentFirebaseId];
+
+            studentIds.forEach((studentId) => {
+                formData.append('studentIds', studentId);
+            })
+
             fetcher.submit(formData, {
                 method: 'POST',
-                action: '/remove-student-from-test',
+                action: '/remove-students-from-test',
             });
         }
     })
