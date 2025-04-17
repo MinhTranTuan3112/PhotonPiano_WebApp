@@ -71,7 +71,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
 
             return {
-                entranceTestDetailsPromise
+                entranceTestDetailsPromise,
             }
         });
 
@@ -195,7 +195,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const response = await fetchUpdateEntranceTest(updateRequest);
 
         return Response.json({
-            success: response.status === 204
+            success: true
         }, {
             status: 200
         });
@@ -229,7 +229,7 @@ function StatusBadge({ status }: {
 const resolver = zodResolver(updateEntranceTestSchema);
 
 export function EntranceTestDetailsContent({
-    fetcher, tab, idToken, criterias, role
+    fetcher, tab, idToken, criterias, role,
 }: {
     fetcher: FetcherWithComponents<any>;
     tab: string;
@@ -260,7 +260,7 @@ export function EntranceTestDetailsContent({
                 <StatusBadge status={entranceTest.testStatus} />
             </div>
         </div>
-        <Tabs defaultValue={tab} className="">
+        <Tabs value={tab} className="">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="general" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
@@ -309,9 +309,9 @@ export function EntranceTestDetailsContent({
                             status={entranceTest.status} />
                     </CardFooter>
                 </Card>
+                {importResultDialog}
             </TabsContent>
         </Tabs>
-        {importResultDialog}
     </>
 }
 
@@ -346,7 +346,7 @@ export function EntranceTestForm({
             fetcher
         });
 
-    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+    const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
         title: 'Xác nhận cập nhật ca thi',
         description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
         onConfirm: () => {
@@ -560,12 +560,12 @@ export function EntranceTestForm({
             <CardFooter className='mt-4 flex justify-end w-full'>
                 {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
                     disabled={isSubmitting}
-                    type='button' variant={'theme'} onClick={handleOpenModal}>
+                    type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
                     {isSubmitting ? 'Đang lưu...' : 'Lưu'}
                 </Button>}
             </CardFooter>
         </Form>
-        {confirmDialog}
+        {entranceTestConfirmDialog}
     </>
 }
 
@@ -637,7 +637,7 @@ function PublishScoreSection({
 
     return <>
         <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting} disabled={isSubmitting || status !== EntranceTestStatus.Ended}>
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}>
             {
                 isAnnouncedScore === true ? (
                     <>

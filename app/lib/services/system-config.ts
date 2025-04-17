@@ -2,9 +2,21 @@ import { SurveyConfigFormData } from "~/components/settings/survey-config-form";
 import axiosInstance from "../utils/axios-instance";
 import { EntranceTestSettingsFormData } from "~/components/settings/entrance-test-form";
 
-export async function fetchSystemConfigs({ idToken }: { idToken: string }) {
+export async function fetchSystemConfigs({ idToken, names = [] }: { idToken: string, names?: string[] }) {
 
-    const response = await axiosInstance.get("/system-configs", {
+    let url = "/system-configs";
+
+    if (names.length > 0) {
+        names.forEach((name) => {
+            url += `?names=${name}`;
+
+            if (names[names.length - 1] !== name) {
+                url += "&";
+            }
+        })
+    }
+
+    const response = await axiosInstance.get(url, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }
@@ -54,7 +66,7 @@ export async function fetchUpdateSurveySystemConfig({
 export async function fetchUpdateEntranceTestSystemConfig({
     idToken,
     ...data
- }: {
+}: {
     idToken: string
 } & Partial<EntranceTestSettingsFormData>) {
 

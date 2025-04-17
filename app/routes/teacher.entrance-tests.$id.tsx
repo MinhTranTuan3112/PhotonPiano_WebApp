@@ -10,7 +10,7 @@ import { fetchAllMinimalCriterias } from '~/lib/services/criteria'
 import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { Role } from '~/lib/types/account/account'
 import { MinimalCriteria } from '~/lib/types/criteria/criteria'
-import {  updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
+import { updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { requireAuth } from '~/lib/utils/auth'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
@@ -43,7 +43,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
 
             return {
-                entranceTestDetailsPromise
+                entranceTestDetailsPromise,
             }
         });
 

@@ -243,11 +243,29 @@ function LevelsDropdown() {
 
     const levels = data ? data as Level[] : [];
 
-    return isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div> :
-        (<NavigationMenuItem>
-            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
-            <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+    // return isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div> :
+    //     (<NavigationMenuItem>
+    //         <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
+    //         <NavigationMenuContent>
+    //             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+    //                 {levels.map((level, index) => (
+    //                     <ListItem
+    //                         key={level.id}
+    //                         title={level.name}
+    //                         href={'/'}
+    //                     >
+    //                         {level.description}
+    //                     </ListItem>
+    //                 ))}
+    //             </ul>
+    //         </NavigationMenuContent>
+    //     </NavigationMenuItem>)
+
+    return <NavigationMenuItem>
+        <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
+        <NavigationMenuContent>
+            {isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div>
+                : <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                     {levels.map((level, index) => (
                         <ListItem
                             key={level.id}
@@ -257,8 +275,9 @@ function LevelsDropdown() {
                             {level.description}
                         </ListItem>
                     ))}
-                </ul>
-            </NavigationMenuContent>
-        </NavigationMenuItem>)
+                </ul>}
+
+        </NavigationMenuContent>
+    </NavigationMenuItem>
 
 }

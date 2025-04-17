@@ -35,13 +35,16 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllMinimalCriterias } from '~/lib/services/criteria';
 import { MinimalCriteria } from '~/lib/types/criteria/criteria';
-import { Level, Role } from '~/lib/types/account/account';
+import { Role } from '~/lib/types/account/account';
 import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
+import { action as actionDeleteStudentFromTest } from '~/routes/remove-student-from-test';
 import { LevelBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
-import { Controller } from 'react-hook-form';
 import { formatScore } from '~/lib/utils/score';
+import { fetchSystemConfigs } from '~/lib/services/system-config';
+import { PRACTICE_PERCENTAGE, THEORY_PERCENTAGE } from '~/lib/utils/config-name';
+import { SystemConfig } from '~/lib/types/config/system-config';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -113,6 +116,15 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         }
     },
     {
+        accessorKey: 'Level',
+        header: 'Level',
+        cell: ({ row }) => {
+            return row.original.level ? <LevelBadge level={row.original.level} /> : <div className="">
+                Chưa có
+            </div>
+        }
+    },
+    {
         accessorKey: 'Hành động',
         header: 'Hành động',
         cell: ({ row }) => {
@@ -122,7 +134,6 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
 ]
 
 export default function ResultTable({ data }: Props) {
-
     return (
         <DataTable columns={resultTableColumns} data={data} />
     );
@@ -133,7 +144,47 @@ function ActionDropdown({ row }: {
 }) {
     const [isOpen, setIsOpen] = useState(false);
 
+    const fetcher = useFetcher<typeof actionDeleteStudentFromTest>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
     const navigate = useNavigate();
+
+    const { open: handleDeleteConfirmDialog, dialog: confirmDeleteDialog } = useConfirmationDialog({
+        title: `Xác nhận xóa học viên ${row.original.student.fullName || row.original.student.email} khỏi ca thi?`,
+        description: 'Bạn có chắc chắn muốn xóa học viên này khỏi ca thi không?',
+        confirmText: 'Xóa',
+        confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
+        onConfirm: () => {
+            const formData = new FormData();
+            formData.append('testId', row.original.entranceTestId);
+            formData.append('studentId', row.original.studentFirebaseId);
+            fetcher.submit(formData, {
+                method: 'POST',
+                action: '/remove-student-from-test',
+            });
+        }
+    })
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Xóa học viên khỏi ca thi thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data?.error) {
+            toast.warning(fetcher.data?.error, {
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
 
     return <>
         <DropdownMenu>
@@ -152,12 +203,14 @@ function ActionDropdown({ row }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
                     <Pencil /> Chỉnh sửa điểm số
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer">
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleDeleteConfirmDialog}
+                    disabled={isSubmitting}>
                     <Trash2 /> Xóa khỏi ca thi
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
         <ResultDetailsDialog entranceTestStudent={row.original} isOpen={isOpen} setIsOpen={setIsOpen} />
+        {confirmDeleteDialog}
     </>
 }
 
@@ -187,6 +240,26 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         refetchOnWindowFocus: false
     });
 
+    const { data: percentageData, isLoading: isFetchingScorePercentages } = useQuery({
+        queryKey: ['entrance-test-score-percentage', idToken],
+        queryFn: async () => {
+            const response = await fetchSystemConfigs({
+                idToken,
+                names: [THEORY_PERCENTAGE, PRACTICE_PERCENTAGE]
+            });
+
+            return await response.data;
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
+    });
+
+    const percentageConfigs = percentageData ? percentageData as SystemConfig[] : [];
+
+    const theoryPercentage = parseInt(percentageConfigs.find(config => config.configName === THEORY_PERCENTAGE)?.configValue || '50') || 50;
+
+    const practicePercentage = parseInt(percentageConfigs.find(config => config.configName === PRACTICE_PERCENTAGE)?.configValue || '50') || 50;
+
     const results = entranceTestStudent.entranceTestResults;
 
     const criterias: MinimalCriteria[] = data || [];
@@ -205,19 +278,21 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             studentId: entranceTestStudent.studentFirebaseId,
             entranceTestStudentId: entranceTestStudent.id,
             bandScore: entranceTestStudent.bandScore,
-            instructorComment: entranceTestStudent.instructorComment || '(Chưa có)',
+            instructorComment: entranceTestStudent.instructorComment || undefined,
             theoraticalScore: entranceTestStudent.theoraticalScore,
             scores: results.length > 0 ? results.map(result => ({
                 id: result.id,
                 criteriaId: result.criteriaId,
-                criteriaName: result.criteriaName,
+                criteriaName: result.criteria.name,
+                criteriaDescription: result.criteria.description || '',
                 weight: result.weight,
                 score: result.score
             })) : []
         },
         fetcher,
         submitConfig: {
-            action: '/update-entrance-test-results'
+            action: '/update-entrance-test-results',
+            method: 'POST',
         },
         stringifyAllValues: false
     });
@@ -226,6 +301,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         title: 'Xác nhận cập nhật kết quả ca thi',
         description: 'Bạn có chắc chắn muốn cập nhật kết quả ca thi này không?',
         onConfirm: () => {
+            console.log({ errors });
             handleSubmit();
         }
     });
@@ -237,6 +313,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                 id: criteria.id,
                 criteriaId: criteria.id,
                 criteriaName: criteria.name,
+                criteriaDescription: criteria.description || '',
                 score: 0,
                 weight: criteria.weight
             })));
@@ -252,7 +329,6 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
             toast.warning(fetcher.data?.error, {
-                position: 'top-center',
                 duration: 5000
             });
             return;
@@ -277,7 +353,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
-                    <Form method='POST' className='flex flex-col gap-3 px-4 w-full' navigate={false}>
+                    <Form method='POST' action='/update-entrance-test-results' className='flex flex-col gap-3 px-4 w-full' navigate={false}>
                         <div className="">
                             <div className="">
                                 <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét:</Label>
@@ -304,7 +380,10 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     </TableCell>
                                 </TableRow> : getValues().scores.map((result, index) => (
                                     <TableRow key={result.id} className='w-full'>
-                                        <TableCell>{result.criteriaName}</TableCell>
+                                        <TableCell className='flex flex-col gap-2'>
+                                            <p className="">{result.criteriaName}</p>
+                                            <p className="text-sm text-muted-foreground">{result.criteriaDescription}</p>
+                                        </TableCell>
                                         <TableCell className='font-bold'>
                                             {role === Role.Instructor ? <Input
                                                 defaultValue={result.score}
@@ -314,7 +393,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                     const newScore = Number.parseFloat(e.target.value);
                                                     setValue(`scores.${index}.score`, newScore);
                                                 }}
-                                                readOnly={role !== Role.Instructor} /> :  
+                                                readOnly={role !== Role.Instructor} /> :
                                                 result.score ? formatScore(result.score) : '(Chưa có)'}
 
                                         </TableCell>
@@ -324,7 +403,9 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm thực hành:</TableCell>
                                     <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
-                                    <TableCell>50%</TableCell>
+                                    <TableCell>
+                                        {isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${practicePercentage}%`}
+                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm lý thuyết:</TableCell>
@@ -342,7 +423,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                             {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
                                         </div>}
                                     </TableCell>
-                                    <TableCell>50%</TableCell>
+                                    <TableCell>{isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${theoryPercentage}%`}</TableCell>
                                 </TableRow>
 
                                 <TableRow>
