@@ -34,6 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
             studentId: data.studentId,
             idToken,
             instructorComment: role === Role.Instructor ? data.instructorComment : undefined,
+            levelId: role === Role.Staff ? data.levelId : undefined,
             theoraticalScore: role === Role.Staff ? data.theoraticalScore : undefined,
             updateScoreRequests: role === Role.Instructor ? data.scores.map(score => {
                 return {

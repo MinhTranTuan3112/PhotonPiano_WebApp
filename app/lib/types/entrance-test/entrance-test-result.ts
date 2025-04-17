@@ -21,6 +21,7 @@ export const updateEntranceTestResultsSchema = z.object({
     id: z.string(),
     studentId: z.string(),
     entranceTestStudentId: z.string(),
+    levelId: z.string().optional(),
     bandScore: z.coerce.number().min(0, { message: 'Điểm tổng phải >= 0' }).max(10, { message: 'Điểm tổng phải <= 10' }),
     theoraticalScore: z.coerce.number().min(0, { message: 'Điểm lý thuyết phải >= 0' }).max(10, { message: 'Điểm lý thuyết phải <= 10' }),
     instructorComment: z.string().optional(),
