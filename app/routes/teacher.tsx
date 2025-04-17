@@ -98,6 +98,24 @@ function getBreadcrumbPageName({ pathname }: {
             }
             break;
 
+        case pathname.startsWith('/teacher/attendance'):
+            const attendanceParam3 = pathname.replace('/teacher/attendance', "")
+            otherNavItems = [
+                {
+                    name: "Điểm danh",
+                    url: '/teacher/attendance',
+                    isCurrentPage: attendanceParam3.length === 0
+                }
+            ]
+            if (attendanceParam3.length > 1) {
+                otherNavItems.push({
+                    name: "Chi tiết thông tin điểm danh trong lớp",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+            break;
+
         default:
             break;
     }
@@ -200,6 +218,11 @@ const data = {
                     title: "Danh sách lớp",
                     url: "/teacher/classes",
                 },
+                {
+                    title: "Điểm danh",
+                    url: "/teacher/attendance",
+                },
+
             ],
         }
     ]
