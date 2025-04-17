@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
-import { Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
+import { CirclePlus, Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -33,6 +33,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
+import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
+import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
 
 type Props = {}
 
@@ -283,33 +285,8 @@ export function EntranceTestDetailsContent({
                 </Card>
             </TabsContent>
             <TabsContent value="students">
-                <Card className="">
-                    <CardHeader>
-                        <CardTitle>Danh sách học viên</CardTitle>
-                        <CardDescription>Danh sách học viên trong ca thi.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="my-8">
-                            <div className="flex justify-end">
-                                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
-                                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
-                            </div>
-                            <ResultTable data={entranceTest.entranceTestStudents} />
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
-                        {
-                            (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
-                                <Button className='px-12' variant={"destructive"}>
-                                    <Trash className='mr-2' /> Xóa ca thi này
-                                </Button>
-                            )
-                        }
-                        <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
-                            status={entranceTest.status} />
-                    </CardFooter>
-                </Card>
-                {importResultDialog}
+                <StudentsSection entranceTest={entranceTest} criterias={criterias} role={role}
+                    idToken={idToken} />
             </TabsContent>
         </Tabs>
     </>
@@ -566,6 +543,107 @@ export function EntranceTestForm({
             </CardFooter>
         </Form>
         {entranceTestConfirmDialog}
+    </>
+}
+
+function StudentsSection({
+    entranceTest,
+    criterias,
+    role,
+    idToken
+}: {
+    entranceTest: EntranceTestDetail,
+    criterias: MinimalCriteria[],
+    role: Role;
+    idToken: string;
+}) {
+
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role
+    });
+
+    const fetcher = useFetcher<typeof addStudentsToTestAction>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { handleOpen: handleOpenStudentListDialog, studentsListDialog } = useStudentListDialog({
+        entranceTest,
+        idToken,
+        onStudentsAdded: (students) => {
+            const formData = new FormData();
+
+            students.forEach((student) => {
+                formData.append('studentIds', student.accountFirebaseId);
+            })
+
+            formData.append('entranceTestId', entranceTest.id);
+
+            fetcher.submit(formData, {
+                action: '/add-students-to-test',
+                method: "POST"
+            });
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Thêm học viên vào ca thi thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+    return <>
+        <Card className="">
+            <CardHeader>
+                <CardTitle>Danh sách học viên</CardTitle>
+                <CardDescription>Danh sách học viên trong ca thi.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="my-8">
+                    {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
+                        <Button type='button' variant={'outline'}
+                            Icon={CirclePlus} iconPlacement='left'
+                            disabled={isSubmitting} isLoading={isSubmitting}>
+                            Thêm học viên
+                        </Button>
+                    </div>}
+
+                    <div className="flex justify-end">
+                        <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                            Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
+                    </div>
+                    <ResultTable data={entranceTest.entranceTestStudents} />
+                </div>
+            </CardContent>
+            <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
+                {
+                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
+                        <Button className='px-12' variant={"destructive"}>
+                            <Trash className='mr-2' /> Xóa ca thi này
+                        </Button>
+                    )
+                }
+                <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
+                    status={entranceTest.status} />
+            </CardFooter>
+        </Card>
+        {importResultDialog}
+        {studentsListDialog}
     </>
 }
 

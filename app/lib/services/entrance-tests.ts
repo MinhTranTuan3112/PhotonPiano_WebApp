@@ -187,6 +187,33 @@ export async function fetchDeleteStudentFromTest({
     return response;
 }
 
+export async function fetchDeleteStudentsFromTest({
+    idToken, entranceTestId, studentIds
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentIds: string[]
+}) {
+
+    let url = `/entrance-tests/${entranceTestId}/students?`;
+
+    studentIds.forEach(studentId => {
+        url += `studentIds=${studentId}`;
+
+        if (studentId !== studentIds[studentIds.length - 1]) {
+            url += '&';
+        }
+    })
+
+    const response = await axiosInstance.delete(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+
 export async function fetchUpdateStudentsEntranceTestResults({
     idToken, entranceTestId, ...data
 }: {
@@ -200,4 +227,22 @@ export async function fetchUpdateStudentsEntranceTestResults({
     });
 
     return response;
+}
+
+export async function fetchAddStudentsToEntranceTest({
+    idToken, entranceTestId, studentIds
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentIds: string[]
+}) {
+
+    const response = await axiosInstance.post(`/entrance-tests/${entranceTestId}/students`, { studentIds }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+
 }
