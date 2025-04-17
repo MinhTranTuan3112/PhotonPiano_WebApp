@@ -84,14 +84,14 @@ function getBreadcrumbPageName({ pathname }: {
             const attendanceParam = pathname.replace('/teacher/scheduler', "")
             otherNavItems = [
                 {
-                    name: "Lịch dạy của tôi",
+                    name: "My teaching schedule",
                     url: '/teacher/scheduler',
                     isCurrentPage: attendanceParam.length === 0
                 }
             ]
             if (attendanceParam.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết thông tin điểm danh trong lớp",
+                    name: "Class attendance details",
                     url: pathname,
                     isCurrentPage: true
                 })
@@ -102,14 +102,14 @@ function getBreadcrumbPageName({ pathname }: {
             const attendanceParam3 = pathname.replace('/teacher/attendance', "")
             otherNavItems = [
                 {
-                    name: "Điểm danh",
+                    name: "Attendance",
                     url: '/teacher/attendance',
                     isCurrentPage: attendanceParam3.length === 0
                 }
             ]
             if (attendanceParam3.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết thông tin điểm danh trong lớp",
+                    name: "Detailed attendance information in class",
                     url: pathname,
                     isCurrentPage: true
                 })
@@ -207,7 +207,7 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Lịch dạy của tôi",
+                    title: "Schedule",
                     url: "/teacher/scheduler",
                 },
                 {
@@ -219,7 +219,7 @@ const data = {
                     url: "/teacher/classes",
                 },
                 {
-                    title: "Điểm danh",
+                    title: "Attendance",
                     url: "/teacher/attendance",
                 },
 
