@@ -2,7 +2,7 @@ import { ColumnDef, Row } from '@tanstack/react-table';
 import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
-import { ArrowUpDown, Loader2, MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
+import { ArrowUpDown, Loader2, MoreHorizontal, Pencil, PencilLine, Trash2, User, X } from 'lucide-react';
 import { DataTable } from '../ui/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import {
@@ -35,7 +35,7 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllMinimalCriterias } from '~/lib/services/criteria';
 import { MinimalCriteria } from '~/lib/types/criteria/criteria';
-import { Role } from '~/lib/types/account/account';
+import { Level, Role } from '~/lib/types/account/account';
 import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
 import { action as actionDeleteStudentFromTest } from '~/routes/remove-student-from-test';
@@ -45,6 +45,11 @@ import { formatScore } from '~/lib/utils/score';
 import { fetchSystemConfigs } from '~/lib/services/system-config';
 import { PRACTICE_PERCENTAGE, THEORY_PERCENTAGE } from '~/lib/utils/config-name';
 import { SystemConfig } from '~/lib/types/config/system-config';
+import { Control, Controller } from 'react-hook-form';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
+import { fetchLevels } from '~/lib/services/level';
+import { Badge } from '../ui/badge';
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -279,6 +284,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             entranceTestStudentId: entranceTestStudent.id,
             bandScore: entranceTestStudent.bandScore,
             instructorComment: entranceTestStudent.instructorComment || undefined,
+            levelId: entranceTestStudent.levelId || undefined,
             theoraticalScore: entranceTestStudent.theoraticalScore,
             scores: results.length > 0 ? results.map(result => ({
                 id: result.id,
@@ -347,7 +353,14 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
             <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
-                    <DialogTitle>Chi tiết kết quả thi đầu vào piano</DialogTitle>
+                    <DialogTitle className='flex flex-row justify-between mr-4'>
+                        <div className="">Chi tiết kết quả thi đầu vào piano</div>
+                        <div className="">
+                            <Badge variant={'outline'} className={`uppercase ${entranceTestStudent.isScoreAnnounced ? 'text-green-600' : 'text-gray-500'}`}>
+                                {entranceTestStudent.isScoreAnnounced === true ? 'Đã công bố' : 'Chưa công bố'}
+                            </Badge>
+                        </div>
+                    </DialogTitle>
                     <DialogDescription>
                         Thông tin chi tiết về kết quả thi đầu vào piano của học viên <strong>{entranceTestStudent.student.fullName}</strong>.
                     </DialogDescription>
@@ -365,7 +378,13 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                             {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
                         </div>
                         <Table>
-                            <TableCaption>Chi tiết điểm số.</TableCaption>
+                            <TableCaption>
+                                Chi tiết điểm số bài thi piano
+                                {entranceTestStudent.updatedAt &&
+                                    <div className='font-bold'>
+                                        &#40;Cập nhật lần cuối: {formatRFC3339ToDisplayableDate(entranceTestStudent.updatedAt, false)}&#41;
+                                    </div>}
+                            </TableCaption>
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tiêu chí đánh giá</TableHead>
@@ -433,7 +452,8 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 <TableRow>
                                     <TableCell className='font-bold'>Level được xếp:</TableCell>
                                     <TableCell colSpan={2}>
-                                        <LevelBadge level={entranceTestStudent.level} />
+                                        <LevelSection initialLevel={entranceTestStudent.level} control={control}
+                                            levelAdjustedAt={entranceTestStudent.levelAdjustedAt} />
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -451,4 +471,70 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         </Dialog>
         {confirmDialog}
     </>
+}
+
+function LevelSection({
+    initialLevel,
+    levelAdjustedAt,
+    control
+}: {
+    initialLevel?: Level;
+    levelAdjustedAt?: string;
+    control: Control<UpdateEntranceTestResultsFormData>;
+}) {
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['levels'],
+        queryFn: async () => {
+            const response = await fetchLevels();
+
+            return await response.data;
+        },
+        enabled: true,
+        refetchOnWindowFocus: false,
+    });
+
+    const levels = data ? data as Level[] : [];
+
+    const [isEdit, setIsEdit] = useState(false);
+
+    return <div className="flex flex-row gap-4">
+
+        <div className="w-full flex flex-col gap-3 items-center">
+            {isEdit ? <Controller
+                control={control}
+                name='levelId'
+                render={({ field: { value, onChange } }) => (
+                    <Select value={value} onValueChange={onChange}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Chọn level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                <SelectLabel>Level</SelectLabel>
+                                {isLoading ? <Loader2 className='animate-spin' /> : isError ? <div className="text-red-600">Có lỗi xảy ra khi tải level</div> : levels.map((level, index) => (
+                                    <SelectItem key={index} value={level.id}>
+                                        <LevelBadge level={level} />
+                                    </SelectItem>
+                                ))}
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                )}
+            />
+                : <LevelBadge level={initialLevel} />}
+
+            {levelAdjustedAt &&
+                <p className='font-bold'>
+                    &#40;Đã cập nhật level vào {formatRFC3339ToDisplayableDate(levelAdjustedAt, false)}&#41;
+                </p>
+            }
+        </div>
+
+        {initialLevel && <Button type='button' size={'icon'} variant={'outline'} className=''
+            onClick={() => setIsEdit(!isEdit)}>
+            {!isEdit ? <PencilLine /> : <X className='text-red-600' />}
+        </Button>}
+
+    </div>
 }

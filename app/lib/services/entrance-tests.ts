@@ -136,6 +136,7 @@ export async function fetchUpdateEntranceTestResults({
     id: string,
     studentId: string,
     instructorComment?: string,
+    levelId?: string,
     theoraticalScore?: number,
     updateScoreRequests?: {
         criteriaId: string,
