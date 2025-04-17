@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
-import { redirect, useLoaderData, useNavigate } from "@remix-run/react"
+import { redirect, useLoaderData } from "@remix-run/react"
 import { motion } from "framer-motion"
 import {
     AlertTriangle,
@@ -164,7 +164,9 @@ const AttendancePage = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [showExcelHelpDialog, setShowExcelHelpDialog] = useState(false);
 
-    const navigate = useNavigate()
+    const navigate = (url: string) => {
+        window.location.href = url;
+    }
 
     useEffect(() => {
         if (slotStudent && slotStudent.length > 0) {
@@ -204,7 +206,7 @@ const AttendancePage = () => {
     }, [attendanceData])
 
 
-    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value: any) => {
+    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value) => {
         setAttendanceData((prev) =>
             prev.map((student) => {
                 if (student.studentFirebaseId === studentId) {
@@ -310,7 +312,7 @@ const AttendancePage = () => {
         try {
             const attendanceRequest = prepareAttendanceRequest();
             await fetchUpdateAttendanceStatus(attendanceRequest.SlotId, attendanceRequest.SlotStudentInfoRequests, idToken);
-            navigate(-1);
+            navigate('/teacher/attendance');
         } catch (error: any) {
             console.error("Error updating attendance:", error);
             alert("Failed to update attendance: " + error.message);
@@ -473,11 +475,12 @@ const AttendancePage = () => {
             <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <Button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/teacher/scheduler')}
                         className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-lg"
                     >
                         Quay lại
                     </Button>
+                    
                     <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-6 text-center text-blue-700 flex items-center justify-center">
                         <Music className="w-6 h-6 md:w-8 md:h-8 mr-2 text-blue-600" />
                         Điểm danh lớp Piano
@@ -582,96 +585,96 @@ const AttendancePage = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden">
                             <thead>
-                                <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
-                                    <th className="py-2 px-2 md:py-3 md:px-4 w-16 md:w-20 text-center"></th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-left">Email</th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-left">Họ và tên</th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-center">Điểm danh</th>
-                                </tr>
+                            <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
+                                <th className="py-2 px-2 md:py-3 md:px-4 w-16 md:w-20 text-center"></th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-left">Email</th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-left">Họ và tên</th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-center">Điểm danh</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {sortedAttendanceData.map((detail) => (
-                                    <motion.tr
-                                        key={detail.studentFirebaseId}
-                                        className={`bg-white/90 ${detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""} ${flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""
-                                            } ${highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""}`}
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.05 }}
-                                    >
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-center">
-                                            <div className="relative">
-                                                <img
-                                                    src={detail.studentAccount.avatarUrl || '/images/noavatar.png'}
-                                                    alt="Student Avatar"
-                                                    className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
-                                            {detail.studentAccount.email}
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
-                                            {detail.studentAccount.fullName}
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-center">
-                                            <div className="flex flex-col md:flex-row gap-2">
-                                                <Button
-                                                    onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
-                                                    variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
-                                                    className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 1
-                                                        ? "bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    <Check size={14} className="mr-1 md:mr-2" /> Có mặt
-                                                </Button>
-                                                <Button
-                                                    onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
-                                                    variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
-                                                    className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 2
-                                                        ? "bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    <UserX size={14} className="mr-1 md:mr-2" /> Vắng mặt
-                                                </Button>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                onClick={() => handleOpenDetails(detail.studentFirebaseId)}
-                                                                variant="secondary"
-                                                                className={`w-full text-xs md:text-sm relative ${hasAdditionalData(detail)
-                                                                    ? "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
-                                                                    : ""
-                                                                    }`}
-                                                            >
-                                                                <Eye size={14} className="mr-1 md:mr-2" /> Xem chi tiết
-                                                                {hasAdditionalData(detail) && (
-                                                                    <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-1.5">
-                                                                        <FileText size={10} className="mr-1" />
-                                                                        {getDataIndicators(detail).length}
-                                                                    </Badge>
-                                                                )}
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        {hasAdditionalData(detail) && (
-                                                            <TooltipContent>
-                                                                <p className="font-semibold text-xs mb-1">Dữ liệu có sẵn:</p>
-                                                                <ul className="text-xs list-disc pl-4">
-                                                                    {getDataIndicators(detail).map((indicator, idx) => (
-                                                                        <li key={idx}>{indicator}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </TooltipContent>
-                                                        )}
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
+                            {sortedAttendanceData.map((detail) => (
+                                <motion.tr
+                                    key={detail.studentFirebaseId}
+                                    className={`bg-white/90 ${detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""} ${flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""
+                                    } ${highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""}`}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                >
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-center">
+                                        <div className="relative">
+                                            <img
+                                                src={detail.studentAccount.avatarUrl || '/images/noavatar.png'}
+                                                alt="Student Avatar"
+                                                className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
+                                            />
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
+                                        {detail.studentAccount.email}
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
+                                        {detail.studentAccount.fullName}
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-center">
+                                        <div className="flex flex-col md:flex-row gap-2">
+                                            <Button
+                                                onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
+                                                variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
+                                                className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 1
+                                                    ? "bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                }`}
+                                            >
+                                                <Check size={14} className="mr-1 md:mr-2" /> Có mặt
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
+                                                variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
+                                                className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 2
+                                                    ? "bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                }`}
+                                            >
+                                                <UserX size={14} className="mr-1 md:mr-2" /> Vắng mặt
+                                            </Button>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            onClick={() => handleOpenDetails(detail.studentFirebaseId)}
+                                                            variant="secondary"
+                                                            className={`w-full text-xs md:text-sm relative ${hasAdditionalData(detail)
+                                                                ? "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
+                                                                : ""
+                                                            }`}
+                                                        >
+                                                            <Eye size={14} className="mr-1 md:mr-2" /> Xem chi tiết
+                                                            {hasAdditionalData(detail) && (
+                                                                <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-1.5">
+                                                                    <FileText size={10} className="mr-1" />
+                                                                    {getDataIndicators(detail).length}
+                                                                </Badge>
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    {hasAdditionalData(detail) && (
+                                                        <TooltipContent>
+                                                            <p className="font-semibold text-xs mb-1">Dữ liệu có sẵn:</p>
+                                                            <ul className="text-xs list-disc pl-4">
+                                                                {getDataIndicators(detail).map((indicator, idx) => (
+                                                                    <li key={idx}>{indicator}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                    </td>
+                                </motion.tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
@@ -701,13 +704,13 @@ const AttendancePage = () => {
                                             />
                                             <Badge
                                                 className={`absolute -bottom-1 -right-1 ${sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                    1
+                                                1
                                                     ? "bg-emerald-400 hover:bg-emerald-500"
                                                     : "bg-orange-400 hover:bg-orange-500"
-                                                    }`}
+                                                }`}
                                             >
                                                 {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                    1 ? (
+                                                1 ? (
                                                     <Check className="h-3 w-3" />
                                                 ) : (
                                                     <X className="h-3 w-3" />
@@ -727,23 +730,23 @@ const AttendancePage = () => {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Badge className="bg-white/20 text-white hover:bg-white/30">
                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                        1
+                                                    1
                                                         ? "Có mặt"
                                                         : "Vắng mặt"}
                                                 </Badge>
                                                 {hasAdditionalData(
                                                     sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
                                                 ) && (
-                                                        <Badge className="bg-white/20 text-white hover:bg-white/30">
-                                                            <FileText className="w-3 h-3 mr-1" />
-                                                            {
-                                                                getDataIndicators(
-                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
-                                                                ).length
-                                                            }{" "}
-                                                            ghi chú
-                                                        </Badge>
-                                                    )}
+                                                    <Badge className="bg-white/20 text-white hover:bg-white/30">
+                                                        <FileText className="w-3 h-3 mr-1" />
+                                                        {
+                                                            getDataIndicators(
+                                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
+                                                            ).length
+                                                        }{" "}
+                                                        ghi chú
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -815,7 +818,7 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 1
                                                                         ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                                                                         : "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                                                                        }`}
+                                                                    }`}
                                                                 >
                                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                         .attendanceStatus === 1
@@ -837,7 +840,7 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 1
                                                                         ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                                                         : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                                                                        }`}
+                                                                    }`}
                                                                 >
                                                                     <Check className="w-4 h-4 mr-1" /> Có mặt
                                                                 </Button>
@@ -854,7 +857,7 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 2
                                                                         ? "bg-orange-500 hover:bg-orange-600 text-white"
                                                                         : "border-orange-200 text-orange-700 hover:bg-orange-50"
-                                                                        }`}
+                                                                    }`}
                                                                 >
                                                                     <UserX className="w-4 h-4 mr-1" /> Vắng mặt
                                                                 </Button>
@@ -942,14 +945,14 @@ const AttendancePage = () => {
                                                                     Hình ảnh tư thế:
                                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
                                                                         .length > 0 && (
-                                                                            <Badge className="ml-2 bg-blue-100 text-blue-700">
-                                                                                {
-                                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                        .gestureUrls.length
-                                                                                }{" "}
-                                                                                hình ảnh
-                                                                            </Badge>
-                                                                        )}
+                                                                        <Badge className="ml-2 bg-blue-100 text-blue-700">
+                                                                            {
+                                                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                    .gestureUrls.length
+                                                                            }{" "}
+                                                                            hình ảnh
+                                                                        </Badge>
+                                                                    )}
                                                                 </label>
                                                             </div>
                                                             {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
@@ -970,43 +973,43 @@ const AttendancePage = () => {
                                                                                 {/* Image navigation controls */}
                                                                                 {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                                     .gestureUrls.length > 1 && (
-                                                                                        <>
-                                                                                            <Button
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() =>
-                                                                                                    setCurrentImageIndex((prev) =>
-                                                                                                        prev === 0
-                                                                                                            ? sortedAttendanceData.find(
-                                                                                                                (s) => s.studentFirebaseId === showViewDetails,
-                                                                                                            )!.gestureUrls.length - 1
-                                                                                                            : prev - 1,
-                                                                                                    )
-                                                                                                }
-                                                                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
-                                                                                            >
-                                                                                                <ChevronLeft className="h-4 w-4" />
-                                                                                            </Button>
-                                                                                            <Button
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() =>
-                                                                                                    setCurrentImageIndex((prev) =>
-                                                                                                        prev ===
-                                                                                                            sortedAttendanceData.find(
-                                                                                                                (s) => s.studentFirebaseId === showViewDetails,
-                                                                                                            )!.gestureUrls.length -
-                                                                                                            1
-                                                                                                            ? 0
-                                                                                                            : prev + 1,
-                                                                                                    )
-                                                                                                }
-                                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
-                                                                                            >
-                                                                                                <ChevronRight className="h-4 w-4" />
-                                                                                            </Button>
-                                                                                        </>
-                                                                                    )}
+                                                                                    <>
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="icon"
+                                                                                            onClick={() =>
+                                                                                                setCurrentImageIndex((prev) =>
+                                                                                                    prev === 0
+                                                                                                        ? sortedAttendanceData.find(
+                                                                                                        (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                    )!.gestureUrls.length - 1
+                                                                                                        : prev - 1,
+                                                                                                )
+                                                                                            }
+                                                                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                        >
+                                                                                            <ChevronLeft className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="icon"
+                                                                                            onClick={() =>
+                                                                                                setCurrentImageIndex((prev) =>
+                                                                                                    prev ===
+                                                                                                    sortedAttendanceData.find(
+                                                                                                        (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                    )!.gestureUrls.length -
+                                                                                                    1
+                                                                                                        ? 0
+                                                                                                        : prev + 1,
+                                                                                                )
+                                                                                            }
+                                                                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                        >
+                                                                                            <ChevronRight className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                    </>
+                                                                                )}
                                                                                 {/* Delete button */}
                                                                                 <Button
                                                                                     variant="destructive"
@@ -1020,37 +1023,37 @@ const AttendancePage = () => {
                                                                             {/* Image counter */}
                                                                             {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                                 .gestureUrls.length > 1 && (
-                                                                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
-                                                                                        {currentImageIndex + 1} /{" "}
-                                                                                        {
-                                                                                            sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                                .gestureUrls.length
-                                                                                        }
-                                                                                    </div>
-                                                                                )}
+                                                                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                                                                                    {currentImageIndex + 1} /{" "}
+                                                                                    {
+                                                                                        sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                            .gestureUrls.length
+                                                                                    }
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                         {/* Thumbnail navigation */}
                                                                         {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                             .gestureUrls.length > 1 && (
-                                                                                <div className="flex flex-wrap gap-2 justify-center mt-2 mb-3">
-                                                                                    {sortedAttendanceData
-                                                                                        .find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                        .gestureUrls.map((url, index) => (
-                                                                                            <button
-                                                                                                key={index}
-                                                                                                onClick={() => setCurrentImageIndex(index)}
-                                                                                                className={`w-12 h-12 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? "border-blue-500" : "border-gray-200"
-                                                                                                    }`}
-                                                                                            >
-                                                                                                <img
-                                                                                                    src={url || "/placeholder.svg"}
-                                                                                                    alt={`Thumbnail ${index + 1}`}
-                                                                                                    className="w-full h-full object-cover"
-                                                                                                />
-                                                                                            </button>
-                                                                                        ))}
-                                                                                </div>
-                                                                            )}
+                                                                            <div className="flex flex-wrap gap-2 justify-center mt-2 mb-3">
+                                                                                {sortedAttendanceData
+                                                                                    .find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                    .gestureUrls.map((url, index) => (
+                                                                                        <button
+                                                                                            key={index}
+                                                                                            onClick={() => setCurrentImageIndex(index)}
+                                                                                            className={`w-12 h-12 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? "border-blue-500" : "border-gray-200"
+                                                                                            }`}
+                                                                                        >
+                                                                                            <img
+                                                                                                src={url || "/placeholder.svg"}
+                                                                                                alt={`Thumbnail ${index + 1}`}
+                                                                                                className="w-full h-full object-cover"
+                                                                                            />
+                                                                                        </button>
+                                                                                    ))}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             ) : (
@@ -1062,7 +1065,7 @@ const AttendancePage = () => {
                                                                     </div>
 
                                                                     <Button type="button" Icon={Upload} iconPlacement="left"
-                                                                        variant={'outline'} onClick={handleOpenImageDialog}>
+                                                                            variant={'outline'} onClick={handleOpenImageDialog}>
                                                                         Upload ảnh
                                                                     </Button>
                                                                     {/* <FileUpload
