@@ -36,6 +36,7 @@ import {cn} from "~/lib/utils"
 import {Account, Role} from "~/lib/types/account/account"
 import {fetchSystemConfigSlotCancel} from "~/lib/services/system-config";
 import {CompactSlotView} from "~/components/scheduler/CompactSlotView";
+import {toast} from "sonner";
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -461,14 +462,14 @@ export const Scheduler = ({
                     <div className="flex justify-center items-center mb-6">
                         <h1 className="title text-3xl font-bold text-center text-blue-900 flex items-center">
                             <Music className="w-8 h-8 mr-2 text-indigo-800" />
-                            Lịch học của {classId ? `lớp ${className}` : "Trung tâm"}
+                            Schedule of {classId ? `class ${className}` : "Center"}
                             <Music className="w-8 h-8 ml-2 text-indigo-800" />
                         </h1>
                     </div>
     
                     <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
                         <div className="control flex flex-col mb-4 sm:mb-0">
-                            <span className="mb-1 font-semibold text-indigo-800">Tuần:</span>
+                            <span className="mb-1 font-semibold text-indigo-800">Week:</span>
                             <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
                                 <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
                                     <SelectValue placeholder="Select week" />
@@ -485,7 +486,7 @@ export const Scheduler = ({
                         </div>
     
                         <div className="control flex flex-col">
-                            <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
+                            <span className="mb-1 font-semibold text-indigo-800">Year:</span>
                             <Select value={year.toString()} onValueChange={handleYearChange}>
                                 <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
                                     <SelectValue placeholder="Select year" />
@@ -506,7 +507,7 @@ export const Scheduler = ({
                                 className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                 disabled={isFilterLoading} // Disable while loading
                             >
-                                <Filter className="mr-2 h-4 w-4" /> Bộ lọc
+                                <Filter className="mr-2 h-4 w-4" /> Filter
                             </Button>
                         )}
                     </div>
@@ -543,7 +544,7 @@ export const Scheduler = ({
                                 <TableHeader>
                                     <TableRow className="bg-blue-600 hover:bg-blue-600">
                                         <TableHead className="h-14 text-center text-primary-foreground font-semibold w-32">
-                                            Thời gian
+                                            Shift
                                         </TableHead>
                                         {weekDates.map((date, i) => (
                                             <TableHead
@@ -642,7 +643,7 @@ export const Scheduler = ({
                                                                     </div>
                                                                     {slot.status === SlotStatus.Cancelled && slot.slotNote && (
                                                                         <div className="text-xs mt-2 text-muted-foreground italic">
-                                                                            Lý do hủy: {slot.slotNote}
+                                                                            Cancel Reason: {slot.slotNote}
                                                                         </div>
                                                                     )}
                                                                 </motion.div>
@@ -665,25 +666,25 @@ export const Scheduler = ({
                     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                         <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                             <DialogHeader>
-                                <DialogTitle className="text-indigo-900">Chi tiết tiết học</DialogTitle>
+                                <DialogTitle className="text-indigo-900">Slot Detail</DialogTitle>
                             </DialogHeader>
                             {selectedSlot && (
                                 <div>
                                     <div className="space-y-3 p-6">
                                         <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Phòng:</strong>{" "}
+                                            <strong className="mr-2">Room:</strong>{" "}
                                             <span className="text-indigo-600">{selectedSlot.room?.name}</span>
                                         </p>
                                         <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Lớp:</strong>{" "}
+                                            <strong className="mr-2">Class:</strong>{" "}
                                             <span className="text-indigo-600">{selectedSlot.class?.name}</span>
                                         </p>
                                         <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Tên giáo viên:</strong>{" "}
+                                            <strong className="mr-2">Teacher Name:</strong>{" "}
                                             <span className="text-indigo-600">{selectedSlot.teacher.fullName}</span>
                                         </p>
                                         <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Sĩ số học sinh:</strong>{" "}
+                                            <strong className="mr-2">Number of students:</strong>{" "}
                                             <span className="text-indigo-600">{selectedSlot.numberOfStudents}</span>
                                         </p>
                                         {selectedSlot.slotNote != "" &&
@@ -759,7 +760,7 @@ export const Scheduler = ({
                                                     }
                                                     className="font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                                 >
-                                                    Chi tiết buổi học
+                                                    Slot Detail
                                                 </Button>
     
                                                 <Button
@@ -780,7 +781,7 @@ export const Scheduler = ({
                                                     disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
                                                     className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                                 >
-                                                    Thay đổi giáo viên
+                                                    Change Teacher
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
@@ -794,7 +795,7 @@ export const Scheduler = ({
                                                     }
                                                     className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                                 >
-                                                    Hủy buổi học
+                                                    Cancel Slot
                                                 </Button>
                                             </div>
                                         )}
@@ -809,7 +810,7 @@ export const Scheduler = ({
                             <DialogHeader>
                                 <DialogTitle className="text-xl font-bold text-indigo-900 flex items-center">
                                     <Filter className="w-5 h-5 mr-2 text-indigo-700" />
-                                    Tùy chọn bộ lọc
+                                    Filter options
                                 </DialogTitle>
                             </DialogHeader>
     
@@ -819,11 +820,11 @@ export const Scheduler = ({
                                 filters.instructorFirebaseIds.length > 0 ||
                                 filters.classIds.length > 0) && (
                                 <div className="bg-indigo-50 p-3 rounded-lg mb-4">
-                                    <h3 className="font-medium text-indigo-800 mb-2">Bộ lọc đang áp dụng:</h3>
+                                    <h3 className="font-medium text-indigo-800 mb-2">Application filter: </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {filters.shifts.length > 0 && (
                                             <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1">
-                                                {filters.shifts.length} ca học
+                                                {filters.shifts.length} Shift
                                                 <button
                                                     className="ml-2 text-blue-600 hover:text-blue-800"
                                                     onClick={async () => {
@@ -891,7 +892,7 @@ export const Scheduler = ({
                                         )}
                                         {filters.instructorFirebaseIds.length > 0 && (
                                             <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-200 px-3 py-1">
-                                                {filters.instructorFirebaseIds.length} giảng viên
+                                                {filters.instructorFirebaseIds.length} Teacher
                                                 <button
                                                     className="ml-2 text-purple-600 hover:text-purple-800"
                                                     onClick={async () => {
@@ -925,7 +926,7 @@ export const Scheduler = ({
                                         )}
                                         {filters.classIds.length > 0 && (
                                             <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 px-3 py-1">
-                                                {filters.classIds.length} lớp học
+                                                {filters.classIds.length} Class
                                                 <button
                                                     className="ml-2 text-amber-600 hover:text-amber-800"
                                                     onClick={async () => {
@@ -992,7 +993,7 @@ export const Scheduler = ({
                                                 }
                                             }}
                                         >
-                                            Xóa tất cả
+                                            Remove All
                                         </button>
                                     </div>
                                 </div>
@@ -1003,7 +1004,7 @@ export const Scheduler = ({
                                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                                         <h3 className="font-semibold mb-3 text-blue-800 flex items-center text-base">
                                             <Clock className="w-4 h-4 mr-2 text-blue-700" />
-                                            Ca học
+                                            Shift
                                         </h3>
                                         <div className="grid grid-cols-1 gap-2">
                                             {uniqueShifts.map((value) => (
@@ -1033,7 +1034,7 @@ export const Scheduler = ({
                                     <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                                         <h3 className="font-semibold mb-3 text-green-800 flex items-center text-base">
                                             <Info className="w-4 h-4 mr-2 text-green-700" />
-                                            Trạng thái tiết học
+                                            Slot Statuses
                                         </h3>
                                         <div className="grid grid-cols-1 gap-2">
                                             {uniqueSlotStatuses.map((value) => (
@@ -1067,7 +1068,7 @@ export const Scheduler = ({
                                     <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
                                         <h3 className="font-semibold mb-3 text-purple-800 flex items-center text-base">
                                             <User className="w-4 h-4 mr-2 text-purple-700" />
-                                            Giảng viên
+                                            Teacher
                                         </h3>
                                         <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                                             {uniqueInstructorIds.map((id) => (
@@ -1099,7 +1100,7 @@ export const Scheduler = ({
                                     <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
                                         <h3 className="font-semibold mb-3 text-amber-800 flex items-center text-base">
                                             <Users className="w-4 h-4 mr-2 text-amber-700" />
-                                            Lớp học
+                                            Class
                                         </h3>
                                         <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                                             {uniqueClassIds.map((id) => (
@@ -1136,7 +1137,7 @@ export const Scheduler = ({
                                     disabled={isFilterLoading}
                                 >
                                     <X className="w-4 h-4 mr-1.5" />
-                                    Thiết lập lại
+                                    Reset
                                 </Button>
                                 <Button
                                     onClick={applyFilters}
@@ -1146,12 +1147,12 @@ export const Scheduler = ({
                                     {isFilterLoading ? (
                                         <span className="flex items-center">
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                        Đang áp dụng...
+                        Applying...
                       </span>
                                     ) : (
                                         <span className="flex items-center">
                         <Check className="w-4 h-4 mr-1.5" />
-                        Áp dụng bộ lọc
+                        Apply filter
                       </span>
                                     )}
                                 </Button>
@@ -1172,22 +1173,22 @@ export const Scheduler = ({
                     >
                         <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                             <DialogHeader>
-                                <DialogTitle className="text-indigo-900">Hủy và thay thế buổi học</DialogTitle>
+                                <DialogTitle className="text-indigo-900">Cancel and replace lessons</DialogTitle>
                             </DialogHeader>
                             <div className="p-6">
                                 <p className="text-indigo-800 mb-4">
-                                    Vui lòng nhập lý do hủy và chọn slot thay thế. Nếu không chọn slot thay thế, buổi học sẽ không bị hủy.
+                                    Please enter a reason for cancellation and select an alternative slot. If you do not select an alternative slot, the lesson will not be canceled.
                                 </p>
                                 {selectedSlotToCancel && (
                                     <div className="space-y-2">
                                         <p className="text-indigo-800">
-                                            <strong>Phòng:</strong> <span className="text-indigo-600">{selectedSlotToCancel.room?.name}</span>
+                                            <strong>Room:</strong> <span className="text-indigo-600">{selectedSlotToCancel.room?.name}</span>
                                         </p>
                                         <p className="text-indigo-800">
-                                            <strong>Lớp:</strong> <span className="text-indigo-600">{selectedSlotToCancel.class?.name}</span>
+                                            <strong>Class:</strong> <span className="text-indigo-600">{selectedSlotToCancel.class?.name}</span>
                                         </p>
                                         <p className="text-indigo-800">
-                                            <strong>Thời gian:</strong>{" "}
+                                            <strong>Shift:</strong>{" "}
                                             <span className="text-indigo-600">
                           {shiftTimesMap[selectedSlotToCancel.shift]} - {selectedSlotToCancel.date}
                         </span>
@@ -1196,7 +1197,7 @@ export const Scheduler = ({
                                 )}
                                 <div className="mt-4">
                                     <label htmlFor="cancelReason" className="text-indigo-800 font-semibold">
-                                        Lý do hủy <span className="text-red-500">*</span>
+                                        Reason <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         id="cancelReason"
@@ -1206,14 +1207,14 @@ export const Scheduler = ({
                                         required
                                     >
                                         <option value="" disabled>
-                                            Chọn lý do hủy
+                                            Select reason for cancellation
                                         </option>
                                         {cancelReasons.map((reason, index) => (
                                             <option key={index} value={reason}>
                                                 {reason}
                                             </option>
                                         ))}
-                                        <option value="Khác">Khác</option>
+                                        <option value="Khác">Other</option>
                                     </select>
                                     {isOtherSelected && (
                                         <input
@@ -1221,13 +1222,13 @@ export const Scheduler = ({
                                             value={cancelReason}
                                             onChange={(e) => setCancelReason(e.target.value)}
                                             className="w-full mt-2 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
-                                            placeholder="Nhập lý do hủy buổi học"
+                                            placeholder="Enter reason for canceling the lesson"
                                             required
                                         />
                                     )}
                                 </div>
                                 <div className="mt-4">
-                                    <h3 className="text-indigo-800 font-semibold mb-2">Chọn slot thay thế (bắt buộc để hủy)</h3>
+                                    <h3 className="text-indigo-800 font-semibold mb-2">Select alternative slot (required to cancel)</h3>
                                     {blankSlots.length > 0 ? (
                                         <div className="space-y-2 max-h-60 overflow-y-auto">
                                             {blankSlots.map((slot, index) => {
@@ -1242,11 +1243,11 @@ export const Scheduler = ({
                                                         onClick={() => setSelectedBlankSlot(slot)}
                                                     >
                                                         <p className="text-indigo-800">
-                                                            <strong>Phòng:</strong>{" "}
+                                                            <strong>Room:</strong>{" "}
                                                             <span className="text-indigo-600">{slot.roomName || slot.roomId}</span>
                                                         </p>
                                                         <p className="text-indigo-800">
-                                                            <strong>Thời gian:</strong>{" "}
+                                                            <strong>Shift:</strong>{" "}
                                                             <span className="text-indigo-600">
                                   {shiftTimesMap[slot.shift]} - {slotDate}
                                 </span>
@@ -1256,7 +1257,7 @@ export const Scheduler = ({
                                             })}
                                         </div>
                                     ) : (
-                                        <p className="text-indigo-800">Không có slot trống trong tuần này. Không thể hủy buổi học.</p>
+                                        <p className="text-indigo-800">There are no slots available this week. Lessons cannot be cancelled.</p>
                                     )}
                                 </div>
                                 <div className="flex justify-end space-x-2 mt-6">
@@ -1270,7 +1271,7 @@ export const Scheduler = ({
                                         className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
                                         disabled={isLoading}
                                     >
-                                        Hủy bỏ
+                                        Cancel
                                     </Button>
                                     
                                     <Button
@@ -1278,7 +1279,7 @@ export const Scheduler = ({
                                         disabled={isLoading || !cancelReason.trim() || !selectedBlankSlot || blankSlots.length === 0}
                                         className="bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                     >
-                                        {isLoading ? "Đang xử lý..." : "Xác nhận"}
+                                        {isLoading ? "Processing..." : "Confirm"}
                                     </Button>
                                 </div>
                             </div>
@@ -1288,22 +1289,22 @@ export const Scheduler = ({
                     <Dialog open={isChangeTeacherDialogOpen} onOpenChange={setIsChangeTeacherDialogOpen}>
                         <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
                             <DialogHeader>
-                                <DialogTitle className="text-indigo-900">Thay đổi giáo viên</DialogTitle>
+                                <DialogTitle className="text-indigo-900">Change teacher</DialogTitle>
                             </DialogHeader>
                             <div className="p-6">
                                 {selectedSlot && (
                                     <div className="space-y-2 mb-4">
                                         <p className="text-indigo-800">
-                                            <strong>Phòng:</strong> <span className="text-indigo-600">{selectedSlot.room?.name}</span>
+                                            <strong>Room:</strong> <span className="text-indigo-600">{selectedSlot.room?.name}</span>
                                         </p>
                                         <p className="text-indigo-800">
-                                            <strong>Lớp:</strong> <span className="text-indigo-600">{selectedSlot.class?.name}</span>
+                                            <strong>Class:</strong> <span className="text-indigo-600">{selectedSlot.class?.name}</span>
                                         </p>
                                         <p className="text-indigo-800">
-                                            <strong>Giáo viên hiện tại:</strong> <span className="text-indigo-600">{selectedSlot.class.instructorName}</span>
+                                            <strong>Current teacher:</strong> <span className="text-indigo-600">{selectedSlot.class.instructorName}</span>
                                         </p>
                                         <p className="text-indigo-800">
-                                            <strong>Thời gian:</strong>{" "}
+                                            <strong>Shift:</strong>{" "}
                                             <span className="text-indigo-600">
                   {shiftTimesMap[selectedSlot.shift]} - {selectedSlot.date}
                 </span>
@@ -1312,7 +1313,7 @@ export const Scheduler = ({
                                 )}
                                 <div className="mt-4">
                                     <label htmlFor="newTeacher" className="text-indigo-800 font-semibold">
-                                        Chọn giáo viên mới <span className="text-red-500">*</span>
+                                        Select new teache <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         id="newTeacher"
@@ -1322,7 +1323,7 @@ export const Scheduler = ({
                                         required
                                     >
                                         <option value="" disabled>
-                                            Chọn giáo viên mới
+                                            Select new teache
                                         </option>
                                         {availableTeachers.map((teacher) => (
                                             <option key={teacher.accountFirebaseId} value={teacher.accountFirebaseId}>
@@ -1332,7 +1333,7 @@ export const Scheduler = ({
                                     </select>
                                     <div className="mt-4">
                                         <label htmlFor="changeReason" className="text-indigo-800 font-semibold">
-                                            Lý do thay đổi <span className="text-red-500">*</span>
+                                            Reason <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -1340,7 +1341,7 @@ export const Scheduler = ({
                                             value={changeTeacherReason}
                                             onChange={(e) => setChangeTeacherReason(e.target.value)}
                                             className="w-full mt-1 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
-                                            placeholder="Nhập lý do thay đổi giáo viên"
+                                            placeholder="Enter reason for changing teache"
                                             required
                                         />
                                     </div>
@@ -1357,7 +1358,7 @@ export const Scheduler = ({
                                         className="bg-white/90 border-indigo-300 text-indigo-800 hover:bg-indigo-100 font-semibold py-2 px-4 rounded-lg transition-all duration-200"
                                         disabled={isTeacherLoading}
                                     >
-                                        Hủy bỏ
+                                        Cancel
                                     </Button>
                                     <Button
                                         onClick={async () => {
@@ -1382,10 +1383,10 @@ export const Scheduler = ({
                                                 setChangeTeacherReason("");
     
                                                 // Optional: Show success message
-                                                alert("Thay đổi giáo viên thành công!");
+                                                toast.success("Successful teacher change!");
                                             } catch (error) {
                                                 console.error("Failed to assign teacher:", error);
-                                                alert("Có lỗi xảy ra khi thay đổi giáo viên!");
+                                                toast.error("An error occurred while changing teacher!" , error);
                                             } finally {
                                                 setIsTeacherLoading(false);
                                             }
@@ -1396,10 +1397,10 @@ export const Scheduler = ({
                                         {isTeacherLoading ? (
                                             <span className="flex items-center">
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                  Đang xử lý...
+                  Processing...
                 </span>
                                         ) : (
-                                            "Xác nhận thay đổi"
+                                            "Confirm changes"
                                         )}
                                     </Button>
                                 </div>

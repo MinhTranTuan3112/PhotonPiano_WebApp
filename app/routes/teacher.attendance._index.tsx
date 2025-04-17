@@ -67,7 +67,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 const isNotToday = (slotDate: string): boolean => {
     const today = new Date();
     const slot = new Date(slotDate);
-
+    
+    
     return (
         today.getFullYear() !== slot.getFullYear() ||
         today.getMonth() !== slot.getMonth() ||
@@ -76,7 +77,6 @@ const isNotToday = (slotDate: string): boolean => {
         // today.getHours() > slot.getHours() 
     );
     
-    // return true;
 };
 
 export default function TeacherAttendance_index() {
@@ -147,7 +147,7 @@ export default function TeacherAttendance_index() {
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <h1 className="text-2xl md:text-3xl font-bold text-blue-700">Quản Lý Điểm Danh</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-blue-700">Attendance Management</h1>
 
                 {/* Date navigation */}
                 <div className="flex items-center gap-2 w-full md:w-auto">
@@ -198,7 +198,7 @@ export default function TeacherAttendance_index() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                     <Input
                         type="text"
-                        placeholder="Tìm kiếm lớp, phòng học..."
+                        placeholder="Search for classes, classrooms..."
                         className="pl-9"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -213,10 +213,10 @@ export default function TeacherAttendance_index() {
                         <SelectValue placeholder="Trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="completed">Đã hoàn thành</SelectItem>
-                        <SelectItem value="ongoing">Đang diễn ra</SelectItem>
-                        <SelectItem value="upcoming">Sắp diễn ra</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="ongoing">Ongoing</SelectItem>
+                        <SelectItem value="upcoming">Upcoming</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -254,10 +254,10 @@ export default function TeacherAttendance_index() {
                                                 : "bg-blue-200 text-blue-700"
                                     }`}>
                                         {slot.status === SlotStatus.Finished
-                                            ? "Đã hoàn thành"
+                                            ? "Completed"
                                             : slot.status === SlotStatus.Ongoing
-                                                ? "Đang diễn ra"
-                                                : "Sắp diễn ra"}
+                                                ? "On Going"
+                                                : "Up Coming"}
                                     </div>
                                 </div>
                             </CardHeader>
@@ -281,7 +281,7 @@ export default function TeacherAttendance_index() {
                                         disabled={slot.status === SlotStatus.Finished || isNotToday(slot.date)}
                                         onClick={() => navigate(`/teacher/attendance/${slot.id}`)}
                                     >
-                                        Điểm danh
+                                        Attendance
                                     </Button>
                                 </div>
                             </CardContent>
@@ -290,9 +290,9 @@ export default function TeacherAttendance_index() {
                 ) : (
                     <div className="col-span-full flex flex-col items-center justify-center py-10 text-center">
                         <div className="text-4xl mb-3">🔍</div>
-                        <h3 className="text-lg font-medium text-gray-700 mb-1">Không tìm thấy lớp học nào</h3>
+                        <h3 className="text-lg font-medium text-gray-700 mb-1">No classes found</h3>
                         <p className="text-gray-500 max-w-md">
-                            Không có lớp học nào được tìm thấy cho ngày {formattedDisplayDate} hoặc với bộ lọc hiện tại.
+                            No classes found for date {formattedDisplayDate} or with the current filter.
                         </p>
                     </div>
                 )}

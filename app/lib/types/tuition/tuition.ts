@@ -1,6 +1,3 @@
-import {AttendanceStatus} from "~/lib/types/Scheduler/slot";
-
-
 export type Tuition = {
     id: string;
     studentClassId: string;
@@ -23,10 +20,10 @@ export enum PaymentStatus  {
 }
 
 export const PaymentStatusText = {
-    [PaymentStatus.Pending]: "Đang tiến hành",
-    [PaymentStatus.Successed]: "Thành công",
-    [PaymentStatus.Failed]: "Thất bại",
-    [PaymentStatus.Canceled]: "Hủy"
+    [PaymentStatus.Pending]: "Waiting",
+    [PaymentStatus.Successed]: "Success",
+    [PaymentStatus.Failed]: "Failed",
+    [PaymentStatus.Canceled]: "Canceled"
 };
 
 
