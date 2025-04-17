@@ -12,6 +12,7 @@ export type Tuition = {
     isPassed: boolean;
     studentClass: StudentClass;
     deadline: string;
+    fee: number;
 }
 
 export enum PaymentStatus  {
