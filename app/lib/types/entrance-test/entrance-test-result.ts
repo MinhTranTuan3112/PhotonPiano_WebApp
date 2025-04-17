@@ -27,6 +27,7 @@ export const updateEntranceTestResultsSchema = z.object({
     scores: z.array(z.object({
         id: z.string(),
         criteriaId: z.string(),
+        criteriaDescription: z.string().optional(),
         criteriaName: z.string().optional(),
         score: z.coerce.number().min(0, { message: 'Điểm phải >= 0' }).max(10, { message: 'Điểm phải <= 10' }),
         weight: z.number()

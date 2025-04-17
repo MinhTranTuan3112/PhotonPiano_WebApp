@@ -71,7 +71,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
 
             return {
-                entranceTestDetailsPromise
+                entranceTestDetailsPromise,
             }
         });
 
@@ -132,7 +132,7 @@ export default function StaffEntranceTestDetailsPage({ }: Props) {
         <article className='px-10'>
             <Suspense fallback={<LoadingSkeleton />} key={id}>
                 <Await resolve={promise}>
-                    {({ entranceTestDetailsPromise }) => (
+                    {({ entranceTestDetailsPromise}) => (
                         <Await resolve={entranceTestDetailsPromise}>
                             <EntranceTestDetailsContent fetcher={fetcher} {...data} />
                         </Await>
@@ -229,7 +229,7 @@ function StatusBadge({ status }: {
 const resolver = zodResolver(updateEntranceTestSchema);
 
 export function EntranceTestDetailsContent({
-    fetcher, tab, idToken, criterias, role
+    fetcher, tab, idToken, criterias, role,
 }: {
     fetcher: FetcherWithComponents<any>;
     tab: string;
@@ -260,7 +260,7 @@ export function EntranceTestDetailsContent({
                 <StatusBadge status={entranceTest.testStatus} />
             </div>
         </div>
-        <Tabs defaultValue={tab} className="">
+        <Tabs value={tab} className="">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="general" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),

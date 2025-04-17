@@ -40,8 +40,10 @@ import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
 import { LevelBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
-import { Controller } from 'react-hook-form';
 import { formatScore } from '~/lib/utils/score';
+import { fetchSystemConfigs } from '~/lib/services/system-config';
+import { PRACTICE_PERCENTAGE, THEORY_PERCENTAGE } from '~/lib/utils/config-name';
+import { SystemConfig } from '~/lib/types/config/system-config';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -122,7 +124,6 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
 ]
 
 export default function ResultTable({ data }: Props) {
-
     return (
         <DataTable columns={resultTableColumns} data={data} />
     );
@@ -187,6 +188,24 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         refetchOnWindowFocus: false
     });
 
+    const { data: percentageData, isLoading: isFetchingScorePercentages } = useQuery({
+        queryKey: ['entrance-test-score-percentage', idToken],
+        queryFn: async () => {
+            const response = await fetchSystemConfigs({
+                idToken,
+                names: [THEORY_PERCENTAGE, PRACTICE_PERCENTAGE]
+            });
+
+            return await response.data;
+        }
+    });
+
+    const percentageConfigs = percentageData ? percentageData as SystemConfig[] : [];
+
+    const theoryPercentage = parseInt(percentageConfigs.find(config => config.configName === THEORY_PERCENTAGE)?.configValue || '50') || 50;
+
+    const practicePercentage = parseInt(percentageConfigs.find(config => config.configName === PRACTICE_PERCENTAGE)?.configValue || '50') || 50;
+
     const results = entranceTestStudent.entranceTestResults;
 
     const criterias: MinimalCriteria[] = data || [];
@@ -210,7 +229,8 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             scores: results.length > 0 ? results.map(result => ({
                 id: result.id,
                 criteriaId: result.criteriaId,
-                criteriaName: result.criteriaName,
+                criteriaName: result.criteria.name,
+                criteriaDescription: result.criteria.description,
                 weight: result.weight,
                 score: result.score
             })) : []
@@ -304,7 +324,10 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     </TableCell>
                                 </TableRow> : getValues().scores.map((result, index) => (
                                     <TableRow key={result.id} className='w-full'>
-                                        <TableCell>{result.criteriaName}</TableCell>
+                                        <TableCell className='flex flex-col gap-2'>
+                                            <p className="">{result.criteriaName}</p>
+                                            <p className="text-sm text-muted-foreground">{result.criteriaDescription}</p>
+                                        </TableCell>
                                         <TableCell className='font-bold'>
                                             {role === Role.Instructor ? <Input
                                                 defaultValue={result.score}
@@ -314,7 +337,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                     const newScore = Number.parseFloat(e.target.value);
                                                     setValue(`scores.${index}.score`, newScore);
                                                 }}
-                                                readOnly={role !== Role.Instructor} /> :  
+                                                readOnly={role !== Role.Instructor} /> :
                                                 result.score ? formatScore(result.score) : '(Chưa có)'}
 
                                         </TableCell>
@@ -324,7 +347,9 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm thực hành:</TableCell>
                                     <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
-                                    <TableCell>50%</TableCell>
+                                    <TableCell>
+                                        {isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${practicePercentage}%`}
+                                    </TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold'>Điểm lý thuyết:</TableCell>
@@ -342,7 +367,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                             {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
                                         </div>}
                                     </TableCell>
-                                    <TableCell>50%</TableCell>
+                                    <TableCell>{isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${theoryPercentage}%`}</TableCell>
                                 </TableRow>
 
                                 <TableRow>
