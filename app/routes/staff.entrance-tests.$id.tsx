@@ -132,7 +132,7 @@ export default function StaffEntranceTestDetailsPage({ }: Props) {
         <article className='px-10'>
             <Suspense fallback={<LoadingSkeleton />} key={id}>
                 <Await resolve={promise}>
-                    {({ entranceTestDetailsPromise}) => (
+                    {({ entranceTestDetailsPromise }) => (
                         <Await resolve={entranceTestDetailsPromise}>
                             <EntranceTestDetailsContent fetcher={fetcher} {...data} />
                         </Await>
@@ -195,7 +195,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const response = await fetchUpdateEntranceTest(updateRequest);
 
         return Response.json({
-            success: response.status === 204
+            success: true
         }, {
             status: 200
         });
@@ -309,9 +309,9 @@ export function EntranceTestDetailsContent({
                             status={entranceTest.status} />
                     </CardFooter>
                 </Card>
+                {importResultDialog}
             </TabsContent>
         </Tabs>
-        {importResultDialog}
     </>
 }
 
@@ -346,7 +346,7 @@ export function EntranceTestForm({
             fetcher
         });
 
-    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+    const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
         title: 'Xác nhận cập nhật ca thi',
         description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
         onConfirm: () => {
@@ -560,12 +560,12 @@ export function EntranceTestForm({
             <CardFooter className='mt-4 flex justify-end w-full'>
                 {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
                     disabled={isSubmitting}
-                    type='button' variant={'theme'} onClick={handleOpenModal}>
+                    type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
                     {isSubmitting ? 'Đang lưu...' : 'Lưu'}
                 </Button>}
             </CardFooter>
         </Form>
-        {confirmDialog}
+        {entranceTestConfirmDialog}
     </>
 }
 
@@ -637,7 +637,7 @@ function PublishScoreSection({
 
     return <>
         <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting} disabled={isSubmitting || status !== EntranceTestStatus.Ended}>
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}>
             {
                 isAnnouncedScore === true ? (
                     <>

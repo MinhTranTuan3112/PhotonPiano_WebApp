@@ -22,6 +22,8 @@ export async function action({ request }: ActionFunctionArgs) {
         console.log({ data });
 
         if (errors) {
+            console.log({ errors });
+
             return Response.json({ success: false, errors, defaultValues }, {
                 status: 400
             });
@@ -57,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return Response.json( {
+        return Response.json({
             success: false,
             error: message,
         }, {

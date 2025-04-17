@@ -169,6 +169,23 @@ export async function fetchEntranceTestStudentDetails({
     return response;
 }
 
+export async function fetchDeleteStudentFromTest({
+    idToken, entranceTestId, studentId
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentId: string
+}) {
+
+    const response = await axiosInstance.delete(`/entrance-tests/${entranceTestId}/students/${studentId}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
+
 export async function fetchUpdateStudentsEntranceTestResults({
     idToken, entranceTestId, ...data
 }: {

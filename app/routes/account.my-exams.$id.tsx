@@ -114,8 +114,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const promise = fetchEntranceTestStudentDetails({ id, studentId: accountId || '', idToken }).then((response) => {
       const entranceTestStudentPromise: Promise<EntranceTestStudentDetail> = response.data;
 
+      const headers = response.headers;
+
       return {
-        entranceTestStudentPromise
+        entranceTestStudentPromise,
+        theoryPercentage: parseInt(headers['x-theory-percentage'] || '50'),
+        practicalPercentage: parseInt(headers['x-practical-percentage'] || '50'),
       }
     });
 
@@ -149,9 +153,9 @@ export default function ExamDetail({ }: Props) {
       <div className='font-bold text-2xl'>Chi tiết bài thi</div>
       <Suspense fallback={<LoadingSkeleton />} key={id}>
         <Await resolve={promise}>
-          {({ entranceTestStudentPromise }) => (
+          {({ entranceTestStudentPromise, ...data }) => (
             <Await resolve={entranceTestStudentPromise}>
-              <EntranceTestStudentContent />
+              <EntranceTestStudentContent {...data} />
             </Await>
           )}
         </Await>
@@ -160,7 +164,13 @@ export default function ExamDetail({ }: Props) {
   )
 }
 
-function EntranceTestStudentContent() {
+function EntranceTestStudentContent({
+  theoryPercentage,
+  practicalPercentage
+}: {
+  theoryPercentage: number;
+  practicalPercentage: number;
+}) {
 
   const entranceTestStudentValue = useAsyncValue();
 
@@ -260,7 +270,7 @@ function EntranceTestStudentContent() {
             </div>
             <div className="max-w-4xl mx-auto bg-opacity-50 bg-white rounded-xl shadow-lg p-8 relative z-10">
               <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-6">
-                Kết quả bài thi
+                Kết quả bài thi piano
               </h1>
               <table className="w-full border-collapse">
                 <thead>
@@ -276,7 +286,10 @@ function EntranceTestStudentContent() {
                       key={result.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-gray-800 font-medium">{result.criteria.name}</td>
+                      <td className="py-3 px-4">
+                        <div className="text-gray-800 font-medium">{result.criteria.name}</div>
+                        <div className="text-sm text-muted-foreground">{result.criteria.description}</div>
+                      </td>
                       <td className="py-3 px-4 text-center font-bold text-gray-700">
                         {formatScore(result.score)}
                       </td>
@@ -286,11 +299,11 @@ function EntranceTestStudentContent() {
                     </tr>
                   ))}
                   <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm thực hành &#40;50%&#41;</td>
+                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm thực hành &#40;{theoryPercentage}%&#41;</td>
                     <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(practicalScore)}</td>
                   </tr>
                   <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm lý thuyết &#40;50%&#41;</td>
+                    <td className="py-3 px-4 text-gray-800 font-medium">Điểm lý thuyết &#40;{practicalPercentage}%&#41;</td>
                     <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : '(Chưa có)'}</td>
                   </tr>
                 </tbody>
@@ -307,7 +320,7 @@ function EntranceTestStudentContent() {
                 </div>
                 <div className='mt-4 flex justify-start w-full'>
                   <span className='font-bold  '>Nhận xét của giảng viên chấm :
-                    <span className='font-normal italic'> {entranceTestStudent.instructorComment ?? "Không có nhận xét"}</span>
+                    <span className='font-normal italic'> {entranceTestStudent.instructorComment || "Không có nhận xét"}</span>
                   </span>
                 </div>
                 <div className='italic mt-8 text-center text-sm'>

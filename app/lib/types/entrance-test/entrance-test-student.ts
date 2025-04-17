@@ -18,6 +18,7 @@ export type EntranceTestStudent = {
 
 export type EntranceTestStudentWithResults = {
     entranceTestResults: EntranceTestResultWithCriteria[];
+    level?: Level;
 } & EntranceTestStudent;
 
 export type EntranceTestStudentDetail = {
