@@ -1,16 +1,18 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Loader2 } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { toast } from "sonner";
-import { useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { loader } from "~/root";
 import { Role } from "~/lib/types/account/account";
+import { action } from "~/routes/delete-entrance-test";
+import { useEffect } from "react";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -113,19 +115,49 @@ export const columns: ColumnDef<EntranceTest>[] = [
 
 function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
 
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    const navigate = useNavigate();
+
+    const fetcher = useFetcher<typeof action>();
+
+    const isSubmitting = fetcher.state === "submitting";
+
     const { dialog: confirmDialog, open: handleOpenDialog } = useConfirmationDialog({
-        title: 'Xác nhận xóa đợt thi?',
-        description: 'Dữ liệu đợt thi sau khi xóa sẽ không thể hồi phục lại.',
+        title: 'Xác nhận xóa ca thi?',
+        description: 'Dữ liệu ca thi sau khi xóa sẽ không thể hồi phục lại.',
+        confirmText: 'Xóa',
         onConfirm: () => {
-            // handle delete
-            toast.success('Xóa thành công!');
+            const formData = new FormData();
+            formData.append("entranceTestId", row.original.id);
+            fetcher.submit(formData, {
+                method: "POST",
+                action: "/delete-entrance-test",
+            });
         },
         confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
     });
 
-    const navigate = useNavigate();
+    useEffect(() => {
 
-    const authData = useRouteLoaderData<typeof loader>("root");
+        if (fetcher.data?.success === true) {
+            toast.success("Xóa ca thi thành công!");
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toast.error(fetcher.data.error, {
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+    
 
     return <>
         <DropdownMenu>
@@ -140,8 +172,9 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
                     onClick={() => navigate(authData.role === Role.Staff ? `/staff/entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}>
-                    <Trash2 /> Xóa
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
+                    disabled={isSubmitting}>
+                    {!isSubmitting ? <Trash2 /> : <Loader2 className="animate-spin" />} Xóa
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
