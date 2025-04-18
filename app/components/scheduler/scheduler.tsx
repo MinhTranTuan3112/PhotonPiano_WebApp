@@ -778,7 +778,10 @@ export const Scheduler = ({
                                                             setIsTeacherLoading(false);
                                                         }
                                                     }}
-                                                    disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
+                                                    disabled={selectedSlot.status === SlotStatus.Cancelled ||
+                                                        isTeacherLoading || 
+                                                        selectedSlot.status === SlotStatus.Ongoing ||
+                                                        selectedSlot.status === SlotStatus.Finished}
                                                     className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                                 >
                                                     Change Teacher
@@ -791,7 +794,8 @@ export const Scheduler = ({
                                                     disabled={
                                                         !isCurrentDatePastSlotDate(selectedSlot.date) ||
                                                         selectedSlot.status === SlotStatus.Cancelled ||
-                                                        selectedSlot.status === SlotStatus.Ongoing
+                                                        selectedSlot.status === SlotStatus.Ongoing || 
+                                                        selectedSlot.status === SlotStatus.Finished
                                                     }
                                                     className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                                 >
@@ -1313,7 +1317,7 @@ export const Scheduler = ({
                                 )}
                                 <div className="mt-4">
                                     <label htmlFor="newTeacher" className="text-indigo-800 font-semibold">
-                                        Select new teache <span className="text-red-500">*</span>
+                                        Select new teacher <span className="text-red-500">*</span>
                                     </label>
                                     <select
                                         id="newTeacher"
@@ -1323,7 +1327,7 @@ export const Scheduler = ({
                                         required
                                     >
                                         <option value="" disabled>
-                                            Select new teache
+                                            Select new teacher
                                         </option>
                                         {availableTeachers.map((teacher) => (
                                             <option key={teacher.accountFirebaseId} value={teacher.accountFirebaseId}>
