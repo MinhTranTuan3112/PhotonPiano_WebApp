@@ -47,6 +47,7 @@ export const createEntranceTestSchema = z.object({
     date: z.coerce.date({ message: 'Ngày thi không được để trống.' }).min(new Date(), { message: 'Ngày thi phải sau hôm nay.' }),
     shift: z.string({ message: 'Vui lòng chọn ca thi.' }).min(1, { message: 'Ca thi không được để trống.' }),
     roomId: z.string({ message: 'Vui lòng chọn phòng thi.' }).min(1, { message: 'Phòng thi không được để trống.' }),
+    roomName: z.string(),
     instructorId: z.string({ message: 'Vui lòng chọn người gác thi.' }).min(1, { message: 'Người coi thi không được để trống.' }).optional(),
 });
 

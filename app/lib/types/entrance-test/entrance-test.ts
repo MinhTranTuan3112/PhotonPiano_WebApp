@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Account } from "../account/account";
 import { Room } from "../room/room";
-import { EntranceTestStudent, EntranceTestStudentWithResults } from "./entrance-test-student"; 
+import { EntranceTestStudentWithResults } from "./entrance-test-student";
 
 export type EntranceTest = {
     id: string,
@@ -20,8 +20,18 @@ export type EntranceTest = {
     testStatus: EntranceTestStatus;
 }
 
-export enum EntranceTestStatus
-{
+export enum Shift {
+    Shift1_7h_8h30,
+    Shift2_8h45_10h15,
+    Shift3_10h45_12h,
+    Shift4_12h30_14h00,
+    Shift5_14h15_15h45,
+    Shift6_16h00_17h30,
+    Shift7_18h_19h30,
+    Shift8_19h45_21h15
+}
+
+export enum EntranceTestStatus {
     NotStarted,
     OnGoing,
     Ended

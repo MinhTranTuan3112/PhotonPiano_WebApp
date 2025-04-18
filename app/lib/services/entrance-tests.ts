@@ -2,6 +2,7 @@ import { ImportResultsFormData } from "~/routes/import-entrance-test-result";
 import { UpdateEntranceTest } from "../types/entrance-test/entrance-test";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
+import { CreateEntranceTestFormData } from "../utils/schemas";
 
 export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     idToken, keyword, shifts = [], roomIds = []
@@ -96,6 +97,23 @@ export async function fetchAutoArrangeEntranceTests({
             }
         }
     );
+
+    return response;
+}
+
+export async function fetchCreateEntranceTest({
+    idToken, studentIds = [], ...data
+}: {
+    idToken: string;
+    studentIds?: string[];
+    date: string
+} & Omit<CreateEntranceTestFormData, 'date'>) {
+
+    const response = await axiosInstance.post('/entrance-tests', { ...data, studentIds }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
 
     return response;
 }
