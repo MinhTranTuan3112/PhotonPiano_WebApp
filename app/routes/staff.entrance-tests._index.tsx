@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react'
-import { Plus, RotateCcw } from 'lucide-react'
+import { CirclePlus, Plus, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 import SearchForm from '~/components/entrance-tests/search-form'
 import { columns } from '~/components/entrance-tests/table/columns'
@@ -103,8 +103,8 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     {({ entranceTestsPromise, metadata }) => (
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
-                                <Button variant={'default'} Icon={Plus} iconPlacement='right'
-                                    onClick={() => navigate('/staff/entrance-tests/create')}>Tạo
+                                <Button variant={'outline'} Icon={CirclePlus} iconPlacement='left'
+                                    onClick={() => navigate('/staff/entrance-tests/create')}>Tạo ca thi mới
                                 </Button>
                             } metadata={metadata}
                                 emptyText='Không có đợt thi nào.' />
