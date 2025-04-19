@@ -13,7 +13,23 @@ import {
     fetchSlots
 } from "~/lib/services/scheduler"
 import {motion} from "framer-motion"
-import {Calendar, Check, ChevronLeft, ChevronRight, Clock, Filter, Info, Music, User, Users, X} from "lucide-react"
+import {
+    Ban,
+    Calendar,
+    CalendarClock,
+    Check, CheckCircle,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Filter,
+    Footprints, HandMetal,
+    Info,
+    MoveRight,
+    Music, RefreshCw, Settings,
+    User,
+    Users,
+    X
+} from "lucide-react"
 import {
     AttendanceStatusText,
     BlankSlotModel,
@@ -37,6 +53,7 @@ import {Account, Role} from "~/lib/types/account/account"
 import {fetchSystemConfigSlotCancel} from "~/lib/services/system-config";
 import {CompactSlotView} from "~/components/scheduler/CompactSlotView";
 import {toast} from "sonner";
+import { Calendar, BookOpen, User, Users, StickyNote, ThumbsUp } from "lucide-react";
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -460,13 +477,13 @@ export const Scheduler = ({
                 >
                   
                     <div className="flex justify-center items-center mb-6">
-                        <h1 className="title text-3xl font-bold text-center text-blue-900 flex items-center">
-                            <Music className="w-8 h-8 mr-2 text-indigo-800" />
-                            Schedule of {classId ? `class ${className}` : "Center"}
-                            <Music className="w-8 h-8 ml-2 text-indigo-800" />
-                        </h1>
-                    </div>
-    
+                    <h1 className="title text-3xl font-bold text-center text-blue-900 flex items-center">
+                        <Music className="w-8 h-8 mr-2 text-indigo-800" />
+                        Schedule of {classId ? `class ${className}` : "Center"}
+                        <Music className="w-8 h-8 ml-2 text-indigo-800" />
+                    </h1>
+                </div>
+
                     <div className="controls flex flex-wrap justify-center mb-6 space-x-4">
                         <div className="control flex flex-col mb-4 sm:mb-0">
                             <span className="mb-1 font-semibold text-indigo-800">Week:</span>
@@ -484,7 +501,7 @@ export const Scheduler = ({
                                 </SelectContent>
                             </Select>
                         </div>
-    
+
                         <div className="control flex flex-col">
                             <span className="mb-1 font-semibold text-indigo-800">Year:</span>
                             <Select value={year.toString()} onValueChange={handleYearChange}>
@@ -511,7 +528,7 @@ export const Scheduler = ({
                             </Button>
                         )}
                     </div>
-    
+
                     <div className="week-info flex justify-center items-center mb-4 space-x-2">
                         <Button
                             variant="outline"
@@ -662,153 +679,169 @@ export const Scheduler = ({
                         </div>
                     </Card>
                     </div>
-    
+
                     <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                        <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+                        <DialogContent  className="bg-white shadow-xl rounded-2xl max-w-3xl p-6">
                             <DialogHeader>
-                                <DialogTitle className="text-indigo-900">Slot Detail</DialogTitle>
+                                <DialogTitle className="text-2xl font-bold text-indigo-900 flex items-center gap-2">
+                                    <CalendarClock className="w-6 h-6 text-indigo-700" />
+                                    Slot Detail
+                                </DialogTitle>
                             </DialogHeader>
+
                             {selectedSlot && (
-                                <div>
-                                    <div className="space-y-3 p-6">
-                                        <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Room:</strong>{" "}
-                                            <span className="text-indigo-600">{selectedSlot.room?.name}</span>
-                                        </p>
-                                        <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Class:</strong>{" "}
-                                            <span className="text-indigo-600">{selectedSlot.class?.name}</span>
-                                        </p>
-                                        <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Teacher Name:</strong>{" "}
-                                            <span className="text-indigo-600">{selectedSlot.teacher.fullName}</span>
-                                        </p>
-                                        <p className="flex items-center text-indigo-800">
-                                            <strong className="mr-2">Number of students:</strong>{" "}
-                                            <span className="text-indigo-600">{selectedSlot.numberOfStudents}</span>
-                                        </p>
-                                        {selectedSlot.slotNote != "" &&
-                                            selectedSlot.slotNote && (
-                                                <p className="flex items-center text-indigo-800">
-                                                    <strong className="mr-2">Ghi chú:</strong>{" "}
-                                                    <span className="text-indigo-600">{selectedSlot.slotNote}</span>
-                                                </p>
+                                <div className="space-y-6 mt-4 text-indigo-900 text-sm md:text-base">
+
+                                    {/* --- Class Information --- */}
+                                    <div className="bg-gradient-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-sm">
+                                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-700">
+                                            <BookOpen className="w-5 h-5" /> Class Information
+                                        </h3>
+                                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                                            <li className="flex items-center gap-2">
+                                                <Calendar size={18} className="text-indigo-600" />
+                                                <span><strong>Room:</strong> {selectedSlot.room?.name}</span>
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <BookOpen size={18} className="text-indigo-600" />
+                                                <span><strong>Class:</strong> {selectedSlot.class?.name}</span>
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <User size={18} className="text-indigo-600" />
+                                                <span><strong>Teacher:</strong> {selectedSlot.teacher.fullName}</span>
+                                            </li>
+                                            <li className="flex items-center gap-2">
+                                                <Users size={18} className="text-indigo-600" />
+                                                <span><strong>Number of Students:</strong> {selectedSlot.numberOfStudents}</span>
+                                            </li>
+                                            {selectedSlot.slotNote && (
+                                                <li className="flex items-center gap-2">
+                                                    <StickyNote size={18} className="text-indigo-600" />
+                                                    <span><strong>Note:</strong> {selectedSlot.slotNote}</span>
+                                                </li>
+                                            )}
+                                        </ul>
+                                    </div>
+
+                                
+                                    {role === 1 &&
+                                        selectedSlot.slotStudents
+                                            .filter(
+                                                (student: SlotStudentModel) =>
+                                                    student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase()
                                             )
-                                        }
-                                        
-                                        {role === 1 && selectedSlot.slotStudents && (
-                                            <>
-                                                {selectedSlot.slotStudents
-                                                    .filter(
-                                                        (student) =>
-                                                            student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
-                                                    )
-                                                    .map((student, index) => (
-                                                        <div key={index} className="space-y-2">
-                                                            {student.gestureComment && (
-                                                                <p className="flex items-center text-indigo-800">
-                                                                    <strong className="mr-2">Nhận xét tư thế:</strong>{" "}
-                                                                    <span className="text-indigo-600">{student.gestureComment}</span>
-                                                                </p>
-                                                            )}
-                                                            {student.fingerNoteComment && (
-                                                                <p className="flex items-center text-indigo-800">
-                                                                    <strong className="mr-2">Nhận xét ngón tay:</strong>{" "}
-                                                                    <span className="text-indigo-600">{student.fingerNoteComment}</span>
-                                                                </p>
-                                                            )}
-                                                            {student.pedalComment && (
-                                                                <p className="flex items-center text-indigo-800">
-                                                                    <strong className="mr-2">Nhận xét pedal:</strong>{" "}
-                                                                    <span className="text-indigo-600">{student.pedalComment}</span>
-                                                                </p>
-                                                            )}
-                                                            {student.attendanceStatus && (
-                                                                <p className="flex items-center text-indigo-800">
-                                                                    <strong className="mr-2">Trạng thái:</strong>{" "}
-                                                                    <span className="text-indigo-600">
-                                                                        {AttendanceStatusText[student.attendanceStatus]}
-                                                                    </span>
-                                                                </p>
-                                                            )}
-                                                       
-                                                        </div>
-                                                    ))}
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="flex space-x-4 justify-end">
-                                        {/*{role === 2 && (*/}
-                                        {/*    <Button*/}
-                                        {/*        onClick={() => (window.location.href = `/teacher/scheduler/attendance/${selectedSlot.id}`)}*/}
-                                        {/*        disabled={*/}
-                                        {/*            isCurrentDatePastSlotDate(selectedSlot.date) === false || selectedSlot.status === SlotStatus.Cancelled*/}
-                                        {/*        }*/}
-                                        {/*        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"*/}
-                                        {/*    >*/}
-                                        {/*        Điểm danh*/}
-                                        {/*    </Button>*/}
-                                        {/*)}*/}
-                                        {role === 4 && (
-                                            <div className="flex gap-4 mt-4">
-                                                <Button
-                                                    onClick={() => {
-                                                        navigate(`/staff/classes/slot/${selectedSlot.id}`)
-                                                    }}
-                                                    disabled={
-                                                        !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
-                                                    }
-                                                    className="font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                            .map((student, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-5 shadow-sm"
                                                 >
-                                                    Slot Detail
-                                                </Button>
-    
-                                                <Button
-                                                    onClick={async () => {
-                                                        try {
-                                                            setIsTeacherLoading(true);
-                                                            const response = await fetchAvailableTeachersForSlot(selectedSlot.id, idToken);
-                                                            setAvailableTeachers(response.data);
-                                                            setNewTeacherId("");
-                                                            setChangeTeacherReason("");
-                                                            setIsChangeTeacherDialogOpen(true);
-                                                        } catch (error) {
-                                                            console.error("Failed to fetch available teachers:", error);
-                                                        } finally {
-                                                            setIsTeacherLoading(false);
+                                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-700">
+                                                        <ThumbsUp className="w-5 h-5" /> Your Feedback
+                                                    </h3>
+
+                                                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-indigo-900 text-sm md:text-base">
+                                                        {student.gestureComment && (
+                                                            <li className="flex items-center gap-2">
+                                                                <MoveRight className="text-indigo-600 w-4 h-4" />
+                                                                <span><strong>Posture:</strong> {student.gestureComment}</span>
+                                                            </li>
+                                                        )}
+                                                        {student.fingerNoteComment && (
+                                                            <li className="flex items-center gap-2">
+                                                                <HandMetal className="text-indigo-600 w-4 h-4" />
+                                                                <span><strong>Fingering:</strong> {student.fingerNoteComment}</span>
+                                                            </li>
+                                                        )}
+                                                        {student.pedalComment && (
+                                                            <li className="flex items-center gap-2">
+                                                                <Footprints className="text-indigo-600 w-4 h-4" />
+                                                                <span><strong>Pedal:</strong> {student.pedalComment}</span>
+                                                            </li>
+                                                        )}
+                                                        {student.attendanceStatus && (
+                                                            <li className="flex items-center gap-2">
+                                                                <CheckCircle className="text-indigo-600 w-4 h-4" />
+                                                                <span><strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}</span>
+                                                            </li>
+                                                        )}
+                                                    </ul>
+                                                </div>
+                                            ))}
+
+
+                                    {/* --- Staff Controls --- */}
+                                    {role === 4 && (
+                                        <div className="mt-6 border-t border-slate-200 pt-5">
+                                            <div className="bg-gradient-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-sm">
+                                            <h3 className="text-lg font-semibold mb-3 text-indigo-700 flex items-center gap-2">
+                                                    <Settings className="w-5 h-5" />
+                                                    Staff Actions
+                                                </h3>
+                                                <div className="flex flex-wrap justify-end gap-3">
+                                                    {/* Slot Detail Button */}
+                                                    <Button
+                                                        onClick={() => navigate(`/staff/classes/slot/${selectedSlot.id}`)}
+                                                        disabled={
+                                                            !isCurrentDatePastSlotDate(selectedSlot.date) ||
+                                                            selectedSlot.status === SlotStatus.Cancelled
                                                         }
-                                                    }}
-                                                    disabled={selectedSlot.status === SlotStatus.Cancelled ||
-                                                        isTeacherLoading || 
-                                                        selectedSlot.status === SlotStatus.Ongoing ||
-                                                        selectedSlot.status === SlotStatus.Finished}
-                                                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
-                                                >
-                                                    Change Teacher
-                                                </Button>
-                                                <Button
-                                                    onClick={() => {
-                                                        setSelectedSlotToCancel(selectedSlot)
-                                                        setIsCancelDialogOpen(true)
-                                                    }}
-                                                    disabled={
-                                                        !isCurrentDatePastSlotDate(selectedSlot.date) ||
-                                                        selectedSlot.status === SlotStatus.Cancelled ||
-                                                        selectedSlot.status === SlotStatus.Ongoing || 
-                                                        selectedSlot.status === SlotStatus.Finished
-                                                    }
-                                                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
-                                                >
-                                                    Cancel Slot
-                                                </Button>
+                                                        className="flex items-center gap-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 font-semibold px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Info className="w-4 h-4" />
+                                                        Slot Detail
+                                                    </Button>
+
+                                                    {/* Change Teacher Button */}
+                                                    <Button
+                                                        onClick={async () => {
+                                                            try {
+                                                                setIsTeacherLoading(true);
+                                                                const response = await fetchAvailableTeachersForSlot(selectedSlot.id, idToken);
+                                                                setAvailableTeachers(response.data);
+                                                                setNewTeacherId("");
+                                                                setChangeTeacherReason("");
+                                                                setIsChangeTeacherDialogOpen(true);
+                                                            } catch (error) {
+                                                                console.error("Failed to fetch available teachers:", error);
+                                                            } finally {
+                                                                setIsTeacherLoading(false);
+                                                            }
+                                                        }}
+                                                        disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
+                                                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <RefreshCw className="w-4 h-4" />
+                                                        Change Teacher
+                                                    </Button>
+
+                                                    {/* Cancel Slot Button */}
+                                                    <Button
+                                                        onClick={() => {
+                                                            setSelectedSlotToCancel(selectedSlot);
+                                                            setIsCancelDialogOpen(true);
+                                                        }}
+                                                        disabled={
+                                                            !isCurrentDatePastSlotDate(selectedSlot.date) ||
+                                                            selectedSlot.status === SlotStatus.Cancelled ||
+                                                            selectedSlot.status === SlotStatus.Ongoing
+                                                        }
+                                                        className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Ban className="w-4 h-4" />
+                                                        Cancel Slot
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
+
                                 </div>
                             )}
                         </DialogContent>
                     </Dialog>
-    
+
+
+
                     <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
                         <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg max-w-3xl">
                             <DialogHeader>
@@ -1345,7 +1378,7 @@ export const Scheduler = ({
                                             value={changeTeacherReason}
                                             onChange={(e) => setChangeTeacherReason(e.target.value)}
                                             className="w-full mt-1 p-2 border border-indigo-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-indigo-800"
-                                            placeholder="Enter reason for changing teache"
+                                            placeholder="Enter reason for changing teacher"
                                             required
                                         />
                                     </div>
