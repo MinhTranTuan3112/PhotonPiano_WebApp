@@ -50,7 +50,7 @@ const getStatusBadge = (status: number) => {
             return (
                 <Badge variant="outline" className="font-medium flex items-center gap-1">
                     <CircleDashed className="h-3 w-3" />
-                    Scheduled
+                    Scheduler
                 </Badge>
             )
         case 1:
