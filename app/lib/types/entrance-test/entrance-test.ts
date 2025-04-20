@@ -43,14 +43,15 @@ export type CreateEntranceTest = {
 
 export type UpdateEntranceTest = {
 
-} & Partial<Omit<EntranceTest, 'roomName' | 'instructorName' | 'status' | 'registerStudents' | 'isAnnoucedScore' | 'isOpen' | 'roomCapacity'>>;
+} & Partial<Omit<EntranceTest, 'roomName' | 'instructorName' | 'status' | 'registerStudents' | 'isOpen' | 'roomCapacity'>>;
 
 export const updateEntranceTestSchema = z.object({
     name: z.string({ message: 'Tên đợt thi không được để trống.' }).nonempty({ message: 'Tên đợt thi không được để trống.' }),
     shift: z.string({ message: 'Ca thi không được để trống.' }).nonempty({ message: 'Ca thi không được để trống.' }),
-    date: z.date(),
+    date: z.coerce.date(),
     roomId: z.string().nonempty(),
-    isAnnouncedScore: z.boolean(),
+    roomName: z.string(),
+    isAnnouncedScore: z.boolean().optional(),
     instructorId: z.string().optional().nullable(),
 });
 

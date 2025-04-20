@@ -35,6 +35,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
 import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
 import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
+import { getEntranceTestName } from './staff.entrance-tests.create'
+import { objectToFormData } from '~/lib/utils/form'
 
 type Props = {}
 
@@ -151,10 +153,9 @@ const serverSchema = updateEntranceTestSchema.pick({
     instructorId: true,
     roomId: true,
     isAnnouncedScore: true
-
 }).extend({
-    date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
-});
+    date: z.coerce.date({ message: 'Ngày thi không được để trống.' })
+}).partial();
 
 type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
 
@@ -179,21 +180,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const { data, errors, receivedValues: defaultValues } =
             await getValidatedFormData<ServerUpdateEntranceTestFormData>(request, zodResolver(serverSchema));
 
+        console.log({ data });
+
         if (errors) {
             console.log({ errors });
 
             return { success: false, errors, defaultValues };
         }
 
-
         const updateRequest = {
             ...data,
-            date: data.date.toString(),
-            shift: parseInt(data.shift),
+            date: data.date ? data.date.toISOString().split('T')[0] : undefined,
+            shift: data.shift ? parseInt(data.shift) : undefined,
             id,
             instructorId: data.instructorId || undefined,
             idToken
         };
+
+        console.log({ updateRequest });
+
         const response = await fetchUpdateEntranceTest(updateRequest);
 
         return Response.json({
@@ -307,7 +312,8 @@ export function EntranceTestForm({
         control,
         register,
         setValue: setFormValue,
-        getValues: getFormValues
+        getValues: getFormValues,
+        watch
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
@@ -318,6 +324,7 @@ export function EntranceTestForm({
                 instructorId: defaultData.instructorId,
                 isAnnouncedScore: defaultData.isAnnouncedScore,
                 roomId: defaultData.roomId,
+                roomName: defaultData.room?.name || '',
                 date: new Date(defaultData.date)
             },
             fetcher
@@ -327,9 +334,12 @@ export function EntranceTestForm({
         title: 'Xác nhận cập nhật ca thi',
         description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
         onConfirm: () => {
+            setFormValue('isAnnouncedScore', undefined);
             handleSubmit();
         }
     });
+
+    const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
 
     const [isEdit, setIsEdit] = useState(false);
 
@@ -377,7 +387,14 @@ export function EntranceTestForm({
                                     name='shift'
                                     render={({ field: { value, onChange } }) => (
                                         <Select value={value}
-                                            onValueChange={onChange}>
+                                            onValueChange={(value) => {
+                                                onChange(value);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}>
                                             <SelectTrigger className='w-64'>
                                                 <SelectValue placeholder="Chọn ca thi" />
                                             </SelectTrigger>
@@ -411,7 +428,14 @@ export function EntranceTestForm({
                                             ref={ref}
                                             onBlur={onBlur}
                                             value={value}
-                                            onChange={onChange}
+                                            onChange={(newDate) => {
+                                                onChange(newDate);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: newDate as Date,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
                                             placeholder='Chọn ngày thi'
                                             className='w-full'
                                         />
@@ -452,6 +476,14 @@ export function EntranceTestForm({
                                                 label: item?.name,
                                                 value: item?.id
                                             })}
+                                            onItemChange={(room) => {
+                                                setFormValue('roomName', room?.name || '');
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName: room.name || '',
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
                                             placeholder='Chọn phòng thi'
                                             emptyText='Không tìm thấy phòng thi.'
                                             errorText='Lỗi khi tải danh sách phòng thi.'
@@ -512,12 +544,14 @@ export function EntranceTestForm({
                                             errorText='Lỗi khi tải danh sách người gác thi.'
                                             maxItemsDisplay={10}
                                             value={value || ''}
-                                            onChange={onChange}
+                                            onChange={(value) => {
+                                                onChange(value);
+                                            }}
                                         />
                                     )}
                                 />
                             ) : (
-                                <p className="text-gray-900">{defaultData.instructor?.fullName}</p>
+                                <p className="text-gray-900">{defaultData.instructor?.fullName || defaultData.instructor?.email}</p>
                             )
                         }
                         {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}

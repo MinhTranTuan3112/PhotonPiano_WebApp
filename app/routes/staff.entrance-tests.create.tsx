@@ -122,7 +122,7 @@ function formatDateToYMD(date: Date): string {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-function getEntranceTestName({ shift, date, roomName }: {
+export function getEntranceTestName({ shift, date, roomName }: {
     shift?: Shift,
     date?: Date;
     roomName?: string;
