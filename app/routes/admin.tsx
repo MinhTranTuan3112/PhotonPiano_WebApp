@@ -54,6 +54,42 @@ function getBreadcrumbPageName({ pathname }: {
                 },
             ]
             break;
+        case pathname === '/admin/criteria':
+            otherNavItems = [
+                {
+                    name: "Quản lý tiêu chí đánh giá",
+                    url: '/admin/criteria',
+                    isCurrentPage: true
+                },
+            ]
+            break;
+        case pathname === '/admin/rooms':
+            otherNavItems = [
+                {
+                    name: "Quản lý phòng học",
+                    url: '/admin/rooms',
+                    isCurrentPage: true
+                },
+            ]
+            break;
+        case pathname === '/admin/day-offs':
+            otherNavItems = [
+                {
+                    name: "Quản lý ngày nghỉ",
+                    url: '/admin/day-offs',
+                    isCurrentPage: true
+                },
+            ]
+            break;
+        case pathname === '/admin/profile':
+            otherNavItems = [
+                {
+                    name: "Thông tin cá nhân",
+                    url: '/admin/profile',
+                    isCurrentPage: true
+                },
+            ]
+            break;
         default:
             break;
     }

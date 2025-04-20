@@ -1,3 +1,4 @@
+import { CreateDayOffRequest, DayOffFormData, UpdateDayOffRequest } from "../types/day-off/day-off";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 
@@ -15,7 +16,7 @@ export async function fetchDayOffs({
         startTime?: string;
         endTime?: string;
         name?: string;
-        idToken : string
+        idToken: string
     }
 >) {
     let url = `/day-offs?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -31,8 +32,49 @@ export async function fetchDayOffs({
     }
 
     const response = await axiosInstance.get(url, {
-        headers : {
-            Authorization : `Bearer ${idToken}`
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+
+export async function fetchCreateDayOff({ idToken, ...data }: {
+    idToken: string;
+} & CreateDayOffRequest) {
+
+    const response = await axiosInstance.post('/day-offs', { ...data }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchUpdateDayOff({ idToken, id, ...data }: {
+    idToken: string;
+} & UpdateDayOffRequest) {
+
+    const response = await axiosInstance.put(`/day-offs/${id}`, { ...data }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchDeleteDayOff({ idToken, id }: {
+    idToken: string;
+    id: string;
+}) {
+
+    const response = await axiosInstance.delete(`/day-offs/${id}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
         }
     });
 
