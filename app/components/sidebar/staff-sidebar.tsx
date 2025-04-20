@@ -35,7 +35,7 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Lịch học",
+                    title: "Schedule",
                     url: "/staff/scheduler",
                 },
                 {
