@@ -27,3 +27,16 @@ export const ENTRANCE_SURVEY = "Bài khảo sát đầu vào"
 export const INSTRUMENT_NAME = "Tên nhạc cụ"
 
 export const INSTRUMENT_FREQUENCY_IN_RESPONSE = "Số lần xuất hiện tên nhạc cụ trong 1 câu trả lời/lựa chọn"
+
+export const TAX_RATE_2025 = "Thuế suất năm 2025"
+
+export const TRIAL_SESSION_COUNT = "Số buổi học thử"
+
+export const PAYMENT_DEADLINE_DAYS = "Hạn chót thanh toán học phí"
+
+export const PAYMENT_REMINDER_DAY = "Ngày nhắc thanh toán học phí"
+
+export const ATTENDANCE_DEADLINE = "Deadline cho điểm danh 2025"
+
+export const REASON_CANCEL_SLOT = "Lý do hủy tiết"
+

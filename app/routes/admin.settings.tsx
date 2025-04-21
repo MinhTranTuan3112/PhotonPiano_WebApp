@@ -11,15 +11,38 @@ import { buttonVariants } from '~/components/ui/button';
 import { Separator } from '~/components/ui/separator'
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchSystemConfigs, fetchUpdateEntranceTestSystemConfig, fetchUpdateSurveySystemConfig } from '~/lib/services/system-config';
+import {
+    fetchSystemConfigs,
+    fetchUpdateEntranceTestSystemConfig,
+    fetchUpdateSchedulerSystemConfig,
+    fetchUpdateSurveySystemConfig,
+    fetchUpdateTuitionSystemConfig
+} from '~/lib/services/system-config';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { requireAuth } from '~/lib/utils/auth';
-import { ALLOW_ENTRANCE_TEST_REGISTERING, ALLOW_SKIPPING_LEVEL, DEADLINE_CHANGING_CLASS, ENTRANCE_SURVEY, INSTRUMENT_FREQUENCY_IN_RESPONSE, INSTRUMENT_NAME, MAX_QUESTIONS_PER_SURVEY, MAX_STUDENTS, MAX_STUDENTS_IN_TEST, MIN_QUESTIONS_PER_SURVEY, MIN_STUDENTS, MIN_STUDENTS_IN_TEST, TEST_FEE } from '~/lib/utils/config-name';
+import {
+    ALLOW_ENTRANCE_TEST_REGISTERING,
+    ALLOW_SKIPPING_LEVEL, ATTENDANCE_DEADLINE,
+    DEADLINE_CHANGING_CLASS,
+    ENTRANCE_SURVEY,
+    INSTRUMENT_FREQUENCY_IN_RESPONSE,
+    INSTRUMENT_NAME,
+    MAX_QUESTIONS_PER_SURVEY,
+    MAX_STUDENTS,
+    MAX_STUDENTS_IN_TEST,
+    MIN_QUESTIONS_PER_SURVEY,
+    MIN_STUDENTS,
+    MIN_STUDENTS_IN_TEST, PAYMENT_DEADLINE_DAYS, PAYMENT_REMINDER_DAY, REASON_CANCEL_SLOT,
+    TAX_RATE_2025,
+    TEST_FEE, TRIAL_SESSION_COUNT,
+} from '~/lib/utils/config-name';
 import { getErrorDetailsInfo } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import SurveyConfigForm, { SurveyConfigFormData, surveyConfigSchema } from '~/components/settings/survey-config-form';
 import { Role } from '~/lib/types/account/account';
+import TuitionConfigForm, {TuitionConfigFormData, tuitionConfigSchema} from '~/components/settings/tuition-config-form';
+import SchedulerConfigForm, {SchedulerConfigFormData, schedulerConfigSchema} from "~/components/settings/scheduler-config-form";
 
 type Props = {}
 
@@ -57,11 +80,14 @@ const settingsSchema = z.object({
     module: z.string()
 }).merge(entranceTestSettingsSchema.partial())
     .merge(classSettingsSchema.partial())
-    .merge(surveyConfigSchema.partial());
+    .merge(surveyConfigSchema.partial())
+    .merge(tuitionConfigSchema.partial())
+    .merge(schedulerConfigSchema.partial());
+
 
 type SettingsFormData = {
-    module: 'entrance-tests' | 'classes' | 'survey';
-} & Partial<EntranceTestSettingsFormData & ClassSettingsFormData & SurveyConfigFormData>;
+    module: 'entrance-tests' | 'classes' | 'survey' | 'tuition' | 'scheduler';
+} & Partial<EntranceTestSettingsFormData & ClassSettingsFormData & SurveyConfigFormData & TuitionConfigFormData & SchedulerConfigFormData>;
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -71,9 +97,11 @@ export async function action({ request }: ActionFunctionArgs) {
         if (role !== Role.Administrator) {
             return redirect('/');
         }
+        
 
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<SettingsFormData>(request, zodResolver(settingsSchema));
+
 
         console.log({ data });
 
@@ -89,6 +117,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
             case 'entrance-tests':
                 await fetchUpdateEntranceTestSystemConfig({ idToken, ...data });
+                break;
+
+            case 'tuition':
+                await fetchUpdateTuitionSystemConfig({ idToken, ...data });
+                break;
+
+            case 'scheduler':
+                await fetchUpdateSchedulerSystemConfig({ idToken, ...data });
                 break;
 
             default:
@@ -161,6 +197,12 @@ export default function AdminSettingsPage({ }: Props) {
                                 <TabsTrigger value="survey">
                                     Khảo sát
                                 </TabsTrigger>
+                                <TabsTrigger value="tuition">
+                                    Học phí
+                                </TabsTrigger>
+                                <TabsTrigger value="scheduler">
+                                    Lịch trình
+                                </TabsTrigger>
                             </TabsList>
                             <TabsContent value="entrance-tests">
                                 <EntranceTestConfigForm
@@ -194,6 +236,32 @@ export default function AdminSettingsPage({ }: Props) {
                                     instrumentFrequencyInResponse={parseInt(configs.find(c => c.configName === INSTRUMENT_FREQUENCY_IN_RESPONSE)?.configValue || '0')}
                                 />
                             </TabsContent>
+
+                            <TabsContent value='tuition'>
+                                <TuitionConfigForm
+                                    fetcher={fetcher}
+                                    isSubmitting={isSubmitting}
+                                    idToken={idToken}
+                                    taxRate2025={parseFloat(configs.find(c => c.configName === TAX_RATE_2025)?.configValue || '0.05')}
+                                    paymentDeadlineDays={parseInt(configs.find(c => c.configName === PAYMENT_DEADLINE_DAYS)?.configValue || '4')}
+                                    paymentReminderDay={parseInt(configs.find(c => c.configName === PAYMENT_REMINDER_DAY)?.configValue || '25')}
+                                    trialSessionCount={parseInt(configs.find(c => c.configName === TRIAL_SESSION_COUNT)?.configValue || '2')}
+                                />
+                            </TabsContent>
+
+                            <TabsContent value='scheduler'>
+                                <SchedulerConfigForm
+                                    fetcher={fetcher}
+                                    isSubmitting={isSubmitting}
+                                    idToken={idToken}
+                                    deadlineAttendance={parseInt(configs.find(c => c.configName === ATTENDANCE_DEADLINE)?.configValue || '1')}
+                                    reasonCancelSlot={JSON.parse(configs.find(c => c.configName === REASON_CANCEL_SLOT)?.configValue || '[]')}
+                                />
+                            </TabsContent>
+
+
+
+
                         </Tabs>
                     )}
                 </Await>
