@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useLoaderData, useNavigate} from "@remix-run/react";
 import { addDays, format, parseISO, subDays } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
@@ -18,6 +18,8 @@ import { fetchSlots } from "~/lib/services/scheduler";
 import { Shift, SlotDetail, SlotStatus } from "~/lib/types/Scheduler/slot";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
+import {fetchDeadlineSchedulerSystemConfig} from "~/lib/services/system-config";
+import {SystemConfig} from "~/lib/types/systemconfig/systemConfig";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     try {
@@ -47,13 +49,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             instructorFirebaseIds: [accountId],
             idToken
         });
+        
+
+        const deadlineResponse = await fetchDeadlineSchedulerSystemConfig({idToken});
+        
+        const deadlineData : SystemConfig = deadlineResponse.data;
 
         const slots: SlotDetail[] = response.data;
-
         return Response.json({
             slots,
             selectedDate: formattedDate,
-            idToken
+            idToken,
+            deadlineData
         });
     } catch (error) {
         console.error("Error loading attendance data:", error);
@@ -64,23 +71,43 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 };
 
-const isNotToday = (slotDate: string): boolean => {
-    const today = new Date();
-    const slot = new Date(slotDate);
-    
-    
-    return (
-        today.getFullYear() !== slot.getFullYear() ||
-        today.getMonth() !== slot.getMonth() ||
-        today.getDate() !== slot.getDate() 
-        // || 
-        // today.getHours() > slot.getHours() 
-    );
-    
+const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => {
+    const now = new Date(); // Current time
+    const slot = new Date(slotDate); // Slot date (e.g. 2025-04-21T00:00:00)
+
+    // Nếu slot ở tương lai thì không được phép điểm danh
+    if (slot > now) {
+        return true;
+    }
+
+    // Nếu slot không phải hôm nay thì cũng không cho phép điểm danh
+    if (
+        now.getFullYear() !== slot.getFullYear() ||
+        now.getMonth() !== slot.getMonth() ||
+        now.getDate() !== slot.getDate()
+    ) {
+        return true;
+    }
+
+    // Nếu là hôm nay, kiểm tra deadline
+    let additionalHours = 0;
+    if (deadlineValue) {
+        try {
+            additionalHours = parseFloat(deadlineValue) || 0;
+        } catch (error) {
+            console.warn("Error parsing deadline value:", error);
+        }
+    }
+
+    const slotWithDeadline = new Date(slot);
+    slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
+
+    // Nếu đã quá thời gian cho phép điểm danh
+    return now > slotWithDeadline;
 };
 
 export default function TeacherAttendance_index() {
-    const { slots, selectedDate} = useLoaderData<typeof loader>();
+    const { slots, selectedDate, deadlineData} = useLoaderData<typeof loader>();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [calendarOpen, setCalendarOpen] = useState(false);
@@ -264,21 +291,24 @@ export default function TeacherAttendance_index() {
                             <CardContent className="p-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Phòng:</span>
+                                        <span className="text-gray-500">Room:</span>
                                         <span className="font-medium">{slot.room.name}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Giờ học:</span>
+                                        <span className="text-gray-500">Time:</span>
                                         <span className="font-medium">{getShiftTime(slot.shift)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Sĩ số:</span>
-                                        <span className="font-medium">{slot.numberOfStudents} học sinh</span>
+                                        <span className="text-gray-500">Number of Students:</span>
+                                        <span className="font-medium">{slot.numberOfStudents} students</span>
                                     </div>
-
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-500">Slot No/Total:</span>
+                                        <span className="font-medium">{slot.slotNo}/{slot.slotTotal}</span>
+                                    </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={slot.status === SlotStatus.Finished || isNotToday(slot.date)}
+                                        disabled={slot.status === SlotStatus.Finished || isNotToday(slot.date, deadlineData.configValue)}
                                         onClick={() => navigate(`/teacher/attendance/${slot.id}`)}
                                     >
                                         Attendance
