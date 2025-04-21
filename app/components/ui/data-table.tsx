@@ -51,7 +51,7 @@ export function DataTable<TData, TValue>({
     data,
     onRowSelectionChange,
     extraHeaderContent,
-    emptyContent = "Không có kết quả.",
+    emptyContent = "No results.",
     enableColumnDisplayOptions = true,
     enablePagination = true,
     defaultPageSize = 5,
@@ -130,7 +130,7 @@ export function DataTable<TData, TValue>({
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline"
                                 Icon={Settings2} iconPlacement="left">
-                                Cột hiển thị
+                                Shown Columns
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -206,16 +206,16 @@ export function DataTable<TData, TValue>({
             <div className="flex flex-row gap-3">
 
                 <div className="flex-1 text-sm text-muted-foreground my-3">
-                    {table.getFilteredSelectedRowModel().rows.length} trên{" "}
-                    {table.getState().pagination.pageSize} dòng đã chọn.
+                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
+                    {table.getState().pagination.pageSize} selected rows.
                     <br />
-                    <strong>&#40;Tổng cộng: {totalCount}&#41;</strong>
+                    <strong>&#40;Total: {totalCount}&#41;</strong>
                 </div>
 
                 {enablePagination && (
                     <>
                         <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">Số dòng tối đa</p>
+                            <p className="text-sm font-medium">Max rows</p>
                             <Select
                                 value={`${table.getState().pagination.pageSize}`}
                                 onValueChange={(newPageSize) => {

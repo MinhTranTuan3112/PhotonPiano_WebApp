@@ -109,10 +109,10 @@ export default function AdminRoom({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Quản lý phòng học</h1>
-            <p className='text-muted-foreground'>Quản lý các phòng học của trung tâm</p>
+            <h1 className="text-xl font-extrabold">Manage Rooms</h1>
+            <p className='text-muted-foreground'>Manage rooms of the center</p>
             <div className='flex my-2 justify-end'>
-                <Button Icon={PlusCircle} iconPlacement='left'>Thêm mới</Button>
+                <Button Icon={PlusCircle} iconPlacement='left'>Add new</Button>
             </div>
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>

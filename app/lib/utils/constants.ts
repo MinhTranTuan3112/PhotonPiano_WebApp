@@ -44,4 +44,4 @@ export const API_PROGRESS_URL = import.meta.env.VITE_API_PROGRESS_URL as string;
 
 export const QUESTION_TYPES = ["Câu hỏi 1 lựa chọn", "Câu hỏi nhiều lựa chọn", "Câu hỏi nhập văn bản", "Câu hỏi đánh giá", "Câu hỏi về số"];
 
-export const ROOM_STATUS = ["Đang mở","Đã đóng"];
+export const ROOM_STATUS = ["Available","Unavailable"];
