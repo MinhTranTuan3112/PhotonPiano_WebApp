@@ -15,6 +15,7 @@ import {
 import {motion} from "framer-motion"
 import {
     Ban,
+    BookOpen,
     Calendar,
     CalendarClock,
     Check, CheckCircle,
@@ -26,6 +27,7 @@ import {
     Info,
     MoveRight,
     Music, RefreshCw, Settings,
+    ThumbsUp,
     User,
     Users,
     X
@@ -53,7 +55,6 @@ import {Account, Role} from "~/lib/types/account/account"
 import {fetchSystemConfigSlotCancel} from "~/lib/services/system-config";
 import {CompactSlotView} from "~/components/scheduler/CompactSlotView";
 import {toast} from "sonner";
-import { Calendar, BookOpen, User, Users, StickyNote, ThumbsUp } from "lucide-react";
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -652,7 +653,7 @@ export const Scheduler = ({
                                                                                 }
                                                                             >
                                                                                 {(() => {
-                                                                                    const displayText = AttendanceStatusText[slot.attendanceStatus ?? 0];
+                                                                                    const displayText = AttendanceStatusText[slot.attendanceStatus ?? ""];
                                                                                     return displayText;
                                                                                 })()}
                                                                             </Badge>
@@ -714,6 +715,13 @@ export const Scheduler = ({
                                                 <Users size={18} className="text-indigo-600" />
                                                 <span><strong>Number of Students:</strong> {selectedSlot.numberOfStudents}</span>
                                             </li>
+
+                                            <li className="flex items-center gap-2">
+                                                <CalendarClock size={18} className="text-indigo-600" />
+                                                <span><strong>Slot No/Total Slot:</strong> {selectedSlot.slotNo || '-'} of {selectedSlot.slotTotal || '-'}</span>
+                                            </li>
+
+
                                             {selectedSlot.slotNote && (
                                                 <li className="flex items-center gap-2">
                                                     <StickyNote size={18} className="text-indigo-600" />
@@ -758,7 +766,7 @@ export const Scheduler = ({
                                                                 <span><strong>Pedal:</strong> {student.pedalComment}</span>
                                                             </li>
                                                         )}
-                                                        {student.attendanceStatus && (
+                                                        {(student.attendanceStatus === 1 || student.attendanceStatus === 2) && (
                                                             <li className="flex items-center gap-2">
                                                                 <CheckCircle className="text-indigo-600 w-4 h-4" />
                                                                 <span><strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}</span>

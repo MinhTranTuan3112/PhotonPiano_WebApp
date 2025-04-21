@@ -102,6 +102,8 @@ export type SlotDetail = {
     attendanceStatus?: AttendanceStatus;
     teacherId?: string;
     teacher: TeacherModel;
+    slotNo: number;
+    slotTotal: number;
 }
 
 export type TeacherModel = {
