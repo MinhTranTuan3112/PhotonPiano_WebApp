@@ -16,7 +16,6 @@ import { X } from "lucide-react";
 
 // Sửa phần khai báo schema để xử lý chuyển đổi chuỗi thành mảng
 export const schedulerConfigSchema = z.object({
-    module: z.literal('scheduler'),
     deadlineAttendance: z.number().min(1).max(24).optional(),
     reasonCancelSlot: z.preprocess(
         (val) => {
@@ -50,7 +49,7 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, de
     const form = useForm<SchedulerConfigFormData>({
         resolver: zodResolver(schedulerConfigSchema),
         defaultValues: {
-            module: 'scheduler',
+            //module: 'scheduler',
             deadlineAttendance,
             reasonCancelSlot: reasons,
         }
@@ -86,7 +85,7 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, de
         const formData = new FormData();
 
         // Thêm các trường bình thường
-        formData.append('module', data.module);
+        formData.append('module', "scheduler");
         if (data.deadlineAttendance !== undefined) {
             formData.append('deadlineAttendance', data.deadlineAttendance.toString());
         }

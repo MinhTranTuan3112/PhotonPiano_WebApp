@@ -4,6 +4,7 @@ import { EntranceTestSettingsFormData } from "~/components/settings/entrance-tes
 import {PAYMENT_DEADLINE_DAYS, PAYMENT_REMINDER_DAY, TAX_RATE_2025, TRIAL_SESSION_COUNT} from "../utils/config-name";
 import {TuitionConfigFormData} from "~/components/settings/tuition-config-form";
 import {SchedulerConfigFormData} from "~/components/settings/scheduler-config-form";
+import { ClassSettingsFormData } from "~/components/settings/classes-config-form";
 
 export async function fetchSystemConfigs({ idToken, names = [] }: { idToken: string, names?: string[] }) {
 
@@ -159,3 +160,18 @@ export async function fetchDeadlineSchedulerSystemConfig({
     return response;
 }
 
+export async function fetchUpdateClassSystemConfig({
+    idToken,
+    ...data
+}: {
+    idToken: string
+} & Partial<ClassSettingsFormData>) {
+
+    const response = await axiosInstance.put("/system-configs/classes", { ...data }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
