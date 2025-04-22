@@ -27,7 +27,7 @@ import {
     DEADLINE_CHANGING_CLASS,
     ENTRANCE_SURVEY,
     INSTRUMENT_FREQUENCY_IN_RESPONSE,
-    INSTRUMENT_NAME,
+    INSTRUMENT_NAME, MAX_ABSENCE_RATE,
     MAX_QUESTIONS_PER_SURVEY,
     MAX_STUDENTS,
     MAX_STUDENTS_IN_TEST,
@@ -261,6 +261,7 @@ export default function AdminSettingsPage({ }: Props) {
                                     idToken={idToken}
                                     deadlineAttendance={parseInt(configs.find(c => c.configName === ATTENDANCE_DEADLINE)?.configValue || '1')}
                                     reasonCancelSlot={JSON.parse(configs.find(c => c.configName === REASON_CANCEL_SLOT)?.configValue || '[]')}
+                                    maxAbsenceRate={parseFloat(configs.find(c => c.configName === MAX_ABSENCE_RATE)?.configValue || '0.3')}
                                 />
                             </TabsContent>
 
