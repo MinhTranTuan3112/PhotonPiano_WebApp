@@ -8,17 +8,17 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 
 export const tuitionConfigSchema = z.object({
-    taxRate2025: z.coerce.number().min(0, { message: 'Thuế suất không được âm' }).max(1, { message: 'Thuế suất không được lớn hơn 1' }),
-    paymentDeadlineDays: z.coerce.number().min(1, { message: 'Hạn chót thanh toán phải lớn hơn 0' }),
-    paymentReminderDay: z.coerce.number().min(1, { message: 'Ngày nhắc thanh toán phải lớn hơn 0' }).max(31, { message: 'Ngày nhắc không được lớn hơn 31' }),
-    trialSessionCount: z.coerce.number().min(1, { message: 'Số buổi học thử phải lớn hơn 0' }),
+    taxRate2025: z.coerce.number().min(0, { message: 'Tax rate cannot be negative' }).max(1, { message: 'Tax rate cannot be greater than 1' }),
+    paymentDeadlineDays: z.coerce.number().min(1, { message: 'Payment deadline must be greater than 0' }),
+    paymentReminderDay: z.coerce.number().min(1, { message: 'Payment reminder day must be greater than 0' }).max(31, { message: 'Reminder day cannot be greater than 31' }),
+    trialSessionCount: z.coerce.number().min(1, { message: 'Trial session count must be greater than 0' }),
 });
 
 export type TuitionConfigFormData = z.infer<typeof tuitionConfigSchema>;
 
 type Props = {
     fetcher: FetcherWithComponents<any>;
-    isSubmitting: boolean;   
+    isSubmitting: boolean;
     idToken: string;
 } & Partial<TuitionConfigFormData>;
 
@@ -46,39 +46,38 @@ export default function TuitionConfigForm({ fetcher, isSubmitting, idToken,...de
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Lưu cấu hình',
-        description: 'Bạn có chắc chắn muốn lưu cấu hình này không?',
+        title: 'Save Configuration',
+        description: 'Are you sure you want to save this configuration?',
         onConfirm: handleSubmit,
     });
-    
+
 
     return (
         <>
-            <h2 className="text-base font-bold">Cấu hình học phí</h2>
-            <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến học phí và thuế</p>
+            <h2 className="text-base font-bold">Tuition Fee Configuration</h2>
+            <p className='text-sm text-muted-foreground'>Manage system settings related to tuition fees and taxes</p>
 
             <Form method='POST' className='my-4 flex flex-col gap-5'>
- 
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Thuế suất năm 2025:</Label>
+                    <Label className='w-[25%] flex items-center'>Tax Rate:</Label>
                     <div className='flex flex-col'>
                         <Input {...register('taxRate2025')}
-                               placeholder='Nhập thuế suất...'
+                               placeholder='Enter tax rate...'
                                type='number'
                                step='0.01'
                                min='0'
                                max='1'
                                className='max-w-full' />
-                        <p className='text-xs text-muted-foreground'>Giá trị từ 0 đến 1 (Ví dụ: 0.05 tương đương 5%)</p>
+                        <p className='text-xs text-muted-foreground'>Value between 0 and 1 (Example: 0.05 equals 5%)</p>
                     </div>
                 </div>
                 {errors.taxRate2025 && <p className='text-red-500 text-sm'>{errors.taxRate2025.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Số buổi học thử:</Label>
+                    <Label className='w-[25%] flex items-center'>Trial Session Count:</Label>
                     <Input {...register('trialSessionCount')}
-                           placeholder='Nhập số buổi...'
+                           placeholder='Enter number of sessions...'
                            type='number'
                            min='1'
                            className='max-w-[20%]' />
@@ -86,10 +85,10 @@ export default function TuitionConfigForm({ fetcher, isSubmitting, idToken,...de
                 {errors.trialSessionCount && <p className='text-red-500 text-sm'>{errors.trialSessionCount.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Hạn chót thanh toán học phí:</Label>
+                    <Label className='w-[25%] flex items-center'>Tuition Payment Deadline:</Label>
                     <div className='flex flex-row items-center gap-2'>
                         <Input {...register('paymentDeadlineDays')}
-                               placeholder='Nhập số ngày...'
+                               placeholder='Enter number of days...'
                                type='number'
                                className='w-24' />
                     </div>
@@ -97,24 +96,23 @@ export default function TuitionConfigForm({ fetcher, isSubmitting, idToken,...de
                 {errors.paymentDeadlineDays && <p className='text-red-500 text-sm'>{errors.paymentDeadlineDays.message}</p>}
 
                 {/*<div className="flex flex-row">*/}
-                {/*    <Label className='w-[25%] flex items-center'>Ngày nhắc thanh toán học phí:</Label>*/}
+                {/*    <Label className='w-[25%] flex items-center'>Tuition Payment Reminder Day:</Label>*/}
                 {/*    <div className='flex flex-row items-center gap-2'>*/}
                 {/*        <Input {...register('paymentReminderDay')}*/}
-                {/*               placeholder='Nhập ngày...'*/}
+                {/*               placeholder='Enter day...'*/}
                 {/*               type='number'*/}
                 {/*               min='1'*/}
                 {/*               max='31'*/}
                 {/*               className='w-24' />*/}
-                {/*        <span>hàng tháng</span>*/}
+                {/*        <span>monthly</span>*/}
                 {/*    </div>*/}
                 {/*</div>*/}
                 {/*{errors.paymentReminderDay && <p className='text-red-500 text-sm'>{errors.paymentReminderDay.message}</p>}*/}
-                
 
                 <div className="my-2">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                             onClick={handleOpenConfirmDialog}>
-                        {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                        {isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
                 </div>
             </Form>
