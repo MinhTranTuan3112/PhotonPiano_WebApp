@@ -39,7 +39,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             page: Number.parseInt(searchParams.get('page') || '1'),
             pageSize: Number.parseInt(searchParams.get('size') || '10'),
             sortColumn: searchParams.get('column') || 'CreatedAt',
-            orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+            orderByDesc: searchParams.get('desc') ? searchParams.get('desc') === 'true' : true,
             keyword: trimQuotes(searchParams.get('q') || ''),
             shifts: getParsedParamsArray({ paramsValue: searchParams.get('shifts') }).map(Number),
             roomIds: getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String),

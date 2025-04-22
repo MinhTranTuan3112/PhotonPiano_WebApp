@@ -80,7 +80,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const response = await fetchCreateEntranceTest({
             idToken,
-            ...data, 
+            ...data,
             date: data.date.toISOString().split('T')[0],
         });
 
@@ -173,9 +173,13 @@ export default function CreateEntranceTestPage({ }: Props) {
 }
 
 export function CreateEntranceTestForm({
-    idToken
+    idToken,
+    studentIds: initialStudentIds = [],
+    hasWidthConstraint = true
 }: {
-    idToken: string
+    idToken: string,
+    studentIds?: string[];
+    hasWidthConstraint?: boolean;
 }) {
 
     const fetcher = useFetcher<typeof action>();
@@ -193,6 +197,13 @@ export function CreateEntranceTestForm({
     } = useRemixForm<CreateEntranceTestFormData>({
         mode: "onSubmit",
         resolver,
+        defaultValues: {
+            studentIds: initialStudentIds || [],
+        },
+        submitConfig: {
+            action: '/staff/entrance-tests/create',
+            method: 'POST',
+        },
         fetcher
     });
 
@@ -229,7 +240,8 @@ export function CreateEntranceTestForm({
     }, [fetcher.data]);
 
     return <>
-        <Form method='POST' className='my-5 flex flex-col gap-5 md:max-w-[60%]'>
+        <Form method='POST' className={`my-5 flex flex-col gap-5 ${hasWidthConstraint ? 'md:max-w-[60%]' : ''} `}
+            action='/staff/entrance-tests/create'>
             <div className="">
                 <Label htmlFor='name'>Test name</Label>
                 <Input {...register('name')} name='name' id='name' placeholder='Test name...' readOnly={true} />

@@ -1,7 +1,7 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Loader2 } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Loader2, Eye } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
@@ -157,7 +157,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
         }
 
     }, [fetcher.data]);
-    
+
 
     return <>
         <DropdownMenu>
@@ -171,7 +171,9 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(authData.role === Role.Staff ? `/staff/entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}><Pencil /> Sửa</DropdownMenuItem>
+                    onClick={() => navigate(authData.role === Role.Staff ? `/staff/entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
+                    <Eye /> View
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
                     disabled={isSubmitting}>
                     {!isSubmitting ? <Trash2 /> : <Loader2 className="animate-spin" />} Delete

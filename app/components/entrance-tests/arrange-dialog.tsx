@@ -13,24 +13,33 @@ import { MultiSelect } from '../ui/multi-select'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { action } from '~/routes/arrange-entrance-test'
 import { toast } from 'sonner'
+import { Account } from '~/lib/types/account/account'
+import { DataTable } from '../ui/data-table'
+import { studentColumns } from '../staffs/table/student-columns'
+import { Separator } from '../ui/separator'
+import { CreateEntranceTestForm } from '~/routes/staff.entrance-tests.create'
+import { ScrollArea } from '../ui/scroll-area'
 
-type Props = {
+export type ArrangeDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    studentIds: string[];
+    students: Account[];
+    idToken: string;
 }
 
 export const resolver = zodResolver(entranceTestArrangementSchema);
 
-export default function ArrangeDialog({ isOpen, setIsOpen, studentIds }: Props) {
+export default function ArrangeDialog({ isOpen, setIsOpen, students, idToken }: ArrangeDialogProps) {
+
+    const studentIds = students.map(s => s.accountFirebaseId);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
+            <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
                     <DialogTitle>Arrange entrance tests</DialogTitle>
                     <DialogDescription>
-                        Arrange entrance tests for learners who have registered for entrance tests 
+                        Arrange entrance tests for learners who have registered for entrance tests
                         and are waiting to be arranged based on 2 modes: manual and automatic.
                     </DialogDescription>
                 </DialogHeader>
@@ -43,9 +52,23 @@ export default function ArrangeDialog({ isOpen, setIsOpen, studentIds }: Props) 
                         <AutoArrangementForm studentIds={studentIds} />
                     </TabsContent>
                     <TabsContent value="manual">
-
+                        <ScrollArea className='h-56 px-4'>
+                            <CreateEntranceTestForm studentIds={studentIds}
+                                hasWidthConstraint={false}
+                                idToken={idToken} />
+                        </ScrollArea>
                     </TabsContent>
                 </Tabs>
+
+                <div className="my-3">
+                    <h1 className="text-base font-bold">Learners to be arranged</h1>
+                    <Separator className='w-full my-2' />
+                    <DataTable
+                        columns={studentColumns.filter(col => col.id !== 'Actions' && col.id !== 'select')}
+                        data={students}
+                    />
+                </div>
+
             </DialogContent>
         </Dialog>
     )

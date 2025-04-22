@@ -6,11 +6,14 @@ import {
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account, Level } from "~/lib/types/account/account";
+import { Account, Level, StudentStatus } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
 import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
-import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
+import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/arrange-dialog";
+import { toast } from "sonner";
+import { useRouteLoaderData } from "@remix-run/react";
+import { loader } from "~/root";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -118,10 +121,11 @@ export const studentColumns: ColumnDef<Account>[] = [
         }
     },
     {
+        id: "Actions",
         accessorKey: "Actions",
         header: "Actions",
         cell: ({ row, table }) => {
-            return <ActionsDropdown table={table} row={row}/>
+            return <ActionsDropdown table={table} row={row} />
         }
     }
 ]
@@ -129,15 +133,15 @@ export const studentColumns: ColumnDef<Account>[] = [
 
 function ActionsDropdown({ table, row }: {
     table: Table<Account>
-    row : Row<Account>
+    row: Row<Account>
 }) {
 
-    const [arrangeDialogProps, setArrangeDialogProps] = useState<{
-        isOpen: boolean,
-        studentIds: string[]
-    }>({
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    const [arrangeDialogProps, setArrangeDialogProps] = useState<Omit<ArrangeDialogProps, 'setIsOpen'>>({
         isOpen: false,
-        studentIds: []
+        students: [],
+        idToken: authData?.idToken || ''
     });
 
     return <>
@@ -154,14 +158,24 @@ function ActionsDropdown({ table, row }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.accountFirebaseId}`}>
                     <User /> View information
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" disabled={table.getSelectedRowModel().rows.length === 0}
+                <DropdownMenuItem className="cursor-pointer"
                     onClick={() => {
                         const selectedRows = table.getSelectedRowModel().rows;
 
-                        const studentIds = selectedRows.map((row) => row.original.accountFirebaseId);
+                        const students = selectedRows.length > 0 ? selectedRows.map((row) => row.original) : [row.original];
 
-                        console.log({ studentIds });
-                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, studentIds });
+                        const invalidStudents = students.filter((student) => student.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement);
+
+                        if (invalidStudents.length > 0) {
+                            toast.warning(`Learners ${invalidStudents.map((s) => {
+                                return s.fullName || s.email
+                            }).join(',')} are not valid to be arranged`, {
+                                duration: 5000
+                            })
+                            return;
+                        }
+
+                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, students });
                     }}>
                     <Calendar /> Arrange entrance tests
                 </DropdownMenuItem>
@@ -170,8 +184,8 @@ function ActionsDropdown({ table, row }: {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        <ArrangeDialog isOpen={arrangeDialogProps.isOpen} setIsOpen={(openState) => {
+        <ArrangeDialog {...arrangeDialogProps} setIsOpen={(openState) => {
             setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
-        }} studentIds={arrangeDialogProps.studentIds} />
+        }} />
     </>
 }
