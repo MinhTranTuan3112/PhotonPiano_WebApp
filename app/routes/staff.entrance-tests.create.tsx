@@ -199,8 +199,8 @@ export function CreateEntranceTestForm({
     const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận tạo ca thi',
-        description: 'Bạn có chắc chắn muốn tạo ca thi này không?',
+        title: 'Confirm action',
+        description: 'Create this test?',
         onConfirm: () => {
             console.log(getFormValues());
             handleSubmit();
@@ -210,7 +210,7 @@ export function CreateEntranceTestForm({
     useEffect(() => {
 
         if (fetcher.data?.success && fetcher.data.success === true) {
-            toast.success('Ca thi đã được tạo thành công!');
+            toast.success('Test created successfully!');
             return;
         }
 
@@ -231,19 +231,19 @@ export function CreateEntranceTestForm({
     return <>
         <Form method='POST' className='my-5 flex flex-col gap-5 md:max-w-[60%]'>
             <div className="">
-                <Label htmlFor='name'>Tên đợt thi</Label>
-                <Input {...register('name')} name='name' id='name' placeholder='Nhập tên đợt thi...' readOnly={true} />
+                <Label htmlFor='name'>Test name</Label>
+                <Input {...register('name')} name='name' id='name' placeholder='Test name...' readOnly={true} />
                 {errors.name && <p className='text-sm text-red-500'>{errors.name.message}</p>}
             </div>
             <div className="flex md:flex-row max-md:flex-col gap-5">
                 <div className="w-full">
-                    <Label className='w-full'>Ngày thi</Label>
+                    <Label className='w-full'>Test date</Label>
                     <Controller
                         control={control}
                         name='date'
                         render={({ field: { onChange, onBlur, value, ref } }) => (
                             <DatePickerInput
-                                placeholder='Chọn ngày thi'
+                                placeholder='Select test date'
                                 ref={ref}
                                 value={value}
                                 onChange={(date) => {
@@ -263,7 +263,7 @@ export function CreateEntranceTestForm({
                     {errors.date && <p className='text-sm text-red-500'>{errors.date.message}</p>}
                 </div>
                 <div className="w-full md:max-w-[25%] max-md:max-w-[50%]">
-                    <Label className='w-full'>Ca thi</Label>
+                    <Label className='w-full'>Test shift</Label>
                     <Controller
                         name='shift'
                         control={control}
@@ -277,11 +277,11 @@ export function CreateEntranceTestForm({
                                 }));
                             }} value={value}>
                                 <SelectTrigger className='w-full'>
-                                    <SelectValue placeholder={<div className='flex flex-row items-center gap-1'><Clock /> Chọn ca thi</div>} />
+                                    <SelectValue placeholder={<div className='flex flex-row items-center gap-1'><Clock /> Select shift</div>} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectLabel>Ca thi</SelectLabel>
+                                        <SelectLabel>Shift</SelectLabel>
                                         {SHIFT_TIME.map((shift, index) => (
                                             <SelectItem key={shift} value={(index + 1).toString()}>{shift}</SelectItem>
                                         ))}
@@ -294,7 +294,7 @@ export function CreateEntranceTestForm({
                 </div>
             </div>
             <div className="w-full">
-                <Label className='w-full flex flex-row gap-1 items-center'><MapPin className='p-1' />Phòng thi</Label>
+                <Label className='w-full flex flex-row gap-1 items-center'><MapPin className='p-1' />Room</Label>
                 <Controller
                     name='roomId'
                     control={control}
@@ -328,9 +328,9 @@ export function CreateEntranceTestForm({
                                     shift: parseInt(testShift)
                                 }));
                             }}
-                            placeholder='Chọn phòng thi'
-                            emptyText='Không tìm thấy phòng thi.'
-                            errorText='Lỗi khi tải danh sách phòng thi.'
+                            placeholder='Select room'
+                            emptyText='Rooms not found.'
+                            errorText='Error loading rooms.'
                             value={value}
                             onChange={onChange}
                             maxItemsDisplay={10}
@@ -340,7 +340,7 @@ export function CreateEntranceTestForm({
                 {errors.roomId && <p className='text-sm text-red-500'>{errors.roomId.message}</p>}
             </div>
             <div className="w-full">
-                <Label className='w-full flex flex-row items-center'><UserCog className='p-1' /> Người gác thi</Label>
+                <Label className='w-full flex flex-row items-center'><UserCog className='p-1' /> Teacher</Label>
                 <Controller
                     control={control}
                     name='instructorId'
@@ -377,9 +377,9 @@ export function CreateEntranceTestForm({
                                 </div>,
                                 value: item?.accountFirebaseId
                             })}
-                            placeholder='Chọn người gác thi'
-                            emptyText='Không tìm thấy người gác thi.'
-                            errorText='Lỗi khi tải danh sách người gác thi.'
+                            placeholder='Select teacher'
+                            emptyText='No teachers found.'
+                            errorText='Error loading teachers data.'
                             maxItemsDisplay={10}
                             value={value || ''}
                             onChange={onChange}
@@ -390,7 +390,7 @@ export function CreateEntranceTestForm({
             </div>
             <Button variant={'default'} className='uppercase' type='button'
                 isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog}>
-                {isSubmitting ? 'Đang tạo' : 'Tạo'}
+                {isSubmitting ? 'Creating' : 'Create'}
             </Button>
         </Form>
         {confirmDialog}

@@ -23,10 +23,10 @@ type Props = {
     confirmButtonClassname?: string;
 };
 
-export function useConfirmationDialog({ title = 'Okay', description, onConfirm, onCancel,
+export function useConfirmationDialog({ title = 'Confirm', description, onConfirm, onCancel,
     defaultOpen = false,
     cancelText = 'Cancel',
-    confirmText = 'Okay',
+    confirmText = 'Confirm',
     cancelButtonClassname,
     confirmButtonClassname,
 }: Props) {

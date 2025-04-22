@@ -2,7 +2,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string || 'http
 
 export const TEST_IMAGE_GROUP_ID = "0193c810-67b1-7c4e-b2e2-fe13de074627";
 
-export const PAYMENT_STATUSES = ["Chưa thanh toán", "Đã thanh toán", "Thất bại", "Đã hủy"];
+export const PAYMENT_STATUSES = ["Not Paid", "Paid", "Failed", "Cancelled"];
 
 export const SHIFT_TIME = [
   "7:00 - 8:30",
@@ -16,15 +16,16 @@ export const SHIFT_TIME = [
 ];
 
 export const ENTRANCE_TEST_STATUSES = [
-  "Sắp bắt đầu",
-  "Đang diễn ra",
-  "Đã kết thúc",
-  "Vô hiệu hóa",
+  "Not started",
+  "On going",
+  "Ended",
+  "Disabled",
 ];
 
 export const LEVEL = ["Người mới học", "Nghiệp dư", "Trung cấp", "Cao cấp", "Bậc thầy"];
 
-export const STUDENT_STATUS = ["Chưa đăng ký", "Chờ thi đầu vào", "Thi đầu vào", "Chờ xếp lớp", "Đang học", "Bị thôi học", "Đã rời"];
+export const STUDENT_STATUS = ["Unregistered", "Waiting for entrance tests", "Attempting entrance test", "Waiting for class", 
+  "Learning", "Drop Out", "Left"];
 
 export const CLASS_STATUS = ["Sắp bắt đầu", "Đang diễn ra", "Đã kết thúc", "Vô hiệu hóa"];
 

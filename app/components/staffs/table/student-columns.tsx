@@ -40,7 +40,7 @@ export function LevelBadge({ level }: {
     level?: Level
 }) {
     return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name.split("(")[0] : 'Chưa xác định'}
+        {level ? level.name.split("(")[0] : 'Undetermined'}
     </Badge>
 }
 
@@ -61,7 +61,7 @@ export const studentColumns: ColumnDef<Account>[] = [
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
+                aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
@@ -69,7 +69,7 @@ export const studentColumns: ColumnDef<Account>[] = [
                 variant={'theme'}
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
+                aria-label="Select row"
             />
         ),
         enableSorting: false,
@@ -83,8 +83,8 @@ export const studentColumns: ColumnDef<Account>[] = [
     //     }
     // },
     {
-        accessorKey: 'Tên',
-        header: 'Tên học viên',
+        accessorKey: 'Name',
+        header: 'Name',
         cell: ({ row }) => {
             return <div>{row.original.fullName || row.original.userName}</div>
         }
@@ -97,8 +97,8 @@ export const studentColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: 'SĐT',
-        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
+        accessorKey: 'Phone',
+        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
         cell: ({ row }) => {
             return <div>{row.original.phone}</div>
         }
@@ -111,15 +111,15 @@ export const studentColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+        accessorKey: 'Status',
+        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
             return <StatusBadge status={row.original.studentStatus || 0} />
         }
     },
     {
-        accessorKey: "Thao tác",
-        header: "Hành động",
+        accessorKey: "Actions",
+        header: "Actions",
         cell: ({ row, table }) => {
             return <ActionsDropdown table={table} row={row}/>
         }
@@ -144,15 +144,15 @@ function ActionsDropdown({ table, row }: {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.accountFirebaseId}`}>
-                    <User /> Xem thông tin
+                    <User /> View information
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" disabled={table.getSelectedRowModel().rows.length === 0}
                     onClick={() => {
@@ -163,10 +163,10 @@ function ActionsDropdown({ table, row }: {
                         console.log({ studentIds });
                         setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, studentIds });
                     }}>
-                    <Calendar /> Xếp lịch thi
+                    <Calendar /> Arrange entrance tests
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <BanIcon /> Vô hiệu hóa
+                    <BanIcon /> Disable
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

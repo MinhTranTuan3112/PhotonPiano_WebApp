@@ -36,7 +36,6 @@ import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
 import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
 import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
 import { getEntranceTestName } from './staff.entrance-tests.create'
-import { objectToFormData } from '~/lib/utils/form'
 
 type Props = {}
 
@@ -115,7 +114,7 @@ export default function StaffEntranceTestDetailsPage({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật thông tin đợt thi thành công!');
+            toast.success('Update test successfully!');
             return;
         }
 
@@ -154,7 +153,7 @@ const serverSchema = updateEntranceTestSchema.pick({
     roomId: true,
     isAnnouncedScore: true
 }).extend({
-    date: z.coerce.date({ message: 'Ngày thi không được để trống.' })
+    date: z.coerce.date({ message: 'Test date cannot be empty.' })
 }).partial();
 
 type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
@@ -165,7 +164,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (!params.id) {
             return {
                 success: false,
-                error: 'Không có mã đợt thi',
+                error: 'No test id found',
             }
         }
 
@@ -258,9 +257,9 @@ export function EntranceTestDetailsContent({
     return <>
         <div className="flex flex-row justify-between items-center w-full">
             <div className="">
-                <h1 className="text-xl font-bold">Chi tiết ca thi</h1>
-                <p className='text-sm text-muted-foreground mb-4'>Quản lý thông tin về thời gian, phòng thi
-                    và bảng điểm, danh sách của học viên.
+                <h1 className="text-xl font-bold">Test details information</h1>
+                <p className='text-sm text-muted-foreground mb-4'>
+                    Manage information about the time, exam room and score table, list of learners.
                 </p>
             </div>
             <div className="w-[20%]">
@@ -272,18 +271,18 @@ export function EntranceTestDetailsContent({
                 <TabsTrigger value="general" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
                     tab: "general",
-                })}>Thông tin chung</TabsTrigger>
+                })}>Basic information</TabsTrigger>
                 <TabsTrigger value="students" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
                     tab: "students",
-                })}>Danh sách học viên</TabsTrigger>
+                })}>Learners</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Thông tin chung</CardTitle>
+                        <CardTitle>Basic information</CardTitle>
                         <CardDescription>
-                            Thông tin cơ bản của ca thi.
+                            Basic information about the test.
                         </CardDescription>
                     </CardHeader>
                     <EntranceTestForm fetcher={fetcher} idToken={idToken} role={role} {...entranceTest} />
@@ -331,8 +330,8 @@ export function EntranceTestForm({
         });
 
     const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật ca thi',
-        description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
+        title: 'Confirm update entrance test',
+        description: 'Are you sure you want to update this entrance test?',
         onConfirm: () => {
             setFormValue('isAnnouncedScore', undefined);
             handleSubmit();
@@ -353,24 +352,24 @@ export function EntranceTestForm({
                             <>
                                 <Button variant={'destructive'} type="button" onClick={() => setIsEdit(false)}
                                     Icon={XIcon} iconPlacement='left'>
-                                    Hủy thay đổi
+                                    Cancel changes
                                 </Button>
                             </>
                         ) : (
                             <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"
-                                Icon={Edit2Icon} iconPlacement='left'>Chỉnh sửa
+                                Icon={Edit2Icon} iconPlacement='left'>Edit
                             </Button>
                         )
                     }
                 </div>}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Tên bài thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Name: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <div >
                                     <Input  {...register('name')} id="name" className="col-span-3"
-                                        placeholder='Nhập tên đợt thi...' readOnly={true} />
+                                        placeholder='Test name...' readOnly={true} />
                                 </div>
                             ) : (
                                 <p className="text-gray-900">{defaultData.name}</p>
@@ -379,7 +378,7 @@ export function EntranceTestForm({
                         {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Ca thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Shift: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -396,7 +395,7 @@ export function EntranceTestForm({
                                                 }));
                                             }}>
                                             <SelectTrigger className='w-64'>
-                                                <SelectValue placeholder="Chọn ca thi" />
+                                                <SelectValue placeholder="Select shift" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
@@ -417,7 +416,7 @@ export function EntranceTestForm({
                         {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Ngày thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Test date: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -436,7 +435,7 @@ export function EntranceTestForm({
                                                     shift: parseInt(testShift)
                                                 }));
                                             }}
-                                            placeholder='Chọn ngày thi'
+                                            placeholder='Select test date'
                                             className='w-full'
                                         />
                                     )}
@@ -448,7 +447,7 @@ export function EntranceTestForm({
                         {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Phòng thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Room: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -484,9 +483,9 @@ export function EntranceTestForm({
                                                     shift: parseInt(testShift)
                                                 }));
                                             }}
-                                            placeholder='Chọn phòng thi'
-                                            emptyText='Không tìm thấy phòng thi.'
-                                            errorText='Lỗi khi tải danh sách phòng thi.'
+                                            placeholder='Select room'
+                                            emptyText='No rooms found.'
+                                            errorText='Error loading rooms.'
                                             value={value}
                                             onChange={onChange}
                                             maxItemsDisplay={10}
@@ -500,7 +499,7 @@ export function EntranceTestForm({
                         {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Gv: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Teacher: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -539,9 +538,9 @@ export function EntranceTestForm({
                                                 </div>,
                                                 value: item?.accountFirebaseId
                                             })}
-                                            placeholder='Chọn người gác thi'
-                                            emptyText='Không tìm thấy người gác thi.'
-                                            errorText='Lỗi khi tải danh sách người gác thi.'
+                                            placeholder='Select teacher'
+                                            emptyText='No teachers found.'
+                                            errorText='Error loading instructors.'
                                             maxItemsDisplay={10}
                                             value={value || ''}
                                             onChange={(value) => {
@@ -557,13 +556,13 @@ export function EntranceTestForm({
                         {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Trạng thái: </span>
+                        <span className="text-gray-700 font-bold">Status: </span>
                         <div className="">
                             <StatusBadge status={defaultData.testStatus} />
                         </div>
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg col-start-2">
-                        <span className="text-gray-700 font-bold">Số học viên tham dự: </span>
+                        <span className="text-gray-700 font-bold">Number of learners: </span>
                         <p className="text-gray-900">{defaultData.entranceTestStudents.length}</p>
                     </div>
                 </div>
@@ -572,7 +571,7 @@ export function EntranceTestForm({
                 {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
                     disabled={isSubmitting}
                     type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
-                    {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                    {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>}
             </CardFooter>
         </Form>
@@ -644,8 +643,8 @@ function StudentsSection({
     return <>
         <Card className="">
             <CardHeader>
-                <CardTitle>Danh sách học viên</CardTitle>
-                <CardDescription>Danh sách học viên trong ca thi.</CardDescription>
+                <CardTitle>Learners list</CardTitle>
+                <CardDescription>Learners in test.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="my-8">
@@ -713,8 +712,8 @@ function PublishScoreSection({
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận công bố điểm số',
-        description: 'Bạn có chắc chắn muốn công bố điểm số cho ca thi này không?',
+        title: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
+        description: `Are you sure you want to ${isAnnouncedScore ? "cancel" : "publish"} test results?`,
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', id);
@@ -729,7 +728,7 @@ function PublishScoreSection({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Công bố điểm số thành công!');
+            toast.success('Success!');
             return;
         }
 
@@ -755,12 +754,12 @@ function PublishScoreSection({
                     <>
                         <Delete className='mr-4'
                         />
-                        Hủy công bố điểm số
+                        Cancel publishing score
                     </>
                 ) : (
                     <>
                         <Pencil className='mr-4' />
-                        Công bố điểm số
+                        Publish score
                     </>
                 )
             }

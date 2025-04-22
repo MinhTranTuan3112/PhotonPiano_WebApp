@@ -46,8 +46,8 @@ export type UpdateEntranceTest = {
 } & Partial<Omit<EntranceTest, 'roomName' | 'instructorName' | 'status' | 'registerStudents' | 'isOpen' | 'roomCapacity'>>;
 
 export const updateEntranceTestSchema = z.object({
-    name: z.string({ message: 'Tên đợt thi không được để trống.' }).nonempty({ message: 'Tên đợt thi không được để trống.' }),
-    shift: z.string({ message: 'Ca thi không được để trống.' }).nonempty({ message: 'Ca thi không được để trống.' }),
+    name: z.string({ message: 'Test name cannot be empty.' }).nonempty({ message: 'Test name cannot be empty.' }),
+    shift: z.string({ message: 'Shift cannot be empty.' }).nonempty({ message: 'Shift cannot be empty.' }),
     date: z.coerce.date(),
     roomId: z.string().nonempty(),
     roomName: z.string(),
