@@ -104,11 +104,6 @@ function AutoArrangementForm({
 
     useEffect(() => {
 
-        if (fetcher.data?.success === true) {
-            toast.success('Tests arranged successfully!');
-            return;
-        }
-
         if (fetcher.data?.success === false && fetcher.data.error) {
             toast.warning(fetcher.data.error, {
                 duration: 5000
