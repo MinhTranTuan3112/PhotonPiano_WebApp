@@ -17,7 +17,7 @@ const data = {
     },
     navMain: [
         {
-            title: "Thông tin chung",
+            title: "General",
             url: "",
             icon: CircleUserRound,
             isActive: true,
@@ -29,7 +29,7 @@ const data = {
             ],
         },
         {
-            title: "Quản lý đào tạo",
+            title: "Academic",
             url: "",
             icon: BookOpen,
             isActive: true,

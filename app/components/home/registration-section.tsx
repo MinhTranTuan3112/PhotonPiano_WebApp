@@ -31,7 +31,7 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
-                        Sẵn sang để bắt đầu hành trình âm nhạc cùng phím đàn piano của bạn?
+                        Ready to start your musical journey with the piano keys?
                     </motion.h2>
                     <motion.p
                         className="text-xl text-white/80 mb-8"
@@ -39,7 +39,7 @@ export function RegistrationSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        Đăng ký ngay hôm nay để khám phá những điều tuyệt vời mà chúng tôi đã chuẩn bị cho bạn!
+                        Register now to discover the amazing things we have prepared for you!
                     </motion.p>
                     {
                         (!currentAccount || currentAccount.studentStatus === 0) && (
@@ -53,7 +53,7 @@ export function RegistrationSection() {
                                     className="inline-flex items-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
                                 >
                                     <UserPlus className="w-5 h-5" />
-                                    Đăng ký ngay
+                                    Register now
                                 </Link>
                             </motion.div>
                         )

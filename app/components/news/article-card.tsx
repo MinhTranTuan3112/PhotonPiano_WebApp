@@ -1,7 +1,6 @@
 import { Article } from '~/lib/types/news/article'
-import DOMPurify from "isomorphic-dompurify";
 import PlaceholderImage from '../../lib/assets/images/placeholder.jpg'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Calendar, ChevronsRight } from 'lucide-react';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 import { useNavigate } from '@remix-run/react';

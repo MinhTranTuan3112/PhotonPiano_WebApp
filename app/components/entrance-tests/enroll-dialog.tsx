@@ -26,7 +26,9 @@ export default function EnrollDialog({ isOpen, setIsOpen }: Props) {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Đăng ký thi đầu vào để nhập học</DialogTitle>
+                    <DialogTitle>
+                        Register for entrance test to enroll
+                    </DialogTitle>
                     {/* <DialogDescription>
                             Hãy xác nhận các thông tin sau để tiến hành đăng ký.
                             </DialogDescription> */}
@@ -61,8 +63,8 @@ function EnrollForm() {
     const feeConfig = data ? data as SystemConfig : undefined;
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận',
-        description: 'Bạn có chắc chắn muốn đăng ký thi đầu vào không?',
+        title: 'Confirm enrollment',
+        description: 'Confirm register for entrance test?',
         onConfirm: () => {
             submit(null, {
                 method: 'POST',
@@ -90,7 +92,7 @@ function EnrollForm() {
     return <>
         <Form method='POST' action='/enroll'>
             <div className='text-gray-600 italic text-sm mb-4'>
-                Để tránh trường hợp spam yêu cầu đăng ký, trung tâm Photon Piano sẽ thu lệ phí
+                To avoid spam registration requests, Photon Piano Center will charge a fee of
                 {' '}
                 <span className='font-bold'>{isLoading ? (
                     <Loader2 className='animate-spin' />
@@ -102,23 +104,23 @@ function EnrollForm() {
                     </>
                 )}</span>
                 {' '}
-                cho mỗi đơn đăng ký thi đầu vào
+                per registration request
             </div>
             <div className='flex gap-4 items-start mb-3'>
                 <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
-                <span className='text-sm'>Tôi đồng ý với các <a className='underline font-bold' href='/'>quy định</a>   của trung tâm Photon Piano</span>
+                <span className='text-sm'>I agree with <a className='underline font-bold' href='/'>terms and conditions</a>  Photon Piano center</span>
             </div>
             <RadioGroup defaultValue='vnpay'>
                 <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="vnpay" id="r1" />
                     <div className='flex place-content-between w-full items-center'>
-                        <Label htmlFor="r1">Thanh toán qua Vnpay</Label>
+                        <Label htmlFor="r1">Vnpay</Label>
                         <img src='/images/vnpay.webp' className='w-8' />
                     </div>
                 </div>
             </RadioGroup>
             <div className='flex justify-end my-4 gap-4 items-end'>
-                <div>Tổng cộng : </div>
+                <div>Total : </div>
                 <div className='font-extrabold text-xl'>
                     {isLoading ? (
                         <Loader2 className='animate-spin' />
@@ -135,7 +137,7 @@ function EnrollForm() {
                 <Button disabled={!isAgreed}
                     type="button" className='w-full' isLoading={isSubmitting}
                     onClick={handleOpenConfirmDialog}>
-                    Thanh toán lệ phí
+                    Register
                 </Button>
             </div>
         </Form>

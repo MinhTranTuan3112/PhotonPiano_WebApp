@@ -28,7 +28,9 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         const totalImages = imageFiles.length + acceptedFiles.length;
 
         if (totalImages > maxImages) {
-            toast.warning(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
+            toast.warning(`You can only upload maximum of ${maxImages} images.`, {
+                duration: 5000
+            });
             return;
         }
 
@@ -63,7 +65,9 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         }
 
         if (imageFiles.length >= maxImages) {
-            toast.warning(`Bạn chỉ có thể upload tối đa ${maxImages} ảnh.`);
+            toast.warning(`You can only upload maximum of ${maxImages} images.`, {
+                duration: 5000
+            });
             return;
         }
 
@@ -90,7 +94,9 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
 
         } catch (error) {
             console.error('Error fetching image:', error);
-            toast.warning('Không thể tải ảnh từ đường link đã nhập.');
+            toast.warning('Cannot load url from the inputted image.', {
+                duration: 5000
+            });
         }
 
     }, [imageFiles, maxImages, setImageUrls]);
@@ -126,7 +132,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
                 <input {...getInputProps()} name='imageFiles' />
                 <p className='flex flex-col justify-center items-center'>
                     <Images className="h-6 w-6 mb-2" />
-                    Upload hoặc kéo ảnh vào đây...
+                    Upload or drag images here...
                 </p>
             </div>
 
@@ -164,7 +170,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
 
             <Separator asChild className="my-6 bg-transparent">
                 <div className="py-3 flex items-center text-xs text-black uppercase before:flex-[1_1_0%] before:border-t before:border-black before:me-6 after:flex-[1_1_0%] after:border-t after:border-black after:ms-6 dark:before:border-white dark:after:border-white">
-                    Hoặc
+                    Or
                 </div>
             </Separator>
 
@@ -177,13 +183,13 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
                         ref={inputRef}
                         type='url'
                         name='image'
-                        placeholder='Nhập đường link ảnh...'
+                        placeholder='Enter image url...'
                         className="pl-9"
                         disabled={isUploading}
                     />
                 </div>
                 <Button type='button' onClick={handleSaveImage} disabled={isUploading}>
-                    Lưu
+                    Save
                 </Button>
             </div>
         </section>

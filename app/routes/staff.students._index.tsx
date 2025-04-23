@@ -130,7 +130,9 @@ function SearchForm() {
       const response = await fetchLevels();
 
       return await response.data;
-    }
+    },
+    enabled: true,
+    refetchOnWindowFocus: false,
   });
 
   const levels = data ? data as Level[] : [];

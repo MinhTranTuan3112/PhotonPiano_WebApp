@@ -73,7 +73,8 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
             const banks: Bank[] = await response.data.data;
 
             return banks;
-        }
+        },
+        refetchOnWindowFocus: false
     });
 
     const banks = data ? data as Bank[] : [];

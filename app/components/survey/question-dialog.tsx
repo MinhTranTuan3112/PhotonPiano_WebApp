@@ -389,7 +389,9 @@ function QuestionAnswersContent({
                 answers,
                 metadata
             };
-        }
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
     });
 
     return <div className="">
