@@ -2,12 +2,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { getValidatedFormData } from "remix-hook-form";
 import { z } from "zod";
-import { resolver } from "~/components/entrance-tests/arrange-dialog";
 import { fetchAutoArrangeEntranceTests } from "~/lib/services/entrance-tests";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
-import { EntranceTestArrangementFormData } from "~/lib/utils/schemas";
 
 const serverEntranceTestArrangementSchema = z.object({
     date: z.object({
@@ -53,12 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const response = await fetchAutoArrangeEntranceTests({ ...arrangeRequest });
 
-        return Response.json({
-            success: true
-        }, {
-            status: 200
-        })
-
+        return redirect('/staff/entrance-tests');
 
     } catch (error) {
 
@@ -70,11 +63,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
-
+        })
     }
 }

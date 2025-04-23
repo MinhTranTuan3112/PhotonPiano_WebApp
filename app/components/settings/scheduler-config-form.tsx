@@ -1,23 +1,21 @@
-// This would be in a new file like scheduler-config-form.tsx in your components/settings folder
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FetcherWithComponents } from "@remix-run/react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
+import { Form } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Separator } from "~/components/ui/separator";
-import { Loader2 } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { X } from "lucide-react";
+import { Label } from "~/components/ui/label";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { useRemixForm } from "remix-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Separator } from "~/components/ui/separator";
+import { Slider } from "~/components/ui/slider";
 
-// Sửa phần khai báo schema để xử lý chuyển đổi chuỗi thành mảng
 export const schedulerConfigSchema = z.object({
-    module: z.literal('scheduler'),
-    deadlineAttendance: z.number().min(1).max(24).optional(),
+    deadlineAttendance: z.coerce.number().min(1, { message: 'The attendance deadline must be greater than 0' }).max(24, { message: 'The attendance deadline cannot be greater than 24 hours' }),
     reasonCancelSlot: z.preprocess(
         (val) => {
             if (typeof val === 'string') {
@@ -31,6 +29,9 @@ export const schedulerConfigSchema = z.object({
         },
         z.array(z.string()).optional()
     ),
+    maxAbsenceRate: z.coerce.number().min(0, { message: 'The absence rate must be greater than or equal to 0' }).max(1, { message: 'The absence rate cannot be greater than 1' }),
+    theoryPercentage: z.coerce.number().min(0, { message: 'The theory percentage must be greater than or equal to 0' }).max(100, { message: 'The theory percentage cannot be greater than 100%' }),
+    practicePercentage: z.coerce.number().min(0, { message: 'The practice percentage must be greater than or equal to 0' }).max(100, { message: 'The practice percentage cannot be greater than 100%' })
 });
 
 export type SchedulerConfigFormData = z.infer<typeof schedulerConfigSchema>;
@@ -39,26 +40,46 @@ type Props = {
     fetcher: FetcherWithComponents<any>;
     isSubmitting: boolean;
     idToken: string;
-    deadlineAttendance?: number;
-    reasonCancelSlot?: string[];
-}
+} & Partial<SchedulerConfigFormData>;
 
-export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, deadlineAttendance = 1, reasonCancelSlot = [] }: Props) {
+export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ...defaultData }: Props) {
     const [newReason, setNewReason] = useState("");
-    const [reasons, setReasons] = useState<string[]>(reasonCancelSlot || []);
+    const [reasons, setReasons] = useState<string[]>(defaultData.reasonCancelSlot || []);
+    const [theoryPercentage, setTheoryPercentage] = useState(defaultData.theoryPercentage || 50);
 
-    const form = useForm<SchedulerConfigFormData>({
-        resolver: zodResolver(schedulerConfigSchema),
+    const {
+        handleSubmit,
+        formState: { errors },
+        control,
+        register,
+        setValue
+    } = useRemixForm<SchedulerConfigFormData & { module: string }>({
+        mode: 'onSubmit',
+        resolver: zodResolver(schedulerConfigSchema.extend({
+            module: z.string()
+        })),
         defaultValues: {
             module: 'scheduler',
-            deadlineAttendance,
+            ...defaultData,
             reasonCancelSlot: reasons,
-        }
+            maxAbsenceRate: defaultData.maxAbsenceRate || 0.3,
+            theoryPercentage: defaultData.theoryPercentage || 50,
+            practicePercentage: defaultData.practicePercentage || 50
+        },
+        submitConfig: {
+            action: '/admin/settings',
+            method: "POST"
+        },
+        fetcher
     });
 
     useEffect(() => {
-        form.setValue('reasonCancelSlot', reasons);
-    }, [reasons]);
+        setValue('reasonCancelSlot', reasons);
+    }, [reasons, setValue]);
+
+    const setFormValue = (field: string, value: any) => {
+        setValue(field as any, value);
+    };
 
     const handleAddReason = () => {
         if (newReason.trim() && !reasons.includes(newReason.trim())) {
@@ -80,107 +101,122 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, de
         }
     };
 
-    // Tùy chỉnh phần submit để xử lý dữ liệu
-    const onSubmit = (data: SchedulerConfigFormData) => {
-        // Tạo FormData đặc biệt để xử lý mảng
-        const formData = new FormData();
-
-        // Thêm các trường bình thường
-        formData.append('module', data.module);
-        if (data.deadlineAttendance !== undefined) {
-            formData.append('deadlineAttendance', data.deadlineAttendance.toString());
-        }
-
-        // Thêm mảng reasonCancelSlot dưới dạng chuỗi JSON
-        if (data.reasonCancelSlot && data.reasonCancelSlot.length > 0) {
-            formData.append('reasonCancelSlot', JSON.stringify(data.reasonCancelSlot));
-        } else {
-            formData.append('reasonCancelSlot', '[]');
-        }
-
-        // Gửi dữ liệu
-        fetcher.submit(formData, { method: 'post' });
-    };
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Save configuration',
+        description: 'Are you sure you want to save this configuration?',
+        onConfirm: handleSubmit,
+    });
 
     return (
-        <Card>
-            <CardContent className="pt-6">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <input type="hidden" name="module" value="scheduler" />
+        <>
+            <h2 className="text-xl font-bold">Schedule Configuration</h2>
+            <p className='text-sm text-muted-foreground mb-6'>Manage system settings related to scheduling and class sessions</p>
 
-                        <div className="space-y-6">
-                            <FormField
-                                control={form.control}
-                                name="deadlineAttendance"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Deadline for Attendance (hours)</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                type="number"
-                                                {...field}
-                                                onChange={e => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                                                min={1}
-                                                max={24}
-                                            />
-                                        </FormControl>
-                                        <FormDescription>
-                                            Set the number of hours after a slot when attendance can still be registered (1-24 hours)
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <div>
-                                <FormLabel>Reasons for Cancelling Slots</FormLabel>
-                                <div className="flex flex-wrap gap-2 mt-2 mb-4">
-                                    {reasons.map((reason, index) => (
-                                        <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
-                                            {reason}
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveReason(index)}
-                                                className="ml-2 text-gray-500 hover:text-gray-700"
-                                            >
-                                                <X className="h-3 w-3" />
-                                            </button>
-                                        </Badge>
-                                    ))}
-                                </div>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={newReason}
-                                        onChange={e => setNewReason(e.target.value)}
-                                        placeholder="Add new reason"
-                                        onKeyDown={handleKeyPress}
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleAddReason}
-                                    >
-                                        Add
-                                    </Button>
-                                </div>
-                                <FormDescription className="mt-2">
-                                    Add common reasons for cancelling class slots
-                                </FormDescription>
+            <Form method='POST' className='space-y-6'>
+                <Card>
+                    <CardHeader className="bg-slate-50">
+                        <CardTitle className="text-base font-medium">Attendance Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label>Attendance Recording Deadline (hours)</Label>
+                                <Input
+                                    {...register('deadlineAttendance')}
+                                    placeholder='Enter hours...'
+                                    type='number'
+                                    min='1'
+                                    max='24'
+                                />
+                                <p className='text-xs text-muted-foreground'>
+                                    Time window after class when attendance can still be recorded
+                                </p>
+                                {errors.deadlineAttendance &&
+                                    <p className='text-red-500 text-sm'>{errors.deadlineAttendance.message}</p>}
                             </div>
 
-                            <Separator className="my-4" />
-
-                            <div className="flex justify-end">
-                                <Button disabled={isSubmitting} type="submit">
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Save Changes
-                                </Button>
+                            <div className="space-y-2">
+                                <Label>Maximum Absence Rate</Label>
+                                <Input
+                                    {...register('maxAbsenceRate')}
+                                    placeholder='Enter rate...'
+                                    type='number'
+                                    step='0.01'
+                                    min='0'
+                                    max='1'
+                                />
+                                <p className='text-xs text-muted-foreground'>
+                                    Value between 0 and 1 (e.g., 0.3 means 30% maximum absences allowed)
+                                </p>
+                                {errors.maxAbsenceRate &&
+                                    <p className='text-red-500 text-sm'>{errors.maxAbsenceRate.message}</p>}
                             </div>
                         </div>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card>
+
+                    
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="bg-slate-50">
+                        <CardTitle className="text-base font-medium">Class Cancellation Reasons</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-4">
+                        <div className="flex flex-wrap gap-2 mb-4 min-h-10">
+                            {reasons.length > 0 ? (
+                                reasons.map((reason, index) => (
+                                    <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
+                                        {reason}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveReason(index)}
+                                            className="ml-2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No reasons added yet</p>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Input
+                                value={newReason}
+                                onChange={e => setNewReason(e.target.value)}
+                                placeholder="Add new reason"
+                                onKeyDown={handleKeyPress}
+                                className="flex-1"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleAddReason}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        <p className='text-xs text-muted-foreground'>
+                            Common reasons for class cancellations (e.g., "Teacher illness", "Technical issues")
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <div className="flex justify-end">
+                    <Button
+                        type='button'
+                        isLoading={isSubmitting}
+                        disabled={isSubmitting}
+                        onClick={handleOpenConfirmDialog}
+                        className="min-w-32"
+                    >
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                </div>
+            </Form>
+
+            {confirmDialog}
+        </>
     );
 }

@@ -6,11 +6,14 @@ import {
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account, Level } from "~/lib/types/account/account";
+import { Account, Level, StudentStatus } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
 import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
-import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
+import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/arrange-dialog";
+import { toast } from "sonner";
+import { useRouteLoaderData } from "@remix-run/react";
+import { loader } from "~/root";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -40,7 +43,7 @@ export function LevelBadge({ level }: {
     level?: Level
 }) {
     return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name.split("(")[0] : 'Chưa xác định'}
+        {level ? level.name.split("(")[0] : 'Undetermined'}
     </Badge>
 }
 
@@ -61,7 +64,7 @@ export const studentColumns: ColumnDef<Account>[] = [
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
+                aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
@@ -69,7 +72,7 @@ export const studentColumns: ColumnDef<Account>[] = [
                 variant={'theme'}
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
+                aria-label="Select row"
             />
         ),
         enableSorting: false,
@@ -83,8 +86,8 @@ export const studentColumns: ColumnDef<Account>[] = [
     //     }
     // },
     {
-        accessorKey: 'Tên',
-        header: 'Tên học viên',
+        accessorKey: 'Name',
+        header: 'Name',
         cell: ({ row }) => {
             return <div>{row.original.fullName || row.original.userName}</div>
         }
@@ -97,8 +100,8 @@ export const studentColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: 'SĐT',
-        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
+        accessorKey: 'Phone',
+        header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
         cell: ({ row }) => {
             return <div>{row.original.phone}</div>
         }
@@ -111,17 +114,18 @@ export const studentColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+        accessorKey: 'Status',
+        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
             return <StatusBadge status={row.original.studentStatus || 0} />
         }
     },
     {
-        accessorKey: "Thao tác",
-        header: "Hành động",
+        id: "Actions",
+        accessorKey: "Actions",
+        header: "Actions",
         cell: ({ row, table }) => {
-            return <ActionsDropdown table={table} row={row}/>
+            return <ActionsDropdown table={table} row={row} />
         }
     }
 ]
@@ -129,49 +133,59 @@ export const studentColumns: ColumnDef<Account>[] = [
 
 function ActionsDropdown({ table, row }: {
     table: Table<Account>
-    row : Row<Account>
+    row: Row<Account>
 }) {
 
-    const [arrangeDialogProps, setArrangeDialogProps] = useState<{
-        isOpen: boolean,
-        studentIds: string[]
-    }>({
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    const [arrangeDialogProps, setArrangeDialogProps] = useState<Omit<ArrangeDialogProps, 'setIsOpen'>>({
         isOpen: false,
-        studentIds: []
+        students: [],
+        idToken: authData?.idToken || ''
     });
 
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.accountFirebaseId}`}>
-                    <User /> Xem thông tin
+                    <User /> View information
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" disabled={table.getSelectedRowModel().rows.length === 0}
+                <DropdownMenuItem className="cursor-pointer"
                     onClick={() => {
                         const selectedRows = table.getSelectedRowModel().rows;
 
-                        const studentIds = selectedRows.map((row) => row.original.accountFirebaseId);
+                        const students = selectedRows.length > 0 ? selectedRows.map((row) => row.original) : [row.original];
 
-                        console.log({ studentIds });
-                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, studentIds });
+                        const invalidStudents = students.filter((student) => student.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement);
+
+                        if (invalidStudents.length > 0) {
+                            toast.warning(`Learners ${invalidStudents.map((s) => {
+                                return s.fullName || s.email
+                            }).join(',')} are not valid to be arranged`, {
+                                duration: 5000
+                            })
+                            return;
+                        }
+
+                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, students });
                     }}>
-                    <Calendar /> Xếp lịch thi
+                    <Calendar /> Arrange entrance tests
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <BanIcon /> Vô hiệu hóa
+                    <BanIcon /> Disable
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        <ArrangeDialog isOpen={arrangeDialogProps.isOpen} setIsOpen={(openState) => {
+        <ArrangeDialog {...arrangeDialogProps} setIsOpen={(openState) => {
             setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
-        }} studentIds={arrangeDialogProps.studentIds} />
+        }} />
     </>
 }

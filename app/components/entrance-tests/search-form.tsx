@@ -63,12 +63,12 @@ export default function SearchForm({ }: Props) {
                     render={({ field: { value, onChange } }) => (
                         <MultiSelect
                             options={SHIFT_TIME.map((shift, index) => {
-                                return { label: `Ca ${index + 1}: ${shift}`, value: index.toString() }
+                                return { label: `Shift ${index + 1}: ${shift}`, value: index.toString() }
                             })}
                             defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('shifts') }).map(String)}
                             value={value}
                             onValueChange={onChange}
-                            placeholder='Chọn ca thi'
+                            placeholder='Select test shift'
                             className='w-full max-w-[40%]'
                         />
                     )}
@@ -113,9 +113,9 @@ export default function SearchForm({ }: Props) {
                             idToken={query.idToken}
                             value={value}
                             onValueChange={onChange}
-                            placeholder='Chọn phòng'
-                            emptyText='Không có phòng nào.'
-                            errorText='Lỗi khi tải danh sách phòng.'
+                            placeholder='Select room'
+                            emptyText='No rooms found.'
+                            errorText='Errors loading rooms.'
                         />
                     )}
                 />
@@ -127,11 +127,11 @@ export default function SearchForm({ }: Props) {
                     to={pathname ? `${pathname}` : '/'}
                     replace={true}
                     reloadDocument={true}>
-                    <FilterX /> Đặt lại bộ lọc
+                    <FilterX /> Reset filter
                 </Link>
                 <Button type='submit' isLoading={isSubmitting}
                     disabled={isSubmitting} Icon={Search} iconPlacement='left'>
-                    Tìm
+                    Search
                 </Button>
             </div>
         </Form>

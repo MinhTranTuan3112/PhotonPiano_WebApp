@@ -23,7 +23,7 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Thông tin cá nhân",
+                    title: "Personal profile",
                     url: "/staff/profile",
                 }
             ],
@@ -39,39 +39,39 @@ const data = {
                     url: "/staff/scheduler",
                 },
                 {
-                    title: "Quản lý lịch thi",
+                    title: "Manage tests",
                     url: "/staff/entrance-tests",
                 },
                 {
-                    title: "Danh sách học viên",
+                    title: "Manage learners",
                     url: "/staff/students",
                 },
                 {
-                    title: "Danh sách giảng viên",
+                    title: "Manage teachers",
                     url: "/staff/teachers",
                 },
                 {
-                    title: "Danh sách lớp",
+                    title: "Manage classes",
                     url: "/staff/classes",
                 },
                 {
-                    title: 'Xếp lớp tự động',
+                    title: 'Auto arrange classes',
                     url: '/staff/auto-arrange-class',
                 },
                 {
-                    title: 'Danh sách đơn từ',
+                    title: 'Academic applications',
                     url: '/staff/applications',
                 },
                 {
-                    title: 'Quản lý khảo sát',
+                    title: 'Piano surveys',
                     url: '/staff/surveys'
                 },
                 {
-                    title: 'Quản lý câu hỏi khảo sát',
+                    title: 'Survey questions',
                     url: '/staff/survey-questions'
                 },
                 {
-                    title: 'Quản lý tin tức',
+                    title: 'News',
                     url: '/staff/articles'
                 }
             ],

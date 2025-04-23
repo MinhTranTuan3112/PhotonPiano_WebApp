@@ -49,6 +49,7 @@ export const createEntranceTestSchema = z.object({
     roomId: z.string({ message: 'Vui lòng chọn phòng thi.' }).min(1, { message: 'Phòng thi không được để trống.' }),
     roomName: z.string(),
     instructorId: z.string({ message: 'Vui lòng chọn người gác thi.' }).min(1, { message: 'Người coi thi không được để trống.' }).optional(),
+    studentIds: z.array(z.string())
 });
 
 export const enrollSchema = z.object({

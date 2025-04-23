@@ -116,9 +116,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const response = await fetchUpdateApplicationStatus({ idToken, id: data.id, status: data.status, note: data.note });
 
-        return {
-            success: response.status === 204
-        }
+        return Response.json({
+            success: true
+        }, {
+            status: 200
+        })
 
     } catch (error) {
 
@@ -130,11 +132,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { message, status } = getErrorDetailsInfo(error);
 
-        return {
+        return Response.json({
             success: false,
             error: message,
+        }, {
             status
-        }
+        })
     }
 
 }
@@ -146,9 +149,9 @@ export default function StaffApplicationsPage({ }: Props) {
     return (
         <article className="px-8">
 
-            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <h1 className="text-xl font-extrabold">List of academic applications</h1>
             <p className="text-muted-foreground">
-                Quản lý danh sách đơn từ, thủ tục của học viên
+                Manage the list of applications and procedures of learners
             </p>
 
             <SearchForm />
@@ -182,9 +185,9 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-8">
-            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <h1 className="text-xl font-extrabold">List of academic applications</h1>
             <p className="text-muted-foreground">
-                Quản lý danh sách đơn từ, thủ tục của học viên
+                Manage the list of applications and procedures of learners
             </p>
 
             <SearchForm />
@@ -197,7 +200,7 @@ export function ErrorBoundary() {
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
 

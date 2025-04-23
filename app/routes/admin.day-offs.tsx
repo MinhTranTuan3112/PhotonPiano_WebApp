@@ -192,7 +192,7 @@ export default function AdminDayOff({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Tạo kỳ nghỉ thành công!');
+            toast.success('Create Successfully!');
             setIsOpenDialog(false);
             return;
         }
@@ -214,11 +214,11 @@ export default function AdminDayOff({ }: Props) {
     return (
         <>
             <article className='px-10'>
-                <h1 className="text-xl font-extrabold">Quản lý các kỳ nghỉ</h1>
-                <p className='text-muted-foreground text-sm'>Quản lý các kỳ nghỉ, phục vụ cho việc sắp xếp lớp</p>
+                <h1 className="text-xl font-extrabold">Manage Day-Offs</h1>
+                <p className='text-muted-foreground text-sm'>Manage day-offs or holidays, also served in scheduling</p>
                 <div className='my-2 flex justify-end w-full'>
                     <Button Icon={PlusCircle} iconPlacement='left' type='button'
-                        onClick={() => setIsOpenDialog(true)}>Thêm mới</Button>
+                        onClick={() => setIsOpenDialog(true)}>Add new</Button>
                 </div>
                 <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                     <Await resolve={promise}>

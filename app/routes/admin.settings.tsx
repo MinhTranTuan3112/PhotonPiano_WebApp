@@ -13,6 +13,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import {
     fetchSystemConfigs,
+    fetchUpdateClassSystemConfig,
     fetchUpdateEntranceTestSystemConfig,
     fetchUpdateSchedulerSystemConfig,
     fetchUpdateSurveySystemConfig,
@@ -26,7 +27,7 @@ import {
     DEADLINE_CHANGING_CLASS,
     ENTRANCE_SURVEY,
     INSTRUMENT_FREQUENCY_IN_RESPONSE,
-    INSTRUMENT_NAME,
+    INSTRUMENT_NAME, MAX_ABSENCE_RATE,
     MAX_QUESTIONS_PER_SURVEY,
     MAX_STUDENTS,
     MAX_STUDENTS_IN_TEST,
@@ -86,7 +87,7 @@ const settingsSchema = z.object({
 
 
 type SettingsFormData = {
-    module: 'entrance-tests' | 'classes' | 'survey' | 'tuition' | 'scheduler';
+    module: 'entrance-tests' | 'classes' | 'survey' | 'tuition' | 'scheduler'
 } & Partial<EntranceTestSettingsFormData & ClassSettingsFormData & SurveyConfigFormData & TuitionConfigFormData & SchedulerConfigFormData>;
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -127,6 +128,10 @@ export async function action({ request }: ActionFunctionArgs) {
                 await fetchUpdateSchedulerSystemConfig({ idToken, ...data });
                 break;
 
+            case 'classes':
+                await fetchUpdateClassSystemConfig({ idToken, ...data });
+                break;
+
             default:
                 break;
         }
@@ -161,12 +166,12 @@ export default function AdminSettingsPage({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật cấu hình thành công');
+            toast.success('Update config successfully');
             return;
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning('Cập nhật cấu hình thất bại: ' + fetcher.data.error);
+            toast.warning('Fail to update: ' + fetcher.data.error);
             return;
         }
 
@@ -178,8 +183,8 @@ export default function AdminSettingsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Cấu hình hệ thống</h1>
-            <p className='text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến đào tạo,...</p>
+            <h1 className="text-xl font-extrabold">System Configuration</h1>
+            <p className='text-muted-foreground'>Manage configuration varibles to operate the center</p>
 
             <Separator className="my-4" />
 
@@ -189,19 +194,19 @@ export default function AdminSettingsPage({ }: Props) {
                         <Tabs defaultValue='entrance-tests'>
                             <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mt-4">
                                 <TabsTrigger value="entrance-tests">
-                                    Thi đầu vào
+                                    Entrance Test
                                 </TabsTrigger>
                                 <TabsTrigger value="classes">
-                                    Lớp học
+                                    Class
                                 </TabsTrigger>
                                 <TabsTrigger value="survey">
-                                    Khảo sát
+                                    Survey
                                 </TabsTrigger>
                                 <TabsTrigger value="tuition">
-                                    Học phí
+                                    Tuition Fee
                                 </TabsTrigger>
                                 <TabsTrigger value="scheduler">
-                                    Lịch trình
+                                    Scheduling
                                 </TabsTrigger>
                             </TabsList>
                             <TabsContent value="entrance-tests">
@@ -218,8 +223,8 @@ export default function AdminSettingsPage({ }: Props) {
                                 <ClassesConfigForm
                                     fetcher={fetcher}
                                     isSubmitting={isSubmitting}
-                                    minStudents={parseInt(configs.find(c => c.configName === MIN_STUDENTS)?.configValue || '1')}
-                                    maxStudents={parseInt(configs.find(c => c.configName === MAX_STUDENTS)?.configValue || '10')}
+                                    minimumClassSize={parseInt(configs.find(c => c.configName === MIN_STUDENTS)?.configValue || '1')}
+                                    maximumClassSize={parseInt(configs.find(c => c.configName === MAX_STUDENTS)?.configValue || '10')}
                                     allowSkippingLevel={configs.find(c => c.configName === ALLOW_SKIPPING_LEVEL)?.configValue === "true"}
                                     deadlineChangingClass={parseInt(configs.find(c => c.configName === DEADLINE_CHANGING_CLASS)?.configValue || '1')}
                                 />
@@ -256,6 +261,7 @@ export default function AdminSettingsPage({ }: Props) {
                                     idToken={idToken}
                                     deadlineAttendance={parseInt(configs.find(c => c.configName === ATTENDANCE_DEADLINE)?.configValue || '1')}
                                     reasonCancelSlot={JSON.parse(configs.find(c => c.configName === REASON_CANCEL_SLOT)?.configValue || '[]')}
+                                    maxAbsenceRate={parseFloat(configs.find(c => c.configName === MAX_ABSENCE_RATE)?.configValue || '0.3')}
                                 />
                             </TabsContent>
 
@@ -285,8 +291,8 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-10">
-            <h1 className="text-xl font-extrabold">Cấu hình hệ thống</h1>
-            <p className='text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến đào tạo,...</p>
+            <h1 className="text-xl font-extrabold">System Configuration</h1>
+            <p className='text-muted-foreground'>Manage configuration varibles to operate the center</p>
 
             <Separator className="my-4" />
 
@@ -298,7 +304,7 @@ export function ErrorBoundary() {
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Try again
                 </Link>
             </div>
 

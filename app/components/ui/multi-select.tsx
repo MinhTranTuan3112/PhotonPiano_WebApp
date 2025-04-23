@@ -290,7 +290,7 @@ export const MultiSelect = React.forwardRef<
                             onKeyDown={handleInputKeyDown}
                         />
                         <CommandList>
-                            <CommandEmpty>Không có kết quả.</CommandEmpty>
+                            <CommandEmpty>No results.</CommandEmpty>
                             <CommandGroup>
                                 <CommandItem
                                     key="all"
@@ -307,7 +307,7 @@ export const MultiSelect = React.forwardRef<
                                     >
                                         <CheckIcon className="h-4 w-4" />
                                     </div>
-                                    <span className="font-bold">&#40;Chọn tất cả&#41;</span>
+                                    <span className="font-bold">&#40;Select all&#41;</span>
                                 </CommandItem>
                                 {options.map((option) => {
                                     const isSelected = selectedValues.includes(option.value);

@@ -53,28 +53,28 @@ export const dayOffColumns: ColumnDef<DayOff>[] = [
     //     }
     // },
     {
-        accessorKey: "Tên kỳ nghỉ",
-        header: "Tên kỳ nghỉ",
+        accessorKey: "Name",
+        header: "Name",
         cell: ({ row }) => {
             return <div>{row.original.name}</div>
         }
     },
     {
-        accessorKey: "Bắt đầu",
-        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Bắt đầu</div>,
+        accessorKey: "Start Date",
+        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Start Date</div>,
         cell: ({ row }) => {
             return <div>{row.original.startTime.split('T')[0]}</div>
         }
     },
     {
-        accessorKey: 'Kết thúc',
-        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Kết thúc</div>,
+        accessorKey: 'End Date',
+        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> End Date</div>,
         cell: ({ row }) => {
             return <div>{row.original.endTime.split('T')[0]}</div>
         }
     },
     {
-        id: "Thao tác",
+        id: "Action",
         cell: ({ row }) => {
             return (
                 <ActionsDropdown row={row} />
@@ -97,9 +97,9 @@ function ActionsDropdown({ row }: { row: Row<DayOff> }) {
     });
 
     const { dialog: confirmDialog, open: handleOpenDialog } = useConfirmationDialog({
-        title: 'Xác nhận xóa kỳ nghỉ?',
-        description: 'Dữ liệu kỳ nghỉ sau khi xóa sẽ không thể hồi phục lại.',
-        confirmText: 'Xóa',
+        title: 'Confirm Delete',
+        description: 'Are you sure want to delete this day-off?.',
+        confirmText: 'Delete',
         onConfirm: () => {
             const formData = new FormData();
             formData.append('dayOffAction', 'delete');
@@ -116,7 +116,7 @@ function ActionsDropdown({ row }: { row: Row<DayOff> }) {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success(fetcher.data?.dayOffAction === 'update' ? 'Cập nhật kỳ nghỉ thành công!' : 'Xóa kỳ nghỉ thành công!');
+            toast.success(fetcher.data?.dayOffAction === 'update' ? 'Update Successfully!' : 'Delete Successfully!');
             setDialogProps((prev) => ({ ...prev, isOpen: false }));
             return;
         }
@@ -139,12 +139,12 @@ function ActionsDropdown({ row }: { row: Row<DayOff> }) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     setDialogProps({
@@ -153,11 +153,11 @@ function ActionsDropdown({ row }: { row: Row<DayOff> }) {
                         ...row.original
                     });
                 }}>
-                    <Pencil /> Sửa
+                    <Pencil /> Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" disabled={isSubmitting}
                     onClick={handleOpenDialog}>
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Trash2 />} Xóa
+                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Trash2 />} Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -177,9 +177,9 @@ export function DayOffDialog({ isEdit, isOpen, setIsOpen, ...props }: DayOffDial
     return <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="min-w-[700px]">
             <DialogHeader>
-                <DialogTitle>{isEdit ? 'Cập nhật kỳ nghỉ' : 'Thêm mới kỳ nghỉ'}</DialogTitle>
+                <DialogTitle>{isEdit ? 'Update Day-Off' : 'Add new Day-Off'}</DialogTitle>
                 <DialogDescription>
-                    {isEdit ? 'Cập nhật thông tin kỳ nghỉ' : 'Thêm mới kỳ nghỉ cho trung tâm'}
+                    {isEdit ? 'Update the existing day-off' : 'Add a new day-off to the center'}
                 </DialogDescription>
             </DialogHeader>
             <DayOffForm isEdit={isEdit} {...props} />
@@ -218,9 +218,9 @@ export function DayOffForm({
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: `Xác nhận ${isEdit ? 'cập nhật' : 'thêm mới'} kỳ nghỉ?`,
-        description: `Bạn có chắc chắn muốn ${isEdit ? 'cập nhật' : 'thêm mới'} kỳ nghỉ này không?`,
-        confirmText: isEdit ? 'Cập nhật' : 'Thêm mới',
+        title: `Confirm ${isEdit ? 'update' : 'add'} day-off?`,
+        description: `Are you sure want to ${isEdit ? 'update' : 'add'} this day-off?`,
+        confirmText: isEdit ? 'Update' : 'Add',
         onConfirm: handleSubmit
     });
 
@@ -228,13 +228,13 @@ export function DayOffForm({
         <Form method="POST" className="flex flex-col gap-5">
 
             <div className="flex flex-row gap-2">
-                <Label htmlFor='name'>Tên kỳ nghỉ</Label>
-                <Input {...register('name')} name='name' id='name' placeholder='Nhập tên kỳ nghỉ...' />
+                <Label htmlFor='name'>Day-Off Name</Label>
+                <Input {...register('name')} name='name' id='name' placeholder='Enter a name...' />
             </div>
             {errors.name && <p className='text-sm text-red-500'>{errors.name.message}</p>}
 
             <div className="flex flex-row gap-2">
-                <Label>Từ ngày - đến ngày</Label>
+                <Label>From - To</Label>
                 <DateRangePicker
                     value={{
                         from: getFormValues('startTime'),
@@ -249,7 +249,7 @@ export function DayOffForm({
                         setFormValue('endTime', dateRange.to);
                     }}
                     className='w-full'
-                    placeholder='Chọn ngày cho kỳ nghỉ'
+                    placeholder='Please specify a period for the day-off'
                 />
             </div>
             {errors.startTime && <p className='text-sm text-red-500'>{errors.startTime.message}</p>}
@@ -258,7 +258,7 @@ export function DayOffForm({
             <DialogFooter className="">
                 <Button type="button" variant={'theme'} isLoading={isSubmitting} disabled={isSubmitting}
                     onClick={handleOpenConfirmDialog}>
-                    {isEdit === true ? 'Cập nhật' : 'Thêm mới'}
+                    {isEdit === true ? 'Update' : 'Add'}
                 </Button>
             </DialogFooter>
         </Form>

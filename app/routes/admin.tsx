@@ -30,7 +30,7 @@ function getBreadcrumbPageName({ pathname }: {
     pathname: string,
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
-        name: "Quản lý",
+        name: "Management",
         url: "/admin",
     };
 
@@ -39,7 +39,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/settings':
             otherNavItems = [
                 {
-                    name: "Cấu hình hệ thống",
+                    name: "Settings",
                     url: '/admin/settings',
                     isCurrentPage: true
                 },
@@ -48,7 +48,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/levels':
             otherNavItems = [
                 {
-                    name: "Quản lý level đào tạo",
+                    name: "Manage Levels",
                     url: '/admin/levels',
                     isCurrentPage: true
                 },
@@ -57,7 +57,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/criteria':
             otherNavItems = [
                 {
-                    name: "Quản lý tiêu chí đánh giá",
+                    name: "Manage Criteria",
                     url: '/admin/criteria',
                     isCurrentPage: true
                 },
@@ -66,7 +66,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/rooms':
             otherNavItems = [
                 {
-                    name: "Quản lý phòng học",
+                    name: "Manage Rooms",
                     url: '/admin/rooms',
                     isCurrentPage: true
                 },
@@ -75,7 +75,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/day-offs':
             otherNavItems = [
                 {
-                    name: "Quản lý ngày nghỉ",
+                    name: "Manage Day-Offs",
                     url: '/admin/day-offs',
                     isCurrentPage: true
                 },
@@ -84,7 +84,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/admin/profile':
             otherNavItems = [
                 {
-                    name: "Thông tin cá nhân",
+                    name: "Personal Info",
                     url: '/admin/profile',
                     isCurrentPage: true
                 },
@@ -155,49 +155,49 @@ export default function AdminLayout() {
 const data = {
     navMain: [
         {
-            title: "Thông tin chung",
+            title: "General",
             url: "",
             icon: CircleUserRound,
             isActive: true,
             items: [
                 {
-                    title: "Thông tin cá nhân",
+                    title: "Personal Info",
                     url: "/admin/profile",
                 }
             ],
         },
         {
-            title: "Thống kê",
+            title: "Statistic",
             url: "/admin/dashboard",
             icon: LayoutDashboard,
             isActive: true,
         },       
         {
-            title: "Quản lý level đào tạo",
+            title: "Levels",
             url: "/admin/levels",
             icon: Settings,
             isActive: true,
         },
         {
-            title: "Quản lý tiêu chí đánh giá",
+            title: "Criteria",
             url: "/admin/criteria",
             icon: Pen,
             isActive: true,
         },
         {
-            title: "Quản lý phòng học",
+            title: "Rooms",
             url: "/admin/rooms",
             icon: DoorClosed,
             isActive: true,
         },
         {
-            title: "Quản lý ngày nghỉ",
+            title: "Day-Offs",
             url: "/admin/day-offs",
             icon: Calendar1,
             isActive: true,
         },
         {
-            title: "Cấu hình hệ thống",
+            title: "Settings",
             url: "/admin/settings",
             icon: Settings,
             isActive: true,

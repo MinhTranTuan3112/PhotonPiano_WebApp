@@ -1,4 +1,4 @@
-import { Loader2, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
     Dialog,
@@ -87,29 +87,31 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         ),
         value: bank.shortName
     }));
-    
+
 
     const type = watch('type');
 
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpen, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận gửi đơn?',
-        description: 'Bạn có chắc chắn muốn gửi đơn này không?',
+        title: 'Confirm action',
+        description: 'Are you sure you want to send this application?',
         onConfirm: handleSubmit,
-        confirmText: 'Gửi đơn',
+        confirmText: 'Send',
     });
 
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Đã gửi đơn thành công!');
+            toast.success('Sent successfully!');
             onOpenChange(false);
             return;
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
@@ -123,15 +125,15 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange} >
-                <DialogContent>
+                <DialogContent className='min-w-[1000px]'>
                     <ScrollArea className='h-96 px-4'>
-                        <Form method='POST' onSubmit={handleSubmit} action='/account/applications' navigate={false}
+                        <Form method='POST' onSubmit={handleOpen} action='/account/applications' navigate={false}
                             encType='multipart/form-data'
                             className='px-1'>
                             <DialogHeader>
-                                <DialogTitle>Gửi đơn mới</DialogTitle>
+                                <DialogTitle>Send a new application</DialogTitle>
                                 <DialogDescription>
-                                    Gửi đơn từ, thủ tục liên quan đến vấn đề đào tạo tại trung tâm.
+                                    Fill in the information below to send a new application.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex flex-col gap-4 my-4">
@@ -142,14 +144,13 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                         <Select value={value?.toString()} onValueChange={(value) => {
                                             onChange(parseInt(value));
                                             console.log(getFormValues());
-
                                         }}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Chọn loại đơn" />
+                                                <SelectValue placeholder="Select application type" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectLabel>Loại đơn</SelectLabel>
+                                                    <SelectLabel>Application type</SelectLabel>
                                                     {APPLICATION_TYPE.map((type, index) => (
                                                         <SelectItem key={index} value={index.toString()}>
                                                             {type}
@@ -186,16 +187,16 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                             //         </SelectGroup>
                                             //     </SelectContent>
                                             // </Select>
-                                            <Combobox items={bankItems} placeholder='Chọn ngân hàng' value={value} onChange={onChange}/>
+                                            <Combobox items={bankItems} placeholder='Select bank' value={value} onChange={onChange} />
                                         )}
                                     />
                                     {errors.bankName && <p className="text-red-500">{errors.bankName.message}</p>}
-                                    <Input {...register('bankAccountName')} placeholder='Nhập tên chủ tài khoản...' />
+                                    <Input {...register('bankAccountName')} placeholder='Enter account owner name...' />
                                     {errors.bankAccountName && <p className="text-red-500">{errors.bankAccountName.message}</p>}
-                                    <Input {...register('bankAccountNumber')} type='number' placeholder='Nhập số tài khoản...' />
+                                    <Input {...register('bankAccountNumber')} type='number' placeholder='Enter credit no...' />
                                     {errors.bankAccountNumber && <p className="text-red-500">{errors.bankAccountNumber.message}</p>}
                                 </>}
-                                <Textarea {...register('reason')} placeholder='Nhập lý do...' />
+                                <Textarea {...register('reason')} placeholder='Enter reason...' />
                                 {errors.reason && <p className="text-red-500">{errors.reason.message}</p>}
                                 <Controller
                                     control={control}
@@ -207,9 +208,10 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                 {errors.file && "message" in errors.file && <p className="text-red-500">{errors.file.message}</p>}
                             </div>
                             <DialogFooter>
-                                <Button type="submit" Icon={Send} iconPlacement='left' isLoading={isSubmitting}
-                                    disabled={isSubmitting}>
-                                    {isSubmitting ? 'Đang gửi' : 'Gửi đơn'}
+                                <Button type="button" Icon={Send} iconPlacement='left' isLoading={isSubmitting}
+                                    disabled={isSubmitting}
+                                    onClick={handleOpen}>
+                                    {isSubmitting ? 'Sending' : 'Send'}
                                 </Button>
                             </DialogFooter>
                         </Form>

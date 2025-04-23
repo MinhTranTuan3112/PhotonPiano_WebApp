@@ -66,7 +66,7 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
+                aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
@@ -74,7 +74,7 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                 variant={'theme'}
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
+                aria-label="Select row"
             />
         ),
         enableHiding: false,
@@ -87,15 +87,15 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         }
     },
     {
-        accessorKey: 'Tên học viên',
-        header: 'Tên học viên',
+        accessorKey: 'Learner',
+        header: 'Learner',
         cell: ({ row }) => {
             return <div>{row.original.student.fullName || row.original.student.userName}</div>
         }
     },
     {
         id: 'bandScore',
-        accessorKey: 'Điểm tổng',
+        accessorKey: 'Band score',
         header: ({ column }) => {
             return <Button
                 variant="ghost"
@@ -103,7 +103,7 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
 
             >
-                Điểm tổng
+                Band score
                 <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
         },
@@ -114,10 +114,10 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         }
     },
     {
-        accessorKey: 'Nhận xét',
-        header: 'Nhận xét',
+        accessorKey: 'Comment',
+        header: 'Comment',
         cell: ({ row }) => {
-            return <div className='text-justify'>{row.original.instructorComment || '(Không có)'}</div>
+            return <div className='text-justify'>{row.original.instructorComment || '(None)'}</div>
         }
     },
     {
@@ -125,13 +125,13 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         header: 'Level',
         cell: ({ row }) => {
             return row.original.level ? <LevelBadge level={row.original.level} /> : <div className="">
-                Chưa có
+                None
             </div>
         }
     },
     {
-        accessorKey: 'Hành động',
-        header: 'Hành động',
+        accessorKey: 'Actions',
+        header: 'Actions',
         cell: ({ row, table }) => {
             return <ActionDropdown row={row} table={table} />
         }
@@ -157,9 +157,9 @@ function ActionDropdown({ row, table }: {
     const navigate = useNavigate();
 
     const { open: handleDeleteConfirmDialog, dialog: confirmDeleteDialog } = useConfirmationDialog({
-        title: `Xác nhận xóa học viên ${row.original.student.fullName || row.original.student.email} khỏi ca thi?`,
-        description: 'Bạn có chắc chắn muốn xóa học viên này khỏi ca thi không?',
-        confirmText: 'Xóa',
+        title: `Confirm removing learner ${row.original.student.fullName || row.original.student.email} out of the test?`,
+        description: 'Are you sure you want to remove this learner out of the test? This action cannot be undone.',
+        confirmText: 'Remove',
         confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
         onConfirm: () => {
             const formData = new FormData();
@@ -183,7 +183,7 @@ function ActionDropdown({ row, table }: {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Xóa học viên khỏi ca thi thành công!');
+            toast.success('Removed successfully!');
             return;
         }
 
@@ -212,14 +212,14 @@ function ActionDropdown({ row, table }: {
                 <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/staff/students/${row.original.studentFirebaseId}`)}>
-                    <User /> Xem thông tin
+                    <User /> View info
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
-                    <Pencil /> Chỉnh sửa điểm số
+                    <Pencil /> Edit results
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleDeleteConfirmDialog}
                     disabled={isSubmitting}>
-                    <Trash2 /> Xóa khỏi ca thi
+                    <Trash2 /> Remove from test
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -313,8 +313,8 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     });
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật kết quả ca thi',
-        description: 'Bạn có chắc chắn muốn cập nhật kết quả ca thi này không?',
+        title: 'Confirm action',
+        description: 'Update results?',
         onConfirm: () => {
             console.log({ errors });
             handleSubmit();
@@ -338,7 +338,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật kết quả ca thi thành công!');
+            toast.success('Updated successfully!');
             return;
         }
 
@@ -363,42 +363,42 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
                     <DialogTitle className='flex flex-row justify-between mr-4'>
-                        <div className="">Chi tiết kết quả thi đầu vào piano</div>
+                        <div className="">Piano entrance test details results</div>
                         <div className="">
                             <Badge variant={'outline'} className={`uppercase ${entranceTestStudent.isScoreAnnounced ? 'text-green-600' : 'text-gray-500'}`}>
-                                {entranceTestStudent.isScoreAnnounced === true ? 'Đã công bố' : 'Chưa công bố'}
+                                {entranceTestStudent.isScoreAnnounced === true ? 'Published' : 'Not Published'}
                             </Badge>
                         </div>
                     </DialogTitle>
                     <DialogDescription>
-                        Thông tin chi tiết về kết quả thi đầu vào piano của học viên <strong>{entranceTestStudent.student.fullName}</strong>.
+                        Piano entrance test details results of learner <strong>{entranceTestStudent.student.fullName}</strong>.
                     </DialogDescription>
                 </DialogHeader>
                 <ScrollArea className='max-h-[500px] overflow-y-auto w-full'>
                     <Form method='POST' action='/update-entrance-test-results' className='flex flex-col gap-3 px-4 w-full' navigate={false}>
                         <div className="">
                             <div className="">
-                                <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Nhận xét:</Label>
+                                <Label htmlFor={role === Role.Instructor ? 'instructorComment' : undefined} className='font-bold'>Comment:</Label>
                                 {role === Role.Instructor ? <Textarea {...register('instructorComment')}
                                     id='instructorComment'
-                                    placeholder='Nhập nhận xét của giảng viên...'
+                                    placeholder='Enter comment...'
                                     readOnly={role !== Role.Instructor} /> : <p>{entranceTestStudent.instructorComment}</p>}
                             </div>
                             {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
                         </div>
                         <Table>
                             <TableCaption>
-                                Chi tiết điểm số bài thi piano
+                                Score details
                                 {entranceTestStudent.updatedAt &&
                                     <div className='font-bold'>
-                                        &#40;Cập nhật lần cuối: {formatRFC3339ToDisplayableDate(entranceTestStudent.updatedAt, false)}&#41;
+                                        &#40;Last update: {formatRFC3339ToDisplayableDate(entranceTestStudent.updatedAt, false)}&#41;
                                     </div>}
                             </TableCaption>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Tiêu chí đánh giá</TableHead>
-                                    <TableHead>Điểm số</TableHead>
-                                    <TableHead>Trọng số</TableHead>
+                                    <TableHead>Criteria</TableHead>
+                                    <TableHead>Score</TableHead>
+                                    <TableHead>Weight</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -429,14 +429,14 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     </TableRow>
                                 ))}
                                 <TableRow>
-                                    <TableCell className='font-bold'>Điểm thực hành:</TableCell>
+                                    <TableCell className='font-bold'>Practical score:</TableCell>
                                     <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
                                     <TableCell>
                                         {isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${practicePercentage}%`}
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell className='font-bold'>Điểm lý thuyết:</TableCell>
+                                    <TableCell className='font-bold'>Theoretical score:</TableCell>
                                     <TableCell className='font-bold'>
                                         {role === Role.Staff ? <>
                                             <Input {...register('theoraticalScore')}
@@ -455,11 +455,11 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                 </TableRow>
 
                                 <TableRow>
-                                    <TableCell className='font-bold text-red-600'>Điểm trung bình tổng:</TableCell>
+                                    <TableCell className='font-bold text-red-600'>Final band score:</TableCell>
                                     <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : 'Chưa có'}</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell className='font-bold'>Level được xếp:</TableCell>
+                                    <TableCell className='font-bold'>Level to be arranged:</TableCell>
                                     <TableCell colSpan={2}>
                                         <LevelSection initialLevel={entranceTestStudent.level} control={control}
                                             levelAdjustedAt={entranceTestStudent.levelAdjustedAt} />
@@ -471,7 +471,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                         <DialogFooter>
                             <Button type="button" isLoading={isSubmitting}
                                 disabled={isSubmitting} onClick={handleOpenModal}>
-                                {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                                {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
                         </DialogFooter>
                     </Form>
@@ -516,12 +516,12 @@ function LevelSection({
                 render={({ field: { value, onChange } }) => (
                     <Select value={value} onValueChange={onChange}>
                         <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Chọn level" />
+                            <SelectValue placeholder="Select level" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
                                 <SelectLabel>Level</SelectLabel>
-                                {isLoading ? <Loader2 className='animate-spin' /> : isError ? <div className="text-red-600">Có lỗi xảy ra khi tải level</div> : levels.map((level, index) => (
+                                {isLoading ? <Loader2 className='animate-spin' /> : isError ? <div className="text-red-600">Error loading level</div> : levels.map((level, index) => (
                                     <SelectItem key={index} value={level.id}>
                                         <LevelBadge level={level} />
                                     </SelectItem>
@@ -535,7 +535,7 @@ function LevelSection({
 
             {levelAdjustedAt &&
                 <p className='font-bold'>
-                    &#40;Đã cập nhật level vào {formatRFC3339ToDisplayableDate(levelAdjustedAt, false)}&#41;
+                    &#40;Level updated at {formatRFC3339ToDisplayableDate(levelAdjustedAt, false)}&#41;
                 </p>
             }
         </div>

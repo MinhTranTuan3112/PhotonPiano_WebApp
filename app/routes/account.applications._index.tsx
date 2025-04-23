@@ -1,10 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
-import { isAxiosError } from "axios";
 import { RotateCcw, Send } from "lucide-react";
 import { Suspense, useState } from "react";
-import { getValidatedFormData } from "remix-hook-form";
 import { columns } from "~/components/application/application-table";
 import SearchForm from "~/components/application/search-form";
 import SendApplicationDialog from "~/components/application/send-application-dialog";
@@ -13,18 +10,13 @@ import GenericDataTable from "~/components/ui/generic-data-table";
 import { Skeleton } from "~/components/ui/skeleton";
 import { fetchApplications, fetchSendApplication, fetchSendRefundApplication } from "~/lib/services/applications";
 import { Role } from "~/lib/types/account/account";
-import { Application, ApplicationType, sampleApplications, SendApplicationFormData, sendApplicationSchema } from "~/lib/types/application/application"
+import { Application, ApplicationType } from "~/lib/types/application/application"
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
 import { getParsedParamsArray, trimQuotes } from "~/lib/utils/url";
 
 type Props = {}
-
-async function getSampleApplications() {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return sampleApplications;
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -81,13 +73,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
         if (isRedirectError(error)) {
             throw error;
-        }
-
-        if (isAxiosError(error) && error.response?.status === 401) {
-            return {
-                success: false,
-                error: 'Email hoặc mật khẩu không đúng',
-            }
         }
 
         const { message, status } = getErrorDetailsInfo(error);
@@ -166,7 +151,7 @@ function TableHeaderContent() {
     return <>
         <Button type="button" variant={'default'}
             Icon={Send} iconPlacement="left" onClick={() => setIsOpen(!isOpen)}>
-            Gửi đơn mới
+            Send new application
         </Button>
         <SendApplicationDialog isOpen={isOpen} onOpenChange={setIsOpen} />
     </>
@@ -179,9 +164,9 @@ export default function AccountApplicationsPage({ }: Props) {
     return (
         <article className="px-8">
 
-            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <h1 className="text-xl font-extrabold">List of academic applications</h1>
             <p className="text-muted-foreground">
-                Quản lý lịch sử đơn từ, thủ tục đã gửi
+                Manage the history of applications and procedures sent
             </p>
 
             <SearchForm />
@@ -191,7 +176,7 @@ export default function AccountApplicationsPage({ }: Props) {
                     {(data) => (
                         <Await resolve={data?.applicationsPromise}>
                             <GenericDataTable
-                                columns={role === Role.Staff ? columns : columns.filter((col) => col.id !== 'actions')}
+                                columns={columns}
                                 metadata={data?.metadata!}
                                 extraHeaderContent={<TableHeaderContent />}
                             />
@@ -218,22 +203,22 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-8">
-            <h1 className="text-xl font-extrabold">Danh sách đơn từ</h1>
+            <h1 className="text-xl font-extrabold">List of academic applications </h1>
             <p className="text-muted-foreground">
-                Quản lý lịch sử đơn từ, thủ tục đã gửi
+                Manage the history of applications and procedures sent
             </p>
 
             <SearchForm />
 
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                       flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
 

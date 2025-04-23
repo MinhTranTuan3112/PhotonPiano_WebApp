@@ -121,22 +121,22 @@ export default function StudentListDialog({ isOpen, setIsOpen, idToken, onStuden
             enableHiding: false,
         },
         {
-            accessorKey: 'Tên học viên',
-            header: 'Tên học viên',
+            accessorKey: 'Name',
+            header: 'Name',
             cell: ({ row }) => {
                 return <div className="font-bold">{row.original.fullName || row.original.userName}</div>
             }
         },
         {
-            accessorKey: 'Email học viên',
-            header: 'Email học viên',
+            accessorKey: 'Email',
+            header: 'Email',
             cell: ({ row }) => {
                 return <div className="font-bold">{row.original.email}</div>
             }
         },
         {
-            accessorKey: 'Trạng thái',
-            header: 'Trạng thái',
+            accessorKey: 'Status',
+            header: 'Status',
             cell: ({ row }) => {
                 return <div className="">
                     <StatusBadge status={row.original.studentStatus || 0} />
@@ -146,9 +146,9 @@ export default function StudentListDialog({ isOpen, setIsOpen, idToken, onStuden
     ];
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận thêm học viên vào ca thi',
-        description: `Bạn có chắc chắn muốn thêm ${selectedStudents.length} học viên vào ca thi ${entranceTest.name} không?`,
-        confirmText: 'Thêm',
+        title: 'Confirm adding learners',
+        description: `Add ${selectedStudents.length} learners to the test ${entranceTest.name}?`,
+        confirmText: 'Add',
         onConfirm: () => {
             onStudentsAdded(selectedStudents)
             setSelectedStudents([])
@@ -161,13 +161,13 @@ export default function StudentListDialog({ isOpen, setIsOpen, idToken, onStuden
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="min-w-[1000px]">
                     <DialogHeader className="w-full">
-                        <DialogTitle>Chọn học viên để thêm vào ca thi <span className="font-bold">{entranceTest.name}</span> </DialogTitle>
+                        <DialogTitle>Select learners to add to test <span className="font-bold">{entranceTest.name}</span> </DialogTitle>
                         <DialogDescription>
-                            Chọn học viên từ danh sách học viên để thêm vào ca thi.
-                            <div className="text-sm text-muted-foreground">Tìm kiếm theo tên, email hoặc số điện thoại.</div>
+                            Select learners to add to the test. You can select multiple learners at once.
+                            <div className="text-sm text-muted-foreground">Find learners by name, email and phone.</div>
                         </DialogDescription>
                     </DialogHeader>
-                    <Input placeholder="Tìm kiếm học viên..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    <Input placeholder="Search learners here..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                     <ScrollArea className="h-80 w-full px-3" onScroll={handleScroll}>
                         {isLoadingStudents ? <LoadingSkeleton /> : <DataTable
                             enablePagination={false}
@@ -183,7 +183,7 @@ export default function StudentListDialog({ isOpen, setIsOpen, idToken, onStuden
                     <DialogFooter>
                         <Button type="button" onClick={handleOpenConfirmDialog}
                             disabled={selectedStudents.length === 0}>
-                            Chọn học viên &#40;{selectedStudents.length}&#41;
+                            Choose &#40;{selectedStudents.length}&#41; learners
                         </Button>
                     </DialogFooter>
                 </DialogContent>

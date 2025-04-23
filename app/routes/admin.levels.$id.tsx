@@ -140,9 +140,9 @@ function LevelDetailsContent() {
 
     return <Tabs defaultValue="basic-info">
         <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="basic-info">Thông tin cơ bản</TabsTrigger>
-            <TabsTrigger value="students">Danh sách học viên</TabsTrigger>
-            <TabsTrigger value="classes">Danh sách lớp</TabsTrigger>
+            <TabsTrigger value="basic-info">Basic information</TabsTrigger>
+            <TabsTrigger value="students">Learners</TabsTrigger>
+            <TabsTrigger value="classes">Classes</TabsTrigger>
         </TabsList>
         <TabsContent value="basic-info">
             <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} />

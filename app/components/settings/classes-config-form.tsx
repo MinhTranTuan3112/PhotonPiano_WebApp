@@ -10,8 +10,8 @@ import { Button } from '../ui/button';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 
 export const classSettingsSchema = z.object({
-    maxStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
-    minStudents: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
+    maximumClassSize: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
+    minimumClassSize: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
     deadlineChangingClass: z.coerce.number().min(0, { message: 'Giá trị không âm' }),
     allowSkippingLevel: z.boolean().default(false),
 });
@@ -47,36 +47,36 @@ export default function ClassesConfigForm({ fetcher, isSubmitting, ...defaultDat
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Lưu cấu hình',
-        description: 'Bạn có chắc chắn muốn lưu cấu hình này không?',
+        title: 'Save Changes',
+        description: 'Do you want to save changes?',
         onConfirm: handleSubmit,
     });
 
     return (
         <>
-            <h2 className="text-base font-bold">Cấu hình lớp</h2>
-            <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến xếp lớp và quản lý lớp</p>
+            <h2 className="text-base font-bold">Class Config</h2>
+            <p className='text-sm text-muted-foreground'>Handle configurations that are related to placement or classes</p>
 
             <Form method='POST' className='my-4'>
                 <div>
                     <div className="flex flex-row mb-4 gap-2">
-                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Sĩ số tối đa cho 1 lớp:</Label>
-                        <Input {...register('maxStudents')}
-                            placeholder='Nhập giá trị...'
+                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Maximum Class Size:</Label>
+                        <Input {...register('maximumClassSize')}
+                            placeholder='Enter a value...'
                             type='number'
                             className='w-36' />
-                        {errors.maxStudents && <p className='text-red-500 text-sm'>{errors.maxStudents.message}</p>}
+                        {errors.maximumClassSize && <p className='text-red-500 text-sm'>{errors.maximumClassSize.message}</p>}
                     </div>
                     <div className="flex flex-row mb-4 gap-2">
-                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Sĩ số tối thiểu để mở lớp:</Label>
-                        <Input {...register('minStudents')}
-                            placeholder='Nhập giá trị...'
+                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Minimum Class Size:</Label>
+                        <Input {...register('minimumClassSize')}
+                            placeholder='Enter a value...'
                             type='number'
                             className='w-36' />
-                        {errors.minStudents && <p className='text-red-500 text-sm'>{errors.minStudents.message}</p>}
+                        {errors.minimumClassSize && <p className='text-red-500 text-sm'>{errors.minimumClassSize.message}</p>}
                     </div>
                     <div className="flex flex-row mb-4 gap-2">
-                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Được phép học vượt Level:</Label>
+                        <Label className='w-1/2 lg:w-1/4 flex items-center'>Allowed to study beyond level: </Label>
                         <Controller
                             control={control}
                             name='allowSkippingLevel'
@@ -90,23 +90,23 @@ export default function ClassesConfigForm({ fetcher, isSubmitting, ...defaultDat
                         {errors.allowSkippingLevel && <p className='text-red-500 text-sm'>{errors.allowSkippingLevel.message}</p>}
                     </div>
                     <div className="flex flex-row mb-4 gap-2">
-                        <Label className='flex items-center'>Hạn chót đổi lớp </Label>
+                        <Label className='flex items-center'>Deadline For Changing Class </Label>
                         <div>
                             <Input {...register('deadlineChangingClass')}
-                                placeholder='Nhập giá trị...'
+                                placeholder='Enter a value...'
                                 type='number'
                                 className='w-24' />
                             {errors.deadlineChangingClass && <p className='text-red-500 text-sm'>{errors.deadlineChangingClass.message}</p>}
                         </div>
 
-                        <Label className='w-1/2 lg:w-1/4 flex items-center'> ngày trước khi lớp bắt đầu học</Label>
+                        <Label className='w-1/2 lg:w-1/4 flex items-center'> days before the current class begin.</Label>
 
                     </div>
                 </div>
 
                 <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                     onClick={handleOpenConfirmDialog}>
-                    {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                    {isSubmitting ? 'Saving...' : 'Save Change'}
                 </Button>
             </Form>
             {confirmDialog}
