@@ -35,9 +35,10 @@ export const ATTENDANCE_STATUS = ["Chưa điểm danh", "Có mặt", "Vắng"];
 
 export const API_PUB_SUB_URL = import.meta.env.VITE_API_PUB_SUB_URL as string;
 
-export const APPLICATION_TYPE = ["Đơn tạm nghỉ", "Đơn tạm hoãn kì", "Đơn xin phúc tra điểm đầu vào", "Đơn xin phúc tra điểm thi", "Đơn xin chuyển lớp", "Đơn khiếu nại giáo viên", "Đơn khiếu nại csvc", "Đơn đề nghị hoàn học phí", "Các loại đơn khác", "Báo cáo sai sót chứng chỉ"];
+export const APPLICATION_TYPE = ["Leave of absence", "Temporary suspension of term", "Re-examine entrance scores", "Re-examine final exam scores",
+   "Class transfer", "Teacher complaint", "Service complaint", "Refund tuition", "Other", "Certificate issue report"];
 
-export const APPLICATION_STATUS = ["Chờ duyệt", "Đã duyệt", "Đã từ chối", "Đã hủy"];
+export const APPLICATION_STATUS = ["Pending", "Approved", "Rejected", "Cancelled"];
 
 export const API_NOTIFICATION_URL = import.meta.env.VITE_API_NOTIFICATION_URL as string;
 
