@@ -40,8 +40,11 @@ const getLevelStyle = (level?: number) => {
 export function LevelBadge({ level }: {
     level?: Level
 }) {
-    return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name.split('(')[0] : 'Chưa xác định'}
+    return <Badge variant={'outline'} className={`uppercase`}style={{
+        backgroundColor: `${level?.themeColor ?? '#CCCCCC'}33`, // 20% opacity
+        color: level?.themeColor ?? "#CCCCCC"
+    }}>
+        {level ? level.name.split('(')[0] : 'Undetermined'}
     </Badge>
 }
 
@@ -87,15 +90,15 @@ export function studentClassColumns({ handleDeleteConfirm }: {
         //     }
         // },
         {
-            accessorKey: 'Tên',
-            header: 'Tên học viên',
+            accessorKey: 'Name',
+            header: 'Learner name',
             cell: ({ row }) => {
                 return <div>{row.original.student.fullName || row.original.student.userName}</div>
             }
         },
         {
-            accessorKey: 'Ảnh',
-            header: 'Tên học viên',
+            accessorKey: 'Avatar',
+            header: 'Profile Picture',
             cell: ({ row }) => {
                 return <Avatar className="w-16 h-16" >
                     <AvatarImage src={row.original.student.avatarUrl} alt="avatar" />
@@ -111,8 +114,8 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             }
         },
         {
-            accessorKey: 'SĐT',
-            header: () => <div className="flex flex-row gap-1 items-center"><Phone /> SĐT</div>,
+            accessorKey: 'Phone',
+            header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
             cell: ({ row }) => {
                 return <div>{row.original.student.phone}</div>
             }
@@ -125,15 +128,15 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             }
         },
         {
-            accessorKey: 'Trạng thái',
-            header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+            accessorKey: 'Status',
+            header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
             cell: ({ row }) => {
                 return <StatusBadge status={row.original.student.studentStatus || 0} />
             }
         },
         {
-            accessorKey: "Thao tác",
-            header: "Hành động",
+            accessorKey: "Action",
+            header: "Action",
             cell: ({ row, table }) => {
                 return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} row={row} />
             }
@@ -152,21 +155,21 @@ function ActionsDropdown({ table, deleteAction, row }: {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Action</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Action</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.studentFirebaseId}`}>
-                    <User /> Xem thông tin
+                    <User /> View Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                {/* <DropdownMenuItem className="cursor-pointer">
                     <Shuffle /> Chuyển lớp
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={deleteAction}>
-                    <Trash /> Xóa khỏi lớp
+                    <Trash /> Delete From Class
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

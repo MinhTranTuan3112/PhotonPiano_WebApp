@@ -81,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
         if (isAxiosError(error) && error.response?.status === 401) {
             return Response.json({
                 success: false,
-                error: 'Email hoặc mật khẩu không đúng',
+                error: 'Wrong email or password',
             }, {
                 status: 401
             })
@@ -130,6 +130,7 @@ export default function SignInPage({ }: Props) {
         if (actionData?.success === false && actionData?.error) {
             toast.warning(actionData?.error, {
                 position: 'top-center',
+                duration: 5000
             });
             return;
         }
@@ -151,10 +152,10 @@ export default function SignInPage({ }: Props) {
 
                 <div className="md:pe-8 md:w-1/2 xl:pe-0 xl:w-5/12">
                     <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl uppercase">
-                        Đăng nhập
+                        Sign In
                     </h1>
                     <p className="mt-3 text-xl text-black/80">
-                        Tham gia <strong>PhotonPiano</strong> ngay để đắm mình vào những giai điệu piano du dương
+                        Join <strong>PhotonPiano</strong> now to immerse yourself in the gentle piano melodies
                     </p>
 
                     <Form onSubmit={submitSignInForm} method='POST' className='mt-8' action='/sign-in'>
@@ -162,7 +163,7 @@ export default function SignInPage({ }: Props) {
                             <Label htmlFor="email" className="sr-only">
                                 Email
                             </Label>
-                            <Input {...register("email")} type="email" name='email' id="email" placeholder="Nhập email"
+                            <Input {...register("email")} type="email" name='email' id="email" placeholder="Enter email..."
                                 endContent={<Mail />} />
                             {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
                         </div>
@@ -170,7 +171,7 @@ export default function SignInPage({ }: Props) {
                             <Label htmlFor="password" className="sr-only">
                                 Password
                             </Label>
-                            <PasswordInput  {...register("password")} name='password' id="password" placeholder="Nhập mật khẩu" />
+                            <PasswordInput  {...register("password")} name='password' id="password" placeholder="Enter password..." />
                             {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
                         </div>
 
@@ -181,7 +182,7 @@ export default function SignInPage({ }: Props) {
                                 iconPlacement='right'
                                 disabled={isSubmitting}
                                 isLoading={isSubmitting}>
-                                {isSubmitting ? 'Đang đăng nhập' : 'Đăng nhập'}
+                                {isSubmitting ? 'Signing in...' : 'Sign in'}
                             </Button>
                         </div>
                     </Form>
@@ -190,7 +191,7 @@ export default function SignInPage({ }: Props) {
 
                     <Separator asChild className="my-6 bg-transparent">
                         <div className="py-3 flex items-center text-xs text-black uppercase before:flex-[1_1_0%] before:border-t before:border-black before:me-6 after:flex-[1_1_0%] after:border-t after:border-black after:ms-6 dark:before:border-white dark:after:border-white">
-                            Hoặc
+                            OR
                         </div>
                     </Separator>
 
@@ -221,14 +222,14 @@ export default function SignInPage({ }: Props) {
                                     fill="#EB4335"
                                 />
                             </svg>
-                            Đăng nhập với Google
+                            Sign In with Google
                         </Link>
                     </div>
 
 
                     <div className="mt-4 text-center">
-                        Chưa có tài khoản?
-                        <Link className={`${buttonVariants({ variant: "linkHover2" })} uppercase`} to={'/entrance-survey'}>Đăng ký ngay</Link>
+                        Do not have an account?
+                        <Link className={`${buttonVariants({ variant: "linkHover2" })} uppercase`} to={'/entrance-survey'}>Register now</Link>
                     </div>
 
                 </div>

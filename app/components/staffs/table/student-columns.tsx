@@ -42,7 +42,11 @@ const getStatusStyle = (status: number) => {
 export function LevelBadge({ level }: {
     level?: Level
 }) {
-    return <Badge variant={'outline'} className={`uppercase`}>
+    return <Badge variant={'outline'} className={`uppercase`}
+        style={{
+            backgroundColor: `${level?.themeColor ?? '#CCCCCC'}33`, // 20% opacity
+            color: level?.themeColor ?? "#CCCCCC"
+        }}>
         {level ? level.name.split("(")[0] : 'Undetermined'}
     </Badge>
 }

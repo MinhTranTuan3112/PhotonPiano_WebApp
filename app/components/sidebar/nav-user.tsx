@@ -25,15 +25,15 @@ export function NavUser({
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận đăng xuất?',
-        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        title: 'Confirm sign out?',
+        description: 'Do you want to sign out?',
         onConfirm: () => {
             fetcher.submit(null, {
                 method: 'POST',
                 action: '/sign-out',
             });
         },
-        confirmText: 'Đăng xuất',
+        confirmText: 'Sign out',
     });
 
     const { isMobile } = useSidebar();
@@ -101,7 +101,7 @@ export function NavUser({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer" onClick={() => handleOpenModal()} disabled={isSubmitting}>
                             <LogOut />
-                            Đăng xuất
+                            Sign out
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

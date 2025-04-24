@@ -27,11 +27,11 @@ export const LEVEL = ["Người mới học", "Nghiệp dư", "Trung cấp", "Ca
 export const STUDENT_STATUS = ["Unregistered", "Waiting for entrance tests", "Attempting entrance test", "Waiting for class", 
   "Learning", "Drop Out", "Left"];
 
-export const CLASS_STATUS = ["Sắp bắt đầu", "Đang diễn ra", "Đã kết thúc", "Vô hiệu hóa"];
+export const CLASS_STATUS = ["Not Started", "On Going", "Finished", "Disabled"];
 
-export const SLOT_STATUS = ["Sắp bắt đầu", "Đang diễn ra", "Đã kết thúc", "Vô hiệu hóa"];
+export const SLOT_STATUS = ["Not Started", "On Going", "Finished", "Disabled"];
 
-export const ATTENDANCE_STATUS = ["Chưa điểm danh", "Có mặt", "Vắng"];
+export const ATTENDANCE_STATUS = ["Not Yet", "Attended", "Absent"];
 
 export const API_PUB_SUB_URL = import.meta.env.VITE_API_PUB_SUB_URL as string;
 

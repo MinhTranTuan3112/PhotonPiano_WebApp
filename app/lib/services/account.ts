@@ -141,6 +141,6 @@ export async function fetchAccountDetail(id : string, idToken : string) {
             Authorization : `Bearer ${idToken}`
         }
     });
-
+    console.log(response.data)
     return response;
 }

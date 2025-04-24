@@ -3,7 +3,7 @@ import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
 
 export async function fetchArticles({
-    page, pageSize, sortColumn, orderByDesc,
+    page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     keyword,
     idToken
 }: {

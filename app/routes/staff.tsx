@@ -22,7 +22,7 @@ function getBreadcrumbPageName({ pathname }: {
     pathname: string,
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
-        name: "Quản lý",
+        name: "Manage",
         url: "/staff/dashboard",
     };
     let otherNavItems: BreadcumbNavItem[] = []
