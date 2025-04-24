@@ -131,13 +131,13 @@ export default function CertificateDetailPage() {
                                         <p className="font-medium">{formatDate(certificate.completionDate)}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center">
+                                {/* <div className="flex items-center">
                                     <FileText className="mr-3 h-5 w-5 text-muted-foreground" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">Mã chứng chỉ</p>
                                         <p className="font-medium">{certificate.studentClassId}</p>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 
