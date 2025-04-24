@@ -32,13 +32,6 @@ const getStatusStyle = (status: ApplicationStatus) => {
 
 export const columns: ColumnDef<Application>[] = [
     {
-        accessorKey: 'Code',
-        header: 'Code',
-        cell: ({ row }) => {
-            return <div className="font-bold">{row.original.id}</div>
-        }
-    },
-    {
         accessorKey: 'Type',
         header: 'Type',
         cell: ({ row }) => {
@@ -57,7 +50,7 @@ export const columns: ColumnDef<Application>[] = [
     {
         accessorKey: 'Created Date',
         header: (header) => {
-            return <div className="flex flex-row items-center">
+            return <div className="flex flex-row items-center gap-2">
                 <Clock />
                 Created Date
             </div>
