@@ -50,7 +50,7 @@ export function RegistrationSection() {
                             >
                                 <Link
                                     to="/entrance-survey"
-                                    className="inline-flex items-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
+                                    className="inline-flex items-center justify-center gap-2 bg-white text-[#563d5f] px-8 py-3 rounded-full text-lg font-semibold transition-all hover:bg-opacity-90 hover:scale-105"
                                 >
                                     <UserPlus className="w-5 h-5" />
                                     Register now
