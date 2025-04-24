@@ -174,7 +174,7 @@ export default function AdminProfilePage({ }: Props) {
             <div className="md:max-w-[60%]">
                 <div className="space-y-6">
                     <div>
-                        <h3 className="text-lg font-bold">Thông tin hồ sơ cá nhân</h3>
+                        <h3 className="text-lg font-bold">Personal Profile</h3>
                     </div>
                     <Separator />
                     <Suspense fallback={<LoadingSkeleton />}>
@@ -221,15 +221,15 @@ function ProfileForm() {
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmationDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật thông tin',
-        description: 'Bạn có chắc chắn muốn cập nhật thông tin cá nhân của mình không?',
+        title: 'Confirm updating',
+        description: 'Do you want to update your personal information?',
         onConfirm: handleSubmit,
-        confirmText: 'Cập nhật',
+        confirmText: 'Update',
     });
 
     const { open: handleOpenImageDialog, isOpen, dialog: imagesDialog } = useImagesDialog({
-        title: 'Thêm ảnh',
-        description: 'Nhập ảnh từ url hoặc chọn ảnh từ thiết bị của bạn.',
+        title: 'Add a picture',
+        description: 'Import a picture from your files',
         onConfirm: (imageUrls) => {
             console.log({ imageUrls });
             setValue('avatarUrl', imageUrls[0]);
@@ -241,7 +241,7 @@ function ProfileForm() {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Lưu thông tin thành công!', {
+            toast.success('Saved Successfully!', {
                 position: 'top-center',
                 duration: 1250
             });
@@ -250,7 +250,7 @@ function ProfileForm() {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(`Lưu thất bại! ${fetcher.data.error}`, {
+            toast.warning(`Save failed! ${fetcher.data.error}`, {
                 position: 'top-center',
                 duration: 1250
             });
@@ -278,33 +278,33 @@ function ProfileForm() {
             <Button type='button' className='max-w-40 w-full mx-auto'
                 Icon={Upload} iconPlacement='left' variant={'outline'}
                 onClick={handleOpenImageDialog}>
-                Upload ảnh
+                Upload Image
             </Button>
 
             {errors.avatarUrl && <p className='text-sm text-red-600'>{errors.avatarUrl.message}</p>}
 
             <div>
 
-                <Label htmlFor='fullName'>Họ và tên</Label>
+                <Label htmlFor='fullName'>Full Name</Label>
                 <Input
                     {...register('fullName')}
                     name='fullName'
                     id='fullName'
                     type='text'
-                    placeholder='Nhập họ và tên...' />
+                    placeholder='Enter full name...' />
                 {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName.message}</p>}
 
             </div>
 
             <div>
-                <Label htmlFor='userName'>Tên người dùng</Label>
+                <Label htmlFor='userName'>User Name</Label>
                 <Input
                     {...register('userName')}
                     startContent={<SquareUserRound />}
                     name='userName'
                     id='userName'
                     type='text'
-                    placeholder='Nhập tên người dùng...' />
+                    placeholder='Enter user name...' />
                 {/* <p className="text-sm text-muted-foreground mt-2">Đây là tên người dùng được hiển thị công khai của bạn.
                     Bạn có thể dùng họ và tên hoặc biệt danh của mình.
                 </p> */}
@@ -317,7 +317,7 @@ function ProfileForm() {
                     {...register('email')}
                     startContent={<Mail />} name='email' type='text'
                     id='email'
-                    placeholder='Nhập email...'
+                    placeholder='Enter email...'
                     readOnly />
                 {/* <p className="text-sm text-muted-foreground mt-2">
                     <strong>Photon Piano</strong> sẽ sử dụng email này để liên lạc với bạn về vấn đề hỗ trợ đăng ký học ở trung tâm, lịch thi đầu vào
@@ -327,13 +327,13 @@ function ProfileForm() {
             </div>
 
             <div className="">
-                <Label htmlFor='phone'>Số điện thoại</Label>
+                <Label htmlFor='phone'>Phone number</Label>
                 <Input
                     {...register('phone')}
                     startContent={<Phone />}
                     name='phone' type='text'
                     id='phone'
-                    placeholder='Nhập số điện thoại..' />
+                    placeholder='Enter phone number..' />
                 {/* <p className="text-sm text-muted-foreground mt-2">
                     Số điện thoại này sẽ được sử dụng để liên lạc với bạn trong trường hợp cần thiết.
                 </p> */}
@@ -347,11 +347,11 @@ function ProfileForm() {
                     isLoading={isSubmitting}
                     disabled={isSubmitting}
                     className='md:max-w-[30%]'>
-                    {isSubmitting ? 'Đang cập nhật' : 'Cập nhật thông tin'}
+                    {isSubmitting ? 'Updating...' : 'Update Information'}
                 </Button>
                 <ForgotPasswordDialog trigger={
                     <Button type='button' variant={'outline'} Icon={Lock} iconPlacement='left'>
-                        Yêu cầu đặt lại mật khẩu
+                        Request reset password
                     </Button>}/>
 
             </div>

@@ -28,7 +28,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/profile':
             otherNavItems = [
                 {
-                    name: "Thông tin cá nhân",
+                    name: "Personal profile",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -38,7 +38,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/tuition':
             otherNavItems = [
                 {
-                    name: "Học phí",
+                    name: "My tuition",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -48,7 +48,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/free-slots':
             otherNavItems = [
                 {
-                    name: "Khung giờ của bạn",
+                    name: "My free slots",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -58,7 +58,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/class':
             otherNavItems = [
                 {
-                    name: "Lớp của tôi",
+                    name: "My classes",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -68,7 +68,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/transactions':
             otherNavItems = [
                 {
-                    name: "Lịch sử giao dịch",
+                    name: "Transaction history",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -78,7 +78,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
         case pathname === '/account/applications':
             otherNavItems = [
                 {
-                    name: "Lịch sử đơn từ",
+                    name: "My applications",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -88,14 +88,14 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
             const param = pathname.replace('/account/my-exams', "")
             otherNavItems = [
                 {
-                    name: "Các bài thi của tôi",
+                    name: "My exams",
                     url: '/account/my-exams',
                     isCurrentPage: param.length === 0
                 }
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết bài thi",
+                    name: "Exam details",
                     url: pathname,
                     isCurrentPage: true
                 })

@@ -8,22 +8,35 @@ const slides = [
     {
         // ?height=1000&width=1200
         url: "/images/banner1.jpg?height=1000&width=1200",
-        title: "THI ĐẦU VÀO 2025",
-        description: "Trung tâm Photon Piano trân trọng thông báo lịch thi đầu vào mới nhất 2025",
+        title: "PHOTON PIANO IS NOW OPEN FOR ENROLLMENT",
+        description: `Photon Piano sincerely welcomes you to the world of piano. 
+        We are committed to providing a professional and inspiring learning environment, helping students of all ages develop skills, 
+        nurture passion, and confidently express themselves through each piano notes.`,
     },
     {
         url: "/images/banner2.png?height=1000&width=1200",
         title: "Learn from the Best",
-        description: "Các giảng viên chuyên gia tận tâm giúp bạn phát triển âm nhạc",
+        description: "Our teachers are highly qualified and experienced, ensuring you receive the best education possible.",
     },
     {
         url: "/images/banner3.jpg?height=1000&width=1200",
-        title: "Mở khóa tiềm năng",
-        description: "Lộ trình học đảm bảo giúp bạn đạt được mục tiêu âm nhạc của mình",
+        title: "Unlock Your Potential",
+        description: "Unlock your potential with our personalized piano lessons. Whether you're a beginner or an advanced player, we have the right program for you.",
     }
 ]
 
-export function Carousel({isOpenDialog} : {isOpenDialog : boolean}) {
+type Props = {
+    isOpenDialog: boolean;
+    allowEntranceTestRegistering: boolean;
+}
+
+export default function Carousel({ isOpenDialog, allowEntranceTestRegistering }: Props) {
+
+    if (allowEntranceTestRegistering === false) {
+        slides[0].title = "Photon piano is now closed for enrollment";
+        slides[0].description = "Enrollment is currently closed. Please check back later.";
+    }
+
     const { currentAccount } = useAuth()
     const [current, setCurrent] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -71,17 +84,17 @@ export function Carousel({isOpenDialog} : {isOpenDialog : boolean}) {
                         />
                         <div className="absolute inset-0 bg-black/50" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
-                            <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-6xl">{slide.title}</h1>
-                            <p className="mt-6 max-w-2xl text-lg leading-8">{slide.description}</p>
+                            <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl uppercase leading-7">{slide.title}</h1>
+                            <p className="mt-6 max-w-2xl text-xl leading-8">{slide.description}</p>
                             {
-                                (index === 0 && (!currentAccount || currentAccount.studentStatus === 0)) && (
+                                (allowEntranceTestRegistering && index === 0 && (!currentAccount || currentAccount.studentStatus === 0)) && (
                                     <button onClick={() => {
                                         if (currentAccount)
                                             setIsOpenEnrollDialog(!isOpenEnrollDialog)
-                                        else 
+                                        else
                                             navigate('/entrance-survey')
                                     }} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        Đăng ký ngay
+                                        Register now
                                         <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
                                     </button>
                                 )

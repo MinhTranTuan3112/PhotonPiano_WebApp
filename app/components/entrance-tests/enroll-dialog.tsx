@@ -1,15 +1,19 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Label } from '../ui/label'
-import { Input } from '../ui/input'
 import { Button } from '../ui/button'
-import { Textarea } from '../ui/textarea'
 import { Checkbox } from '../ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
-import { Form, useFetcher, useNavigation } from '@remix-run/react'
-import StepperBar from '../ui/stepper'
+import { Form, useActionData, useNavigation, useSubmit } from '@remix-run/react'
+import { useQuery } from '@tanstack/react-query'
+import axiosInstance from '~/lib/utils/axios-instance'
+import { TEST_FEE } from '~/lib/utils/config-name'
+import { SystemConfig } from '~/lib/types/config/system-config'
+import { Loader2 } from 'lucide-react'
+import { formatPrice } from '~/lib/utils/price'
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { action } from '~/routes/enroll'
-
+import { toast } from 'sonner'
 
 type Props = {
     isOpen: boolean,
@@ -18,97 +22,125 @@ type Props = {
 
 export default function EnrollDialog({ isOpen, setIsOpen }: Props) {
 
-    const [currentStep, setCurrentStep] = useState(1);
-
-    const steps = ["Xác nhận thông tin", "Thanh toán lệ phí"];
-
-    const [isAgreed, setIsAgreee] = useState(false)
-
-    const navigation = useNavigation();
-
-    const isSubmitting = navigation.state === 'submitting';
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Đăng ký thi đầu vào để nhập học</DialogTitle>
+                    <DialogTitle>
+                        Register for entrance test to enroll
+                    </DialogTitle>
                     {/* <DialogDescription>
                             Hãy xác nhận các thông tin sau để tiến hành đăng ký.
                             </DialogDescription> */}
                 </DialogHeader>
-                <Form method='POST' action={`/enroll`}>
-                    {/* <StepperBar steps={steps} currentStep={currentStep} /> */}
-                    {/* <div className={`transition-opacity duration-300 ease-in-out ${currentStep === 0 ? 'opacity-100' : 'opacity-0'}`}>
-                        {
-                            currentStep === 0 && (
-                                <div className='mt-4 flex flex-col gap-4'>
-                                    <div className='flex gap-4 items-center'>
-                                        <Label htmlFor="email" className="w-32">
-                                            Email
-                                        </Label>
-                                        <Input id="email" className="col-span-3" placeholder='abc@gmail.com' />
-                                    </div>
-                                    <div className='flex gap-4 items-center'>
-                                        <Label htmlFor="sdt" className="w-32" >
-                                            SĐT
-                                        </Label>
-                                        <Input id="sdt" className="col-span-3" placeholder='0987654321' />
-                                    </div>
-                                    <div className='flex gap-4 items-start'>
-                                        <Label htmlFor="desc" className="w-32">
-                                            Mô tả trình độ
-                                        </Label>
-                                        <Textarea id="desc" className="col-span-3 resize-none" placeholder='Mô tả ngắn về trình độ piano hiện tại của bạn...'
-                                            rows={3} />
-                                    </div>
-                                    <div className='flex gap-4 items-start'>
-                                        <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
-                                        <span className='text-sm'>Tôi đồng ý với các <a className='underline font-bold' href='/'>quy định</a>   của trung tâm Photon Piano</span>
-                                    </div>
-                                    <div className='w-full'>
-                                        <Button disabled={!isAgreed} onClick={() => setCurrentStep(1)}
-                                            type="submit" className='w-full'>Tiếp tục</Button>
-                                    </div>
-                                </div>
-                            )
-                        }
-                    </div> */}
-                    <div className={`transition-opacity duration-300 ease-in-out ${currentStep === 1 ? 'opacity-100' : 'opacity-0'}`}>
-                        {
-                            currentStep === 1 && (
-                                <div>
-                                    <div className='text-gray-600 italic text-sm mb-4'>
-                                        Để tránh trường hợp spam yêu cầu đăng ký, trung tâm Photon Piano sẽ thu lệ phí <span className='font-bold'>100.000đ</span> cho mỗi đơn đăng ký thi đầu vào
-                                    </div>
-                                    <div className='flex gap-4 items-start mb-3'>
-                                        <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
-                                        <span className='text-sm'>Tôi đồng ý với các <a className='underline font-bold' href='/'>quy định</a>   của trung tâm Photon Piano</span>
-                                    </div>
-                                    <RadioGroup defaultValue='vnpay'>
-                                        <div className="flex items-center space-x-2 p-4 border rounded-lg">
-                                            <RadioGroupItem value="vnpay" id="r1" />
-                                            <div className='flex place-content-between w-full items-center'>
-                                                <Label htmlFor="r1">Thanh toán qua Vnpay</Label>
-                                                <img src='/images/vnpay.webp' className='w-8' />
-                                            </div>
-                                        </div>
-                                    </RadioGroup>
-                                    <div className='flex justify-end my-4 gap-4 items-end'>
-                                        <div>Tổng cộng : </div>
-                                        <div className='font-extrabold text-xl'>100.000 đ </div>
-                                    </div>
-                                    <div className='w-full flex gap-4 '>
-                                        <Button disabled={!isAgreed}
-                                            type="submit" className='w-full' isLoading={isSubmitting}>Thanh toán lệ phí</Button>
-                                    </div>
-
-                                </div>
-                            )
-                        }
-                    </div>
-                </Form>
+                <EnrollForm />
             </DialogContent>
         </Dialog>
     )
+}
+
+
+function EnrollForm() {
+
+    const navigation = useNavigation();
+    const [isAgreed, setIsAgreee] = useState(false);
+
+    const submit = useSubmit();
+
+    const isSubmitting = navigation.state === 'submitting';
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['fee-config'],
+        queryFn: async () => {
+            const response = await axiosInstance.get(`/system-configs/${TEST_FEE}`);
+
+            return await response.data;
+        },
+        retry: false,
+        refetchOnWindowFocus: false
+    });
+
+    const feeConfig = data ? data as SystemConfig : undefined;
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm enrollment',
+        description: 'Confirm register for entrance test?',
+        onConfirm: () => {
+            submit(null, {
+                method: 'POST',
+                action: '/enroll'
+            });
+        }
+    });
+
+    const actionData = useActionData<typeof action>();
+
+    useEffect(() => {
+
+        if (actionData?.success === false) {
+            toast.warning(actionData?.error);
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [actionData]);
+
+
+    return <>
+        <Form method='POST' action='/enroll'>
+            <div className='text-gray-600 italic text-sm mb-4'>
+                To avoid spam registration requests, Photon Piano Center will charge a fee of
+                {' '}
+                <span className='font-bold'>{isLoading ? (
+                    <Loader2 className='animate-spin' />
+                ) : (
+                    <>
+                        {isError
+                            ? '100.000'
+                            : formatPrice(parseInt(feeConfig?.configValue || '100000'))} đ
+                    </>
+                )}</span>
+                {' '}
+                per registration request
+            </div>
+            <div className='flex gap-4 items-start mb-3'>
+                <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
+                <span className='text-sm'>I agree with <a className='underline font-bold' href='/'>terms and conditions</a>  Photon Piano center</span>
+            </div>
+            <RadioGroup defaultValue='vnpay'>
+                <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="vnpay" id="r1" />
+                    <div className='flex place-content-between w-full items-center'>
+                        <Label htmlFor="r1">Vnpay</Label>
+                        <img src='/images/vnpay.webp' className='w-8' />
+                    </div>
+                </div>
+            </RadioGroup>
+            <div className='flex justify-end my-4 gap-4 items-end'>
+                <div>Total : </div>
+                <div className='font-extrabold text-xl'>
+                    {isLoading ? (
+                        <Loader2 className='animate-spin' />
+                    ) : (
+                        <>
+                            {isError
+                                ? '100.000'
+                                : formatPrice(parseInt(feeConfig?.configValue || '100000'))} đ
+                        </>
+                    )}
+                </div>
+            </div>
+            <div className='w-full flex gap-4 '>
+                <Button disabled={!isAgreed}
+                    type="button" className='w-full' isLoading={isSubmitting}
+                    onClick={handleOpenConfirmDialog}>
+                    Register
+                </Button>
+            </div>
+        </Form>
+        {confirmDialog}
+    </>
 }

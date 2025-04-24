@@ -16,7 +16,7 @@ export const studentColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
+                aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
@@ -24,17 +24,17 @@ export const studentColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                 variant={'theme'}
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
+                aria-label="Select row"
             />
         ),
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: "Tên",
-        header: "Tên học viên",
+        accessorKey: "Name",
+        header: "Learner",
         cell: ({ row }) => {
-            return <div>{row.original.student.username}</div>
+            return <div>{row.original.student.fullName || row.original.student.email}</div>
         }
     },
     // {
@@ -53,21 +53,21 @@ export const studentColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
     // },
     {
         id: "actions",
-        header: "Hành động",
+        header: "Actions",
         cell: ({ row }) => {
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Thao tác</span>
+                            <span className="sr-only">Actions</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/`}>
-                            <User /> Xem thông tin
+                            <User /> View information
                         </DropdownMenuItem>
                         {/* <DropdownMenuItem className="cursor-pointer">
                             <Pencil /> Chỉnh sửa điểm số

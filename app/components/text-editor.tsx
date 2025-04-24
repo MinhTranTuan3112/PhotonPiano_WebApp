@@ -191,13 +191,13 @@ function FormatType({ editor }: FormatTypeProps) {
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
-                    <SelectItem value="paragraph">Văn bản</SelectItem>
-                    <SelectItem value="h1">Tiêu đề 1</SelectItem>
-                    <SelectItem value="h2">Tiêu đề 2</SelectItem>
-                    <SelectItem value="h3">Tiêu đề 3</SelectItem>
-                    <SelectItem value="h4">Tiêu đề 4</SelectItem>
-                    <SelectItem value="h5">Tiêu đề 5</SelectItem>
-                    <SelectItem value="h6">Tiêu đề 6</SelectItem>
+                    <SelectItem value="paragraph">Paragraph</SelectItem>
+                    <SelectItem value="h1">Heading 1</SelectItem>
+                    <SelectItem value="h2">Heading 2</SelectItem>
+                    <SelectItem value="h3">Heading 3</SelectItem>
+                    <SelectItem value="h4">Heading 4</SelectItem>
+                    <SelectItem value="h5">Heading 5</SelectItem>
+                    <SelectItem value="h6">Heading 6</SelectItem>
                 </SelectGroup>
             </SelectContent>
         </Select>

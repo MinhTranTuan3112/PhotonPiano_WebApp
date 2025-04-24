@@ -17,7 +17,7 @@ function PaymentMethodBadge({ method }: { method: number }) {
 
     switch (method) {
         case 0:
-            badge = <Badge variant="outline" className="flex flex-row gap-1 items-center"><Banknote /> Tiền mặt</Badge>;
+            badge = <Badge variant="outline" className="flex flex-row gap-1 items-center"><Banknote /> Cash</Badge>;
             break;
 
         case 1:
@@ -40,26 +40,26 @@ export function PaymentStatusBadge({ status }: { status: number }) {
         case 0:
             badge = <Badge variant="outline" className="bg-blue-400 flex flex-row gap-1 items-center">
                 <Loader2 />
-                Đang chờ
+                Waiting
             </Badge>;
             break;
 
         case 1:
             badge = <Badge variant="outline" className="bg-green-400 flex flex-row gap-1 items-center">
                 <CircleCheck />
-                Thành công
+                Success
             </Badge>;
             break;
         case 2:
             badge = <Badge variant="outline" className="bg-red-400 flex flex-row gap-1 items-center">
                 <CircleX />
-                Thất bại
+                Failed
             </Badge>;
             break;
         case 3:
             badge = <Badge variant="outline" className="bg-red-400 flex flex-row gap-1 items-center">
                 <CircleX />
-                Đã hủy
+                Cancel
             </Badge>;
             break;
 

@@ -19,37 +19,37 @@ export const columns: ColumnDef<Survey>[] = [
     //     }
     // },
     {
-        accessorKey: 'Tên khảo sát',
-        header: 'Tên khảo sát',
+        accessorKey: 'Name',
+        header: 'Name',
         cell: ({ row }) => {
             return <div className="">{row.original.name}</div>
         }
     },
     {
-        accessorKey: 'Mô tả',
-        header: 'Mô tả',
+        accessorKey: 'Description',
+        header: 'Description',
         cell: ({ row }) => {
             return <div className="">{row.original.description}</div>
         }
     },
     {
-        accessorKey: 'Ngày tạo',
-        header: 'Ngày tạo',
+        accessorKey: 'Created Date',
+        header: 'Created Date',
         cell: ({ row }) => {
             return <div className="">{formatRFC3339ToDisplayableDate(row.original.createdAt, false)}</div>
         }
     },
     {
-        accessorKey: 'Là khảo sát đầu vào',
-        header: 'Là khảo sát đầu vào',
+        accessorKey: 'Is entrance survey',
+        header: 'Is entrance survey',
         cell: ({ row }) => {
             return <div className="">{row.original.isEntranceSurvey ? 'Có' : 'Không'}</div>
         }
     },
     {
-        id: 'Thao tác',
-        accessorKey: 'Thao tác',
-        header: 'Thao tác',
+        id: 'Actions',
+        accessorKey: 'Actions',
+        header: 'Actions',
         cell: ({ row }) => {
             return <ActionDropdown row={row} />
         }
@@ -62,16 +62,14 @@ function ActionDropdown({ row }: {
 
     const navigate = useNavigate()
 
-
     const fetcher = useFetcher<typeof action>();
 
     const isSubmitting = fetcher.state === 'submitting';
 
-
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận xóa',
-        description: 'Bạn có chắc chắn muốn xóa khảo sát này?',
-        confirmText: 'Xóa',
+        title: 'Confirm action',
+        description: 'Delete this survey?',
+        confirmText: 'Delete',
         confirmButtonClassname: 'bg-red-600 text-white',
         onConfirm: () => {
 
@@ -90,19 +88,22 @@ function ActionDropdown({ row }: {
 
 
         if (fetcher.data?.success === true) {
-            toast.success('Xóa khảo sát thành công');
+            toast.success('Delete success!');
             return;
         }
 
-        if (fetcher.data?.success === false ) {
-            toast.error('Xóa khảo sát thất bại: ' + fetcher.data.error);
+        if (fetcher.data?.success === false) {
+            toast.warning('Delete failed!', {
+                description: fetcher.data.error,
+                duration: 5000
+            });
             return;
         }
 
         return () => {
 
         }
-        
+
     }, [fetcher.data]);
 
 
@@ -111,23 +112,23 @@ function ActionDropdown({ row }: {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     navigate(`/staff/surveys/${row.original.id}`)
                 }}>
                     <Eye />
-                    Xem
+                    View
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600" disabled={isSubmitting}
                     onClick={handleOpenConfirmDialog}>
                     <Trash2 />
-                    Xóa
+                    Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

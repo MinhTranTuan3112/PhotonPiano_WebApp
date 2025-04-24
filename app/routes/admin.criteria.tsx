@@ -24,10 +24,10 @@ const addCriteriaSchema = z
     .object({
         description: z.string().optional(), // Optional URL for existing avatar
         name: z
-            .string({ message: "Tên không được để trống." }),
-        weight: z.coerce.number({ message: "Trọng số không được để trống" })
-            .min(1, { message: "Tối thiểu 1." })
-            .max(100, { message: "Tối đa 100." }),
+            .string({ message: "Name can not be empty." }),
+        weight: z.coerce.number({ message: "Weight can not be empty" })
+            .min(1, { message: "Minimum 1." })
+            .max(100, { message: "Maximum 100." }),
         action: z.string(),
         idToken: z.string(),
         criteriaFor: z.coerce.number(),
@@ -133,7 +133,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (criteriaFor === null || criteriaFor === undefined || !updateString) {
                 return {
                     success: false,
-                    error: 'Dữ liệu bị gửi thiếu',
+                    error: 'Invalid data',
                     status: 400
                 }
             }
@@ -169,7 +169,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (!id) {
                 return {
                     success: false,
-                    error: 'Không xác định tiêu chí.',
+                    error: 'Criteria not found.',
                     status: 400
                 }
             }
@@ -237,8 +237,8 @@ export default function AdminCriteria({ }: Props) {
     });
 
     const { open: handleOpenAddModal, dialog: confirmAddDialog } = useConfirmationDialog({
-        title: 'Xác nhận thêm tiêu chí đánh giá',
-        description: 'Các trọng số các tiêu chí khác sẽ được điều chỉnh lại!',
+        title: 'Add new criterion?',
+        description: 'Other weight will be automatically adjusted!',
         onConfirm: () => {
             handleAddSubmit();
         }
@@ -251,15 +251,15 @@ export default function AdminCriteria({ }: Props) {
     })
 
     const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-        title: 'Xóa tiêu chí đánh giá?',
-        description: 'Các trọng số các tiêu chí khác sẽ được điều chỉnh lại!',
+        title: 'Delete Criterion?',
+        description: 'Other criteria weight will be adjusted according!',
         onConfirm: () => {
             handleDelete();
         }
     })
     const { open: handleOpenEditModal, dialog: confirmEditModal } = useConfirmationDialog({
-        title: 'Chỉnh sửa các tiêu chí đánh giá?',
-        description: 'Bạn có  chắc chắn về hành động này khôn?',
+        title: 'Edit Criteria?',
+        description: 'Are you sure about this action?',
         onConfirm: () => {
             handleEdit();
         }
@@ -288,8 +288,8 @@ export default function AdminCriteria({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Quản lý tiêu chí đánh giá</h1>
-            <p className='text-muted-foreground'>Quản lý các tiêu chí về thi đầu vào và tiêu chí đánh giá trong lớp</p>
+            <h1 className="text-xl font-extrabold">Manage Criteria</h1>
+            <p className='text-muted-foreground'>Manage Criteria to evaluate learners for each entrance test and each class</p>
 
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>
@@ -313,10 +313,10 @@ export default function AdminCriteria({ }: Props) {
                                         isEdit ? (
                                             <>
                                                 <Button type='button' onClick={handleOpenEditModal} className='bg-green-500 hover:bg-green-300'>
-                                                    <CheckIcon className='mr-4' /> Lưu thay đổi
+                                                    <CheckIcon className='mr-4' /> Save Changes
                                                 </Button>
                                                 <Button type='button' className='bg-red-400 hover:bg-red-200' onClick={() => setIsEdit(false)}>
-                                                    <XIcon className='mr-4' /> Hủy thay đổi
+                                                    <XIcon className='mr-4' /> Discard
                                                 </Button>
                                             </>
                                         ) : (
@@ -327,10 +327,10 @@ export default function AdminCriteria({ }: Props) {
                                 <Tabs defaultValue='entrance-tests'>
                                     <TabsList className="w-full grid grid-cols-2">
                                         <TabsTrigger value="entrance-tests" onClick={() => setCriteriaFor(0)}>
-                                            Thi đầu vào
+                                            Entrance Test
                                         </TabsTrigger>
                                         <TabsTrigger value="classes" onClick={() => setCriteriaFor(1)}>
-                                            Lớp học
+                                            Class
                                         </TabsTrigger>
                                     </TabsList>
 
@@ -338,9 +338,9 @@ export default function AdminCriteria({ }: Props) {
                                         <table className="w-full text-left">
                                             <thead>
                                                 <tr className="bg-gray-100">
-                                                    <th className="font-bold text-center p-3  w-1/6">Tên</th>
-                                                    <th className="font-bold text-center p-3">Mô tả</th>
-                                                    <th className="font-bold text-center p-3  w-1/6">Trọng số (%)</th>
+                                                    <th className="font-bold text-left p-3  w-1/6">Name</th>
+                                                    <th className="font-bold text-center p-3">Description</th>
+                                                    <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
                                                     <th className="font-bold text-center p-3  w-1/6"></th>
                                                 </tr>
                                             </thead>
@@ -351,9 +351,9 @@ export default function AdminCriteria({ }: Props) {
 
                                                         return !isEdit ? (
                                                             <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-center p-3">{c.name}</td>
+                                                                <td className="text-left p-3">{c.name}</td>
                                                                 <td className="text-center p-3">{c.description}</td>
-                                                                <td className="text-center p-3">{c.weight}</td>
+                                                                <td className="text-right p-3">{c.weight}</td>
                                                                 <td className="text-center p-3">
                                                                     <Button type='button' variant={'destructive'} onClick={() => {
                                                                         setSelectedCriteria(c.id)
@@ -416,13 +416,13 @@ export default function AdminCriteria({ }: Props) {
                                                 <tr>
                                                     <td>
                                                         <div className='flex flex-col items-center'>
-                                                            <Input {...register('name')} name="name" placeholder='Tên'></Input>
+                                                            <Input {...register('name')} name="name" placeholder='Name...'></Input>
 
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className='flex flex-col items-center'>
-                                                            <Input {...register('description')} name="description" placeholder='Mô tả'></Input>
+                                                            <Input {...register('description')} name="description" placeholder='Description...'></Input>
 
 
                                                         </div>
@@ -432,7 +432,7 @@ export default function AdminCriteria({ }: Props) {
                                                             <Input {...register('weight')}
                                                                 type='number'
                                                                 name="weight"
-                                                                placeholder='Trọng số'></Input>
+                                                                placeholder='Weight...'></Input>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -453,9 +453,9 @@ export default function AdminCriteria({ }: Props) {
                                         <table className="w-full text-left">
                                             <thead>
                                                 <tr className="bg-gray-100">
-                                                    <th className="font-bold text-center p-3 w-1/6">Tên</th>
-                                                    <th className="font-bold text-center p-3">Mô tả</th>
-                                                    <th className="font-bold text-center p-3  w-1/6">Trọng số (%)</th>
+                                                    <th className="font-bold text-left p-3 w-1/6">Name</th>
+                                                    <th className="font-bold text-center p-3">Description</th>
+                                                    <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -466,9 +466,9 @@ export default function AdminCriteria({ }: Props) {
 
                                                         return !isEdit ? (
                                                             <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-center p-3">{c.name}</td>
+                                                                <td className="text-left p-3">{c.name}</td>
                                                                 <td className="text-center p-3">{c.description}</td>
-                                                                <td className="text-center p-3">{c.weight}</td>
+                                                                <td className="text-right p-3">{c.weight}</td>
                                                                 <td className="text-center p-3">
                                                                     <Button type='button' variant={'destructive'} onClick={() => {
                                                                         setSelectedCriteria(c.id)
@@ -531,13 +531,13 @@ export default function AdminCriteria({ }: Props) {
                                                 <tr>
                                                     <td>
                                                         <div className='flex flex-col items-center'>
-                                                            <Input {...register('name')} name="name" placeholder='Tên'></Input>
+                                                            <Input {...register('name')} name="name" placeholder='Name...'></Input>
 
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className='flex flex-col items-center'>
-                                                            <Input {...register('description')} name="description" placeholder='Mô tả'></Input>
+                                                            <Input {...register('description')} name="description" placeholder='Description...'></Input>
 
 
                                                         </div>
@@ -547,7 +547,7 @@ export default function AdminCriteria({ }: Props) {
                                                             <Input {...register('weight')}
                                                                 type='number'
                                                                 name="weight"
-                                                                placeholder='Trọng số'></Input>
+                                                                placeholder='Weight...'></Input>
                                                         </div>
                                                     </td>
                                                     <td>

@@ -129,9 +129,9 @@ export default function NewsManagementPage({ }: Props) {
     return (
         <article className='px-10'>
 
-            <h3 className="text-lg font-bold">Quản lý tin tức</h3>
+            <h3 className="text-lg font-bold">Manage news</h3>
             <p className="text-sm text-muted-foreground">
-                Quản lý tin tức và bài viết trên trang web
+                Manage news and articles on the website
             </p>
 
             <SearchForm />
@@ -140,7 +140,7 @@ export default function NewsManagementPage({ }: Props) {
                 <ViewToggle defaultView={currentView} onViewChange={setCurrentView} />
                 <Button type='button' variant={'outline'} Icon={PencilLine}
                     iconPlacement='left' onClick={() => navigate('/staff/articles/create')}>
-                    Tạo bài viết mới
+                    Create new article
                 </Button>
             </div>
 
@@ -151,7 +151,7 @@ export default function NewsManagementPage({ }: Props) {
                             {currentView === 'table' ? <GenericDataTable
                                 columns={columns}
                                 metadata={metadata}
-                                emptyText='Không có bài viết nào.'
+                                emptyText='No articles found.'
                             /> : <ArticleCardsList />}
 
                         </Await>
@@ -177,9 +177,9 @@ function ArticleCardsList() {
 function SearchForm() {
 
     return <Form method='GET' className='flex flex-row gap-2 items-center my-3'>
-        <Input name='q' placeholder='Tìm kiếm tin tức...' type='text' />
+        <Input name='q' placeholder='Search here...' type='text' />
         <Button type='submit' Icon={Search} iconPlacement='left'>
-            Tìm kiếm
+            Search
         </Button>
     </Form>
 }
@@ -198,22 +198,21 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-8">
-            <h3 className="text-lg font-bold">Quản lý tin tức</h3>
+            <h3 className="text-lg font-bold">Manage news</h3>
             <p className="text-sm text-muted-foreground">
-                Quản lý tin tức và bài viết trên trang web
+                Manage news and articles on the website
             </p>
-
             <SearchForm />
 
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                       flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
 

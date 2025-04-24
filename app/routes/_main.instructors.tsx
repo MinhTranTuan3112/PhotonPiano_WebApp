@@ -39,8 +39,12 @@ export default function TeachersShowcasePage() {
             <img src="/images/notes_flows.png" alt="Musical Notes" className="absolute top-0 left-0 opacity-5 w-full" />
             <img src="/images/grand_piano_1.png" alt="Grand Piano" className="absolute bottom-0 right-0 opacity-20 w-1/3" />
             <div className="text-center py-6">
-                <h2 className="text-5xl font-extrabold mb-4 drop-shadow-lg">🎶 Đội Ngũ Giảng Viên Xuất Sắc 🎶</h2>
-                <p className="text-xl italic drop-shadow">Hãy cùng khám phá những người thầy tận tâm, giàu kinh nghiệm và đam mê âm nhạc! 🎼</p>
+                <h2 className="text-5xl font-extrabold mb-4 drop-shadow-lg">
+                    🎶 Excellent Teaching Team 🎶
+                </h2>
+                <p className="text-xl italic drop-shadow">
+                    Discover our dedicated, experienced, and passionate teachers! 🎼
+                </p>
             </div>
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>
@@ -57,14 +61,14 @@ export default function TeachersShowcasePage() {
                                                     className="w-40 h-40 rounded-full border-4 border-gray-300 shadow-md object-cover mb-4"
                                                 />
                                                 <h4 className="text-2xl font-bold text-gray-900">{teacher.fullName || teacher.userName}</h4>
-                                                <p className="text-gray-700 text-lg font-medium">🎓 Cấp độ: {teacher.level?.name || 'Chưa cập nhật'}</p>
+                                                <p className="text-gray-700 text-lg font-medium">🎓 Level: {teacher.level?.name || 'Chưa cập nhật'}</p>
                                                 <p className="text-gray-600">📧 {teacher.email}</p>
                                                 <p className="text-gray-600">📞 {teacher.phone}</p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <p className="text-gray-500 text-center text-lg">Hiện tại chưa có giảng viên nào trong danh sách.</p>
+                                    <p className="text-gray-500 text-center text-lg">Currently no teachers is available.</p>
                                 )}
                             </div>
                             <div className="mt-8">

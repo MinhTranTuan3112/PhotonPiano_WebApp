@@ -1,7 +1,7 @@
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
-import { Calendar, ChevronRight, Clock, Search, Bookmark, ThumbsUp, MessageCircle } from 'lucide-react'
+import { Calendar, ChevronRight, Clock, Search, Bookmark, ThumbsUp, MessageCircle, Newspaper } from 'lucide-react'
 import { useState, useEffect, Suspense } from 'react'
 import styles from '../components/home/animation.module.css'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
@@ -15,6 +15,7 @@ import { Skeleton } from "~/components/ui/skeleton"
 import ArticleCard from "~/components/news/article-card"
 import DOMPurify from "isomorphic-dompurify";
 import { PaginationMetaData } from "~/lib/types/pagination-meta-data"
+import { toast } from "sonner"
 
 // const categories = [
 //     { id: "all", label: "Tất cả" },
@@ -152,7 +153,7 @@ export default function NewsPage() {
 
             <main className="container mx-auto px-4 py-8 mt-20">
                 <div className="container mx-auto px-4 py-8">
-                    <h1 className={`text-4xl font-bold mb-8 ${styles.animateFadeIn}`}>Tin Tức Trung Tâm Photon Piano</h1>
+                    <h1 className={`text-4xl font-bold mb-8 ${styles.animateFadeIn}`}>Photon Piano News</h1>
 
                     {/* Hero Section */}
 
@@ -233,13 +234,21 @@ export default function NewsPage() {
                     {/* Newsletter Signup */}
                     <Card className={`mt-12 ${styles.animateFadeIn}`} style={{ animationDelay: '0.6s' }}>
                         <CardHeader>
-                            <CardTitle>Đăng Ký Nhận Tin</CardTitle>
-                            <CardDescription>Nhận những tin tức mới nhất về trung tâm Photon Piano</CardDescription>
+                            <CardTitle>News subscription</CardTitle>
+                            <CardDescription>
+                                Receive the latest news about Photon Piano center
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form className="flex space-x-2">
-                                <Input type="email" placeholder="Email của bạn" className="flex-grow transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
-                                <Button type="submit" className="transition-colors duration-300 hover:bg-blue-700">Đăng Ký</Button>
+                                <Input type="email" placeholder="Your email" className="flex-grow transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
+                                <Button type="button" className="transition-colors duration-300 hover:bg-blue-700"
+                                    onClick={() => {
+                                        toast.success('Subscribed successfully!', {
+                                            description: 'You will receive the latest news about Photon Piano center.',
+                                            duration: 3000,
+                                        })
+                                    }}>Subscribe</Button>
                             </form>
                         </CardContent>
                     </Card>
@@ -273,7 +282,7 @@ function ArticlesContent({
                 </p>
                 <Button type="button" variant="secondary" className="group-hover:bg-white group-hover:text-black transition-colors duration-300"
                     onClick={() => navigate(`/news/${topArticle.slug}`)}>
-                    Đọc ngay <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    Read now <ChevronRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
             </div>
         </div>
@@ -281,7 +290,7 @@ function ArticlesContent({
         {/* Search Bar */}
         <div className={`mb-8 ${styles.animateFadeIn}`} style={{ animationDelay: '0.2s' }}>
             <Form method="GET" className="relative" preventScrollReset={true}>
-                <Input type="search" name="q" placeholder="Tìm kiếm tin tức..." className="pl-10 pr-4 py-2 w-full transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
+                <Input type="search" name="q" placeholder="Search news..." className="pl-10 pr-4 py-2 w-full transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </Form>
         </div>
@@ -292,11 +301,31 @@ function ArticlesContent({
             ))}
         </div>
 
-
-    </> : <>
-        <p className="text-3xl font-bold text-center">Không có bài viết nào.</p>
-    </>
+    </> : <EmptyNewsContent />
 };
+
+export function EmptyNewsContent() {
+    return <Card className="mx-auto max-w-2xl border-dashed">
+        <CardHeader className="flex flex-col items-center gap-2 pt-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                <Newspaper className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-2xl">No news articles yet</CardTitle>
+            <CardDescription className="text-center">
+                There are no news articles to display at the moment. Check back later or subscribe to get notified.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center pb-6">
+            <div className="mt-4 grid w-full max-w-sm gap-2">
+                <Button>Subscribe to updates</Button>
+                <Button variant="outline">Browse categories</Button>
+            </div>
+        </CardContent>
+        <CardFooter className="border-t bg-muted/50 px-6 py-3">
+            <p className="text-xs text-muted-foreground">News content is updated daily.</p>
+        </CardFooter>
+    </Card>
+}
 
 function LoadingSkeleton() {
     return <div className="flex justify-center items-center my-4">

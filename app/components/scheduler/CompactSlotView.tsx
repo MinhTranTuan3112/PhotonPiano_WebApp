@@ -35,7 +35,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                 <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center text-indigo-800 font-medium">
                         <Music className="w-4 h-4 mr-2 text-indigo-600" />
-                        <span className="text-indigo-900 font-bold">{slots.length} phòng học</span>
+                        <span className="text-indigo-900 font-bold">{slots.length} room</span>
                     </div>
                     {/*<Badge className="bg-indigo-100 text-indigo-800 border-none">{slots.length} lớp</Badge>*/}
                 </div>
@@ -45,7 +45,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                     {slots.map((slot, idx) => (
                         <div key={idx} className="flex items-center text-sm">
                             <span className="w-2 h-2 rounded-full bg-indigo-500 mr-2"></span>
-                            <span className="text-indigo-700">Phòng: {slot.room?.name}</span>
+                            <span className="text-indigo-700">Room: {slot.room?.name}</span>
                         </div>
                     ))}
                 </div>
@@ -53,7 +53,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                 {/* Status badge */}
                 <div className="mt-3">
                     <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
-                        Xem Thêm
+                        More
                     </Badge>
                 </div>
             </div>
@@ -116,7 +116,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                             className="w-full text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-200 rounded-lg py-2 px-3 text-sm font-medium flex items-center justify-center"
                         >
                             <ChevronUp className="w-4 h-4 mr-1" />
-                            Thu gọn
+                            Collapse
                         </button>
                     </>
                 )}

@@ -10,7 +10,7 @@ import { Role } from '~/lib/types/account/account';
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test';
 import { EntranceTestStudentDetail } from '~/lib/types/entrance-test/entrance-test-student-detail';
 import { requireAuth } from '~/lib/utils/auth';
-import { ENTRANCE_TEST_STATUSES, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
+import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { formatScore } from '~/lib/utils/score';
 
@@ -113,8 +113,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const promise = fetchEntranceTestStudentDetails({ id, studentId: accountId || '', idToken }).then((response) => {
       const entranceTestStudentPromise: Promise<EntranceTestStudentDetail> = response.data;
 
+      const headers = response.headers;
+
       return {
-        entranceTestStudentPromise
+        entranceTestStudentPromise,
+        theoryPercentage: parseInt(headers['x-theory-percentage'] || '50'),
+        practicalPercentage: parseInt(headers['x-practical-percentage'] || '50'),
       }
     });
 
@@ -145,12 +149,12 @@ export default function ExamDetail({ }: Props) {
 
   return (
     <div className='px-10'>
-      <div className='font-bold text-2xl'>Chi tiết bài thi</div>
+      <div className='font-bold text-2xl'>Test details</div>
       <Suspense fallback={<LoadingSkeleton />} key={id}>
         <Await resolve={promise}>
-          {({ entranceTestStudentPromise }) => (
+          {({ entranceTestStudentPromise, ...data }) => (
             <Await resolve={entranceTestStudentPromise}>
-              <EntranceTestStudentContent />
+              <EntranceTestStudentContent {...data} />
             </Await>
           )}
         </Await>
@@ -159,33 +163,41 @@ export default function ExamDetail({ }: Props) {
   )
 }
 
-function EntranceTestStudentContent() {
+function EntranceTestStudentContent({
+  theoryPercentage,
+  practicalPercentage
+}: {
+  theoryPercentage: number;
+  practicalPercentage: number;
+}) {
 
   const entranceTestStudentValue = useAsyncValue();
 
   const entranceTestStudent = entranceTestStudentValue as EntranceTestStudentDetail;
+
+  const practicalScore = entranceTestStudent.entranceTestResults.reduce((acc, result) => (result.score * result.weight / 100) + acc, 0);
 
   return <div className='mt-8'>
     <div>
       <div className="flex place-content-between">
         <div className='flex gap-4 text-xl font-bold'>
           <Music2 />
-          Thông tin chung
+          General information
         </div>
         <div className={`${getStatusStyle(entranceTestStudent.entranceTest.status)} rounded-xl px-8 py-2 text-white`}>{ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}</div>
       </div>
 
       <div className='mt-4 grid grid-cols-2 lg:grid-cols-3 gap-4'>
         <div className="flex flex-col">
-          <div className="font-bold">Địa điểm</div>
+          <div className="font-bold">Room</div>
           <div>{entranceTestStudent.entranceTest.roomName}</div>
         </div>
         <div className="flex flex-col">
-          <div className="font-bold">Ca thi</div>
+          <div className="font-bold">Shift</div>
           <div>{entranceTestStudent.entranceTest.shift + 1} ({SHIFT_TIME[entranceTestStudent.entranceTest.shift]})</div>
         </div>
         <div className="flex flex-col">
-          <div className="font-bold">Ngày thi</div>
+          <div className="font-bold">Date</div>
           <div>{entranceTestStudent.entranceTest.date}</div>
         </div>
 
@@ -194,8 +206,8 @@ function EntranceTestStudentContent() {
           <div>{entranceTestStudent.entranceTest.registerStudents} / {entranceTestStudent.entranceTest.roomCapacity ?? 20}</div>
         </div> */}
         <div className="flex flex-col">
-          <div className="font-bold">Loại</div>
-          <div>Thi xếp lớp đầu vào</div>
+          <div className="font-bold">Type</div>
+          <div>Entrance test</div>
         </div>
       </div>
       {/* {
@@ -211,7 +223,7 @@ function EntranceTestStudentContent() {
     <div className='mt-8'>
       <div className='flex gap-4 text-xl font-bold'>
         <Music2 />
-        Thông tin giảng viên chấm
+        Teacher information
       </div>
       {
         entranceTestStudent.entranceTest.instructor ? (
@@ -219,11 +231,11 @@ function EntranceTestStudentContent() {
             <Image src={entranceTestStudent.entranceTest.instructor?.avatarUrl ?? '/images/noavatar.png'} className='w-48' />
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-grow'>
               <div className="flex flex-col">
-                <div className="font-bold">Tên</div>
+                <div className="font-bold">Name</div>
                 <div>{entranceTestStudent.entranceTest.instructor.fullName}</div>
               </div>
               <div className="flex flex-col">
-                <div className="font-bold">SĐT</div>
+                <div className="font-bold">Phone</div>
                 <div>{entranceTestStudent.entranceTest.instructor.phone}</div>
               </div>
               <div className="flex flex-col">
@@ -231,16 +243,18 @@ function EntranceTestStudentContent() {
                 <div>{entranceTestStudent.entranceTest.instructor.email}</div>
               </div>
               <div className="flex flex-col">
-                <div className="font-bold">Địa chỉ</div>
+                <div className="font-bold">Address</div>
                 <div>{entranceTestStudent.entranceTest.instructor.address}</div>
               </div>
               <div className="">
-                <Button>Xem hồ sơ của giảng viên</Button>
+                <Button type='button'>View teacher profile</Button>
               </div>
             </div>
           </div>
         ) : (
-          <div className='italic text-center mt-4'>Chưa có giảng viên được phân công ca thi này</div>
+          <div className='italic text-center mt-4'>
+            No teacher assigned yet<br />
+          </div>
         )
       }
 
@@ -257,13 +271,14 @@ function EntranceTestStudentContent() {
             </div>
             <div className="max-w-4xl mx-auto bg-opacity-50 bg-white rounded-xl shadow-lg p-8 relative z-10">
               <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-6">
-                Kết quả bài thi
+                Piano test results
               </h1>
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gradient-to-r from-black to-gray-700 text-white rounded-t-xl">
-                    <th className="text-left py-3 px-4 font-medium rounded-tl-xl">Tiêu chí</th>
-                    <th className="text-center py-3 px-4 font-medium rounded-tr-xl">Điểm</th>
+                    <th className="text-left py-3 px-4 font-medium rounded-tl-xl">Criteria</th>
+                    <th className="text-center py-3 px-4 font-medium">Score</th>
+                    <th className="text-center py-3 px-4 font-medium rounded-tr-xl">Weight</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,36 +287,55 @@ function EntranceTestStudentContent() {
                       key={result.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-gray-800 font-medium">{result.criteriaName}</td>
+                      <td className="py-3 px-4">
+                        <div className="text-gray-800 font-medium">{result.criteria.name}</div>
+                        <div className="text-sm text-muted-foreground">{result.criteria.description}</div>
+                      </td>
                       <td className="py-3 px-4 text-center font-bold text-gray-700">
                         {formatScore(result.score)}
                       </td>
+                      <td className="py-3 px-4 text-center font-bold text-gray-700">
+                        {result.weight}%
+                      </td>
                     </tr>
                   ))}
+                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 text-gray-800 font-medium">Practical score: &#40;{theoryPercentage}%&#41;</td>
+                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(practicalScore)}</td>
+                  </tr>
+                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 text-gray-800 font-medium">Theoretical result: &#40;{practicalPercentage}%&#41;</td>
+                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : '(Chưa có)'}</td>
+                  </tr>
                 </tbody>
               </table>
+
               <div className='mt-4 flex flex-col items-center'>
                 <div className='font-bold text-xl'>
-                  <span>Điểm tổng kết : </span>
+                  <span>Final band score : </span>
                   <span className='text-2xl text-red-500'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore || 0) : '(Chưa có)'}</span>
                 </div>
                 <div className='font-bold text-lg'>
-                  <span>Xếp hạng trình độ : </span>
+                  <span>Level : </span>
                   <span className='text-blue-500'>{entranceTestStudent.level?.name}</span>
                 </div>
                 <div className='mt-4 flex justify-start w-full'>
-                  <span className='font-bold  '>Nhận xét của giảng viên chấm :
-                    <span className='font-normal italic'> {entranceTestStudent.instructorComment ?? "Không có nhận xét"}</span>
+                  <span className='font-bold  '>Comment :
+                    <span className='font-normal italic'> {entranceTestStudent.instructorComment || "(None)"}</span>
                   </span>
                 </div>
                 <div className='italic mt-8 text-center text-sm'>
-                  Chúc mừng bạn đã thành công vượt qua bài thi này<br />
-                  Hãy nhớ truy cập hệ thống thường xuyên để nhận kết quả xếp lớp nhé!</div>
+                  Congratulations on passing this test<br />
+                  Remember to check the system regularly to receive class placement results!
+                </div>
+
               </div>
             </div>
           </div>
         ) : (
-          <div className='italic text-center mt-4'>Kết quả bài thi này chưa được công bố</div>
+          <div className='italic text-center mt-4'>
+            Test results have not been published yet<br />
+          </div>
         )
       }
 
@@ -314,3 +348,17 @@ function LoadingSkeleton() {
     <Skeleton className="h-[300px] w-full rounded-md" />
   </div>
 }
+
+// export function ErrorBoundary() {
+//   return <div className="flex flex-col justify-center items-center my-24 p-8 bg-gray-200 text-black rounded-lg shadow-lg relative">
+//     {/* Background Images */}
+//     <img src="/images/notes_flows.png" alt="Musical Notes" className="absolute top-0 left-0 opacity-10 w-full" />
+//     <img src="/images/grand_piano_1.png" alt="Grand Piano" className="absolute bottom-0 right-0 opacity-20 w-1/3" />
+
+//     {/* Icon and Heading */}
+//     <div className="flex flex-col items-center relative z-10">
+//       <h1 className="text-xl font-extrabold">Chưa có kết quả</h1>
+//       <h2 className="text-base font-bold mt-2">Bạn vui lòng chờ kết quả thi được công bố nhé</h2>
+//     </div>
+//   </div>
+// }

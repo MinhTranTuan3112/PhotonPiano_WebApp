@@ -168,11 +168,11 @@ function SearchForm() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     return <Form method="GET" className="my-4 flex flex-row gap-3">
-        <Input placeholder="Tìm kiếm câu hỏi..." name="q"
+        <Input placeholder="Search questions here..." name="q"
 
             defaultValue={searchParams.get('q') || undefined} />
 
-        <Button type="submit" Icon={Search} iconPlacement="left">Tìm kiếm</Button>
+        <Button type="submit" Icon={Search} iconPlacement="left">Search</Button>
     </Form>
 }
 
@@ -202,11 +202,11 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
 
             switch (fetcher.data.questionAction) {
                 case 'create':
-                    message = 'Câu hỏi đã được tạo thành công.';
+                    message = 'Create success.';
                     break;
 
                 case 'update':
-                    message = 'Câu hỏi đã được cập nhật thành công.';
+                    message = 'Update success.';
                     break;
 
                 default:
@@ -223,8 +223,9 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error('Có lỗi xảy ra: ' + fetcher.data.error, {
-                position: 'top-center'
+            toast.warning('Error: ' + fetcher.data.error, {
+                position: 'top-center',
+                duration: 5000,
             });
             return;
         }
@@ -239,9 +240,9 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
     return (
         <>
             <article className='px-10'>
-                <h3 className="text-lg font-bold">Danh sách câu hỏi khảo sát</h3>
+                <h3 className="text-lg font-bold">Survey questions list</h3>
                 <p className="text-sm text-muted-foreground">
-                    Quản lý câu hỏi khảo sát của trung tâm
+                    Manage survey questions of the center
                 </p>
                 <SearchForm />
                 <Suspense key={JSON.stringify(query)} fallback={<LoadingSkeleton />}>
@@ -251,12 +252,12 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
                                 <GenericDataTable
                                     columns={columns}
                                     metadata={metadata}
-                                    emptyText="Không có câu hỏi nào."
+                                    emptyText="No questions found."
                                     extraHeaderContent={
                                         <>
                                             <Button type="button" Icon={CirclePlus} iconPlacement="left"
                                                 onClick={handleOpenQuestionDialog}>
-                                                Tạo câu hỏi khảo sát
+                                                Create new question
                                             </Button>
                                         </>
                                     }
@@ -279,20 +280,20 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-8">
-            <h3 className="text-lg font-bold">Danh sách câu hỏi khảo sát</h3>
+            <h3 className="text-lg font-bold">Survey questions list</h3>
             <p className="text-sm text-muted-foreground">
-                Quản lý câu hỏi khảo sát của trung tâm
+                Manage survey questions of the center
             </p>
 
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                         flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
         </article>
