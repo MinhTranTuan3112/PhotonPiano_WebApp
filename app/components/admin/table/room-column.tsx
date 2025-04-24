@@ -16,7 +16,7 @@ const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-green-500 font-semibold";
         case 1: return "text-gray-400 font-semibold";
-        default: return "text-black font-semibold";
+        default: return "text-black font-semibold"; 
     }
 };
 
