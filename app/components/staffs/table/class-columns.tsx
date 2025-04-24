@@ -31,7 +31,11 @@ const getLevelStyle = (level: number) => {
 function LevelBadge({ level }: {
     level: Level
 }) {
-    return <Badge variant={'outline'} className={`uppercase`}>{level.name.split('(')[0]}</Badge>
+    return <Badge variant={'outline'} className={`uppercase`}
+        style={{
+            backgroundColor: `${level.themeColor}33`, // 20% opacity
+            color: level.themeColor
+        }}>{level.name.split('(')[0]}</Badge>
 }
 function StatusBadge({ status }: {
     status: number
@@ -64,8 +68,8 @@ export const classColums: ColumnDef<Class>[] = [
     //     enableHiding: false,
     // },
     {
-        accessorKey: "Tên",
-        header: "Tên",
+        accessorKey: "Class Name",
+        header: "Class Name",
         cell: ({ row }) => {
             return <div>{row.original.name}</div>
         }
@@ -78,38 +82,38 @@ export const classColums: ColumnDef<Class>[] = [
         }
     },
     {
-        accessorKey: 'Số buổi học',
-        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Số buổi học</div>,
+        accessorKey: 'Total Lessons',
+        header: () => <div className="flex flex-row gap-1 items-center"><Calendar /> Total Lessons</div>,
         cell: ({ row }) => {
             return <div className={(row.original.totalSlots > row.original.requiredSlots) ? "text-red-500" : ""}>
                 {row.original.totalSlots} / {row.original.requiredSlots}
-                </div>
+            </div>
         }
     },
     {
-        accessorKey: 'Giảng viên',
-        header: () => <div className="flex flex-row gap-1 items-center"><User /> Giảng viên</div>,
+        accessorKey: 'Instructor',
+        header: () => <div className="flex flex-row gap-1 items-center"><User /> Instructor</div>,
         cell: ({ row }) => {
-            return <div>{row.original.instructor?.userName ?? "(Chưa có GV)"}</div>
+            return <div>{row.original.instructor?.userName ?? "(Unassigned)"}</div>
         }
     },
     {
-        accessorKey: 'Sĩ số',
-        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Sĩ số</div>,
+        accessorKey: 'Student Number',
+        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Student Number</div>,
         cell: ({ row }) => {
             return <div>{row.original.studentNumber} / {row.original.capacity}</div>
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+        accessorKey: 'Status',
+        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
             return <StatusBadge status={row.original.status} />
         }
     },
     {
-        accessorKey: 'Công bố',
-        header: () => <div className="flex flex-row gap-1 items-center">Công bố</div>,
+        accessorKey: 'Public',
+        header: () => <div className="flex flex-row gap-1 items-center">Public</div>,
         cell: ({ row }) => {
             return (
                 row.original.isPublic && (
@@ -125,7 +129,7 @@ export const classColums: ColumnDef<Class>[] = [
         cell: ({ row }) => {
             return (
                 <Button Icon={Eye} iconPlacement="left" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
-                    Chi tiết
+                    Detail
                 </Button>
                 // <DropdownMenu>
                 //     <DropdownMenuTrigger asChild>

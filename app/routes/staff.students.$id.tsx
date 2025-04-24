@@ -124,7 +124,7 @@ export default function StaffStudentDetailPage() {
               </Section>
 
               {/* Free Time */}
-              <Section title="⏰ Lịch rảnh">
+              <Section title="⏰ Free Time">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm text-gray-700 border rounded-lg overflow-hidden">
                     <thead className="bg-gray-100 font-semibold">
@@ -162,7 +162,7 @@ export default function StaffStudentDetailPage() {
               </Section>
 
               {/* Surveys */}
-              <Section title="📝 Khảo sát đã thực hiện">
+              <Section title="📝 Survey Answered">
                 {student.learnerSurveys.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {student.learnerSurveys.map((survey, index) => (
