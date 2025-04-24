@@ -104,7 +104,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
       action='/staff/classes'
       className='my-1 flex flex-col'>
       <div className='flex flex-wrap gap-2 justify-center'>
-        <Suspense fallback={<div>Đang tải level...</div>}>
+        <Suspense fallback={<div>Loading level...</div>}>
           <Await resolve={levelPromise}>
             {(levels) => (
               <Controller
@@ -114,7 +114,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
                   <MultiSelect options={levels.map((level) => ({ label: level.name.split('(')[0], value: level.id }))}
                     value={value}
                     defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
-                    placeholder='Chọn level'
+                    placeholder='Pick a level'
                     className='w-64'
                     onValueChange={onChange} />
                 )}
@@ -130,12 +130,12 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
             <MultiSelect options={CLASS_STATUS.map((status, index) => ({ label: status, value: index.toString() }))}
               value={value}
               defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
-              placeholder='Trạng thái'
+              placeholder='Status'
               className='w-64'
               onValueChange={onChange} />
           )}
         />
-        <Button Icon={Search} iconPlacement='left'>Tìm kiếm</Button>
+        <Button Icon={Search} iconPlacement='left'>Search</Button>
 
       </div>
     </Form>
@@ -151,15 +151,15 @@ export default function StaffClassesPage({ }: Props) {
   return (
     <div>
       <div className='px-8'>
-        <h3 className="text-lg font-medium">Danh sách lớp</h3>
+        <h3 className="text-lg font-medium">Manage Classes</h3>
         <p className="text-sm text-muted-foreground">
-          Quản lý danh sách lớp
+          Manage classes, student list, Schedule, etc.
         </p>
         <div className='flex flex-col mt-8 gap-4'>
           <SearchForm levelPromise={levelPromise} />
           <div className='flex gap-4 justify-center mt-2'>
-            <Button onClick={() => setIsOpenAddClassDialog(true)} variant={'outline'}><PlusCircle className='mr-4' /> Thêm lớp mới</Button>
-            <Button Icon={Shuffle} iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
+            <Button onClick={() => setIsOpenAddClassDialog(true)} variant={'outline'}><PlusCircle className='mr-4' /> Add new class</Button>
+            <Button Icon={Shuffle} iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto-arrange classes</Button>
           </div>
         </div>
         <Suspense fallback={<LoadingSkeleton />}>

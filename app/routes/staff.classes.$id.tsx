@@ -3,7 +3,7 @@ import { Select } from '@radix-ui/react-select';
 import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
-import React, { Suspense, useState } from 'react'
+import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
@@ -140,14 +140,16 @@ const getStatusStyle = (status: number) => {
 function LevelBadge({ level }: {
   level: Level
 }) {
-  return <div
-    className="uppercase w-full text-center my-1 p-2 rounded-lg font-semibold"
-    style={{
-      backgroundColor: `${level.themeColor}33`, // 20% opacity
-      color: level.themeColor
-    }}
-  >
-    {level.name}
+  return <div className='relative bg-white  w-full my-1 rounded-lg '>
+    <div
+      className="uppercase text-center p-2 rounded-lg font-semibold"
+      style={{
+        backgroundColor: `${level.themeColor}33`, // 20% opacity
+        color: level.themeColor
+      }}
+    >
+      {level.name}
+    </div>
   </div>
 }
 function StatusBadge({ status }: {
@@ -194,16 +196,16 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   });
 
   const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
-    title: 'Xác nhận sửa lớp học',
-    description: 'Bạn có chắc chắn muốn sửa lớp học này không?  Hành động này không thể hoàn tác!',
+    title: 'Confirm Updating',
+    description: 'Do you want to update this class? This action can not be rollbacked!',
     onConfirm: () => {
       handleSubmit();
     }
   })
 
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-    title: 'Xác nhận xóa lớp học',
-    description: 'Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác!',
+    title: 'Confirm Deleting',
+    description: 'Do you want to delete this class? This action can not be rollbacked!',
     onConfirm: () => {
       handleDelete();
     }
@@ -213,6 +215,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
     fetcher: updateFetcher,
     action: () => {
       setSearchParams([...searchParams])
+      setIsEdit(false)
     }
   })
   const { loadingDialog: loadingDeleteDialog } = useLoadingDialog({
@@ -233,12 +236,22 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
     })
   }
 
+  function DetailCard({ title, content, index }: { title: string, content: ReactNode, index: number }) {
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg border-neutral-200 shadow-md hover:shadow-lg transition-all duration-300 p-6"
+        style={{ transitionDelay: `${index * 100}ms` }}>
+        <span className="text-xl font-bold">{title}:</span>
+        {content}
+      </div>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Thông tin chung</CardTitle>
+        <CardTitle>General Inforamtion</CardTitle>
         <CardDescription>
-          Thông tin cơ bản của lớp
+          Basic information of the class
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -248,36 +261,36 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
             {
               isEdit ? (
                 <>
-                  <Button className='bg-green-500 hover:bg-green-300' type="submit"><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
-                  <Button className='bg-red-400 hover:bg-red-200' type="button" onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
+                  <Button className='bg-green-500 hover:bg-green-300' type="submit"><CheckIcon className='mr-4' /> Save Changes</Button>
+                  <Button className='bg-red-400 hover:bg-red-200' type="button" onClick={() => setIsEdit(false)}><XIcon className='mr-4' /> Discard</Button>
                 </>
               ) : (
-                <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"><Edit2Icon className='mr-4' /> Chỉnh sửa lớp</Button>
+                <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"><Edit2Icon className='mr-4' /> Edit Class</Button>
               )
             }
           </div>
           <div className="grid grid-cols-2 gap-4 text-sm text-gray-800">
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Tên lớp:</span>
-              {
-                isEdit ? (
-                  <div >
-                    <Controller
-                      control={control}
-                      name='name'
-                      defaultValue={classInfo.name}
-                      render={({ field: { onChange, onBlur, value, ref } }) => (
-                        <Input placeholder='Tên lớp' value={value} onChange={onChange} ref={ref} onBlur={onBlur} />
-                      )}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-gray-900">{classInfo.name}</p>
-                )
-              }
-            </div>
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Giáo viên:</span>
+            <DetailCard title='Class Name' index={0} content={
+              <>
+                {
+                  isEdit ? (
+                    <div >
+                      <Controller
+                        control={control}
+                        name='name'
+                        defaultValue={classInfo.name}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <Input placeholder='Tên lớp' value={value} onChange={onChange} ref={ref} onBlur={onBlur} />
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-gray-900">{classInfo.name}</p>
+                  )
+                }
+              </>
+            } />
+            <DetailCard title='Teacher' index={1} content={
               <p className="text-gray-900">
                 {
                   isEdit ? (
@@ -313,9 +326,9 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
                               value: item?.accountFirebaseId
                             })}
                             prechosenItem={classInfo.instructor}
-                            placeholder='Chọn giảng viên'
-                            emptyText='Không tìm thấy dữ liệu.'
-                            errorText='Lỗi khi tải danh sách giảng viên.'
+                            placeholder='Pick a Teacher'
+                            emptyText='No teacher available.'
+                            errorText='Error loading teacher list.'
                             value={value}
                             onChange={onChange}
                             maxItemsDisplay={10}
@@ -328,75 +341,72 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
                     classInfo.instructor ? (
                       <Link className="font-bold underline text-blue-400" to={`/staff/teachers/${classInfo.instructorId}`}>{(classInfo.instructor.fullName || classInfo.instructor.userName)}</Link>
                     ) : (
-                      <p className="text-gray-900">Chưa có</p>
+                      <p className="text-gray-900">Unassigned</p>
                     )
                   )
                 }
 
               </p>
-            </div>
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Tổng số buổi học:</span>
+            } />
+            <DetailCard title='Total Lessons' index={2} content={
               <p className="text-gray-900">{classInfo.slots.length} / {classInfo.requiredSlots}</p>
-            </div>
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Số học viên:</span>
+            } />
+            <DetailCard title='Student Number' index={3} content={
               <p className="text-gray-900">{classInfo.studentNumber} / {classInfo.capacity}</p>
-            </div>
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Cấp độ:</span>
-              {
-                isEdit ? (
-                  <div >
-                    <Controller
-                      control={control}
-                      name='level'
-                      defaultValue={classInfo.levelId}
-                      render={({ field: { onChange, onBlur, value, ref } }) => (
-                        <Select value={value} onValueChange={onChange} >
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Chọn level" />
-                          </SelectTrigger>
-                          <SelectGroup>
-                            <SelectContent>
-                              <Suspense fallback={<Loader2 className='animate-spin' />}>
-                                <Await resolve={levelPromise}>
-                                  {(levels) =>
-                                    levels.map(l => (
-                                      <SelectItem value={l.id} key={l.id}>{l.name.split('(')[0]}</SelectItem>
-                                    ))}
-                                </Await>
-                              </Suspense>
-                            </SelectContent>
-                          </SelectGroup>
-                        </Select>
-                      )}
-                    />
+            } />
+            <DetailCard title='Level' index={4} content={
+              <>
+                {
+                  isEdit ? (
+                    <div >
+                      <Controller
+                        control={control}
+                        name='level'
+                        defaultValue={classInfo.levelId}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                          <Select value={value} onValueChange={onChange} >
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Pick a level" />
+                            </SelectTrigger>
+                            <SelectGroup>
+                              <SelectContent>
+                                <Suspense fallback={<Loader2 className='animate-spin' />}>
+                                  <Await resolve={levelPromise}>
+                                    {(levels) =>
+                                      levels.map(l => (
+                                        <SelectItem value={l.id} key={l.id}>{l.name.split('(')[0]}</SelectItem>
+                                      ))}
+                                  </Await>
+                                </Suspense>
+                              </SelectContent>
+                            </SelectGroup>
+                          </Select>
+                        )}
+                      />
 
-                  </div>
-                ) : (
-                  <div className='flex justify-center'>
-                    <LevelBadge level={classInfo.level} />
-                  </div>
-                )
-              }
-
-            </div>
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <span className="font-medium text-gray-700">Trạng thái:</span>
+                    </div>
+                  ) : (
+                    <div className='flex justify-center'>
+                      <LevelBadge level={classInfo.level} />
+                    </div>
+                  )
+                }
+              </>
+            } />
+            <DetailCard title='Status' index={5} content={
               <div className='flex justify-center'>
                 <StatusBadge status={classInfo.status} />
               </div>
-            </div>
+            } />
           </div>
         </Form>
         <div className='mt-12'>
           {
             !classInfo.isPublic && (
               <div className='flex flex-col justify-center'>
-                <div className='font-bold text-xl text-center'>Vùng Nguy Hiểm</div>
+                <div className='font-bold text-xl text-center'>Dangerous Zone</div>
                 <div className='flex gap-2 justify-center mt-4'>
-                  <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>XÓA LỚP</Button>
+                  <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>DELETE CLASS</Button>
                 </div>
               </div>
             )
@@ -444,8 +454,8 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
   }
 
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-    title: 'Xác nhận xóa học viên',
-    description: 'Bạn có chắc chắn muốn xóa học viên này khỏi lớp không?',
+    title: 'Delete Learner',
+    description: 'Do you want to remove this learner out of class?',
     onConfirm: () => {
       handleDelete();
     }
@@ -470,9 +480,9 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Danh sách học viên</CardTitle>
+        <CardTitle>Learner List</CardTitle>
         <CardDescription>
-          Danh sách này hiển thị chủ yếu các thông tin liên lạc của học viên
+          This list show basic contact information of learners
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -481,15 +491,15 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
             <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
               <TriangleAlert size={100} />
               <div>
-                Lớp chưa đạt sĩ số học sinh như yêu cầu.<br></br>
-                Bạn cần thêm {minimum - classInfo.studentNumber} học viên nữa
+                This class hadn't meet the minimum class size.<br></br>
+                You need to add {minimum - classInfo.studentNumber} more learners
               </div>
             </div>
           )
         }
         <div className='flex flex-col lg:flex-row gap-2'>
           <Button variant={'outline'} disabled={(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => onOpenChange(true)}>
-            <PlusCircle className='mr-4' /> Thêm học viên mới
+            <PlusCircle className='mr-4' /> Add new learner
           </Button>
         </div>
         <DataTable data={classInfo.studentClasses} columns={columns}>
@@ -559,15 +569,15 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   });
 
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-    title: 'Xác nhận xóa lịch lớp học',
-    description: 'Bạn có chắc chắn muốn xóa lịch của lớp học này không? Hành động này không thể hoàn tác!',
+    title: 'Delete Class Schedule',
+    description: 'Do you want to remove this class schedule entirely? This action can not rollback!',
     onConfirm: () => {
       handleDelete();
     }
   })
   const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
-    title: 'Xác nhận cập nhật mô tả lịch lớp học?',
-    description: 'Bạn có chắc chắn muốn cập nhật mô tả lịch lớp học không?',
+    title: 'Confirm Updating Schedule Description',
+    description: 'Do you want to update this class schedule description?',
     onConfirm: () => {
       handleSubmit();
     }
@@ -601,9 +611,9 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Thời khóa biểu</CardTitle>
+        <CardTitle>Schedule</CardTitle>
         <CardDescription>
-          Quản lý lịch trình của lớp
+          Manage Class Schedule
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -612,8 +622,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
               <TriangleAlert size={100} />
               <div>
-                Lớp chưa đạt số buổi học như yêu cầu. Vui lòng thêm các buổi học để thỏa mãn quy định trung tâm.<br></br>
-                Bạn cần thêm {classInfo.requiredSlots - classInfo.totalSlots} nữa
+                This class hasn't met the minimum total slots required<br></br>
+                You need to add {classInfo.requiredSlots - classInfo.totalSlots} more slots
               </div>
             </div>
           )
@@ -622,28 +632,28 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         <div className='flex place-content-between gap-2'>
           <div className='flex flex-col lg:flex-row justify-end gap-2'>
             <Button variant={'outline'} disabled={(classInfo.requiredSlots <= classInfo.slots.length)} onClick={() => setIsOpenAddSlotDialog(true)}>
-              <PlusCircle className='mr-4' /> Thêm buổi học mới
+              <PlusCircle className='mr-4' /> Add new slot
             </Button>
-            <Button disabled={(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Xếp lịch tự động</Button>
+            <Button disabled={(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Auto-Schedule</Button>
             {
               classInfo.slots.length > 0 && (
-                <Button disabled={(classInfo.status !== 0 || classInfo.isPublic)} onClick={handleOpenDeleteModal} variant={'destructive'} Icon={Trash} iconPlacement='left'>Xóa lịch học</Button>
+                <Button disabled={(classInfo.status !== 0 || classInfo.isPublic)} onClick={handleOpenDeleteModal} variant={'destructive'} Icon={Trash} iconPlacement='left'>Delete Schedule</Button>
               )
             }
           </div>
-          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>Xem dạng lịch</Button>
+          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>View as calendar</Button>
         </div>
 
         <div className='text-center text-xl mt-4'>
-          Tổng số buổi học :
+          Total Slots :
           <span className='ml-2 font-bold'>{classInfo.slots.length} / {classInfo.requiredSlots}</span>
         </div>
         <Form onSubmit={handleOpenEditModal}>
           <div className='my-4 flex gap-2'>
-            <Input {...register("description")} placeholder="Nhập mô tả lịch học..."
+            <Input {...register("description")} placeholder="Enter schedule description..."
               className='flex-grow'
               defaultValue={classInfo.scheduleDescription} />
-            <Button>Cập nhật</Button>
+            <Button>Update</Button>
           </div>
         </Form>
 
@@ -653,13 +663,13 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
               <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
                 <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
                   <div className='flex gap-2 justify-center'>
-                    <Music2 /> Buổi {index + 1}
+                    <Music2 /> Slot {index + 1}
                   </div>
                 </div>
                 <div className='px-2 py-4 rounded-b-lg shadow-md'>
                   <div className='flex flex-col gap-2'>
-                    <div><span className='font-bold'>Ca : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
-                    <div><span className='font-bold'>Ngày : </span><span className='ml-2'>{s.date}</span></div>
+                    <div><span className='font-bold'>Shift : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
+                    <div><span className='font-bold'>Date : </span><span className='ml-2'>{s.date}</span></div>
                   </div>
                 </div>
               </div>
@@ -687,8 +697,8 @@ export default function StaffClassDetailPage({ }: Props) {
   const publishFetcher = useFetcher<ActionResult>();
 
   const { open: handleOpenPublishModal, dialog: confirmPublishDialog } = useConfirmationDialog({
-    title: 'Xác nhận công bố lớp học',
-    description: 'Bạn có chắc chắn muốn công bố lớp học này không? Hành động này không thể hoàn tác!',
+    title: 'Confirm Publish The Class',
+    description: 'Do you want to publish this class. After this, the class will no longer in draft state, all learners and teacher of this class will be annouced? This action can not go back!',
     onConfirm: () => {
       handlePublish();
     }
@@ -712,9 +722,9 @@ export default function StaffClassDetailPage({ }: Props) {
   }
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Thông tin chi tiết lớp</h3>
+      <h3 className="text-lg font-medium">Class Detail Information</h3>
       <p className="text-sm text-muted-foreground">
-        Quản lý thông tin về học sinh, thời khóa biểu và bảng điểm của lớp
+        Manage student information, class schedules and transcripts
       </p>
       <Suspense fallback={<LoadingSkeleton />}>
         <Await resolve={promise}>
@@ -727,10 +737,10 @@ export default function StaffClassDetailPage({ }: Props) {
                       <div className='flex gap-2 items-center'>
                         <TriangleAlert size={64} />
                         <div>
-                          Lớp chưa được công bố. Khi hoàn tất thiết lập, ấn vào nút công bố để học viên nhận được cập nhật.
+                          The class is not published yet. Once setup is complete, click the publish button so learners receive updates.
                         </div>
                       </div>
-                      <Button onClick={handleOpenPublishModal}>CÔNG BỐ LỚP</Button>
+                      <Button onClick={handleOpenPublishModal}>PUBLISH CLASS</Button>
                     </div>
                   )
                 }
@@ -742,25 +752,25 @@ export default function StaffClassDetailPage({ }: Props) {
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "general",
                     })}>
-                      Thông tin chung
+                      General Information
                     </TabsTrigger>
                     <TabsTrigger value="students" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "students",
                     })}>
-                      Danh sách học viên
+                      Learner List
                     </TabsTrigger>
                     <TabsTrigger value="scores" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "scores",
                     })}>
-                      Bảng điểm học viên
+                      Learner Transript
                     </TabsTrigger>
                     <TabsTrigger value="timeTable" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "timeTable",
                     })}>
-                      Thời khóa biểu
+                      Class Schedule
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
