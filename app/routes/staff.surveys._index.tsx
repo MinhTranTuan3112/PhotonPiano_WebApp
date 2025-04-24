@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Await, Form, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
 import { CirclePlus, RotateCcw, Search } from "lucide-react";
 import { Suspense } from "react";
 import { columns } from "~/components/survey/survey-table";
@@ -119,10 +119,10 @@ function SearchForm() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     return <Form method="GET" className="my-4 flex flex-row gap-3">
-        <Input placeholder="Tìm kiếm khảo sát..." name="q"
+        <Input placeholder="Search surveys here..." name="q"
             defaultValue={searchParams.get('q') || undefined} />
 
-        <Button type="submit" Icon={Search} iconPlacement="left">Tìm kiếm</Button>
+        <Button type="submit" Icon={Search} iconPlacement="left">Search</Button>
     </Form>
 }
 
@@ -134,9 +134,9 @@ export default function StaffSurveysPage({ }: Props) {
 
     return (
         <article className="px-10">
-            <h3 className="text-lg font-bold">Danh sách khảo sát</h3>
+            <h3 className="text-lg font-bold">Manage piano surveys</h3>
             <p className="text-sm text-muted-foreground">
-                Quản lý khảo sát của trung tâm
+                Manage surveys of the center
             </p>
 
             <SearchForm />
@@ -148,11 +148,11 @@ export default function StaffSurveysPage({ }: Props) {
                             <GenericDataTable
                                 columns={columns}
                                 metadata={metadata}
-                                emptyText="Không có khảo sát nào"
+                                emptyText="No surveys found."
                                 extraHeaderContent={
                                     <>
                                         <Button type="button" Icon={CirclePlus} iconPlacement="left"
-                                            onClick={() => navigate('/staff/surveys/create')}>Tạo khảo sát</Button>
+                                            onClick={() => navigate('/staff/surveys/create')}>Create new survey</Button>
                                     </>
                                 }
                             />
@@ -173,20 +173,20 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-8">
-            <h3 className="text-lg font-medium">Danh sách khảo sát</h3>
+            <h3 className="text-lg font-bold">Manage piano surveys</h3>
             <p className="text-sm text-muted-foreground">
-                Quản lý khảo sát của trung tâm
+                Manage surveys of the center
             </p>
 
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                         flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
         </article>

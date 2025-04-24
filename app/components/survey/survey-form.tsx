@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 
 export const surveySchema = z.object({
     id: z.string().optional(),
-    name: z.string().nonempty({ message: 'Tên khảo sát không được để trống' }),
+    name: z.string().nonempty({ message: 'Survey name is required' }),
     description: z.string().optional(),
     isEmptySurvey: z.boolean().optional(),
     isEntranceSurvey: z.boolean().optional(),
@@ -91,8 +91,8 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
     const questions = watch('questions');
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: isEditing ? 'Xác nhận cập nhật thông tin khảo sát' : 'Xác nhận tạo khảo sát',
-        description: isEditing ? 'Bạn có chắc chắn muốn cập nhật khảo sát này?' : 'Bạn có chắc chắn muốn tạo khảo sát này?',
+        title: isEditing ? 'Confirm updating survey information' : 'Confirm creating survey',
+        description: isEditing ? 'Update this survey?' : 'Create this survey?',
         onConfirm: handleSubmit
     });
 
@@ -127,7 +127,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
         <>
             <div className='flex items-center'>
                 <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>1</div>
-                <div className='p-4 font-bold'>Thông tin chung</div>
+                <div className='p-4 font-bold'>General information</div>
             </div>
 
             <Form method='POST' onSubmit={() => {
@@ -136,14 +136,14 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
             }} className='flex flex-col gap-3 my-4'>
 
                 <div className="max-w-[50%]">
-                    <Label className='font-bold' htmlFor='name'>Tên khảo sát</Label>
-                    <Input {...register('name')} id='name' type='text' placeholder='Nhập tên khảo sát...' />
+                    <Label className='font-bold' htmlFor='name'>Name</Label>
+                    <Input {...register('name')} id='name' type='text' placeholder='Enter survey name...' />
                     {errors.name && <p className='text-red-500 text-sm'>{errors.name.message}</p>}
                 </div>
 
                 <div className="max-w-[50%]">
-                    <Label className='font-bold' htmlFor='description'>Mô tả</Label>
-                    <Textarea {...register('description')} id='description' placeholder='Nhập mô tả khảo sát...' />
+                    <Label className='font-bold' htmlFor='description'>Description</Label>
+                    <Textarea {...register('description')} id='description' placeholder='Enter survey description...' />
                     {errors.description && <p className='text-red-500 text-sm'>{errors.description.message}</p>}
                 </div>
 
@@ -153,7 +153,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     render={({ field: { value, onChange } }) => (
                         <div className="flex items-center space-x-2 my-2">
                             <Switch id="hasAgeConstraint" checked={value} onCheckedChange={onChange} />
-                            <Label htmlFor="hasAgeConstraint" className='font-bold'>Giới hạn độ tuổi</Label>
+                            <Label htmlFor="hasAgeConstraint" className='font-bold'>Age constraint</Label>
                         </div>
                     )}
                 />
@@ -161,7 +161,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                 {watch('hasAgeConstraint') && (
                     <>
                         <div className="max-w-[50%] my-5 flex flex-col gap-10">
-                            <Label className='font-bold'>Độ tuổi khảo sát</Label>
+                            <Label className='font-bold'>Survey age constraint</Label>
                             <DualRangeSlider
                                 label={(value) => value}
                                 value={[watch('minAge') || 0, watch('maxAge') || 100]}
@@ -185,7 +185,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     render={({ field: { value, onChange } }) => (
                         <div className="flex items-center space-x-2 my-2">
                             <Switch id="isEmptySurvey" checked={value} onCheckedChange={onChange} />
-                            <Label htmlFor="isEmptySurvey" className='font-bold'>Khảo sát rỗng</Label>
+                            <Label htmlFor="isEmptySurvey" className='font-bold'>Is empty survey</Label>
                         </div>
                     )}
                 />
@@ -196,7 +196,9 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     render={({ field: { value, onChange } }) => (
                         <div className="flex items-center space-x-2 my-2">
                             <Switch id="isEntranceSurvey" checked={value} onCheckedChange={onChange} />
-                            <Label htmlFor="isEntranceSurvey" className='font-bold'>Là bài khảo sát đầu vào hiện tại</Label>
+                            <Label htmlFor="isEntranceSurvey" className='font-bold'>
+                                Is current entrance survey
+                            </Label>
                         </div>
                     )}
                 />}
@@ -205,7 +207,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     <>
                         <div className='flex items-center'>
                             <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>2</div>
-                            <div className='p-4 font-bold'>Câu hỏi</div>
+                            <div className='p-4 font-bold'>Questions</div>
                         </div>
 
                         <Separator className='w-full my-2' />
@@ -269,13 +271,13 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                             <div className="flex items-center justify-center size-10 rounded-lg border border-border bg-background mb-3">
                                 <Inbox className="w-6 h-6 text-foreground" />
                             </div>
-                            <p className="font-bold text-foreground">Chưa có câu hỏi nào.</p>
+                            <p className="font-bold text-foreground">No questions found.</p>
                         </div>}
 
                         <div className="flex flex-row gap-3 mt-7 items-center justify-center max-w-[50%]">
-                            <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog}>Tạo câu hỏi mới</Button>
+                            <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog}>Create new question</Button>
                             <Button type='button' variant={'outline'} Icon={List} iconPlacement='left'
-                                onClick={handleOpenQuestionsListDialog}>Thêm từ ngân hàng câu hỏi</Button>
+                                onClick={handleOpenQuestionsListDialog}>Add from question bank</Button>
                         </div>
 
                         <Separator className='w-full my-2' />
@@ -284,7 +286,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
 
                 <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                     className='max-w-[30%] mt-4' onClick={handleOpenConfirmDialog}>
-                    {isEditing ? 'Cập nhật' : 'Tạo khảo sát'}
+                    {isEditing ? 'Update' : 'Create'}
                 </Button>
             </Form>
 
@@ -387,7 +389,9 @@ function QuestionCard({
     // Add new option
     const handleAddOption = useCallback(() => {
         if (!newOption || newOption.trim() === "") {
-            toast.warning("Nội dung lựa chọn không được để trống!")
+            toast.warning("Option can't be empty!", {
+                duration: 5000
+            })
             return
         }
 
@@ -431,13 +435,15 @@ function QuestionCard({
                         <div className="font-bold my-3 flex flex-row items-center gap-1 w-full">
                             <div className="">{index + 1}. </div>
                             <Input
-                                placeholder="Nhập câu hỏi"
+                                placeholder="Enter question"
                                 value={question.questionContent}
                                 onChange={(e) => {
                                     const newContent = e.target.value
 
                                     if (!newContent || newContent.trim() === "") {
-                                        toast.warning("Nội dung câu hỏi không được để trống!")
+                                        toast.warning("Question content cannot be empty!", {
+                                            duration: 5000
+                                        })
                                         return
                                     }
 
@@ -459,7 +465,7 @@ function QuestionCard({
                         {question.options?.map((option, optionIndex) => (
                             <div className="flex flex-row gap-2 items-center" key={`option_${optionIndex}`}>
                                 <Input
-                                    placeholder="Nhập lựa chọn..."
+                                    placeholder="Enter option..."
                                     value={localOptions[optionIndex] !== undefined ? localOptions[optionIndex] : option}
                                     onChange={(e) => handleOptionChange(e.target.value, optionIndex)}
                                     onBlur={() => syncOption(optionIndex)}
@@ -474,7 +480,7 @@ function QuestionCard({
 
                     <div className="flex flex-row gap-2 items-center justify-center my-2">
                         <Input
-                            placeholder="Nhập lựa chọn mới..."
+                            placeholder="Enter new options..."
                             value={newOption}
                             onChange={(e) => setNewOption(e.target.value)}
                             onKeyDown={handleKeyPress}
@@ -491,7 +497,7 @@ function QuestionCard({
                             onCheckedChange={handleRequiredChange}
                             className="data-[state=checked]:bg-red-600"
                         />
-                        <Label className="font-bold">Bắt buộc</Label>
+                        <Label className="font-bold">Required</Label>
                     </div>
 
                     <div className="flex flex-row gap-1 my-3 items-center">
@@ -500,7 +506,7 @@ function QuestionCard({
                             onCheckedChange={handleAllowOtherOptionsChange}
                             className=""
                         />
-                        <Label className="font-bold">Cho phép câu trả lời khác</Label>
+                        <Label className="font-bold">Allow other answers</Label>
                     </div>
                 </div>
             </div>
