@@ -73,10 +73,10 @@ export default function CertificateCard({ certificate, onClick }: CertificateCar
                         <Calendar className="mr-2 h-4 w-4 text-primary" />
                         <span>Hoàn thành ngày {formatDate(certificate.completionDate)}</span>
                     </div>
-                    <div className="flex items-center text-sm">
+                    {/* <div className="flex items-center text-sm">
                         <FileText className="mr-2 h-4 w-4 text-primary" />
                         <span>Mã chứng chỉ #{certificate.studentClassId.substring(0, 8)}</span>
-                    </div>
+                    </div> */}
                 </div>
             </CardContent>
 

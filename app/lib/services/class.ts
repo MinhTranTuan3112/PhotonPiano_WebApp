@@ -456,3 +456,20 @@ export async function publishStudentClassScore({
 
   return response;
 }
+
+
+export async function fetchStudentScoreDetails({studentClassId, idToken}: {
+  studentClassId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.get(
+    `student-class/${studentClassId}/detailed-scores`,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}

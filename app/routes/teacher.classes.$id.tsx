@@ -131,7 +131,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 }
 
 export default function TeacherClassDetailsPage() {
-    const classDetailsData = useLoaderData<typeof loader>()
+    const classDetailsData = useLoaderData<typeof loader>();
+    console.log(classDetailsData);
     const [searchTerm, setSearchTerm] = React.useState("")
     const [activeSection, setActiveSection] = React.useState("overview")
     const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
@@ -287,6 +288,45 @@ export default function TeacherClassDetailsPage() {
         cancelText: "Hủy",
         confirmButtonClassname: "bg-green-600 hover:bg-green-700 text-white",
     })
+
+    const handleScoresUpdated = React.useCallback(
+        (updatedStudents: any) => {
+            // Update the class scores with the new data
+            if (classScores) {
+                setClassScores({
+                    ...classScores,
+                    students: updatedStudents,
+                })
+            }
+
+            // Force a refresh of the student class data
+            if (classDetailsData.idToken) {
+                // Refresh the data by fetching class details again
+                fetchClassDetails({
+                    id: classDetailsData.id,
+                    idToken: classDetailsData.idToken,
+                })
+                    .then((response) => {
+                        // Update the class details data
+                        Object.assign(classDetailsData, response.data)
+
+                        // Refresh the scores data
+                        return fetchStudentClassScores({
+                            classId: classDetailsData.id,
+                            idToken: classDetailsData.idToken,
+                        })
+                    })
+                    .then((scoresResponse) => {
+                        setClassScores(scoresResponse.data)
+                    })
+                    .catch((error) => {
+                        console.error("Error refreshing data after score update:", error)
+                    })
+            }
+        },
+        [classDetailsData, classScores],
+    )
+
 
     return (
         <div className="bg-[#f8fafc] dark:bg-gray-950 min-h-screen">
@@ -831,7 +871,7 @@ export default function TeacherClassDetailsPage() {
                                             Loading...
                                         </Button>
                                     ) : classScores ? (
-                                        <ScoreDetailsDialog isClassView={true} classData={classScores} idToken={classDetailsData.idToken} />
+                                        <ScoreDetailsDialog isClassView={true} classData={classScores} idToken={classDetailsData.idToken} onScoresUpdated={handleScoresUpdated} />
                                     ) : (
                                         <Button variant="outline" size="sm" disabled className="gap-1">
                                             <Eye className="h-4 w-4" />

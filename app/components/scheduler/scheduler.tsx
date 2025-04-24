@@ -168,15 +168,15 @@ export const Scheduler = ({
 
 
     useEffect(() => {
-        console.log("isLoading updated:", isLoading);
+        // console.log("isLoading updated:", isLoading);
     }, [isLoading]);
 
     useEffect(() => {
-        console.log("selectedBlankSlot updated:", selectedBlankSlot);
+        // console.log("selectedBlankSlot updated:", selectedBlankSlot);
     }, [selectedBlankSlot]);
 
     useEffect(() => {
-        console.log("selectedSlotToCancel updated:", selectedSlotToCancel);
+        // console.log("selectedSlotToCancel updated:", selectedSlotToCancel);
     }, [selectedSlotToCancel]);
 
     useEffect(() => {
@@ -248,7 +248,6 @@ export const Scheduler = ({
                         (student: SlotStudentModel) => {
                             const studentId = student.studentFirebaseId?.toLowerCase();
                             const accountId = currentAccount.accountFirebaseId?.toLowerCase();
-                            console.log("Comparing IDs for slot", slot.id, ":", { studentId, accountId });
                             if (!studentId || !accountId) {
                                 console.warn(`Missing IDs for slot ${slot.id}:`, { studentId, accountId });
                                 return false;
@@ -261,7 +260,7 @@ export const Scheduler = ({
                         return { ...slot, attendanceStatus: 0 };
                     }
                     const attendanceStatus = Number(studentRecord.attendanceStatus) || 0;
-                    console.log(`Attendance status for slot ${slot.id}:`, { slotStudents: slot.slotStudents, studentRecord, attendanceStatus });
+                    // console.log(`Attendance status for slot ${slot.id}:`, { slotStudents: slot.slotStudents, studentRecord, attendanceStatus });
                     return { ...slot, attendanceStatus };
                 });
             }
@@ -382,11 +381,11 @@ export const Scheduler = ({
 
     const handleReplaceThenCancel = async () => {
         if (!selectedSlotToCancel || !cancelReason.trim() || !selectedBlankSlot) {
-            console.log("Validation failed: Missing required fields", {
-                selectedSlotToCancel,
-                cancelReason,
-                selectedBlankSlot,
-            });
+            // console.log("Validation failed: Missing required fields", {
+            //     selectedSlotToCancel,
+            //     cancelReason,
+            //     selectedBlankSlot,
+            // });
             return;
         }
 
@@ -405,12 +404,12 @@ export const Scheduler = ({
                 return;
             }
 
-            console.log("Calling fetchPublicNewSlot with:", {
-                roomId,
-                date: selectedBlankSlot.date,
-                shift: selectedBlankSlot.shift,
-                classId,
-            });
+            // console.log("Calling fetchPublicNewSlot with:", {
+            //     roomId,
+            //     date: selectedBlankSlot.date,
+            //     shift: selectedBlankSlot.shift,
+            //     classId,
+            // });
             const response = await fetchPublicNewSlot(
                 roomId,
                 selectedBlankSlot.date,
@@ -422,10 +421,10 @@ export const Scheduler = ({
   
 
             // Step 2: Cancel the original slot only if replacement succeeds
-            console.log("Calling fetchCancelSlot with:", {
-                slotId: selectedSlotToCancel.id,
-                cancelReason,
-            });
+            // console.log("Calling fetchCancelSlot with:", {
+            //     slotId: selectedSlotToCancel.id,
+            //     cancelReason,
+            // });
             await fetchCancelSlot(selectedSlotToCancel.id, cancelReason, idToken);
      
 
@@ -451,7 +450,7 @@ export const Scheduler = ({
         } catch (error) {
             console.error("Error in replace-then-cancel process:", error);
         } finally {
-            console.log("Resetting isLoading to false");
+            // console.log("Resetting isLoading to false");
             setIsLoading(false);
         }
     };
