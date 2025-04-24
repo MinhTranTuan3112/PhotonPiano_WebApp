@@ -301,30 +301,31 @@ function ArticlesContent({
             ))}
         </div>
 
-
-    </> : <>
-        <Card className="mx-auto max-w-2xl border-dashed">
-            <CardHeader className="flex flex-col items-center gap-2 pt-8">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-                    <Newspaper className="h-10 w-10 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-2xl">No news articles yet</CardTitle>
-                <CardDescription className="text-center">
-                    There are no news articles to display at the moment. Check back later or subscribe to get notified.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center pb-6">
-                <div className="mt-4 grid w-full max-w-sm gap-2">
-                    <Button>Subscribe to updates</Button>
-                    <Button variant="outline">Browse categories</Button>
-                </div>
-            </CardContent>
-            <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                <p className="text-xs text-muted-foreground">News content is updated daily.</p>
-            </CardFooter>
-        </Card>
-    </>
+    </> : <EmptyNewsContent />
 };
+
+export function EmptyNewsContent() {
+    return <Card className="mx-auto max-w-2xl border-dashed">
+        <CardHeader className="flex flex-col items-center gap-2 pt-8">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                <Newspaper className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-2xl">No news articles yet</CardTitle>
+            <CardDescription className="text-center">
+                There are no news articles to display at the moment. Check back later or subscribe to get notified.
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center pb-6">
+            <div className="mt-4 grid w-full max-w-sm gap-2">
+                <Button>Subscribe to updates</Button>
+                <Button variant="outline">Browse categories</Button>
+            </div>
+        </CardContent>
+        <CardFooter className="border-t bg-muted/50 px-6 py-3">
+            <p className="text-xs text-muted-foreground">News content is updated daily.</p>
+        </CardFooter>
+    </Card>
+}
 
 function LoadingSkeleton() {
     return <div className="flex justify-center items-center my-4">

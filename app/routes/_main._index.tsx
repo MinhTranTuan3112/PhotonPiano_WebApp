@@ -2,7 +2,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import ActionDialog from "~/components/home/action-dialog";
 import Carousel from "~/components/home/carousel";
-
+import { NewsSection } from "~/components/home/news";
 import { RegistrationSection } from "~/components/home/registration-section";
 import { FeatureSection } from "~/components/home/what-we-do";
 import { useAuth } from "~/lib/contexts/auth-context";
@@ -63,7 +63,7 @@ export default function Index() {
 
         <FeatureSection />
         {/* <PianoPromo /> */}
-        {/* <NewsSection /> */}
+        <NewsSection />
         <RegistrationSection />
       </article>
       {

@@ -155,7 +155,7 @@ function ArticleDetailsContent({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật bài viết thành công!');
+            toast.success('Update success!');
             setIsEditing(false);
             return;
         }
