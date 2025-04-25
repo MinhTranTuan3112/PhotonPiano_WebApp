@@ -335,10 +335,10 @@ const AttendancePage = () => {
     const getDataIndicators = (student: ExtendedSlotStudentModel) => {
         const indicators = []
         if (student.gestureUrls.length > 0) indicators.push(`${student.gestureUrls.length} Hình ảnh`)
-        if (student.gestureComment) indicators.push("Ghi chú tư thế")
-        if (student.fingerNoteComment) indicators.push("Ghi chú ngón tay")
-        if (student.pedalComment) indicators.push("Ghi chú pedal")
-        if (student.attendanceComment) indicators.push("Ghi chú điểm danh")
+        if (student.gestureComment) indicators.push("Posture note")
+        if (student.fingerNoteComment) indicators.push("Finger note")
+        if (student.pedalComment) indicators.push("Pedal note")
+        if (student.attendanceComment) indicators.push("Attendance note")
         return indicators
     }
 
