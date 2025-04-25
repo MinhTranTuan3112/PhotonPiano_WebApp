@@ -195,7 +195,7 @@ export function ScoreDetailsDialog({
                                 variant={editMode ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setEditMode(!editMode)}
-                                disabled={isSaving}
+                                disabled={isSaving || (classData && classData.isScorePublished)}
                             >
                                 {editMode ? (
                                     <>
@@ -210,6 +210,11 @@ export function ScoreDetailsDialog({
                                 )}
                             </Button>
                         </div>
+                        {classData && classData.isScorePublished && !editMode && (
+                            <div className="text-xs text-muted-foreground mt-2">
+                                Scores cannot be edited after they have been published.
+                            </div>
+                        )}
                     </DialogHeader>
 
                     <div className="mt-4 space-y-6">
@@ -234,10 +239,10 @@ export function ScoreDetailsDialog({
                                     <span className="font-medium">Average GPA</span>
                                     <span
                                         className={`font-medium ml-4 px-2 py-0.5 rounded-md ${classStats.averageGPA >= 7
-                                                ? "bg-green-100 text-green-800"
-                                                : classStats.averageGPA >= 5
-                                                    ? "bg-amber-100 text-amber-800"
-                                                    : "bg-red-100 text-red-800"
+                                            ? "bg-green-100 text-green-800"
+                                            : classStats.averageGPA >= 5
+                                                ? "bg-amber-100 text-amber-800"
+                                                : "bg-red-100 text-red-800"
                                             }`}
                                     >
                                         {classStats.averageGPA?.toFixed(1)}
@@ -311,10 +316,10 @@ export function ScoreDetailsDialog({
                                                             <TableCell className="text-center">
                                                                 <span
                                                                     className={`px-2 py-0.5 rounded-md ${student.gpa >= 7
-                                                                            ? "bg-green-100 text-green-800"
-                                                                            : student.gpa >= 5
-                                                                                ? "bg-amber-100 text-amber-800"
-                                                                                : "bg-red-100 text-red-800"
+                                                                        ? "bg-green-100 text-green-800"
+                                                                        : student.gpa >= 5
+                                                                            ? "bg-amber-100 text-amber-800"
+                                                                            : "bg-red-100 text-red-800"
                                                                         }`}
                                                                 >
                                                                     {student.gpa?.toFixed(1)}
@@ -354,10 +359,10 @@ export function ScoreDetailsDialog({
                                                                         ) : criteriaScore ? (
                                                                             <span
                                                                                 className={`px-2 py-0.5 rounded-md ${displayScore >= 7
-                                                                                        ? "bg-green-100 text-green-800"
-                                                                                        : displayScore >= 5
-                                                                                            ? "bg-amber-100 text-amber-800"
-                                                                                            : "bg-red-100 text-red-800"
+                                                                                    ? "bg-green-100 text-green-800"
+                                                                                    : displayScore >= 5
+                                                                                        ? "bg-amber-100 text-amber-800"
+                                                                                        : "bg-red-100 text-red-800"
                                                                                     }`}
                                                                             >
                                                                                 {displayScore?.toFixed(1)}
@@ -413,10 +418,10 @@ export function ScoreDetailsDialog({
                                                             <span>{criteria.criteriaName}</span>
                                                             <span
                                                                 className={`px-2 py-0.5 rounded-md ${criteria.score >= 7
-                                                                        ? "bg-green-100 text-green-800"
-                                                                        : criteria.score >= 5
-                                                                            ? "bg-amber-100 text-amber-800"
-                                                                            : "bg-red-100 text-red-800"
+                                                                    ? "bg-green-100 text-green-800"
+                                                                    : criteria.score >= 5
+                                                                        ? "bg-amber-100 text-amber-800"
+                                                                        : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
                                                                 {criteria.score?.toFixed(1)}
@@ -484,10 +489,10 @@ export function ScoreDetailsDialog({
                                 <span className="font-medium">Overall GPA</span>
                                 <span
                                     className={`font-bold text-lg px-2 py-0.5 rounded-md ${gpa >= 7
-                                            ? "bg-green-100 text-green-800"
-                                            : gpa >= 5
-                                                ? "bg-amber-100 text-amber-800"
-                                                : "bg-red-100 text-red-800"
+                                        ? "bg-green-100 text-green-800"
+                                        : gpa >= 5
+                                            ? "bg-amber-100 text-amber-800"
+                                            : "bg-red-100 text-red-800"
                                         }`}
                                 >
                                     {gpa?.toFixed(1)}
@@ -572,10 +577,10 @@ export function ScoreDetailsDialog({
                                                 <TableCell className="text-center">
                                                     <span
                                                         className={`px-2 py-0.5 rounded-md ${criteria.score >= 7
-                                                                ? "bg-green-100 text-green-800"
-                                                                : criteria.score >= 5
-                                                                    ? "bg-amber-100 text-amber-800"
-                                                                    : "bg-red-100 text-red-800"
+                                                            ? "bg-green-100 text-green-800"
+                                                            : criteria.score >= 5
+                                                                ? "bg-amber-100 text-amber-800"
+                                                                : "bg-red-100 text-red-800"
                                                             }`}
                                                     >
                                                         {criteria.score?.toFixed(1)}
@@ -611,10 +616,10 @@ export function ScoreDetailsDialog({
                                             </span>
                                             <span
                                                 className={`${criteria.score >= 7
-                                                        ? "text-green-600"
-                                                        : criteria.score >= 5
-                                                            ? "text-amber-600"
-                                                            : "text-red-600"
+                                                    ? "text-green-600"
+                                                    : criteria.score >= 5
+                                                        ? "text-amber-600"
+                                                        : "text-red-600"
                                                     }`}
                                             >
                                                 {criteria.score?.toFixed(1)}/10

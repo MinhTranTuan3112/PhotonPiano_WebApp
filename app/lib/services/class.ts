@@ -457,13 +457,37 @@ export async function publishStudentClassScore({
   return response;
 }
 
-
-export async function fetchStudentScoreDetails({studentClassId, idToken}: {
+export async function fetchStudentScoreDetails({
+  studentClassId,
+  idToken,
+}: {
   studentClassId: string;
   idToken: string;
 }) {
   const response = await axiosInstance.get(
     `student-class/${studentClassId}/detailed-scores`,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export async function fetchUpdateLearningStatus({
+  idToken,
+  continueLearning,
+}: {
+  idToken: string;
+  continueLearning: boolean;
+}) {
+  const response = await axiosInstance.put(
+    `/accounts/continuation-status`,
+    {
+      wantToContinue: continueLearning,
+    },
     {
       headers: {
         Authorization: `Bearer ${idToken}`,
