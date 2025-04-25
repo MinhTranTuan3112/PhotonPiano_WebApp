@@ -71,5 +71,4 @@ export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) 
     });
 
     return response;
-
 }

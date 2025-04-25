@@ -1,6 +1,6 @@
 import { Await, useFetcher, useRouteLoaderData } from "@remix-run/react";
 import { BellRing, Loader2, Sheet, TriangleAlert } from "lucide-react";
-import { Suspense, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
