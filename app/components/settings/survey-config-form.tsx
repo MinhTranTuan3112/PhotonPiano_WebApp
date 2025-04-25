@@ -13,11 +13,11 @@ import { fetchSurveys } from '~/lib/services/survey';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 
 export const surveyConfigSchema = z.object({
-    instrumentName: z.string().nonempty({ message: 'Tên nhạc cụ không được để trống' }),
-    instrumentFrequencyInResponse: z.coerce.number().min(1, { message: 'Tần suất xuất hiện của tên nhạc cụ phải lớn hơn 0' }),
-    entranceSurveyId: z.string({ message: 'Vui lòng chọn bài khảo sát đầu vào' }).nonempty({ message: 'Vui lòng chọn bài khảo sát đầu vào' }),
-    maxQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Số lượng câu hỏi tối đa phải lớn hơn 0' }),
-    minQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Số lượng câu hỏi tối thiểu phải lớn hơn 0' }),
+    instrumentName: z.string().nonempty({ message: 'Instrument name is required' }),
+    instrumentFrequencyInResponse: z.coerce.number().min(0, { message: 'Instrument name frequency must >= 0' }),
+    entranceSurveyId: z.string({ message: 'Please choose an entrance survey' }).nonempty({ message: 'Please choose an entrance survey' }),
+    maxQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Max number of questions must > 0' }),
+    minQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Min number of questions must > 0' }),
 });
 
 export type SurveyConfigFormData = z.infer<typeof surveyConfigSchema>;
@@ -51,37 +51,37 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Lưu cấu hình',
-        description: 'Bạn có chắc chắn muốn lưu cấu hình này không?',
+        title: 'Confirm action',
+        description: 'Save this config?',
         onConfirm: handleSubmit,
     });
 
     return (
         <>
-            <h2 className="text-base font-bold">Cấu hình thi khảo sát</h2>
-            <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến khảo sát</p>
+            <h2 className="text-base font-bold">Survey config</h2>
+            <p className='text-sm text-muted-foreground'>Manage system config related to survey</p>
 
             <Form method='POST' className='my-4 flex flex-col gap-5'>
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Tên nhạc cụ:</Label>
+                    <Label className='w-[25%] flex items-center'>Instrument name:</Label>
                     <Input {...register('instrumentName')}
-                        placeholder='Nhập tên nhạc cụ...'
+                        placeholder='Enter instrument name...'
                         className='max-w-[70%]' />
                 </div>
                 {errors.instrumentName && <p className='text-red-500 text-sm'>{errors.instrumentName.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Số lần xuất hiện tên nhạc cụ trong 1 câu trả lời/lựa chọn:</Label>
+                    <Label className='w-[25%] flex items-center'>Instrument name frequency:</Label>
                     <Input {...register('instrumentFrequencyInResponse')}
                         type='number'
-                        placeholder='Nhập số lần xuất hiện tên nhạc cụ trong 1 câu trả lời/lựa chọn...'
+                        placeholder='Instrument name frequency...'
                         className='max-w-[50%]' />
                 </div>
-                {errors.instrumentName && <p className='text-red-500 text-sm'>{errors.instrumentName.message}</p>}
+                {errors.instrumentFrequencyInResponse && <p className='text-red-500 text-sm'>{errors.instrumentFrequencyInResponse.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[20%] flex items-center'>Bài khảo sát đầu vào:</Label>
+                    <Label className='w-[20%] flex items-center'>Entrane survey:</Label>
                     <Controller
                         name='entranceSurveyId'
                         control={control}
@@ -110,9 +110,9 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
                                     label: item?.name,
                                     value: item?.id
                                 })}
-                                placeholder='Chọn bài khảo sát đầu vào...'
-                                emptyText='Không tìm bài khảo sát nào.'
-                                errorText='Lỗi khi tải danh sách khảo sát.'
+                                placeholder='Choose entrance survey...'
+                                emptyText='No surveys found.'
+                                errorText='Error loading surveys.'
                                 value={value}
                                 onChange={onChange}
                                 maxItemsDisplay={10}
@@ -124,18 +124,18 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
                 {errors.entranceSurveyId && <p className='text-red-500 text-sm'>{errors.entranceSurveyId.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%] flex items-center'>Số câu hỏi tối thiểu trong 1 bài khảo sát:</Label>
+                    <Label className='w-[25%] flex items-center'>Min number of questions in survey:</Label>
                     <Input {...register('minQuestionsPerSurvey')}
-                        placeholder='Nhập số lượng câu hỏi tối thiểu trong 1 bài khảo sát...'
+                        placeholder='Enter min number of questions in survey...'
                         type='number'
                         className='max-w-[20%]' />
                 </div>
                 {errors.minQuestionsPerSurvey && <p className='text-red-500 text-sm'>{errors.minQuestionsPerSurvey.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[25%]'>Số câu hỏi tối đa trong 1 bài khảo sát:</Label>
+                    <Label className='w-[25%]'>Max number of questions in survey:</Label>
                     <Input {...register('maxQuestionsPerSurvey')}
-                        placeholder='Nhập số lượng câu hỏi tối đa trong 1 bài khảo sát...'
+                        placeholder='Enter max number of questions in survey:...'
                         type='number'
                         className='max-w-[20%]' />
                 </div>
@@ -145,7 +145,7 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
                 <div className="my-2">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                         onClick={handleOpenConfirmDialog}>
-                        {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                        {isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
                 </div>
 
