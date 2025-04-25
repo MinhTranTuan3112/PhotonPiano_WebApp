@@ -72,38 +72,40 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => {
-    const now = new Date(); // Current time
-    const slot = new Date(slotDate); // Slot date (e.g. 2025-04-21T00:00:00)
-
-    // Nếu slot ở tương lai thì không được phép điểm danh
-    if (slot > now) {
-        return true;
-    }
-
-    // Nếu slot không phải hôm nay thì cũng không cho phép điểm danh
-    if (
-        now.getFullYear() !== slot.getFullYear() ||
-        now.getMonth() !== slot.getMonth() ||
-        now.getDate() !== slot.getDate()
-    ) {
-        return true;
-    }
-
-    // Nếu là hôm nay, kiểm tra deadline
-    let additionalHours = 0;
-    if (deadlineValue) {
-        try {
-            additionalHours = parseFloat(deadlineValue) || 0;
-        } catch (error) {
-            console.warn("Error parsing deadline value:", error);
-        }
-    }
-
-    const slotWithDeadline = new Date(slot);
-    slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
-
-    // Nếu đã quá thời gian cho phép điểm danh
-    return now > slotWithDeadline;
+    // const now = new Date(); // Current time
+    // const slot = new Date(slotDate); // Slot date (e.g. 2025-04-21T00:00:00)
+    //
+    // // Nếu slot ở tương lai thì không được phép điểm danh
+    // if (slot > now) {
+    //     return true;
+    // }
+    //
+    // // Nếu slot không phải hôm nay thì cũng không cho phép điểm danh
+    // if (
+    //     now.getFullYear() !== slot.getFullYear() ||
+    //     now.getMonth() !== slot.getMonth() ||
+    //     now.getDate() !== slot.getDate()
+    // ) {
+    //     return true;
+    // }
+    //
+    // // Nếu là hôm nay, kiểm tra deadline
+    // let additionalHours = 0;
+    // if (deadlineValue) {
+    //     try {
+    //         additionalHours = parseFloat(deadlineValue) || 0;
+    //     } catch (error) {
+    //         console.warn("Error parsing deadline value:", error);
+    //     }
+    // }
+    //
+    // const slotWithDeadline = new Date(slot);
+    // slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
+    //
+    // // Nếu đã quá thời gian cho phép điểm danh
+    // return now > slotWithDeadline;
+    
+    return false;
 };
 
 export default function TeacherAttendance_index() {
