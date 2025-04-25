@@ -80,14 +80,14 @@ function ArticleDetailsContent() {
             <BreadcrumbList>
                 <BreadcrumbItem>
                     <Home className='size-4' />
-                    <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+                    <BreadcrumbLink href="/">Home</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator>
                     <Slash />
                 </BreadcrumbSeparator>
                 <BreadcrumbItem>
                     <Newspaper className='size-4'/>
-                    <BreadcrumbLink href="/news">Tin tức</BreadcrumbLink>
+                    <BreadcrumbLink href="/news">News</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator>
                     <Slash />

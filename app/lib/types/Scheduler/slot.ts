@@ -9,10 +9,10 @@ export enum SlotStatus
 }
 
 export const SlotStatusText = {
-    [SlotStatus.NotStarted] : "Chưa Bắt Đầu",
-    [SlotStatus.Ongoing] : "Đang Diễn Ra",
-    [SlotStatus.Finished] : "Đã Kết Thúc",
-    [SlotStatus.Cancelled] : "Đã Hủy"
+    [SlotStatus.NotStarted] : "Not Started",
+    [SlotStatus.Ongoing] : "On Going",
+    [SlotStatus.Finished] : "Finished",
+    [SlotStatus.Cancelled] : "Cancelled"
 }
 
 export enum AttendanceStatus {
@@ -33,9 +33,9 @@ export enum Shift {
 }
 
 export const AttendanceStatusText = {
-    [AttendanceStatus.NotYet]: "Chưa điểm danh",
-    [AttendanceStatus.Attended]: "Có mặt",
-    [AttendanceStatus.Absent]: "Vắng mặt"
+    [AttendanceStatus.NotYet]: "Not yet checked",
+    [AttendanceStatus.Attended]: "Attended",
+    [AttendanceStatus.Absent]: "Absent"
 };
 
 export type Slot = {
@@ -102,6 +102,8 @@ export type SlotDetail = {
     attendanceStatus?: AttendanceStatus;
     teacherId?: string;
     teacher: TeacherModel;
+    slotNo: number;
+    slotTotal: number;
 }
 
 export type TeacherModel = {

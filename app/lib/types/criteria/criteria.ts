@@ -6,7 +6,7 @@ export type Criteria = {
   for: CriteriaFor;
 };
 
-export type MinimalCriteria = Pick<Criteria, "id" | "name" | "weight">;
+export type MinimalCriteria = Pick<Criteria, "id" | "name" | "weight" | 'description'>;
 
 export enum CriteriaFor {
   EntranceTest,

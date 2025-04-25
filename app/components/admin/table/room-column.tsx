@@ -16,7 +16,7 @@ const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-green-500 font-semibold";
         case 1: return "text-gray-400 font-semibold";
-        default: return "text-black font-semibold";
+        default: return "text-black font-semibold"; 
     }
 };
 
@@ -58,28 +58,28 @@ export const roomColumns: ColumnDef<Room>[] = [
     //     }
     // },
     {
-        accessorKey: "Tên phòng",
-        header: "Tên phòng",
+        accessorKey: "Room Name",
+        header: "Room Name",
         cell: ({ row }) => {
             return <div>{row.original.name}</div>
         }
     },
     {
-        accessorKey: "Bắt đầu",
-        header: () => <div className="flex flex-row gap-1 items-center">Sức chứa</div>,
+        accessorKey: "Capacity",
+        header: () => <div className="flex flex-row gap-1 items-center">Capacity</div>,
         cell: ({ row }) => {
             return <div>{row.original.capacity}</div>
         }
     },
     {
-        accessorKey: 'Kết thúc',
-        header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+        accessorKey: 'Status',
+        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
             return <div><StatusBadge status={row.original.status}/></div>
         }
     },
     {
-        id: "Thao tác",
+        id: "Action",
         cell: ({ row }) => {
             return (
                 <ActionsDropdown row={row} />

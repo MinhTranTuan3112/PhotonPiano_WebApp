@@ -64,9 +64,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         })
         let tuition: Tuition[] = response.data
 
-        if (!paymentStatuses.length) { // Chỉ áp dụng khi không có filter cụ thể
-            tuition = tuition.filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
-        }
+        // if (!paymentStatuses.length) { // Chỉ áp dụng khi không có filter cụ thể
+        //     tuition = tuition.filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
+        // }
+        
+        tuition = tuition.sort( (a, b) =>  a.paymentStatus - b.paymentStatus  )
 
         return { tuition, idToken, role };
 
@@ -138,7 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function TuitionPage() {
-    const { tuition, idToken, role } = useLoaderData<typeof loader>()
+    const { tuition, role } = useLoaderData<typeof loader>()
     const [searchParams, setSearchParams] = useSearchParams()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -357,124 +359,112 @@ export default function TuitionPage() {
         <div className="p-4 bg-white text-black">
             <div className="max-w-5xl mx-auto">
                 <div className="flex justify-between items-center mb-4">
-                    {/* <Button
-                        onClick={() => navigate("/")}
-                        className="bg-transparent text-black hover:bg-gray-100 transition-colors"
-                    >
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Trở lại
-                    </Button> */}
                     <Button
                         onClick={() => setIsFilterModalOpen(true)}
                         className="bg-black text-white hover:bg-gray-800 transition-colors"
                     >
-                        <Filter className="mr-2 h-4 w-4" /> Bộ lọc
+                        <Filter className="mr-2 h-4 w-4" /> Filter
                     </Button>
                 </div>
-                <h1 className="text-3xl uppercase font-bold mb-8 text-center">Bảng học phí</h1>
+                <h1 className="text-3xl uppercase font-bold mb-8 text-center">Tuition Table</h1>
 
                 <div className="mb-6 p-4 bg-gray-100 rounded-lg">
                     <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold">Tổng nợ:</span>
+                        <span className="text-lg font-semibold">Total Debt:</span>
                         <span className="text-lg font-bold text-red-600">
-                            {totalDebt.toLocaleString("vi-VN", {
-                                style: "currency",
-                                currency: "VND"
-                            })}
-                        </span>
+            {totalDebt.toLocaleString("vi-VN", {
+                style: "currency",
+                currency: "VND",
+            })}
+          </span>
                     </div>
                 </div>
 
                 {tuition.length > 0 ? (
-                    tuition.map((fee) => (
-                        <div key={fee.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
-                            {/* ... (giữ nguyên phần hiển thị chi tiết từng fee) */}
+                    tuition.map((tuition) => (
+                        <div key={tuition.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
+                            <div className="flex justify-between items-center mb-2">
+              <span className="text-lg font-semibold">
+                {(tuition.amount + tuition.fee).toLocaleString("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                })}
+              </span>
+                                <Badge variant={tuition.isPassed ? "destructive" : "secondary"}>
+                                    Class Status: {tuition.isPassed ? "Passed" : "In Progress"}
+                                </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-2">
+                                {formatDate(tuition.startDate)} to {formatDate(tuition.endDate)}
+                            </div>
+                            <div className="text-sm text-red-600 mb-2">
+                                Deadline: {tuition.deadline ? formatDate(tuition.deadline) : "Not specified"}
+                            </div>
+                            <div className="text-sm font-medium mb-2">Class: {tuition.studentClass.className}</div>
+                            <div className="text-sm text-gray-600 mb-2">Learner: {tuition.studentClass.studentFullName}</div>
+                            <div className="text-sm text-gray-600 mb-2">Tax Fee: {tuition.fee.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
+                            <div className="text-sm text-gray-600 mb-2">Tuition: {tuition.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
+                            <div className="flex justify-between items-center">
+              <span className="text-sm">
+                Payment Status:
+                <span
+                    className={`ml-1 font-bold ${tuition.paymentStatus === PaymentStatus.Successed ? "text-green-600" : "text-gray-600"}`}
+                >
+                  {PaymentStatusText[tuition.paymentStatus] || "Unknown"}
+                </span>
+              </span>
+                                {tuition.paymentStatus !== PaymentStatus.Successed && !tuition.isPassed && (
+                                    <Button
+                                        onClick={() => handlePayNowClick(tuition)}
+                                        disabled={role === 4}
+                                        className={`${role === 4 ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"} text-white transition-colors`}
+                                    >
+                                        Pay Now
+                                    </Button>
+                                )}
+                            </div>
+                            {tuition.studentClass.isPassed && tuition.studentClass.certificateUrl && (
+                                <div className="mt-2">
+                                    <a
+                                        href={tuition.studentClass.certificateUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 flex items-center"
+                                    >
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Download Certificate
+                                    </a>
+                                </div>
+                            )}
                         </div>
                     ))
                 ) : (
                     <div className="text-center text-gray-600">
-                        Không có khoản học phí nào cần thanh toán.
+                        No tuition fees to be paid.
                     </div>
                 )}
-
-                {tuition.map((fee) => (
-                    <div key={fee.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-lg font-semibold">
-                                {fee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
-                            </span>
-                            <Badge variant={fee.isPassed ? "destructive" : "secondary"}>
-                                Trạng thái lớp học: {fee.isPassed ? "Đã qua" : "Chưa xong"}
-                            </Badge>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-2">
-                            {formatDate(fee.startDate)} đến {formatDate(fee.endDate)}
-                        </div>
-                        <div className="text-sm text-red-600 mb-2">
-                            Hạn chót: {fee.deadline ? formatDate(fee.deadline) : "Không xác định"}
-                        </div>
-                        <div className="text-sm font-medium mb-2">Lớp: {fee.studentClass.className}</div>
-                        <div className="text-sm text-gray-600 mb-2">Học viên: {fee.studentClass.studentFullName}</div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm">
-                                Trạng thái thanh toán:
-                                <span
-                                    className={`ml-1 font-bold ${fee.paymentStatus === PaymentStatus.Successed ? "text-green-600" : "text-gray-600"
-                                        }`}
-                                >
-                                    {PaymentStatusText[fee.paymentStatus] || "Không xác định"}
-                                </span>
-                            </span>
-                            {fee.paymentStatus !== PaymentStatus.Successed && !fee.isPassed && (
-                                <Button
-                                    onClick={() => handlePayNowClick(fee)}
-                                    disabled={role === 4}
-                                    className={`${role === 4
-                                        ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-black hover:bg-gray-800"
-                                        } text-white transition-colors`}
-                                >
-                                    Trả ngay
-                                </Button>
-                            )}
-                        </div>
-                        {fee.studentClass.isPassed && fee.studentClass.certificateUrl && (
-                            <div className="mt-2">
-                                <a
-                                    href={fee.studentClass.certificateUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 flex items-center"
-                                >
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Tải chứng chỉ
-                                </a>
-                            </div>
-                        )}
-                    </div>
-                ))}
             </div>
-
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="bg-white text-black">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl ">Xác nhận thanh toán</DialogTitle>
+                        <DialogTitle className="text-2xl">Confirm</DialogTitle>
                     </DialogHeader>
                     <Form method="POST" className="mt-4">
                         <p className="mb-2">
-                            Số tiền: {selectedFee?.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                            Amount: {selectedFee?.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
                         </p>
                         <p className="mb-2 text-sm text-gray-600">
-                            Thời gian: {formatDate(selectedFee?.startDate)} đến {formatDate(selectedFee?.endDate)}
+                            Time: {formatDate(selectedFee?.startDate)} to {formatDate(selectedFee?.endDate)}
                         </p>
-                        <p className="mb-4 text-sm font-medium">Lớp: {selectedFee?.studentClass.className}</p>
-
+                        <p className="mb-4 text-sm font-medium">Class: {selectedFee?.studentClass.className}</p>
+                        <p className="mb-4 text-sm font-medium">Fee: {selectedFee?.fee}</p>
                         <Button
                             type="button"
                             onClick={handlePrintInvoice}
                             className="w-full bg-gray-200 text-black hover:bg-gray-300 transition-colors py-2 px-4 rounded mt-2"
                         >
-                            In giấy báo học phí
+                            Print Invoice
                         </Button>
 
                         <Button
@@ -484,7 +474,7 @@ export default function TuitionPage() {
                             isLoading={isSubmitting}
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? "Đang xử lý..." : "Xác nhận thanh toán"}
+                            {isSubmitting ? "Processing" : "Confirm Payment"}
                         </Button>
                     </Form>
                 </DialogContent>
@@ -493,21 +483,23 @@ export default function TuitionPage() {
             <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
                 <DialogContent className="bg-white text-black">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl flex flex-row gap-1 items-center"><Filter /> Bộ lọc</DialogTitle>
+                        <DialogTitle className="text-2xl flex flex-row gap-1 items-center">
+                            <Filter /> Filter
+                        </DialogTitle>
                         <Separator className="w-full" />
                     </DialogHeader>
                     <form onSubmit={handleFilterSubmit} className="mt-4 space-y-4 flex flex-col gap-2">
                         <div className="flex flex-col gap-2">
-                            <Label className="font-bold my-3 text-base">Ngày từ - đến</Label>
+                            <Label className="font-bold my-3 text-base">Date Range</Label>
                             <DateRangePicker
                                 value={filters.dateRange}
                                 onChange={(dateRange) => setFilters({ ...filters, dateRange: dateRange || {} })}
-                                placeholder="Chọn khoảng thời gian"
+                                placeholder="Select a date range"
                             />
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <Label className="font-bold my-3 text-base">Trạng thái</Label>
+                            <Label className="font-bold my-3 text-base">Status</Label>
                             <div className="flex flex-col gap-3">
                                 {Object.entries(PaymentStatus)
                                     .filter(([key]) => isNaN(Number(key)))
@@ -524,19 +516,20 @@ export default function TuitionPage() {
                                         </div>
                                     ))}
                             </div>
-
                         </div>
+
                         <Button
                             type="submit"
                             className="w-full bg-black text-white hover:bg-gray-800 transition-colors py-2 px-4 rounded"
                         >
-                            Tìm kiếm
+                            Search
                         </Button>
                     </form>
                 </DialogContent>
             </Dialog>
+
             {confirmDialog}
         </div>
-    )
-}
+    );
 
+}

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
-import { Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
+import { CirclePlus, Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -33,6 +33,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
+import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
+import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
+import { getEntranceTestName } from './staff.entrance-tests.create'
 
 type Props = {}
 
@@ -71,7 +74,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
 
             return {
-                entranceTestDetailsPromise
+                entranceTestDetailsPromise,
             }
         });
 
@@ -111,7 +114,7 @@ export default function StaffEntranceTestDetailsPage({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật thông tin đợt thi thành công!');
+            toast.success('Update test successfully!');
             return;
         }
 
@@ -149,10 +152,9 @@ const serverSchema = updateEntranceTestSchema.pick({
     instructorId: true,
     roomId: true,
     isAnnouncedScore: true
-
 }).extend({
-    date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
-});
+    date: z.coerce.date({ message: 'Test date cannot be empty.' })
+}).partial();
 
 type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
 
@@ -162,7 +164,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (!params.id) {
             return {
                 success: false,
-                error: 'Không có mã đợt thi',
+                error: 'No test id found',
             }
         }
 
@@ -177,25 +179,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const { data, errors, receivedValues: defaultValues } =
             await getValidatedFormData<ServerUpdateEntranceTestFormData>(request, zodResolver(serverSchema));
 
+        console.log({ data });
+
         if (errors) {
             console.log({ errors });
 
             return { success: false, errors, defaultValues };
         }
 
-
         const updateRequest = {
             ...data,
-            date: data.date.toString(),
-            shift: parseInt(data.shift),
+            date: data.date ? data.date.toISOString().split('T')[0] : undefined,
+            shift: data.shift ? parseInt(data.shift) : undefined,
             id,
             instructorId: data.instructorId || undefined,
             idToken
         };
+
+        console.log({ updateRequest });
+
         const response = await fetchUpdateEntranceTest(updateRequest);
 
         return Response.json({
-            success: response.status === 204
+            success: true
         }, {
             status: 200
         });
@@ -229,7 +235,7 @@ function StatusBadge({ status }: {
 const resolver = zodResolver(updateEntranceTestSchema);
 
 export function EntranceTestDetailsContent({
-    fetcher, tab, idToken, criterias, role
+    fetcher, tab, idToken, criterias, role,
 }: {
     fetcher: FetcherWithComponents<any>;
     tab: string;
@@ -251,67 +257,42 @@ export function EntranceTestDetailsContent({
     return <>
         <div className="flex flex-row justify-between items-center w-full">
             <div className="">
-                <h1 className="text-xl font-bold">Chi tiết ca thi</h1>
-                <p className='text-sm text-muted-foreground mb-4'>Quản lý thông tin về thời gian, phòng thi
-                    và bảng điểm, danh sách của học viên.
+                <h1 className="text-xl font-bold">Test details information</h1>
+                <p className='text-sm text-muted-foreground mb-4'>
+                    Manage information about the time, exam room and score table, list of learners.
                 </p>
             </div>
             <div className="w-[20%]">
                 <StatusBadge status={entranceTest.testStatus} />
             </div>
         </div>
-        <Tabs defaultValue={tab} className="">
+        <Tabs value={tab} className="">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="general" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
                     tab: "general",
-                })}>Thông tin chung</TabsTrigger>
+                })}>Basic information</TabsTrigger>
                 <TabsTrigger value="students" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
                     tab: "students",
-                })}>Danh sách học viên</TabsTrigger>
+                })}>Learners</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Thông tin chung</CardTitle>
+                        <CardTitle>Basic information</CardTitle>
                         <CardDescription>
-                            Thông tin cơ bản của ca thi.
+                            Basic information about the test.
                         </CardDescription>
                     </CardHeader>
                     <EntranceTestForm fetcher={fetcher} idToken={idToken} role={role} {...entranceTest} />
                 </Card>
             </TabsContent>
             <TabsContent value="students">
-                <Card className="">
-                    <CardHeader>
-                        <CardTitle>Danh sách học viên</CardTitle>
-                        <CardDescription>Danh sách học viên trong ca thi.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="my-8">
-                            <div className="flex justify-end">
-                                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
-                                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
-                            </div>
-                            <ResultTable data={entranceTest.entranceTestStudents} />
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
-                        {
-                            (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
-                                <Button className='px-12' variant={"destructive"}>
-                                    <Trash className='mr-2' /> Xóa ca thi này
-                                </Button>
-                            )
-                        }
-                        <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
-                            status={entranceTest.status} />
-                    </CardFooter>
-                </Card>
+                <StudentsSection entranceTest={entranceTest} criterias={criterias} role={role}
+                    idToken={idToken} />
             </TabsContent>
         </Tabs>
-        {importResultDialog}
     </>
 }
 
@@ -330,7 +311,8 @@ export function EntranceTestForm({
         control,
         register,
         setValue: setFormValue,
-        getValues: getFormValues
+        getValues: getFormValues,
+        watch
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
@@ -341,18 +323,22 @@ export function EntranceTestForm({
                 instructorId: defaultData.instructorId,
                 isAnnouncedScore: defaultData.isAnnouncedScore,
                 roomId: defaultData.roomId,
+                roomName: defaultData.room?.name || '',
                 date: new Date(defaultData.date)
             },
             fetcher
         });
 
-    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật ca thi',
-        description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
+    const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
+        title: 'Confirm update entrance test',
+        description: 'Are you sure you want to update this entrance test?',
         onConfirm: () => {
+            setFormValue('isAnnouncedScore', undefined);
             handleSubmit();
         }
     });
+
+    const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
 
     const [isEdit, setIsEdit] = useState(false);
 
@@ -366,24 +352,24 @@ export function EntranceTestForm({
                             <>
                                 <Button variant={'destructive'} type="button" onClick={() => setIsEdit(false)}
                                     Icon={XIcon} iconPlacement='left'>
-                                    Hủy thay đổi
+                                    Cancel changes
                                 </Button>
                             </>
                         ) : (
                             <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"
-                                Icon={Edit2Icon} iconPlacement='left'>Chỉnh sửa
+                                Icon={Edit2Icon} iconPlacement='left'>Edit
                             </Button>
                         )
                     }
                 </div>}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Tên bài thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Name: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <div >
                                     <Input  {...register('name')} id="name" className="col-span-3"
-                                        placeholder='Nhập tên đợt thi...' readOnly={true} />
+                                        placeholder='Test name...' readOnly={true} />
                                 </div>
                             ) : (
                                 <p className="text-gray-900">{defaultData.name}</p>
@@ -392,7 +378,7 @@ export function EntranceTestForm({
                         {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Ca thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Shift: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -400,9 +386,16 @@ export function EntranceTestForm({
                                     name='shift'
                                     render={({ field: { value, onChange } }) => (
                                         <Select value={value}
-                                            onValueChange={onChange}>
+                                            onValueChange={(value) => {
+                                                onChange(value);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}>
                                             <SelectTrigger className='w-64'>
-                                                <SelectValue placeholder="Chọn ca thi" />
+                                                <SelectValue placeholder="Select shift" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
@@ -423,7 +416,7 @@ export function EntranceTestForm({
                         {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Ngày thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Test date: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -434,8 +427,15 @@ export function EntranceTestForm({
                                             ref={ref}
                                             onBlur={onBlur}
                                             value={value}
-                                            onChange={onChange}
-                                            placeholder='Chọn ngày thi'
+                                            onChange={(newDate) => {
+                                                onChange(newDate);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: newDate as Date,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
+                                            placeholder='Select test date'
                                             className='w-full'
                                         />
                                     )}
@@ -447,7 +447,7 @@ export function EntranceTestForm({
                         {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Phòng thi: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Room: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -475,9 +475,17 @@ export function EntranceTestForm({
                                                 label: item?.name,
                                                 value: item?.id
                                             })}
-                                            placeholder='Chọn phòng thi'
-                                            emptyText='Không tìm thấy phòng thi.'
-                                            errorText='Lỗi khi tải danh sách phòng thi.'
+                                            onItemChange={(room) => {
+                                                setFormValue('roomName', room?.name || '');
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName: room.name || '',
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
+                                            placeholder='Select room'
+                                            emptyText='No rooms found.'
+                                            errorText='Error loading rooms.'
                                             value={value}
                                             onChange={onChange}
                                             maxItemsDisplay={10}
@@ -491,7 +499,7 @@ export function EntranceTestForm({
                         {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Gv: <span className='text-red-600'>*</span></span>
+                        <span className="text-gray-700 font-bold">Teacher: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -530,29 +538,31 @@ export function EntranceTestForm({
                                                 </div>,
                                                 value: item?.accountFirebaseId
                                             })}
-                                            placeholder='Chọn người gác thi'
-                                            emptyText='Không tìm thấy người gác thi.'
-                                            errorText='Lỗi khi tải danh sách người gác thi.'
+                                            placeholder='Select teacher'
+                                            emptyText='No teachers found.'
+                                            errorText='Error loading instructors.'
                                             maxItemsDisplay={10}
                                             value={value || ''}
-                                            onChange={onChange}
+                                            onChange={(value) => {
+                                                onChange(value);
+                                            }}
                                         />
                                     )}
                                 />
                             ) : (
-                                <p className="text-gray-900">{defaultData.instructor?.fullName}</p>
+                                <p className="text-gray-900">{defaultData.instructor?.fullName || defaultData.instructor?.email}</p>
                             )
                         }
                         {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Trạng thái: </span>
+                        <span className="text-gray-700 font-bold">Status: </span>
                         <div className="">
                             <StatusBadge status={defaultData.testStatus} />
                         </div>
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg col-start-2">
-                        <span className="text-gray-700 font-bold">Số học viên tham dự: </span>
+                        <span className="text-gray-700 font-bold">Number of learners: </span>
                         <p className="text-gray-900">{defaultData.entranceTestStudents.length}</p>
                     </div>
                 </div>
@@ -560,12 +570,113 @@ export function EntranceTestForm({
             <CardFooter className='mt-4 flex justify-end w-full'>
                 {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
                     disabled={isSubmitting}
-                    type='button' variant={'theme'} onClick={handleOpenModal}>
-                    {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                    type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
+                    {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>}
             </CardFooter>
         </Form>
-        {confirmDialog}
+        {entranceTestConfirmDialog}
+    </>
+}
+
+function StudentsSection({
+    entranceTest,
+    criterias,
+    role,
+    idToken
+}: {
+    entranceTest: EntranceTestDetail,
+    criterias: MinimalCriteria[],
+    role: Role;
+    idToken: string;
+}) {
+
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role
+    });
+
+    const fetcher = useFetcher<typeof addStudentsToTestAction>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { handleOpen: handleOpenStudentListDialog, studentsListDialog } = useStudentListDialog({
+        entranceTest,
+        idToken,
+        onStudentsAdded: (students) => {
+            const formData = new FormData();
+
+            students.forEach((student) => {
+                formData.append('studentIds', student.accountFirebaseId);
+            })
+
+            formData.append('entranceTestId', entranceTest.id);
+
+            fetcher.submit(formData, {
+                action: '/add-students-to-test',
+                method: "POST"
+            });
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Thêm học viên vào ca thi thành công!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+    return <>
+        <Card className="">
+            <CardHeader>
+                <CardTitle>Learners list</CardTitle>
+                <CardDescription>Learners in test.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="my-8">
+                    {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
+                        <Button type='button' variant={'outline'}
+                            Icon={CirclePlus} iconPlacement='left'
+                            disabled={isSubmitting} isLoading={isSubmitting}>
+                            Add learner
+                        </Button>
+                    </div>}
+
+                    <div className="flex justify-end">
+                        <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                            Icon={Import} iconPlacement='left'>Import with Excel file</Button>
+                    </div>
+                    <ResultTable data={entranceTest.entranceTestStudents} />
+                </div>
+            </CardContent>
+            <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
+                {
+                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
+                        <Button className='px-12' variant={"destructive"}>
+                            <Trash className='mr-2' /> Xóa ca thi này
+                        </Button>
+                    )
+                }
+                <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
+                    status={entranceTest.status} />
+            </CardFooter>
+        </Card>
+        {importResultDialog}
+        {studentsListDialog}
     </>
 }
 
@@ -601,8 +712,8 @@ function PublishScoreSection({
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận công bố điểm số',
-        description: 'Bạn có chắc chắn muốn công bố điểm số cho ca thi này không?',
+        title: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
+        description: `Are you sure you want to ${isAnnouncedScore ? "cancel" : "publish"} test results?`,
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', id);
@@ -617,7 +728,7 @@ function PublishScoreSection({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Công bố điểm số thành công!');
+            toast.success('Success!');
             return;
         }
 
@@ -637,18 +748,18 @@ function PublishScoreSection({
 
     return <>
         <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting} disabled={isSubmitting || status !== EntranceTestStatus.Ended}>
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}>
             {
                 isAnnouncedScore === true ? (
                     <>
                         <Delete className='mr-4'
                         />
-                        Hủy công bố điểm số
+                        Cancel publishing score
                     </>
                 ) : (
                     <>
                         <Pencil className='mr-4' />
-                        Công bố điểm số
+                        Publish score
                     </>
                 )
             }

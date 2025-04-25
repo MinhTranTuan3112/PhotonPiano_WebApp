@@ -36,10 +36,10 @@ const paymentMethodOptions = [
 ]
 
 const paymentStatusOptions = [
-    { label: 'Đang chờ', value: PaymentStatus.Pending.toString(), icon: undefined },
-    { label: 'Thành công', value: PaymentStatus.Successed.toString(), icon: undefined },
-    { label: 'Thất bại', value: PaymentStatus.Failed.toString(), icon: undefined },
-    { label: 'Đã hủy', value: PaymentStatus.Canceled.toString(), icon: undefined },
+    { label: 'Waiting', value: PaymentStatus.Pending.toString(), icon: undefined },
+    { label: 'Successed', value: PaymentStatus.Successed.toString(), icon: undefined },
+    { label: 'Failed', value: PaymentStatus.Failed.toString(), icon: undefined },
+    { label: 'Canceled', value: PaymentStatus.Canceled.toString(), icon: undefined },
 ];
 
 export default function SearchForm({ }: Props) {

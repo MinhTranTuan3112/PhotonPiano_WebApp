@@ -1,4 +1,4 @@
-import { formatDistanceToNow, formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 export const getCurrentTimeInSeconds = (): number => Math.floor(Date.now() / 1000);
@@ -45,7 +45,7 @@ export function formatRFC3339ToDisplayableDate(dateString: string, requireAdd7Ho
     const hours = requireAdd7Hours ? String(date.getUTCHours() + 7).padStart(2, '0') : String(date.getUTCHours()).padStart(2, '0');
     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
 
-    return requiresHoursDisplay ? `${day}/${month}/${year} vào lúc ${hours}:${minutes}` : `${day}/${month}/${year}`;
+    return requiresHoursDisplay ? `${day}/${month}/${year} at ${hours}:${minutes}` : `${day}/${month}/${year}`;
 }
 
 
@@ -66,3 +66,19 @@ export function getWeekRange(year: number, weekNumber: number): WeekRange {
     return { startDate, endDate };
 }
 
+export function formatDate(date: string | Date): string {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+export function formatTime(date: string | Date): string {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}

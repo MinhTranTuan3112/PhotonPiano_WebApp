@@ -90,8 +90,10 @@ export default function MyExams({ }: Props) {
 
   return (
     <div className='px-10'>
-      <div className='font-bold text-2xl'>Các kỳ thi đầu vào của tôi</div>
-      <div className=''>Nắm rõ giờ giấc của các kỳ thi đầu vào quan trọng để không bị bỏ lỡ nhé các bạn!</div>
+      <div className='font-bold text-2xl'>My tests</div>
+      <div className=''>
+        Make sure to keep track of the schedule for important entrance exams so you don't miss them!
+      </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise}>
           {({ entranceTestsPromise, metadata }) => (

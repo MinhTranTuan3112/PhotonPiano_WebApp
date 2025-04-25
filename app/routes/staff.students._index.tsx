@@ -130,7 +130,9 @@ function SearchForm() {
       const response = await fetchLevels();
 
       return await response.data;
-    }
+    },
+    enabled: true,
+    refetchOnWindowFocus: false,
   });
 
   const levels = data ? data as Level[] : [];
@@ -156,7 +158,7 @@ function SearchForm() {
           options={levelOptions}
           value={value}
           defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
-          placeholder='Chọn level'
+          placeholder='Select levels'
           className='w-full'
           onValueChange={onChange} />
       )}
@@ -169,13 +171,13 @@ function SearchForm() {
         <MultiSelect options={studentStatusOptions}
           value={value}
           defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
-          placeholder='Trạng thái'
+          placeholder='Statuses'
           className='w-full'
           onValueChange={onChange} />
       )}
     />
 
-    <Input {...register('q')} placeholder='Tìm kiếm...'
+    <Input {...register('q')} placeholder='Search here...'
       startContent={<Search className='size-5' />}
       className='col-span-full w-full'
       defaultValue={trimQuotes(searchParams.get('q') || '')} />
@@ -183,7 +185,7 @@ function SearchForm() {
     <div className="">
       <Button type='submit' Icon={Search} iconPlacement='left'
         isLoading={isSubmitting}
-        disabled={isSubmitting}>Tìm kiếm</Button>
+        disabled={isSubmitting}>Search</Button>
     </div>
   </Form>
 }
@@ -194,14 +196,14 @@ export default function StaffStudentsPage({ }: Props) {
 
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Danh sách học viên</h3>
+      <h3 className="text-lg font-medium">Learners list</h3>
       <p className="text-sm text-muted-foreground">
-        Quản lý danh sách học viên và xếp lớp thông minh
+        Manage the list of learners and smart class arrangement
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto arrange classes</Button>
         </div>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
@@ -210,7 +212,7 @@ export default function StaffStudentsPage({ }: Props) {
             <Await resolve={accountsPromise}>
               <GenericDataTable
                 columns={studentColumns}
-                emptyText='Không có học viên nào.'
+                emptyText='No learners found.'
                 metadata={metadata}
               />
             </Await>
@@ -235,19 +237,19 @@ export function ErrorBoundary() {
 
   return (
     <article className="px-8">
-      <h3 className="text-lg font-medium">Danh sách học viên</h3>
+      <h3 className="text-lg font-medium">Learners list</h3>
       <p className="text-sm text-muted-foreground">
-        Quản lý danh sách học viên và xếp lớp thông minh
+        Manage the list of learners and smart class arrangement
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Xếp lớp tự động</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto arrange classes</Button>
         </div>
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">
         <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-          'Có lỗi đã xảy ra.'} </h1>
+          'Errors happened.'} </h1>
         <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                       flex flex-row gap-1`}
           to={pathname ? `${pathname}${search}` : '/'}

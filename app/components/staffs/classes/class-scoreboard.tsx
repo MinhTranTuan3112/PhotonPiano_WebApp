@@ -1,49 +1,41 @@
 import { Await, useFetcher, useRouteLoaderData } from "@remix-run/react";
 import { BellRing, Loader2, Sheet, TriangleAlert } from "lucide-react";
 import { Suspense, useState } from "react";
+import { toast } from "sonner";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import useLoadingDialog from "~/hooks/use-loading-dialog";
 import { publishStudentClassScore } from "~/lib/services/class";
+import { ActionResult } from "~/lib/types/action-result";
 import { ClassDetail, ClassScoreDetail } from "~/lib/types/class/class-detail";
 import { idTokenCookie } from "~/lib/utils/cookie";
 import { loader } from "~/root";
 
 export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassDetail, scorePromise: Promise<{ classScore: ClassScoreDetail }> }) {
   const [isPublishing, setIsPublishing] = useState(false)
-  const fetcher = useFetcher()
+  const publishFetcher = useFetcher<ActionResult>()
   const authData = useRouteLoaderData<typeof loader>("root")
+
+  const { loadingDialog } = useLoadingDialog({
+    loadingMessage: "Đang công bố điểm...",
+    successMessage: "Công bố điểm thành công!",
+    fetcher: publishFetcher,
+    action: () => {
+      window.location.reload()
+    },
+  })
 
   const handlePublishScores = async () => {
     try {
-      setIsPublishing(true)
-
-      await publishStudentClassScore({
-        classId: classInfo.id,
-        idToken: authData.idToken,
-      })
-
-      // toast({
-      //   title: "Công bố điểm thành công",
-      //   description: "Điểm số đã được công bố cho tất cả học viên trong lớp",
-      //   variant: "default",
-      //   duration: 3000,
-      //   icon: <Check className="h-4 w-4 text-green-500" />,
-      // })
-
-      // Refresh the page to show updated data
-      window.location.reload()
+      // Use the fetcher to submit the form
+      publishFetcher.submit(
+        { classId: classInfo.id, idToken: authData.idToken },
+        { method: "POST", action: "/api/student-class/publish-scores" },
+      )
     } catch (error) {
-      console.error("Error publishing scores:", error)
-      // toast({
-      //   title: "Lỗi khi công bố điểm",
-      //   description: "Đã xảy ra lỗi khi công bố điểm. Vui lòng thử lại sau.",
-      //   variant: "destructive",
-      //   duration: 3000,
-      // })
-    } finally {
-      setIsPublishing(false)
+      toast.error("Không thể công bố điểm. Vui lòng thử lại sau.")
     }
   }
 
@@ -51,11 +43,12 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
     title: "Xác nhận công bố điểm",
     description:
       "Bạn có chắc chắn muốn công bố điểm cho tất cả học viên trong lớp này không? Sau khi công bố, học viên sẽ có thể xem điểm của mình.",
-    confirmText: isPublishing ? "Đang xử lý..." : "Xác nhận công bố",
+    confirmText: publishFetcher.state === "submitting" ? "Đang xử lý..." : "Xác nhận công bố",
     onConfirm: handlePublishScores,
-    confirmButtonClassname: isPublishing
-      ? buttonVariants({ variant: "default", className: "opacity-70 cursor-not-allowed" })
-      : buttonVariants({ variant: "default" }),
+    confirmButtonClassname:
+      publishFetcher.state === "submitting"
+        ? buttonVariants({ variant: "default", className: "opacity-70 cursor-not-allowed" })
+        : buttonVariants({ variant: "default" }),
   })
 
   return (
@@ -75,19 +68,12 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
             <div className="flex flex-col lg:flex-row justify-start gap-4">
               <Button
                 onClick={openConfirmDialog}
-                disabled={isPublishing}
-                Icon={isPublishing ? Loader2 : BellRing}
+                disabled={publishFetcher.state === "submitting"}
+                Icon={BellRing}
                 iconPlacement="left"
-                className={isPublishing ? "opacity-70 cursor-not-allowed" : ""}
+                className={publishFetcher.state === "submitting" ? "opacity-70 cursor-not-allowed" : ""}
               >
-                {isPublishing ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Đang công bố...
-                  </span>
-                ) : (
-                  "Công bố điểm"
-                )}
+                Công bố điểm
               </Button>
               <Button Icon={Sheet} iconPlacement="left" variant={"outline"}>
                 Xuất ra Excel
@@ -98,8 +84,8 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
                 {(data) => {
                   const sortedCriteria =
                     data.classScore.studentClasses[0]?.studentClassScores
-                      .map((score) => score.criteria)
-                      .sort((a, b) => a.name.localeCompare(b.name)) || []
+                      .map((score) => ({ ...score.criteria }))
+                      .sort((a, b) => a.weight - b.weight) || [];
 
                   return (
                     <div className="mt-4 overflow-x-auto">
@@ -138,6 +124,7 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
               </Await>
             </Suspense>
             {ConfirmDialog}
+            {loadingDialog}
           </>
         )}
       </CardContent>

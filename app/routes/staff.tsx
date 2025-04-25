@@ -22,7 +22,7 @@ function getBreadcrumbPageName({ pathname }: {
     pathname: string,
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
-        name: "Quản lý",
+        name: "Manage",
         url: "/staff/dashboard",
     };
     let otherNavItems: BreadcumbNavItem[] = []
@@ -30,12 +30,12 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/entrance-tests/create':
             otherNavItems = [
                 {
-                    name: "Quản lý thi đầu vào",
+                    name: "Manage tests",
                     url: '/staff/entrance-tests',
                     isCurrentPage: false
                 },
                 {
-                    name: "Tạo ca thi",
+                    name: "Create new test",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -45,12 +45,12 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/surveys/create':
             otherNavItems = [
                 {
-                    name: "Quản lý khảo sát",
+                    name: "Manage piano surveys",
                     url: '/staff/surveys',
                     isCurrentPage: false
                 },
                 {
-                    name: "Tạo khảo sát mới",
+                    name: "Create new piano survey",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -60,14 +60,14 @@ function getBreadcrumbPageName({ pathname }: {
             const surveyParam = pathname.replace('/staff/surveys', "")
             otherNavItems = [
                 {
-                    name: "Quản lý khảo sát",
+                    name: "Manage piano surveys",
                     url: '/staff/surveys',
                     isCurrentPage: surveyParam.length === 0
                 }
             ]
             if (surveyParam.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết khảo sát",
+                    name: "Survey details",
                     url: pathname,
                     isCurrentPage: true
                 })
@@ -76,7 +76,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/profile':
             otherNavItems = [
                 {
-                    name: "Thông tin cá nhân",
+                    name: "Personal profile",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -85,7 +85,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/students':
             otherNavItems = [
                 {
-                    name: "Danh sách học viên",
+                    name: "Learners",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -94,7 +94,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/classes':
             otherNavItems = [
                 {
-                    name: "Danh sách lớp",
+                    name: "Classes",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -103,7 +103,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/applications':
             otherNavItems = [
                 {
-                    name: "Danh sách đơn từ",
+                    name: "Academic applications",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -112,7 +112,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/survey-questions':
             otherNavItems = [
                 {
-                    name: "Danh sách câu hỏi khảo sát",
+                    name: "Survey questions",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -122,12 +122,12 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/staff/articles/create':
             otherNavItems = [
                 {
-                    name: "Quản lý tin tức",
+                    name: "News Articles",
                     url: '/staff/articles',
                     isCurrentPage: false
                 },
                 {
-                    name: "Tạo bài viết mới",
+                    name: "Create new article",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -140,7 +140,7 @@ function getBreadcrumbPageName({ pathname }: {
 
             otherNavItems = [
                 {
-                    name: "Quản lý tin tức",
+                    name: "News Articles",
                     url: '/staff/articles',
                     isCurrentPage: pathname === '/staff/articles'
                 }
@@ -148,7 +148,7 @@ function getBreadcrumbPageName({ pathname }: {
 
             if (articleParam.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết bài viết",
+                    name: "Article details",
                     url: pathname,
                     isCurrentPage: true
                 })
@@ -159,14 +159,14 @@ function getBreadcrumbPageName({ pathname }: {
             const param = pathname.replace('/staff/entrance-tests', "")
             otherNavItems = [
                 {
-                    name: "Quản lý thi đầu vào",
+                    name: "Manage Tests",
                     url: '/staff/entrance-tests',
                     isCurrentPage: param.length === 0
                 }
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết ca thi",
+                    name: "Test details",
                     url: pathname,
                     isCurrentPage: true
                 })

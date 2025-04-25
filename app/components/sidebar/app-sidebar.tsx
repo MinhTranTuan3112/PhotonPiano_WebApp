@@ -2,7 +2,6 @@ import * as React from "react"
 import {
     CircleUserRound,
     DollarSign,
-    FileClock,
     History,
     Music
 } from "lucide-react"
@@ -11,7 +10,6 @@ import TopNav from "./top-nav"
 import { NavMain } from "./nav-main"
 import NavOthers from "./nav-others"
 import { NavUser } from "./nav-user"
-import { is } from "date-fns/locale"
 
 
 const data = {
@@ -22,58 +20,58 @@ const data = {
     },
     navMain: [
         {
-            title: "Thông tin chung",
+            title: "General",
             url: "",
             icon: CircleUserRound,
             isActive: true,
             items: [
                 {
-                    title: "Thông tin cá nhân",
+                    title: "Personal profile",
                     url: "/account/profile",
                 },
                 {
-                    title: "Khung giờ của bạn",
+                    title: "My free slots",
                     url: "/account/free-slots",
                 }
             ],
         },
         {
-            title: "Học tập",
+            title: "Academic",
             url: "",
             icon: Music,
             isActive: true,
             items: [
                 {
-                    title: "Lịch học của tôi",
+                    title: "Schedule",
                     url: "/account/scheduler",
                 },
                 {
-                    title: "Lớp của tôi",
+                    title: "My classes",
                     url: "/account/class_list",
                 },
                 {
-                    title: "Bài thi của tôi",
+                    title: "My exams",
                     url: "/account/my-exams",
                 },
 
                 {
-                    title: "Lịch sử đơn từ",
+                    title: "My applications",
                     url: "/account/applications"
                 },
                 {
-                    title: "Chứng chỉ của tôi",
+                    title: "My certificates",
                     url: "/account/certificates",
                 }
             ],
         },
         {
-            title: "Tài chính",
+            title: "Tuition",
             url: "",
             icon: DollarSign,
             isActive: true,
             items: [
                 {
-                    title: "Học phí",
+                    title: "Tuition",
                     url: "/account/tuition",
                 }
             ],
@@ -102,7 +100,7 @@ const data = {
     ],
     otherNavItems: [
         {
-            name: "Lịch sử giao dịch",
+            name: "Transaction history",
             url: "/account/transactions",
             icon: History,
         }

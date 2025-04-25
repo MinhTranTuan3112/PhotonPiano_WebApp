@@ -2,6 +2,7 @@ import { ImportResultsFormData } from "~/routes/import-entrance-test-result";
 import { UpdateEntranceTest } from "../types/entrance-test/entrance-test";
 import { QueryPagedRequest } from "../types/query/query-paged-request";
 import axiosInstance from "../utils/axios-instance";
+import { CreateEntranceTestFormData } from "../utils/schemas";
 
 export async function fetchEntranceTests({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     idToken, keyword, shifts = [], roomIds = []
@@ -100,6 +101,23 @@ export async function fetchAutoArrangeEntranceTests({
     return response;
 }
 
+export async function fetchCreateEntranceTest({
+    idToken, studentIds = [], ...data
+}: {
+    idToken: string;
+    studentIds?: string[];
+    date: string
+} & Omit<CreateEntranceTestFormData, 'date'>) {
+
+    const response = await axiosInstance.post('/entrance-tests', { ...data, studentIds }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
+
 export async function fetchUpdateEntranceTest({
     idToken,
     id,
@@ -136,6 +154,7 @@ export async function fetchUpdateEntranceTestResults({
     id: string,
     studentId: string,
     instructorComment?: string,
+    levelId?: string,
     theoraticalScore?: number,
     updateScoreRequests?: {
         criteriaId: string,
@@ -169,6 +188,50 @@ export async function fetchEntranceTestStudentDetails({
     return response;
 }
 
+export async function fetchDeleteStudentFromTest({
+    idToken, entranceTestId, studentId
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentId: string
+}) {
+
+    const response = await axiosInstance.delete(`/entrance-tests/${entranceTestId}/students/${studentId}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}
+
+export async function fetchDeleteStudentsFromTest({
+    idToken, entranceTestId, studentIds
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentIds: string[]
+}) {
+
+    let url = `/entrance-tests/${entranceTestId}/students?`;
+
+    studentIds.forEach(studentId => {
+        url += `studentIds=${studentId}`;
+
+        if (studentId !== studentIds[studentIds.length - 1]) {
+            url += '&';
+        }
+    })
+
+    const response = await axiosInstance.delete(url, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    })
+
+    return response;
+}
+
 export async function fetchUpdateStudentsEntranceTestResults({
     idToken, entranceTestId, ...data
 }: {
@@ -182,4 +245,22 @@ export async function fetchUpdateStudentsEntranceTestResults({
     });
 
     return response;
+}
+
+export async function fetchAddStudentsToEntranceTest({
+    idToken, entranceTestId, studentIds
+}: {
+    idToken: string,
+    entranceTestId: string,
+    studentIds: string[]
+}) {
+
+    const response = await axiosInstance.post(`/entrance-tests/${entranceTestId}/students`, { studentIds }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+
 }

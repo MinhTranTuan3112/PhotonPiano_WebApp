@@ -1,6 +1,6 @@
 import * as React from "react"
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "./ui/navigation-menu"
-import { Link, useLocation, useNavigate, useNavigation, useRouteLoaderData, useSubmit } from "@remix-run/react"
+import { Link, useLocation, useNavigate, useRouteLoaderData } from "@remix-run/react"
 import { cn } from "~/lib/utils"
 import { Button, buttonVariants } from "./ui/button"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "./ui/sheet"
@@ -8,7 +8,6 @@ import { Loader2, Menu, Piano, X } from "lucide-react"
 import { Separator } from "./ui/separator"
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { loader } from "~/root"
-import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import AccountDropdown from "./auth/account-dropdown"
 import { Level, Role } from "~/lib/types/account/account"
 import { useQuery } from "@tanstack/react-query"
@@ -59,26 +58,7 @@ export default function NavBar({ }: Props) {
 
     }, []);
 
-    const submit = useSubmit();
-
-    const navigation = useNavigation();
-
     const navigate = useNavigate();
-
-    const isSubmitting = navigation.state === 'submitting';
-
-    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận đăng xuất?',
-        description: 'Bạn có chắc chắn muốn đăng xuất?',
-        onConfirm: () => {
-            submit(null, {
-                method: 'POST',
-                action: '/sign-out'
-            });
-        },
-        confirmText: 'Đăng xuất',
-    });
-
 
     return (
         <div className={`p-6 flex items-center sticky top-0 w-full bg-white transition-shadow duration-300 ${isScrolling ? 'shadow-md' : ''} z-50`}>
@@ -95,7 +75,7 @@ export default function NavBar({ }: Props) {
                 <NavigationMenu className="hidden md:block">
                     <NavigationMenuList>
                         <NavigationMenuItem className={`${pathname === '/intro' ? buttonVariants({ variant: 'theme' }) : ''}`}>
-                            <NavigationMenuTrigger className="uppercase font-bold">Giới thiệu</NavigationMenuTrigger>
+                            <NavigationMenuTrigger className="uppercase font-bold">About Us</NavigationMenuTrigger>
                             <NavigationMenuContent>
                                 <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                                     <li className="row-span-3" style={{
@@ -111,19 +91,19 @@ export default function NavBar({ }: Props) {
                                                     Photon Piano
                                                 </div>
                                                 <p className="text-sm leading-tight text-muted-foreground">
-                                                    Học piano trực tuyến với các giáo viên chuyên nghiệp và nhiều năm kinh nghiệm.
+                                                    Learn piano with professional teachers with many years of experience.
                                                 </p>
                                             </Link>
                                         </NavigationMenuLink>
                                     </li>
-                                    <ListItem href="/about" title="Về chúng tôi">
-                                        Tìm hiểu về lịch sử hình thành và phát triển của trung tâm
+                                    <ListItem href="/about" title="About us">
+                                        Find out about the history and development of the center.
                                     </ListItem>
-                                    <ListItem href="/instructors" title="Đội ngũ giảng viên">
-                                        Gặp gỡ các giảng viên giàu kinh nghiệm của chúng tôi.
+                                    <ListItem href="/instructors" title="Teachers">
+                                        Meet our experienced teachers.
                                     </ListItem>
-                                    <ListItem href="/facilities" title="Cơ sở vật chất">
-                                        Khám phá các cơ sở đào tạo và cơ sở vật chất hiện đại của chúng tôi.
+                                    <ListItem href="/facilities" title="Facilities and equipment">
+                                        Discover our modern training facilities and equipment.
                                     </ListItem>
                                 </ul>
                             </NavigationMenuContent>
@@ -138,12 +118,12 @@ export default function NavBar({ }: Props) {
                         </NavigationMenuItem> */}
                         <NavigationMenuItem>
                             <Link to="/news" className={`${navigationMenuTriggerStyle()} uppercase font-bold `}>
-                                Tin tức
+                                News
                             </Link>
                         </NavigationMenuItem>
                         <NavigationMenuItem>
                             <Link to="/instructors" className={`${navigationMenuTriggerStyle()} uppercase font-bold`}>
-                                Giảng viên
+                                Teachers
                             </Link>
                         </NavigationMenuItem>
                     </NavigationMenuList>
@@ -153,7 +133,7 @@ export default function NavBar({ }: Props) {
                     <Sheet open={isOpen} onOpenChange={setIsOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" className="px-2">
-                                <span className="sr-only">Mở menu</span>
+                                <span className="sr-only">Open menu</span>
                                 {isOpen ? (
                                     <X className="h-6 w-6" aria-hidden="true" />
                                 ) : (
@@ -189,9 +169,10 @@ export default function NavBar({ }: Props) {
             </div>
             <div className="hidden md:block">
                 {(!authData || !authData.role) ? (
-                    <button onClick={() => navigate('/sign-in')} type="button" className="relative w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
-                        Đăng nhập
-                        <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
+                    <button onClick={() => navigate('/sign-in')} type="button"
+                        className="whitespace-nowrap relative px-10 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                        Sign In
+                        <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4"></div>
                     </button>
                 ) : (
                     <>
@@ -238,16 +219,36 @@ function LevelsDropdown() {
             const response = await fetchLevels();
 
             return await response.data;
-        }
+        },
+        enabled: true,
+        refetchOnWindowFocus: false,
     });
 
     const levels = data ? data as Level[] : [];
 
-    return isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div> :
-        (<NavigationMenuItem>
-            <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
-            <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+    // return isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div> :
+    //     (<NavigationMenuItem>
+    //         <NavigationMenuTrigger className={`uppercase font-bold `}>Loại hình đào tạo</NavigationMenuTrigger>
+    //         <NavigationMenuContent>
+    //             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+    //                 {levels.map((level, index) => (
+    //                     <ListItem
+    //                         key={level.id}
+    //                         title={level.name}
+    //                         href={'/'}
+    //                     >
+    //                         {level.description}
+    //                     </ListItem>
+    //                 ))}
+    //             </ul>
+    //         </NavigationMenuContent>
+    //     </NavigationMenuItem>)
+
+    return <NavigationMenuItem>
+        <NavigationMenuTrigger className={`uppercase font-bold `}>Academic piano levels</NavigationMenuTrigger>
+        <NavigationMenuContent>
+            {isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div>
+                : <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                     {levels.map((level, index) => (
                         <ListItem
                             key={level.id}
@@ -257,8 +258,9 @@ function LevelsDropdown() {
                             {level.description}
                         </ListItem>
                     ))}
-                </ul>
-            </NavigationMenuContent>
-        </NavigationMenuItem>)
+                </ul>}
+
+        </NavigationMenuContent>
+    </NavigationMenuItem>
 
 }

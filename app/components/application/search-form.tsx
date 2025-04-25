@@ -36,7 +36,7 @@ export default function SearchForm({ }: Props) {
     return (
         <Form method='GET' action={pathname} className='my-3 flex flex-col gap-3' onSubmit={handleSubmit}>
 
-            <Input {...register('q')} placeholder='Nhập mã đơn...' />
+            <Input {...register('q')} placeholder='Search applications...' />
             {errors.q && <div className='text-red-500'>{errors.q.message}</div>}
 
 
@@ -59,7 +59,7 @@ export default function SearchForm({ }: Props) {
                                 onValueChange={onChange}
                                 ref={ref}
                                 onBlur={onBlur}
-                                placeholder='Loại đơn'
+                                placeholder='Select application type'
                             />
                         )}
                     />
@@ -83,7 +83,7 @@ export default function SearchForm({ }: Props) {
                                 onValueChange={onChange}
                                 ref={ref}
                                 onBlur={onBlur}
-                                placeholder='Trạng thái'
+                                placeholder='Status'
                             />
                         )}
                     />
@@ -96,7 +96,7 @@ export default function SearchForm({ }: Props) {
             <div className="max-w-[30%]">
                 <Button type='submit' isLoading={isSubmitting}
                     disabled={isSubmitting} Icon={Search} iconPlacement='left'>
-                    Tìm
+                    Search
                 </Button>
             </div>
 

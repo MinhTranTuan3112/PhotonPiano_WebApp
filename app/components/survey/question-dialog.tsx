@@ -134,8 +134,8 @@ export default function QuestionDialog({
     }
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: isEditing ? 'Cập nhật câu hỏi?' : 'Thêm câu hỏi mới?',
-        description: isEditing ? 'Bạn có chắc chắn muốn cập nhật câu hỏi này?' : 'Bạn có chắc chắn muốn thêm câu hỏi mới?',
+        title: 'Confirm action',
+        description: isEditing ? 'Update this question?' : 'Create this question?',
         onConfirm: () => {
             handleSubmit();
             onQuestionCreated(getFormValues());
@@ -147,7 +147,7 @@ export default function QuestionDialog({
             //     duration: 1250
             // });
         },
-        confirmText: isEditing ? 'Cập nhật' : 'Thêm'
+        confirmText: isEditing ? 'Update' : 'Create'
     });
 
     return (
@@ -159,10 +159,10 @@ export default function QuestionDialog({
                 <DialogContent className="min-w-[1000px]">
                     <ScrollArea className='h-[30rem] px-4'>
                         <DialogHeader>
-                            <DialogTitle>{isEditing ? 'Cập nhật câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
+                            <DialogTitle>{isEditing ? 'Update question' : 'Create question'}</DialogTitle>
                             <DialogDescription>
-                                {!requiresUpload ? 'Câu hỏi được tạo sẽ tự động được thêm vào ngân hàng câu hỏi.'
-                                    : isEditing ? 'Cập nhật thông tin câu hỏi.' : 'Thêm câu hỏi khảo sát mới.'}
+                                {!requiresUpload ? 'Created questions will automatically be added to the question bank.'
+                                    : isEditing ? 'Update question.' : 'Create question.'}
                             </DialogDescription>
                         </DialogHeader>
                         <Form method='POST' onSubmit={(e) => {
@@ -174,18 +174,18 @@ export default function QuestionDialog({
 
                         }} className='flex flex-col gap-3 px-2'>
                             <div className="">
-                                <Label className='font-bold'>Loại câu hỏi</Label>
+                                <Label className='font-bold'>Type</Label>
                                 <Controller
                                     control={control}
                                     name="type"
                                     render={({ field: { value, onChange } }) => (
                                         <Select value={value.toString()} onValueChange={onChange}>
                                             <SelectTrigger className="">
-                                                <SelectValue placeholder="Chọn loại câu hỏi" />
+                                                <SelectValue placeholder="Choose question type" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectLabel>Loại câu hỏi</SelectLabel>
+                                                    <SelectLabel>Type</SelectLabel>
                                                     {QUESTION_TYPES.map((type, index) => (
                                                         <SelectItem key={index} value={index.toString()}>{type}</SelectItem>
                                                     ))}
@@ -197,13 +197,13 @@ export default function QuestionDialog({
                                 {errors.type && <p className="text-red-500 text-sm">{errors.type.message}</p>}
                             </div>
                             <div className="">
-                                <Label htmlFor='questionContent' className='font-bold'>Nội dung câu hỏi</Label>
-                                <Textarea {...register('questionContent')} id='questionContent' placeholder='Nhập nội dung câu hỏi...' />
+                                <Label htmlFor='questionContent' className='font-bold'>Content</Label>
+                                <Textarea {...register('questionContent')} id='questionContent' placeholder='Enter question content...' />
                                 {errors.questionContent && <p className="text-red-500 text-sm">{errors.questionContent.message}</p>}
                             </div>
 
                             <div className="">
-                                <Label className='font-bold'>Các lựa chọn</Label>
+                                <Label className='font-bold'>Options</Label>
                                 <div className="flex flex-col gap-2 mb-2">
                                     {options?.map((option, index) => (
                                         <div key={index} className="flex items-center space-x-2">
@@ -238,7 +238,7 @@ export default function QuestionDialog({
                                     render={({ field: { value, onChange } }) => (
                                         <div className="flex items-center space-x-2">
                                             <Switch className='data-[state=checked]:bg-red-600' id="isRequired" checked={value} onCheckedChange={onChange} />
-                                            <Label htmlFor="isRequired">Bắt buộc</Label>
+                                            <Label htmlFor="isRequired">Required</Label>
                                         </div>
                                     )}
                                 />}
@@ -249,7 +249,7 @@ export default function QuestionDialog({
                                     render={({ field: { value, onChange } }) => (
                                         <div className="flex items-center space-x-2">
                                             <Switch id="allowOtherAnswer" checked={value} onCheckedChange={onChange} />
-                                            <Label htmlFor="allowOtherAnswer">Cho phép câu trả lời khác</Label>
+                                            <Label htmlFor="allowOtherAnswer">Allow other answers</Label>
                                         </div>
                                     )}
                                 />
@@ -262,7 +262,7 @@ export default function QuestionDialog({
                                     render={({ field: { value, onChange } }) => (
                                         <div className="flex items-center space-x-2 my-2">
                                             <Switch id="hasAgeConstraint" checked={value} onCheckedChange={onChange} />
-                                            <Label htmlFor="hasAgeConstraint" className='font-bold'>Giới hạn độ tuổi</Label>
+                                            <Label htmlFor="hasAgeConstraint" className='font-bold'>Age constraint</Label>
                                         </div>
                                     )}
                                 />
@@ -271,7 +271,7 @@ export default function QuestionDialog({
                             {requiresAgeInputs && watch('hasAgeConstraint') && (
                                 <>
                                     <div className="my-5 flex flex-col gap-10">
-                                        <Label className='font-bold'>Độ tuổi khảo sát</Label>
+                                        <Label className='font-bold'>Survey age constraint</Label>
                                         <DualRangeSlider
                                             label={(value) => value}
                                             value={[watch('minAge') || 0, watch('maxAge') || 100]}
@@ -302,7 +302,7 @@ export default function QuestionDialog({
                                             setIsOpen(false);
                                             reset();
                                             setNewOption('');
-                                            toast.success('Thêm thành công!', {
+                                            toast.success('Create success!', {
                                                 position: 'top-center',
                                                 duration: 1250
                                             });
@@ -320,7 +320,7 @@ export default function QuestionDialog({
 
                                     // Then continue with your existing logic
                                 }}>
-                                    {!requiresUpload ? 'Hoàn tất' : isEditing ? 'Lưu' : 'Thêm'}
+                                    {!requiresUpload ? 'Confirm' : isEditing ? 'Save' : 'Add'}
                                 </Button>
                             </DialogFooter>
                         </Form>
@@ -337,15 +337,15 @@ export default function QuestionDialog({
 
 const answersTableColumns: ColumnDef<LearnerAnswerDetails>[] = [
     {
-        accessorKey: 'Người trả lời',
-        header: 'Người trả lời',
+        accessorKey: 'Learner',
+        header: 'Learner',
         cell: ({ row }) => {
             return <div className="font-bold">{row.original.learnerSurvey.learnerEmail}</div>
         }
     },
     {
-        accessorKey: 'Câu trả lời',
-        header: 'Câu trả lời',
+        accessorKey: 'Answer',
+        header: 'Answer',
         cell: ({ row }) => {
             return <div>{row.original.answers.join(', ')}</div>
         }
@@ -389,12 +389,14 @@ function QuestionAnswersContent({
                 answers,
                 metadata
             };
-        }
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
     });
 
     return <div className="">
         {isLoading ? <LoadingSkeleton /> : <DataTable data={data?.answers || []} columns={answersTableColumns}
-            emptyContent="Không có câu trả lời nào."
+            emptyContent="No answers."
             manualPagination={true}
             onPaginationChange={(newPage) => {
                 setQueryData((prev) => ({ ...prev, page: newPage }));

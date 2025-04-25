@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react'
-import { Plus, RotateCcw } from 'lucide-react'
+import { CirclePlus, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 import SearchForm from '~/components/entrance-tests/search-form'
 import { columns } from '~/components/entrance-tests/table/columns'
@@ -38,8 +38,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const query = {
             page: Number.parseInt(searchParams.get('page') || '1'),
             pageSize: Number.parseInt(searchParams.get('size') || '10'),
-            sortColumn: searchParams.get('column') || 'Id',
-            orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+            sortColumn: searchParams.get('column') || 'CreatedAt',
+            orderByDesc: searchParams.get('desc') ? searchParams.get('desc') === 'true' : true,
             keyword: trimQuotes(searchParams.get('q') || ''),
             shifts: getParsedParamsArray({ paramsValue: searchParams.get('shifts') }).map(Number),
             roomIds: getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String),
@@ -95,19 +95,20 @@ export default function StaffEntranceTestsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Quản lý đợt thi đầu vào</h1>
-            <p className='text-muted-foreground'>Danh sách đợt thi đầu vào dành cho học viên trước khi vào học ở trung tâm.</p>
+            <h1 className="text-xl font-extrabold">Manage tests</h1>
+            <p className='text-muted-foreground'>List of tests in the center.</p>
             <SearchForm />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
                     {({ entranceTestsPromise, metadata }) => (
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
-                                <Button variant={'default'} Icon={Plus} iconPlacement='right'
-                                    onClick={() => navigate('/staff/entrance-tests/create')}>Tạo
+                                <Button variant={'outline'} Icon={CirclePlus} iconPlacement='left'
+                                    onClick={() => navigate('/staff/entrance-tests/create')}>
+                                    Create new test
                                 </Button>
                             } metadata={metadata}
-                                emptyText='Không có đợt thi nào.' />
+                                emptyText='No test found.' />
                         </Await>
                     )}
                 </Await>
@@ -131,8 +132,8 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-10 pb-4">
-            <h1 className="text-xl font-extrabold">Quản lý đợt thi đầu vào</h1>
-            <p className='text-muted-foreground'>Danh sách đợt thi đầu vào dành cho học viên trước khi vào học ở trung tâm.</p>
+            <h1 className="text-xl font-extrabold">Manage tests</h1>
+            <p className='text-muted-foreground'>List of tests in the center.</p>
             <SearchForm />
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
@@ -142,7 +143,7 @@ export function ErrorBoundary() {
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
         </article>

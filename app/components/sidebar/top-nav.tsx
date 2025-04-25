@@ -1,19 +1,10 @@
-
-import * as React from "react"
-import { ChevronsUpDown, GalleryVerticalEnd, Home, Piano } from "lucide-react"
+import { Piano } from "lucide-react"
 import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar
 } from "../ui/sidebar"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger
-} from "../ui/dropdown-menu"
 import { useNavigate } from "@remix-run/react";
 
 type Props = {
