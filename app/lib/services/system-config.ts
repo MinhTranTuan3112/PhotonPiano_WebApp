@@ -175,3 +175,10 @@ export async function fetchUpdateClassSystemConfig({
 
     return response;
 }
+
+export async function fetchUpdateTimeSystemConfig() {
+
+    const response = await axiosInstance.get("/system-configs/current-time");
+
+    return response.data;
+}
