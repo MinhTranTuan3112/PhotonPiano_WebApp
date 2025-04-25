@@ -34,6 +34,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Combobox from '../ui/combobox';
+import { objectToFormData } from '~/lib/utils/form';
 
 
 type Props = {
@@ -62,6 +63,9 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         mode: 'onSubmit',
         resolver: zodResolver(sendApplicationSchema),
         fetcher,
+        submitConfig: {
+            encType: 'multipart/form-data',
+        },
         stringifyAllValues: false
     });
 
@@ -128,7 +132,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
             <Dialog open={isOpen} onOpenChange={onOpenChange} >
                 <DialogContent className='min-w-[1000px]'>
                     <ScrollArea className='h-96 px-4'>
-                        <Form method='POST' onSubmit={handleOpen} action='/account/applications' navigate={false}
+                        <Form method='POST' onSubmit={handleSubmit} action='/account/applications' navigate={false}
                             encType='multipart/form-data'
                             className='px-1'>
                             <DialogHeader>

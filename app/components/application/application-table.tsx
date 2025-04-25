@@ -32,13 +32,6 @@ const getStatusStyle = (status: ApplicationStatus) => {
 
 export const columns: ColumnDef<Application>[] = [
     {
-        accessorKey: 'Code',
-        header: 'Code',
-        cell: ({ row }) => {
-            return <div className="font-bold">{row.original.id}</div>
-        }
-    },
-    {
         accessorKey: 'Type',
         header: 'Type',
         cell: ({ row }) => {
@@ -57,13 +50,13 @@ export const columns: ColumnDef<Application>[] = [
     {
         accessorKey: 'Created Date',
         header: (header) => {
-            return <div className="flex flex-row items-center">
+            return <div className="flex flex-row items-center gap-2">
                 <Clock />
                 Created Date
             </div>
         },
         cell: ({ row }) => {
-            return <div>{formatRFC3339ToDisplayableDate(row.original.createdAt)} by {row.original.createdByEmail}</div>
+            return <div>{formatRFC3339ToDisplayableDate(row.original.createdAt, false)} by {row.original.createdByEmail}</div>
         }
     },
     {
@@ -92,7 +85,11 @@ export const columns: ColumnDef<Application>[] = [
         header: 'Status',
         cell: ({ row }) => {
             return <div>
-                <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>{APPLICATION_STATUS[row.original.status]}</Badge>
+                <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>
+                    {APPLICATION_STATUS[row.original.status]}
+
+                    {row.original.updatedAt && <div className="">&#40;Last updated at {formatRFC3339ToDisplayableDate(row.original.updatedAt, false)}&#41;</div>}
+                </Badge>
             </div>
         }
     },
@@ -286,26 +283,26 @@ function ActionDialog({
                         </Button> : <Button type='button' variant="ghost" onClick={() => setIsOpen(false)}
                             disabled={isSubmitting}>Cancel</Button>}
                     </> : role === Role.Staff && <>
-                            <Button type="button"
-                                disabled={isSubmitting}
-                                isLoading={isSubmitting && currentStatus === ApplicationStatus.Approved}
-                                onClick={() => {
-                                    setFormValue('status', ApplicationStatus.Approved);
-                                    handleSubmit();
-                                }}>
-                                Approve
-                            </Button>
-                            <Button type="button"
-                                disabled={isSubmitting}
-                                isLoading={isSubmitting && currentStatus === ApplicationStatus.Rejected}
-                                variant={'destructive'}
-                                onClick={() => {
-                                    setFormValue('status', ApplicationStatus.Rejected);
-                                    handleSubmit();
-                                }}>
-                                Reject
-                            </Button>
-                        </>}
+                        <Button type="button"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting && currentStatus === ApplicationStatus.Approved}
+                            onClick={() => {
+                                setFormValue('status', ApplicationStatus.Approved);
+                                handleSubmit();
+                            }}>
+                            Approve
+                        </Button>
+                        <Button type="button"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting && currentStatus === ApplicationStatus.Rejected}
+                            variant={'destructive'}
+                            onClick={() => {
+                                setFormValue('status', ApplicationStatus.Rejected);
+                                handleSubmit();
+                            }}>
+                            Reject
+                        </Button>
+                    </>}
                 </DialogFooter>
             </Form>
         </DialogContent>
