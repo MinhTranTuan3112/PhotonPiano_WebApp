@@ -652,13 +652,13 @@ function StudentsSection({
                         <Button type='button' variant={'outline'}
                             Icon={CirclePlus} iconPlacement='left'
                             disabled={isSubmitting} isLoading={isSubmitting}>
-                            Thêm học viên
+                            Add learner
                         </Button>
                     </div>}
 
                     <div className="flex justify-end">
                         <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
-                            Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
+                            Icon={Import} iconPlacement='left'>Import with Excel file</Button>
                     </div>
                     <ResultTable data={entranceTest.entranceTestStudents} />
                 </div>
