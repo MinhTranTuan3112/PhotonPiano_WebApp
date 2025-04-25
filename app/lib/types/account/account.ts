@@ -24,6 +24,7 @@ export type Account = {
     preferredLearningMethods: string[];
     studentStatus?: StudentStatus;
     role: Role;
+    wantToContinue?: boolean;
 };
 
 export type AccountDetail = {

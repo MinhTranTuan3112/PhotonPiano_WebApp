@@ -47,7 +47,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/teacher/classes':
             otherNavItems = [
                 {
-                    name: "Danh sách lớp",
+                    name: "Class list",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -215,7 +215,7 @@ const data = {
                     url: "/teacher/entrance-tests",
                 },
                 {
-                    title: "Danh sách lớp",
+                    title: "Class list",
                     url: "/teacher/classes",
                 },
                 {
