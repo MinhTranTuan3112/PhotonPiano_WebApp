@@ -87,10 +87,16 @@ export const columns: ColumnDef<Application>[] = [
             return <div>
                 <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>
                     {APPLICATION_STATUS[row.original.status]}
-
-                    {row.original.updatedAt && <div className="">&#40;Last updated at {formatRFC3339ToDisplayableDate(row.original.updatedAt, false)}&#41;</div>}
                 </Badge>
+                
             </div>
+        }
+    },
+    {
+        accessorKey: 'Last update',
+        header: 'Last update',
+        cell: ({ row }) => {
+            return <div>{row.original.updatedAt ? `${formatRFC3339ToDisplayableDate(row.original.updatedAt, false)} by ${row.original.approvedByEmail}` : '(None)'}</div>
         }
     },
     {
@@ -140,14 +146,14 @@ function ActionDropdown({ row }: {
                         status: ApplicationStatus.Rejected,
                         isOpen: true,
                         title: 'Application details',
-                        description: `Application details for ${row.original.id}`,
+                        description: `Application details`,
                     })
                 }}>
                     <Eye />
                     View
                 </DropdownMenuItem>
 
-                {role === Role.Staff && <>
+                {/* {role === Role.Staff && <>
                     <DropdownMenuItem className="cursor-pointer" onClick={() => {
                         setDialogProps({
                             ...dialogProps,
@@ -174,7 +180,7 @@ function ActionDropdown({ row }: {
                         <CircleX />
                         Reject
                     </DropdownMenuItem>
-                </>}
+                </>} */}
 
             </DropdownMenuContent>
         </DropdownMenu>
@@ -247,7 +253,9 @@ function ActionDialog({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
