@@ -1,31 +1,67 @@
-name: Build, Push, and Deploy Frontend
+name: Build, Test & Deploy React Frontend
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME_WEB: ghcr.io/minhtrantuan3112/photonpiano-webapp
+  NODE_VERSION: '20.x'
+  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+  VITE_COOKIE_SECRET: ${{ secrets.VITE_COOKIE_SECRET }}
+  VITE_IS_DEVELOPMENT: ${{ secrets.VITE_IS_DEVELOPMENT }}
+  VITE_PINATA_API_KEY: ${{ secrets.VITE_PINATA_API_KEY }}
+  VITE_PINATA_API_SECRET: ${{ secrets.VITE_PINATA_API_SECRET }}
+  VITE_PINATA_GATEWAY_KEY: ${{ secrets.VITE_PINATA_GATEWAY_KEY }}
+  VITE_PINATA_GATEWAY_BASE_URL: ${{ secrets.VITE_PINATA_GATEWAY_BASE_URL }}
+  VITE_API_PUB_SUB_URL: ${{ secrets.VITE_API_PUB_SUB_URL }}
+  VITE_API_NOTIFICATION_URL: ${{ secrets.VITE_API_NOTIFICATION_URL }}
+  VITE_API_PROGRESS_URL: ${{ secrets.VITE_API_PROGRESS_URL }}
 
 jobs:
-  build-push-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-      - name: Checkout code
+      - name: 🛠️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Log in to GitHub Container Registry
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Project
+        run: npm run build
+
+      # Uncomment if you have tests
+      # - name: ✅ Run Tests
+      #   run: npm test
+
+  docker-build-and-push:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛠️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔐 Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Cache Docker layers
         uses: actions/cache@v4
@@ -35,15 +71,78 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Docker image
+      - name: 🏗️ Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/minhtrantuan3112/photonpiano-webapp:latest
-            ghcr.io/minhtrantuan3112/photonpiano-webapp:${{ github.sha }}
+            ${{ env.IMAGE_NAME_WEB }}:latest
+            ${{ env.IMAGE_NAME_WEB }}:${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
+          build-args: |
+            VITE_API_BASE_URL=${{ env.VITE_API_BASE_URL }}
+            VITE_COOKIE_SECRET=${{ env.VITE_COOKIE_SECRET }}
+            VITE_IS_DEVELOPMENT=${{ env.VITE_IS_DEVELOPMENT }}
+            VITE_PINATA_API_KEY=${{ env.VITE_PINATA_API_KEY }}
+            VITE_PINATA_API_SECRET=${{ env.VITE_PINATA_API_SECRET }}
+            VITE_PINATA_GATEWAY_KEY=${{ env.VITE_PINATA_GATEWAY_KEY }}
+            VITE_PINATA_GATEWAY_BASE_URL=${{ env.VITE_PINATA_GATEWAY_BASE_URL }}
+            VITE_API_PUB_SUB_URL=${{ env.VITE_API_PUB_SUB_URL }}
+            VITE_API_NOTIFICATION_URL=${{ env.VITE_API_NOTIFICATION_URL }}
+            VITE_API_PROGRESS_URL=${{ env.VITE_API_PROGRESS_URL }}
 
+  deploy-to-server:
+    needs: docker-build-and-push
+    runs-on: ubuntu-latest
     
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n  StrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - name: 🚀 Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e # Stop script if there's an error
+            
+            # Ensure directory structure exists
+            mkdir -p ~/photonpiano/frontend
+            
+            # Create .env file for frontend
+            cat > ~/photonpiano/frontend/.env <<EOF
+            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+            VITE_COOKIE_SECRET=${{ secrets.VITE_COOKIE_SECRET }}
+            VITE_IS_DEVELOPMENT=${{ secrets.VITE_IS_DEVELOPMENT }}
+            VITE_PINATA_API_KEY=${{ secrets.VITE_PINATA_API_KEY }}
+            VITE_PINATA_API_SECRET=${{ secrets.VITE_PINATA_API_SECRET }}
+            VITE_PINATA_GATEWAY_KEY=${{ secrets.VITE_PINATA_GATEWAY_KEY }}
+            VITE_PINATA_GATEWAY_BASE_URL=${{ secrets.VITE_PINATA_GATEWAY_BASE_URL }}
+            VITE_API_PUB_SUB_URL=${{ secrets.VITE_API_PUB_SUB_URL }}
+            VITE_API_NOTIFICATION_URL=${{ secrets.VITE_API_NOTIFICATION_URL }}
+            VITE_API_PROGRESS_URL=${{ secrets.VITE_API_PROGRESS_URL }}
+            EOF
+            
+            # Login to GitHub Container Registry
+            echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Pull the latest frontend image
+            docker pull ${{ env.IMAGE_NAME_WEB }}:latest
+            
+            # If the container is running, restart it; otherwise, let docker-compose handle it later
+            docker restart photonpiano-web || true
+            
+            # Go to main directory and restart all services to ensure proper coordination
+            cd ~/photonpiano
+            docker compose -p photonpiano up -d --force-recreate
