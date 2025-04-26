@@ -1,5 +1,4 @@
-
-import { createCookie } from "@vercel/remix";
+import { createCookie } from "@remix-run/node";
 
 const cookieSecret = import.meta.env.VITE_COOKIE_SECRET;
 

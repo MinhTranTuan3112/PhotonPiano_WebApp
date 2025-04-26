@@ -175,7 +175,7 @@ function SearchForm() {
       )}
     />
 
-    <Input {...register('q')} placeholder='Tìm kiếm...'
+    <Input {...register('q')} placeholder='Search here...'
       startContent={<Search className='size-5' />}
       className='col-span-full w-full'
       defaultValue={trimQuotes(searchParams.get('q') || '')} />
@@ -183,7 +183,7 @@ function SearchForm() {
     <div className="">
       <Button type='submit' Icon={Search} iconPlacement='left'
         isLoading={isSubmitting}
-        disabled={isSubmitting}>Tìm kiếm</Button>
+        disabled={isSubmitting}>Search</Button>
     </div>
   </Form>
 }

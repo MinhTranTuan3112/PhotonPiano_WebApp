@@ -1,9 +1,12 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react';
-import { Suspense, useEffect } from 'react'
+import { PencilLine, X } from 'lucide-react';
+import { Suspense, useEffect, useState } from 'react'
 import { getValidatedFormData } from 'remix-hook-form';
 import { toast } from 'sonner';
+import SurveyDetailsContent from '~/components/survey/survey-details-content';
 import SurveyForm, { SurveyFormData, surveyResolver } from '~/components/survey/survey-form';
+import { Button } from '~/components/ui/button';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchASurvey, fetchUpdateSurvey } from '~/lib/services/survey';
 import { Role } from '~/lib/types/account/account';
@@ -143,7 +146,7 @@ export default function SurveyDetailsPage({ }: Props) {
                 <Await resolve={promise}>
                     {({ surveyPromise }) => (
                         <Await resolve={surveyPromise}>
-                            <SurveyDetailsContent />
+                            <SurveyContent />
                         </Await>
                     )}
                 </Await>
@@ -153,7 +156,7 @@ export default function SurveyDetailsPage({ }: Props) {
     );
 };
 
-function SurveyDetailsContent() {
+function SurveyContent() {
 
     const { idToken } = useLoaderData<typeof loader>();
 
@@ -180,6 +183,8 @@ function SurveyDetailsContent() {
         })
     };
 
+    const [isEditing, setIsEditing] = useState(false);
+
     const fetcher = useFetcher<typeof action>();
 
     useEffect(() => {
@@ -202,7 +207,17 @@ function SurveyDetailsContent() {
 
     }, [fetcher.data]);
 
-    return <SurveyForm idToken={idToken} surveyData={surveyData} isEditing={true} fetcher={fetcher} />
+   
+
+    return <div className="">
+        <div className="flex justify-end my-4">
+            <Button type='button' variant={'outline'} size={'icon'} className='rounded-full' onClick={() => setIsEditing(!isEditing)}>
+                {!isEditing ? <PencilLine /> : <X className='text-red-600' />}
+            </Button>
+        </div>
+        {isEditing ? <SurveyForm idToken={idToken} surveyData={surveyData} isEditing={true} fetcher={fetcher} /> :
+            <SurveyDetailsContent surveyDetails={survey} />}
+    </div>
 }
 
 function LoadingSkeleton() {

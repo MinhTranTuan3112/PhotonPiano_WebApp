@@ -18,8 +18,8 @@ export const searchSchema = z.object({
     statuses: z.array(z.string()).optional(),
     methods: z.array(z.string()).optional(),
     transactionCode: z.string().optional(),
-    startDate: z.coerce.date({ message: 'Ngày không hợp lệ.' }).optional(),
-    endDate: z.coerce.date({ message: 'Ngày không hợp lệ.' }).optional(),
+    startDate: z.coerce.date({ message: 'Invalid date.' }).optional(),
+    endDate: z.coerce.date({ message: 'Invalid date.' }).optional(),
 });
 
 function VnPayLogoImage() {
@@ -31,7 +31,7 @@ type SearchFormData = z.infer<typeof searchSchema>;
 const resolver = zodResolver(searchSchema);
 
 const paymentMethodOptions = [
-    { label: 'Tiền mặt', value: PaymentMethod.Cash.toString(), icon: Banknote },
+    { label: 'Cash', value: PaymentMethod.Cash.toString(), icon: Banknote },
     { label: 'VNPAY', value: PaymentMethod.VnPay.toString(), icon: VnPayLogoImage },
 ]
 
@@ -67,7 +67,7 @@ export default function SearchForm({ }: Props) {
                         <MultiSelect options={paymentMethodOptions}
                             value={value}
                             defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('methods') })}
-                            placeholder='Phương thức thanh toán'
+                            placeholder='Payment methods'
                             className='md:max-w-[30%]'
                             onValueChange={onChange} />
                     )}
@@ -79,7 +79,7 @@ export default function SearchForm({ }: Props) {
                         <MultiSelect options={paymentStatusOptions}
                             value={value}
                             defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
-                            placeholder='Trạng thái'
+                            placeholder='Statuses'
                             className='md:max-w-[30%]'
                             onValueChange={onChange} />
                     )}
@@ -96,7 +96,7 @@ export default function SearchForm({ }: Props) {
                             ref={ref}
                             defaultValue={trimQuotes(searchParams.get('startDate') || '') || undefined}
                             onBlur={onBlur}
-                            placeholder='Từ ngày'
+                            placeholder='From date'
                             className='w-full md:max-w-[30%]' />
                     )}
                 />
@@ -109,7 +109,7 @@ export default function SearchForm({ }: Props) {
                             ref={ref}
                             onBlur={onBlur}
                             defaultValue={trimQuotes(searchParams.get('endDate') || '') || undefined}
-                            placeholder='Đến ngày' 
+                            placeholder='To date' 
                             className='w-full md:max-w-[30%]'/>
                     )}
                 />
@@ -117,11 +117,11 @@ export default function SearchForm({ }: Props) {
 
             </div>
 
-            <Input {...register('transactionCode')} placeholder='Nhập mã giao dịch...' />
+            <Input {...register('transactionCode')} placeholder='Enter transaction code...' />
 
             <div className="">
                 <Button type='submit' Icon={Search} iconPlacement='left' isLoading={isSubmitting}
-                    disabled={isSubmitting}>Tìm kiếm</Button>
+                    disabled={isSubmitting}>Search</Button>
             </div>
         </Form>
     );

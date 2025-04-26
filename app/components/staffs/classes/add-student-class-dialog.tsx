@@ -130,8 +130,8 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                     <Form method='GET' onSubmit={handleSearch}>
                         <div className='mt-2 flex gap-2'>
                             <Button variant={'outline'} onClick={handleRefresh} type='button'><RefreshCcw /></Button>
-                            <Input placeholder='Tìm kiếm...' name='name'></Input>
-                            <Button Icon={Search} iconPlacement='left'>Tìm kiếm</Button>
+                            <Input placeholder='Search...' name='name'></Input>
+                            <Button Icon={Search} iconPlacement='left'>Search</Button>
                         </div>
                     </Form>
                     <div className='max-h-[24rem] overflow-y-auto mt-2'>

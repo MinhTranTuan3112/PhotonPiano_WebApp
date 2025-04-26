@@ -272,7 +272,7 @@ export default function TeacherClassListPage() {
                         <div className="relative w-full sm:w-auto group">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400 group-hover:text-blue-500 transition-colors duration-200" />
                             <Input
-                                placeholder="Tìm kiếm lớp..."
+                                placeholder="Search classes..."
                                 className="pl-10 w-full sm:w-64 bg-white border-neutral-200 rounded-full shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
