@@ -35,6 +35,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Combobox from '../ui/combobox';
 import { objectToFormData } from '~/lib/utils/form';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 
 type Props = {
@@ -114,7 +115,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

@@ -19,6 +19,7 @@ import { DateRange } from "react-day-picker";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { action } from "~/routes/admin.day-offs";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 export const dayOffColumns: ColumnDef<DayOff>[] = [
     // {
@@ -123,7 +124,7 @@ function ActionsDropdown({ row }: { row: Row<DayOff> }) {
 
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

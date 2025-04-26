@@ -14,6 +14,7 @@ import { formatPrice } from '~/lib/utils/price'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { action } from '~/routes/enroll'
 import { toast } from 'sonner'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {
     isOpen: boolean,
@@ -78,7 +79,7 @@ function EnrollForm() {
     useEffect(() => {
 
         if (actionData?.success === false) {
-            toast.warning(actionData?.error);
+            toastWarning(actionData?.error);
             return;
         }
 

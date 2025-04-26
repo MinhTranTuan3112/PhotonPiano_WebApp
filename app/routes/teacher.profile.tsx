@@ -27,6 +27,7 @@ import { fetchCurrentAccountInfo } from '~/lib/services/auth'
 import { fetchUpdateAccountInfo } from '~/lib/services/account'
 import { useAuth } from '~/lib/contexts/auth-context'
 import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
+import { toastWarning } from '~/lib/utils/toast-utils'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -239,7 +240,7 @@ function ProfileForm() {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(`Lưu thất bại! ${fetcher.data.error}`, {
+            toastWarning(`Lưu thất bại! ${fetcher.data.error}`, {
                 position: 'top-center',
                 duration: 1250
             });

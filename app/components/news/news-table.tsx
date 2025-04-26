@@ -12,6 +12,7 @@ import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { action } from "~/routes/staff.articles._index";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 
 export function PublishBadge({
@@ -146,7 +147,7 @@ function ActionDropdown({ row }: {
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

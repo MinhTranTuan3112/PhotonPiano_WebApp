@@ -37,6 +37,7 @@ import {
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 export const surveySchema = z.object({
     id: z.string().optional(),
@@ -389,7 +390,7 @@ function QuestionCard({
     // Add new option
     const handleAddOption = useCallback(() => {
         if (!newOption || newOption.trim() === "") {
-            toast.warning("Option can't be empty!", {
+            toastWarning("Option can't be empty!", {
                 duration: 5000
             })
             return
@@ -441,7 +442,7 @@ function QuestionCard({
                                     const newContent = e.target.value
 
                                     if (!newContent || newContent.trim() === "") {
-                                        toast.warning("Question content cannot be empty!", {
+                                        toastWarning("Question content cannot be empty!", {
                                             duration: 5000
                                         })
                                         return

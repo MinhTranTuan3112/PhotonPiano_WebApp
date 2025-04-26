@@ -8,6 +8,7 @@ import { useDropzone } from 'react-dropzone-esm';
 import { toast } from 'sonner';
 import { formatFileSize } from '~/lib/utils/file';
 import { ImageFile } from '~/hooks/use-images-dialog';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {
     imageFiles: ImageFile[];
@@ -28,7 +29,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         const totalImages = imageFiles.length + acceptedFiles.length;
 
         if (totalImages > maxImages) {
-            toast.warning(`You can only upload maximum of ${maxImages} images.`, {
+            toastWarning(`You can only upload maximum of ${maxImages} images.`, {
                 duration: 5000
             });
             return;
@@ -65,7 +66,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
         }
 
         if (imageFiles.length >= maxImages) {
-            toast.warning(`You can only upload maximum of ${maxImages} images.`, {
+            toastWarning(`You can only upload maximum of ${maxImages} images.`, {
                 duration: 5000
             });
             return;
@@ -94,7 +95,7 @@ export default function CustomImagesInput({ imageFiles, setImageFiles, maxImages
 
         } catch (error) {
             console.error('Error fetching image:', error);
-            toast.warning('Cannot load url from the inputted image.', {
+            toastWarning('Cannot load url from the inputted image.', {
                 duration: 5000
             });
         }

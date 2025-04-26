@@ -14,6 +14,7 @@ import { Role } from '~/lib/types/account/account';
 import { ArticleDetails } from '~/lib/types/news/article';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -161,7 +162,7 @@ function ArticleDetailsContent({
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error);
+            toastWarning(fetcher.data.error);
             return;
         }
 
