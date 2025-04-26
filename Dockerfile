@@ -7,24 +7,18 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build 
 
-# Stage 2: Runtime
+RUN npm run build
+
+# Stage 2: Run
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.env ./
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/public ./public
+COPY --from=builder /app /app
 
-RUN npm install 
+ENV NODE_ENV=production
 
 EXPOSE 3000
 
-#ENV NODE_ENV=production
-
-CMD ["npm", "run", "start"]
-
-#CMD ["npm", "run", "dev"]
+CMD ["npx", "remix-serve", "./build/server/nodejs-eyJydW50aW1lIjoibm9kZWpzIn0/index.js"]
