@@ -52,7 +52,7 @@ export default function SearchForm({ }: Props) {
             className='my-3 flex flex-col gap-3'>
 
             <div className="w-full">
-                <Input {...register('q')} placeholder='Tìm kiếm...' className='w-full max-w-[50%]'
+                <Input {...register('q')} placeholder='Search here...' className='w-full max-w-[50%]'
                     defaultValue={trimQuotes(searchParams.get('q') || '')} />
             </div>
 

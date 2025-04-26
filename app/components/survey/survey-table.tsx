@@ -4,12 +4,14 @@ import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
-import { useFetcher, useNavigate } from "@remix-run/react";
+import { useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { action } from "~/routes/staff.surveys._index";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { toastWarning } from "~/lib/utils/toast-utils";
+import { loader } from "~/root";
+import { Role } from "~/lib/types/account/account";
 
 export const columns: ColumnDef<Survey>[] = [
     // {
@@ -61,6 +63,10 @@ function ActionDropdown({ row }: {
     row: Row<Survey>
 }) {
 
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    const role = authData?.role ? authData.role as number : 0;
+
     const navigate = useNavigate()
 
     const fetcher = useFetcher<typeof action>();
@@ -108,7 +114,6 @@ function ActionDropdown({ row }: {
     }, [fetcher.data]);
 
 
-
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -121,16 +126,17 @@ function ActionDropdown({ row }: {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                    navigate(`/staff/surveys/${row.original.id}`)
+                    navigate(role === Role.Staff ? `/staff/surveys/${row.original.id}` : `/account/my-surveys/${row.original.id}`)
                 }}>
                     <Eye />
                     View
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer text-red-600" disabled={isSubmitting}
+                {role === Role.Staff && <DropdownMenuItem className="cursor-pointer text-red-600" disabled={isSubmitting}
                     onClick={handleOpenConfirmDialog}>
                     <Trash2 />
                     Delete
-                </DropdownMenuItem>
+                </DropdownMenuItem>}
+
             </DropdownMenuContent>
         </DropdownMenu>
         {confirmDialog}
