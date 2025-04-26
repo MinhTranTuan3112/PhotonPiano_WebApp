@@ -27,6 +27,7 @@ import { AuthResponse } from '~/lib/types/auth-response';
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime';
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie';
 import { Role } from '~/lib/types/account/account';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -397,7 +398,7 @@ function EntranceSurveyForm() {
     useEffect(() => {
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

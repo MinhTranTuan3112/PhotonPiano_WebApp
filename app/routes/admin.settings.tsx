@@ -44,6 +44,7 @@ import SurveyConfigForm, { SurveyConfigFormData, surveyConfigSchema } from '~/co
 import { Role } from '~/lib/types/account/account';
 import TuitionConfigForm, {TuitionConfigFormData, tuitionConfigSchema} from '~/components/settings/tuition-config-form';
 import SchedulerConfigForm, {SchedulerConfigFormData, schedulerConfigSchema} from "~/components/settings/scheduler-config-form";
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -171,7 +172,7 @@ export default function AdminSettingsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning('Fail to update: ' + fetcher.data.error);
+            toastWarning('Fail to update: ' + fetcher.data.error);
             return;
         }
 

@@ -21,6 +21,7 @@ import { signInSchema } from '~/lib/utils/schemas'
 import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { Role } from '~/lib/types/account/account'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {}
 
@@ -128,7 +129,7 @@ export default function SignInPage({ }: Props) {
     useEffect(() => {
 
         if (actionData?.success === false && actionData?.error) {
-            toast.warning(actionData?.error, {
+            toastWarning(actionData?.error, {
                 position: 'top-center',
                 duration: 5000
             });

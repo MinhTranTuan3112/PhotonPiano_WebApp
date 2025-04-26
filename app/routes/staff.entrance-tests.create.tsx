@@ -27,6 +27,7 @@ import { Shift } from '~/lib/types/entrance-test/entrance-test'
 import { fetchCreateEntranceTest } from '~/lib/services/entrance-tests'
 import { format } from 'date-fns'
 import { date } from 'zod'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {};
 
@@ -226,7 +227,7 @@ export function CreateEntranceTestForm({
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
 

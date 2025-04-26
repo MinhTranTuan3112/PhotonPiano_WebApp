@@ -50,6 +50,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { fetchLevels } from '~/lib/services/level';
 import { Badge } from '../ui/badge';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -188,7 +189,7 @@ function ActionDropdown({ row, table }: {
         }
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error, {
+            toastWarning(fetcher.data?.error, {
                 duration: 5000
             });
             return;
@@ -343,7 +344,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         }
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error, {
+            toastWarning(fetcher.data?.error, {
                 duration: 5000
             });
             return;

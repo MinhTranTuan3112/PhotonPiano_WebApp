@@ -14,6 +14,7 @@ import { action } from '~/routes/import-entrance-test-result';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { Role } from '~/lib/types/account/account';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 
 export type ImportResultDialogProps = {
@@ -210,7 +211,7 @@ export default function ImportResultDialog({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error);
+            toastWarning(fetcher.data.error);
             return;
         }
 

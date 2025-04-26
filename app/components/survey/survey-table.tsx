@@ -9,6 +9,7 @@ import { action } from "~/routes/staff.surveys._index";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 export const columns: ColumnDef<Survey>[] = [
     // {
@@ -93,7 +94,7 @@ function ActionDropdown({ row }: {
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning('Delete failed!', {
+            toastWarning('Delete failed!', {
                 description: fetcher.data.error,
                 duration: 5000
             });

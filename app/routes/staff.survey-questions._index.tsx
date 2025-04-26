@@ -17,6 +17,7 @@ import { Role } from '~/lib/types/account/account';
 import { SurveyQuestion } from '~/lib/types/survey-question/survey-question';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -223,7 +224,7 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning('Error: ' + fetcher.data.error, {
+            toastWarning('Error: ' + fetcher.data.error, {
                 position: 'top-center',
                 duration: 5000,
             });

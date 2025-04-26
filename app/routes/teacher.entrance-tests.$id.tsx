@@ -15,6 +15,7 @@ import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-deta
 import { requireAuth } from '~/lib/utils/auth'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { EntranceTestDetailsContent } from './staff.entrance-tests.$id'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {}
 
@@ -88,7 +89,7 @@ export default function TeacherEntranceTestDetailsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 position: 'top-center',
                 duration: 5000
             });

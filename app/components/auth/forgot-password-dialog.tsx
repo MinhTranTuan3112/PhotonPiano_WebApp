@@ -6,6 +6,7 @@ import { ReactNode, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { action } from '~/routes/auth'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {
     trigger?: ReactNode // Allowing optional custom trigger
@@ -24,7 +25,7 @@ export default function ForgotPasswordDialog({ trigger }: Props) {
             return;
         } 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error, {
+            toastWarning(fetcher.data?.error, {
                 position: 'top-center',
                 duration: 5000
             });

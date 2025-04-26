@@ -36,6 +36,7 @@ import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
 import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
 import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
 import { getEntranceTestName } from './staff.entrance-tests.create'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {}
 
@@ -119,7 +120,7 @@ export default function StaffEntranceTestDetailsPage({ }: Props) {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 position: 'top-center',
                 duration: 5000
             });
@@ -628,7 +629,7 @@ function StudentsSection({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;
@@ -733,7 +734,7 @@ function PublishScoreSection({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 position: 'top-center'
             });
             return;
