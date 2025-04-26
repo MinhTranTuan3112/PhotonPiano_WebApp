@@ -1,7 +1,6 @@
 import { Account, Level } from "../account/account";
-import { Criteria } from "../criteria/criteria";
 import { EntranceTest } from "./entrance-test";
-import { EntranceTestResult } from "./entrance-test-result"
+import { EntranceTestResult, EntranceTestResultWithCriteria } from "./entrance-test-result"
 
 export type EntranceTestStudent = {
     id: string;
@@ -11,13 +10,17 @@ export type EntranceTestStudent = {
     bandScore?: number;
     levelId?: string;
     level?: Level;
+    levelAdjustedAt?: string;
     theoraticalScore?: number;
     instructorComment?: string;
+    isScoreAnnounced: boolean;
     student : Account;
+    updatedAt?: string;
 }
 
 export type EntranceTestStudentWithResults = {
-    entranceTestResults: EntranceTestResult[];
+    entranceTestResults: EntranceTestResultWithCriteria[];
+    level?: Level;
 } & EntranceTestStudent;
 
 export type EntranceTestStudentDetail = {

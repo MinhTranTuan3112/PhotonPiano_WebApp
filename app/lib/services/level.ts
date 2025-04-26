@@ -5,3 +5,21 @@ export async function fetchLevels() {
 
     return response;
 }
+
+export async function fetchALevel({
+    idToken,
+    id
+}: {
+    id: string;
+    idToken: string;
+}) {
+
+    const response = await axiosInstance.get(`/levels/${id}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+    
+}

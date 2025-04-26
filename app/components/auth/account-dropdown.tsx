@@ -29,15 +29,15 @@ export default function AccountDropdown({ accountFirebaseId, role }: { accountFi
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận đăng xuất?',
-        description: 'Bạn có chắc chắn muốn đăng xuất?',
+        title: 'Confirm signout?',
+        description: 'Sign out now?',
         onConfirm: () => {
             fetcher.submit(null, {
                 method: 'POST',
                 action: '/sign-out',
             });
         },
-        confirmText: 'Đăng xuất',
+        confirmText: 'Sign out',
     });
 
     const navigate = useNavigate()
@@ -55,7 +55,7 @@ export default function AccountDropdown({ accountFirebaseId, role }: { accountFi
                         </Avatar>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
-                        <DropdownMenuLabel>Xin chào, {currentAccount?.fullName || currentAccount?.userName}</DropdownMenuLabel>
+                        <DropdownMenuLabel>Hello, {currentAccount?.fullName || currentAccount?.userName}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem className="cursor-pointer" onClick={() => {
@@ -74,14 +74,14 @@ export default function AccountDropdown({ accountFirebaseId, role }: { accountFi
                                         break;
                                 }
                             }}>
-                                Quản lý thông tin
+                                Manage information
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
                             <DropdownMenuItem onClick={() => handleOpenModal()} disabled={isSubmitting}
                                 className="cursor-pointer">
-                                <LogOut /> Đăng xuất
+                                <LogOut /> Sign out
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                     </DropdownMenuContent>

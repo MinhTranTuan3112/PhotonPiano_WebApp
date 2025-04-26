@@ -9,7 +9,8 @@ import { Input } from "./input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
 import { batchUpdateStudentScores } from "~/lib/services/student-class"
-import { ScoreDetailsDialogProps } from "~/lib/types/student-class-score/studentScore"
+import type { ScoreDetailsDialogProps } from "~/lib/types/student-class-score/studentScore"
+import { toast } from "sonner"
 
 export function ScoreDetailsDialog({
     studentName,
@@ -52,10 +53,6 @@ export function ScoreDetailsDialog({
                 score: number
             }> = []
 
-            // Log the edited scores for debugging
-            console.log("Edited scores:", editedScores)
-            console.log("Class data:", classData)
-
             // Check if studentClasses is available
             if (!classData.studentClasses) {
                 // Create a fallback mapping using student IDs
@@ -64,8 +61,6 @@ export function ScoreDetailsDialog({
                     id: student.studentId, // Using studentId as the studentClassId
                     studentFirebaseId: student.studentId,
                 }))
-
-                console.log("Created fallback student classes:", fallbackStudentClasses)
 
                 // Add the fallback to classData
                 classData.studentClasses = fallbackStudentClasses
@@ -80,8 +75,6 @@ export function ScoreDetailsDialog({
                     return
                 }
 
-                console.log("Processing student:", student.studentName, "ID:", studentId)
-
                 // For each student, process their criteria scores
                 Object.entries(criteriaScores).forEach(([criteriaName, score]) => {
                     // Find the criteria ID that matches this name
@@ -90,8 +83,6 @@ export function ScoreDetailsDialog({
                         console.log("Criteria not found:", criteriaName)
                         return
                     }
-
-                    console.log("Found criteria:", criteria)
 
                     // Find the student class by matching studentId with studentFirebaseId
                     const studentClass = classData.studentClasses?.find((sc: any) => sc.studentFirebaseId === studentId)
@@ -107,11 +98,8 @@ export function ScoreDetailsDialog({
                             score: score,
                         })
 
-                        console.log("Added fallback score using studentId directly")
                         return
                     }
-
-                    console.log("Found student class:", studentClass)
 
                     // Add the score update to the array
                     scores.push({
@@ -119,29 +107,8 @@ export function ScoreDetailsDialog({
                         criteriaId: criteria.criteriaId,
                         score: score,
                     })
-
-                    // Log the score update for debugging
-                    console.log("Score update added:", {
-                        studentClassId: studentClass.id,
-                        criteriaId: criteria.criteriaId,
-                        score: score,
-                        studentName: student.studentName,
-                        criteriaName: criteria.criteriaName,
-                    })
                 })
             })
-
-            console.log("Final scores array:", scores)
-
-            // if (scores.length === 0) {
-            //     toast({
-            //         title: "No scores to update",
-            //         description: "Please check the student class mapping or make changes to scores first.",
-            //         variant: "destructive",
-            //     })
-            //     setIsSaving(false)
-            //     return
-            // }
 
             // Call the API to update scores
             await batchUpdateStudentScores({
@@ -152,23 +119,21 @@ export function ScoreDetailsDialog({
                 idToken: idToken || "",
             })
 
-            // toast({
-            //     title: "Scores updated successfully",
-            //     description: `Updated ${scores.length} score(s)`,
-            //     variant: "default",
-            // })
+            toast.success(`Scores updated successfully! Updated ${scores.length} score(s)`)
 
             // Reset edit mode after successful save
             setEditMode(false)
 
             // Update the local data with the new scores
             if (onScoresUpdated && classData.students) {
-                const updatedStudents = classData.students.map((student) => {
+                // Create a new array with the same order as the original
+                const updatedStudents = [...classData.students].map((student) => {
                     const studentEdits = editedScores[student.studentId]
                     if (!studentEdits) return student
 
                     // Create a copy of the student with updated scores
                     const updatedStudent = { ...student }
+                    // Preserve the original order of criteria scores
                     updatedStudent.criteriaScores = student.criteriaScores.map((criteria) => {
                         const newScore = studentEdits[criteria.criteriaName]
                         if (newScore !== undefined) {
@@ -190,17 +155,11 @@ export function ScoreDetailsDialog({
                 onScoresUpdated(updatedStudents)
             }
         } catch (error) {
-            console.error("Error saving scores:", error)
-            // toast({
-            //     title: "Error updating scores",
-            //     description: "Please check the console for more details.",
-            //     variant: "destructive",
-            // })
+            toast.error(`Error saving scores: ${error instanceof Error ? error.message : String(error)}`)
         } finally {
             setIsSaving(false)
         }
     }
-
 
     // If it's a class view, we'll show all students and their scores
     if (isClassView && classData) {
@@ -236,7 +195,7 @@ export function ScoreDetailsDialog({
                                 variant={editMode ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setEditMode(!editMode)}
-                                disabled={isSaving}
+                                disabled={isSaving || (classData && classData.isScorePublished)}
                             >
                                 {editMode ? (
                                     <>
@@ -251,6 +210,11 @@ export function ScoreDetailsDialog({
                                 )}
                             </Button>
                         </div>
+                        {classData && classData.isScorePublished && !editMode && (
+                            <div className="text-xs text-muted-foreground mt-2">
+                                Scores cannot be edited after they have been published.
+                            </div>
+                        )}
                     </DialogHeader>
 
                     <div className="mt-4 space-y-6">
@@ -502,7 +466,7 @@ export function ScoreDetailsDialog({
 
     // Original individual student view
     // Sort criteria by weight (highest first)
-    const sortedCriteria = criteriaScores ? [...criteriaScores].sort((a, b) => b.weight - a.weight) : []
+    const sortedCriteria = criteriaScores ? [...criteriaScores] : []
 
     return (
         <Dialog>

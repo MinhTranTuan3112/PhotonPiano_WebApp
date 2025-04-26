@@ -3,23 +3,25 @@ import { Music, Headphones, Users } from 'lucide-react';
 
 const cards = [
     {
-        title: "Khơi dậy đam mê âm nhạc",
-        description: "Khơi dậy đam mê âm nhạc và nuôi dưỡng tinh thần nghệ thuật trong từng cá nhân.",
+        title: "Ignite the Passion for music though the piano",
+        description: "Piano is a great way to ignite the passion for music in children and adults alike.",
         icon: Music,
     },
     {
-        title: "Cơ sở vật chất hiện đại",
-        description: "Trải nghiệm học tập với cơ sở vật chất hiện đại và công nghệ tiên tiến.",
+        title: "Modern Facilities",
+        description: "Piano rooms are equipped with modern facilities, including digital pianos and sound systems.",
         icon: Headphones,
     },
     {
-        title: "Môi trường học tập năng động, thực tiễn, cởi mở",
-        description: "Tạo cơ hội biểu diễn, giao lưu và phát triển kỹ năng trình diễn trên sân khấu.",
+        title: "Dynamic, Practical, and Open Learning Environment",
+        description: "Create opportunities to perform, connect, and develop stage performance skills.",
         icon: Users,
     },
 ]
 
+
 export function FeatureSection() {
+
     return (
         <section className="relative py-24 overflow-hidden bg-gray-100">
             {/* Piano key decorative elements */}
@@ -36,9 +38,11 @@ export function FeatureSection() {
                     transition={{ duration: 0.6 }}
                     className="mb-16 text-center"
                 >
-                    <h2 className="text-sm uppercase tracking-wider text-gray-600 font-semibold">ĐÀO TẠO KHÁC BIỆT</h2>
+                    <h2 className="text-sm uppercase tracking-wider text-gray-600 font-semibold">
+                        Unique style of education
+                    </h2>
                     <h3 className="mt-2 text-4xl font-bold text-gray-900">
-                        Photon Piano cung cấp chương trình đào tạo piano độc đáo
+                        Photon Piano provides a unique piano training program
                     </h3>
                 </motion.div>
 

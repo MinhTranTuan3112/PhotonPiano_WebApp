@@ -239,7 +239,7 @@ function ProfileForm() {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(`Lưu thất bại! ${fetcher.data.error}`, {
+            toast.warning(`Lưu thất bại! ${fetcher.data.error}`, {
                 position: 'top-center',
                 duration: 1250
             });

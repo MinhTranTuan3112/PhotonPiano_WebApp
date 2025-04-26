@@ -25,7 +25,7 @@ import {
     Users,
     Eye,
 } from "lucide-react"
-import React from "react"
+import React, { useState } from "react"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
@@ -33,15 +33,14 @@ import { Input } from "~/components/ui/input"
 import { Progress } from "~/components/ui/progress"
 import { ScoreDetailsDialog } from "~/components/ui/score-details-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import {
-    fetchClassDetails,
-    fetchGradeTemplate,
-    importStudentClassScoresFromExcel,
-} from "~/lib/services/class"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import { fetchClassDetails, fetchGradeTemplate, importStudentClassScoresFromExcel } from "~/lib/services/class"
 import { fetchStudentClassScores } from "~/lib/services/student-class"
 import { Role } from "~/lib/types/account/account"
 import { requireAuth } from "~/lib/utils/auth"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { toast } from "sonner"
+import { CertificateModal } from "~/components/ui/view-certificate-modal"
 
 const getStatusBadge = (status: number) => {
     switch (status) {
@@ -49,7 +48,7 @@ const getStatusBadge = (status: number) => {
             return (
                 <Badge variant="outline" className="font-medium flex items-center gap-1">
                     <CircleDashed className="h-3 w-3" />
-                    Scheduled
+                    Scheduler
                 </Badge>
             )
         case 1:
@@ -131,14 +130,20 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
 export default function TeacherClassDetailsPage() {
     const classDetailsData = useLoaderData<typeof loader>()
-    const [searchTerm, setSearchTerm] = React.useState("")
-    const [activeSection, setActiveSection] = React.useState("overview")
-    const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
-    const [isUploading, setIsUploading] = React.useState(false)
-    const [uploadError, setUploadError] = React.useState<string | null>(null)
-    const [uploadSuccess, setUploadSuccess] = React.useState(false)
-    const [classScores, setClassScores] = React.useState<any>(null)
-    const [isLoadingScores, setIsLoadingScores] = React.useState(false)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [activeSection, setActiveSection] = useState("overview")
+    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+    const [isUploading, setIsUploading] = useState(false)
+    const [uploadSuccess, setUploadSuccess] = useState(false)
+    const [classScores, setClassScores] = useState<any>(null)
+    const [isLoadingScores, setIsLoadingScores] = useState(false)
+
+    // Certificate modal state
+    const [certificateModalOpen, setCertificateModalOpen] = useState(false)
+    const [selectedCertificate, setSelectedCertificate] = useState<{ url: string; studentName: string }>({
+        url: "",
+        studentName: "",
+    })
 
     React.useEffect(() => {
         async function loadScores() {
@@ -152,6 +157,7 @@ export default function TeacherClassDetailsPage() {
                     setClassScores(response.data)
                 } catch (error) {
                     console.error("Error loading scores:", error)
+                    toast.error("Không thể tải điểm số:" + error)
                 } finally {
                     setIsLoadingScores(false)
                 }
@@ -183,7 +189,8 @@ export default function TeacherClassDetailsPage() {
             document.body.removeChild(link)
             window.URL.revokeObjectURL(url)
         } catch (error) {
-            console.error("Error downloading template:", error)
+            const err = getErrorDetailsInfo(error)
+            toast.error("Can not download template: " + err.message)
         }
     }, [classDetailsData.id, classDetailsData.idToken, classDetailsData.name])
 
@@ -191,21 +198,20 @@ export default function TeacherClassDetailsPage() {
         const file = event.target.files?.[0]
         if (file) {
             setSelectedFile(file)
-            setUploadError(null)
             setUploadSuccess(false)
             console.log("File selected:", file.name)
+            toast.info(`Đã chọn tệp: ${file.name}`)
         }
     }
 
     const handleUploadAndProcess = async () => {
         if (!selectedFile || !classDetailsData.idToken) {
-            setUploadError("No file selected")
+            toast.error("Chưa chọn tệp hoặc không có quyền truy cập")
             return
         }
 
         try {
             setIsUploading(true)
-            setUploadError(null)
             setUploadSuccess(false)
 
             await importStudentClassScoresFromExcel({
@@ -216,6 +222,7 @@ export default function TeacherClassDetailsPage() {
 
             setUploadSuccess(true)
             setSelectedFile(null)
+            toast.success("Import scores sucessfully!")
 
             // Reset the file input
             const fileInput = document.getElementById("file-upload") as HTMLInputElement
@@ -230,25 +237,39 @@ export default function TeacherClassDetailsPage() {
                         id: classDetailsData.id,
                         idToken: classDetailsData.idToken,
                     })
-                    // Update the class details data with the refreshed data
+
+                    // This ensures the UI reflects the changes immediately
                     Object.assign(classDetailsData, response.data)
 
-                    // Also refresh the scores data
+                    // Force a re-render by setting state
+                    setClassScores(null) // Clear existing scores
+
+                    // Fetch fresh scores data
                     const scoresResponse = await fetchStudentClassScores({
                         classId: classDetailsData.id,
                         idToken: classDetailsData.idToken,
                     })
                     setClassScores(scoresResponse.data)
                 } catch (error) {
-                    console.error("Error refreshing class data:", error)
+                    const err = getErrorDetailsInfo(error)
+                    toast.error("Can not update data: " + err.message)
                 }
             }
         } catch (error) {
-            console.error("Error uploading scores:", error)
-            setUploadError("Failed to upload scores. Please try again.")
+            const err = getErrorDetailsInfo(error)
+            toast.error("Can not import score: " + err.message)
         } finally {
             setIsUploading(false)
         }
+    }
+
+    // Handle opening the certificate modal
+    const handleViewCertificate = (certificateUrl: string, studentName: string) => {
+        setSelectedCertificate({
+            url: certificateUrl,
+            studentName: studentName,
+        })
+        setCertificateModalOpen(true)
     }
 
     const slots = classDetailsData.slots || []
@@ -272,12 +293,63 @@ export default function TeacherClassDetailsPage() {
             studentClass.student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             studentClass.student.email.toLowerCase().includes(searchTerm.toLowerCase()),
     )
+
+    // Add confirmation dialog for file upload
+    const { open: openUploadConfirmation, dialog: uploadConfirmationDialog } = useConfirmationDialog({
+        title: "Xác nhận tải lên",
+        description: "Bạn có chắc chắn muốn tải lên và xử lý tệp này không? Điều này sẽ cập nhật điểm số của học sinh.",
+        onConfirm: handleUploadAndProcess,
+        confirmText: "Tải lên",
+        cancelText: "Hủy",
+        confirmButtonClassname: "bg-green-600 hover:bg-green-700 text-white",
+    })
+
+    const handleScoresUpdated = React.useCallback(
+        (updatedStudents: any) => {
+            // Update the class scores with the new data
+            if (classScores) {
+                setClassScores({
+                    ...classScores,
+                    students: updatedStudents,
+                })
+            }
+
+            // Force a refresh of the student class data
+            if (classDetailsData.idToken) {
+                // Refresh the data by fetching class details again
+                fetchClassDetails({
+                    id: classDetailsData.id,
+                    idToken: classDetailsData.idToken,
+                })
+                    .then((response) => {
+                        // Update the class details data
+                        Object.assign(classDetailsData, response.data)
+
+                        // Refresh the scores data
+                        return fetchStudentClassScores({
+                            classId: classDetailsData.id,
+                            idToken: classDetailsData.idToken,
+                        })
+                    })
+                    .then((scoresResponse) => {
+                        setClassScores(scoresResponse.data)
+                        toast.success("Cập nhật điểm số thành công!")
+                    })
+                    .catch((error) => {
+                        console.error("Error refreshing data after score update:", error)
+                        toast.error("Không thể cập nhật dữ liệu sau khi cập nhật điểm. Vui lòng tải lại trang.")
+                    })
+            }
+        },
+        [classDetailsData, classScores],
+    )
+
     return (
         <div className="bg-[#f8fafc] dark:bg-gray-950 min-h-screen">
             <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 top-0 z-10">
                 <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link href="/dashboard/class" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/teacher/classes" className="text-muted-foreground hover:text-foreground transition-colors">
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
@@ -468,10 +540,10 @@ export default function TeacherClassDetailsPage() {
                                                 <div className="flex items-start gap-3">
                                                     <div
                                                         className={`p-2 rounded-full ${index % 3 === 0
-                                                            ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
-                                                            : index % 3 === 1
-                                                                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                                                                : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+                                                                ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                                                                : index % 3 === 1
+                                                                    ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                                                    : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
                                                             }`}
                                                     >
                                                         <Sparkles className="h-4 w-4" />
@@ -604,13 +676,13 @@ export default function TeacherClassDetailsPage() {
                                                             {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                                 <span
                                                                     className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                        ? "bg-green-100 text-green-800"
-                                                                        : studentClass.gpa >= 5
-                                                                            ? "bg-amber-100 text-amber-800"
-                                                                            : "bg-red-100 text-red-800"
+                                                                            ? "bg-green-100 text-green-800"
+                                                                            : studentClass.gpa >= 5
+                                                                                ? "bg-amber-100 text-amber-800"
+                                                                                : "bg-red-100 text-red-800"
                                                                         }`}
                                                                 >
-                                                                    {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
+                                                                    {studentClass.gpa ? studentClass.gpa.toFixed(1) : "(Chưa có)"}
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-muted-foreground">Not graded</span>
@@ -771,7 +843,7 @@ export default function TeacherClassDetailsPage() {
 
                                         <Button
                                             className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
-                                            onClick={handleUploadAndProcess}
+                                            onClick={openUploadConfirmation}
                                             disabled={!selectedFile || isUploading}
                                         >
                                             {isUploading ? (
@@ -788,6 +860,12 @@ export default function TeacherClassDetailsPage() {
                                         </Button>
                                     </div>
                                 </div>
+
+                                {uploadSuccess && (
+                                    <div className="mt-4 bg-green-50 text-green-700 p-3 rounded-md text-sm">
+                                        Grades uploaded and processed successfully!
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -807,7 +885,12 @@ export default function TeacherClassDetailsPage() {
                                             Loading...
                                         </Button>
                                     ) : classScores ? (
-                                        <ScoreDetailsDialog isClassView={true} classData={classScores} idToken={classDetailsData.idToken} />
+                                        <ScoreDetailsDialog
+                                            isClassView={true}
+                                            classData={classScores}
+                                            idToken={classDetailsData.idToken}
+                                            onScoresUpdated={handleScoresUpdated}
+                                        />
                                     ) : (
                                         <Button variant="outline" size="sm" disabled className="gap-1">
                                             <Eye className="h-4 w-4" />
@@ -824,7 +907,7 @@ export default function TeacherClassDetailsPage() {
                                             <TableHead>GPA</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Certificate</TableHead>
-                                            <TableHead>Comments</TableHead>                                          
+                                            <TableHead>Comments</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -850,13 +933,13 @@ export default function TeacherClassDetailsPage() {
                                                         {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                             <span
                                                                 className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : studentClass.gpa >= 5
-                                                                        ? "bg-amber-100 text-amber-800"
-                                                                        : "bg-red-100 text-red-800"
+                                                                        ? "bg-green-100 text-green-800"
+                                                                        : studentClass.gpa >= 5
+                                                                            ? "bg-amber-100 text-amber-800"
+                                                                            : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
-                                                                {studentClass.gpa ? studentClass.gpa.toFixed(1) : '(Chưa có)'}
+                                                                {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : "Not graded"}
                                                             </span>
                                                         ) : (
                                                             <span className="text-muted-foreground">Not graded</span>
@@ -872,7 +955,17 @@ export default function TeacherClassDetailsPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         {studentClass?.certificateUrl ? (
-                                                            <Button variant="outline" size="sm" className="h-8 gap-1">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8 gap-1"
+                                                                onClick={() =>
+                                                                    handleViewCertificate(
+                                                                        studentClass.certificateUrl,
+                                                                        studentClass.student?.fullName || "Student",
+                                                                    )
+                                                                }
+                                                            >
                                                                 <FileText className="h-3.5 w-3.5" />
                                                                 View
                                                             </Button>
@@ -885,19 +978,6 @@ export default function TeacherClassDetailsPage() {
                                                             {studentClass?.instructorComment || "No comments"}
                                                         </p>
                                                     </TableCell>
-                                                    {/* <TableCell className="text-center">
-                                                        {isLoadingScores ? (
-                                                            <span className="text-muted-foreground text-sm">Loading...</span>
-                                                        ) : studentClass?.criteriaScores?.length > 0 ? (
-                                                            <ScoreDetailsDialog
-                                                                studentName={studentClass?.student?.fullName || "Unknown"}
-                                                                gpa={studentClass?.gpa || 0}
-                                                                criteriaScores={studentClass?.criteriaScores || []}
-                                                            />
-                                                        ) : (
-                                                            <span className="text-muted-foreground text-sm">No scores</span>
-                                                        )}
-                                                    </TableCell> */}
                                                 </TableRow>
                                             ))
                                         ) : (
@@ -917,7 +997,15 @@ export default function TeacherClassDetailsPage() {
                     </div>
                 )}
             </div>
+            {uploadConfirmationDialog}
+
+            {/* Certificate Modal */}
+            <CertificateModal
+                isOpen={certificateModalOpen}
+                onClose={() => setCertificateModalOpen(false)}
+                certificateUrl={selectedCertificate.url}
+                studentName={selectedCertificate.studentName}
+            />
         </div>
     )
 }
-

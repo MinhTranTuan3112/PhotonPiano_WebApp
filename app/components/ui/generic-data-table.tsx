@@ -19,7 +19,7 @@ type Props<T> = {
 
 export default function GenericDataTable<T>({ columns,
     extraHeaderContent,
-    emptyText = 'Không có kết quả.',
+    emptyText = 'No results.',
     enableRefresh = true,
     resolvedData = [],
     metadata,
@@ -66,7 +66,7 @@ export default function GenericDataTable<T>({ columns,
                     to={pathname ? `${pathname}` : '/'}
                     replace={true}
                     reloadDocument={true}>
-                    <FilterX /> Đặt lại bộ lọc
+                    <FilterX /> Reset filter
                 </Link>}
             </div>}
         />

@@ -5,7 +5,7 @@ import { Badge } from "../ui/badge";
 import { APPLICATION_STATUS, APPLICATION_TYPE } from "~/lib/utils/constants";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { CircleX, Clock, Download, Eye, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
-import { Form, Link, useFetcher } from "@remix-run/react";
+import { Form, Link, useFetcher, useRouteLoaderData } from "@remix-run/react";
 import { Button, buttonVariants } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { useState } from "react";
@@ -17,6 +17,8 @@ import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller } from 'react-hook-form';
 import RichTextEditor from '../text-editor';
+import { loader } from '~/root';
+import { Role } from '~/lib/types/account/account';
 
 const getStatusStyle = (status: ApplicationStatus) => {
     switch (status) {
@@ -30,15 +32,8 @@ const getStatusStyle = (status: ApplicationStatus) => {
 
 export const columns: ColumnDef<Application>[] = [
     {
-        accessorKey: 'Mã đơn',
-        header: 'Mã đơn',
-        cell: ({ row }) => {
-            return <div className="font-bold">{row.original.id}</div>
-        }
-    },
-    {
-        accessorKey: 'Loại đơn',
-        header: 'Loại đơn',
+        accessorKey: 'Type',
+        header: 'Type',
         cell: ({ row }) => {
             return <div className="font-bold">
                 {APPLICATION_TYPE[row.original.type]}
@@ -46,30 +41,30 @@ export const columns: ColumnDef<Application>[] = [
         }
     },
     {
-        accessorKey: 'Lý do',
-        header: 'Lý do',
+        accessorKey: 'Reason',
+        header: 'Reason',
         cell: ({ row }) => {
             return <div>{row.original.reason}</div>
         }
     },
     {
-        accessorKey: 'Ngày tạo',
+        accessorKey: 'Created Date',
         header: (header) => {
-            return <div className="flex flex-row items-center">
+            return <div className="flex flex-row items-center gap-2">
                 <Clock />
-                Ngày tạo
+                Created Date
             </div>
         },
         cell: ({ row }) => {
-            return <div>{formatRFC3339ToDisplayableDate(row.original.createdAt)} bởi {row.original.createdByEmail}</div>
+            return <div>{formatRFC3339ToDisplayableDate(row.original.createdAt, false)} by {row.original.createdByEmail}</div>
         }
     },
     {
-        accessorKey: 'File đính kèm',
+        accessorKey: 'File',
         header: () => {
             return <div className="flex flex-row items-center">
                 <Paperclip />
-                <div className="ml-2">File đính kèm</div>
+                <div className="ml-2">File</div>
             </div>
         },
         cell: ({ row }) => {
@@ -80,24 +75,34 @@ export const columns: ColumnDef<Application>[] = [
                         <Download />
                     </Link>
                 ) : (
-                    <div className="">&#40;Không có&#41;</div>
+                    <div className="">&#40;None&#41;</div>
                 )}
             </div>
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: 'Trạng thái',
+        accessorKey: 'Status',
+        header: 'Status',
         cell: ({ row }) => {
             return <div>
-                <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>{APPLICATION_STATUS[row.original.status]}</Badge>
+                <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>
+                    {APPLICATION_STATUS[row.original.status]}
+                </Badge>
+                
             </div>
         }
     },
     {
-        id: 'Thao tác',
-        accessorKey: 'Thao tác',
-        header: 'Thao tác',
+        accessorKey: 'Last update',
+        header: 'Last update',
+        cell: ({ row }) => {
+            return <div>{row.original.updatedAt ? `${formatRFC3339ToDisplayableDate(row.original.updatedAt, false)} by ${row.original.approvedByEmail}` : '(None)'}</div>
+        }
+    },
+    {
+        id: 'Actions',
+        accessorKey: 'Actions',
+        header: 'Actions',
         cell: ({ row }) => {
             return <ActionDropdown row={row} />
         }
@@ -109,25 +114,30 @@ function ActionDropdown({ row }: {
     row: Row<Application>
 }) {
 
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    const role = authData.role ? parseInt(authData.role) : 0;
+
     const [dialogProps, setDialogProps] = useState<Omit<DialogProps, 'setIsOpen'>>({
         title: '',
         description: '',
         id: row.original.id,
         isOpen: false,
         status: row.original.status,
-        note: row.original.staffConfirmNote
+        note: row.original.staffConfirmNote,
+        role
     });
 
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     setDialogProps({
@@ -135,39 +145,43 @@ function ActionDropdown({ row }: {
                         isDetails: true,
                         status: ApplicationStatus.Rejected,
                         isOpen: true,
-                        title: 'Chi tiết đơn',
-                        description: `Chi tiết thông tin đơn ${row.original.id}`,
+                        title: 'Application details',
+                        description: `Application details`,
                     })
                 }}>
                     <Eye />
-                    Xem
+                    View
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                    setDialogProps({
-                        ...dialogProps,
-                        isDetails: false,
-                        status: ApplicationStatus.Approved,
-                        isOpen: true,
-                        title: 'Xác nhận duyệt đơn',
-                        description: 'Duyệt đơn này?',
-                    })
-                }}>
-                    <FileCheck2 />
-                    Duyệt
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                    setDialogProps({
-                        ...dialogProps,
-                        isDetails: false,
-                        status: ApplicationStatus.Rejected,
-                        isOpen: true,
-                        title: 'Xác nhận từ chối đơn',
-                        description: 'Từ chối đơn này?',
-                    })
-                }}>
-                    <CircleX />
-                    Từ chối
-                </DropdownMenuItem>
+
+                {/* {role === Role.Staff && <>
+                    <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                        setDialogProps({
+                            ...dialogProps,
+                            isDetails: false,
+                            status: ApplicationStatus.Approved,
+                            isOpen: true,
+                            title: 'Confirm action',
+                            description: 'Approve this application?',
+                        })
+                    }}>
+                        <FileCheck2 />
+                        Approve
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                        setDialogProps({
+                            ...dialogProps,
+                            isDetails: false,
+                            status: ApplicationStatus.Rejected,
+                            isOpen: true,
+                            title: 'Confirm action',
+                            description: 'Reject this application?',
+                        })
+                    }}>
+                        <CircleX />
+                        Reject
+                    </DropdownMenuItem>
+                </>} */}
+
             </DropdownMenuContent>
         </DropdownMenu>
         <ActionDialog {...dialogProps} setIsOpen={(isOpen) => {
@@ -190,6 +204,7 @@ type DialogProps = {
     setIsOpen: (isOpen: boolean) => void;
     title: string;
     description: string;
+    role: Role;
 } & ApplicationStatusFormData;
 
 function ActionDialog({
@@ -200,7 +215,8 @@ function ActionDialog({
     description,
     id,
     status: defaultStatus,
-    note: defaultNote
+    note: defaultNote,
+    role
 }: DialogProps) {
 
     const fetcher = useFetcher<typeof action>();
@@ -225,19 +241,21 @@ function ActionDialog({
         fetcher
     });
 
-    const { status: currentStatus } = getFormValues(); 
+    const { status: currentStatus } = getFormValues();
 
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Thao tác thành công');
+            toast.success('Success!');
             setIsOpen(false);
             reset();
             return;
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
@@ -261,19 +279,18 @@ function ActionDialog({
                     name='note'
                     control={control}
                     render={({ field: { value, onChange } }) => (
-                        <RichTextEditor value={value || defaultNote || ''} onChange={onChange} placeholder='Nhập ghi chú' />
+                        <RichTextEditor value={value || defaultNote || ''} onChange={onChange} placeholder='Enter note...' />
                     )}
                 />
                 {errors.note && <div className="text-red-500">{errors.note.message}</div>}
                 <DialogFooter className='my-2'>
                     {!isDetails ? <>
-                        <Button type='button' variant="ghost" onClick={() => setIsOpen(false)}
-                            disabled={isSubmitting}>Hủy</Button>
-                        <Button type="submit"
+                        {role === Role.Staff ? <Button type="submit"
                             disabled={isSubmitting}
-                            isLoading={isSubmitting}>{defaultStatus === ApplicationStatus.Approved ? 'Duyệt' : 'Từ chối'}
-                        </Button>
-                    </> : <>
+                            isLoading={isSubmitting}>{defaultStatus === ApplicationStatus.Approved ? 'Approve' : 'Reject'}
+                        </Button> : <Button type='button' variant="ghost" onClick={() => setIsOpen(false)}
+                            disabled={isSubmitting}>Cancel</Button>}
+                    </> : role === Role.Staff && <>
                         <Button type="button"
                             disabled={isSubmitting}
                             isLoading={isSubmitting && currentStatus === ApplicationStatus.Approved}
@@ -281,7 +298,7 @@ function ActionDialog({
                                 setFormValue('status', ApplicationStatus.Approved);
                                 handleSubmit();
                             }}>
-                            Duyệt
+                            Approve
                         </Button>
                         <Button type="button"
                             disabled={isSubmitting}
@@ -291,7 +308,7 @@ function ActionDialog({
                                 setFormValue('status', ApplicationStatus.Rejected);
                                 handleSubmit();
                             }}>
-                            Từ chối
+                            Reject
                         </Button>
                     </>}
                 </DialogFooter>

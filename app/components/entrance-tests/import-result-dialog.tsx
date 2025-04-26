@@ -1,4 +1,4 @@
-import { MinimalCriteria } from '~/lib/types/criteria/criteria';
+import { CriteriaFor, MinimalCriteria } from '~/lib/types/criteria/criteria';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Download, Upload } from 'lucide-react';
@@ -52,14 +52,14 @@ export default function ImportResultDialog({
 
             // Set column widths
             const baseColumns = [
-                { header: 'Người học', key: 'fullName', width: 30 },
-                ...(includeTheory ? [{ header: 'Lý thuyết', key: 'theory', width: 20 }] : []),
+                { header: 'Learner', key: 'fullName', width: 30 },
+                ...(includeTheory ? [{ header: 'Theory score', key: 'theory', width: 20 }] : []),
                 ...criterias.map((c, i) => ({
                     header: c.name,
                     key: `criteria_${i}`,
                     width: 20
                 })),
-                ...(includeComment ? [{ header: 'Nhận xét', key: 'comment', width: 40 }] : []),
+                ...(includeComment ? [{ header: 'Comment', key: 'comment', width: 40 }] : []),
             ];
             sheet.columns = baseColumns;
 
@@ -165,6 +165,10 @@ export default function ImportResultDialog({
                         score: entranceTestResultsFromFile[index].score,
                         criteriaName: criteria.name,
                         weight: criteria.weight,
+                        criteria: {
+                            ...criteria,
+                            for: CriteriaFor.EntranceTest
+                        },
                     }));
 
                     setEntranceTestStudents(prev =>
@@ -174,7 +178,7 @@ export default function ImportResultDialog({
                                     ...student,
                                     theoraticalScore: includeTheory ? theoraticalScore : student.theoraticalScore,
                                     instructorComment: includeComment ? instructorComment : student.instructorComment,
-                                    entranceTestResults: results
+                                    entranceTestResults: results,
                                 };
                             }
                             return student;
@@ -198,7 +202,7 @@ export default function ImportResultDialog({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Đã nhập điểm thành công!');
+            toast.success('Import success!');
             setIsOpen(false);
             setIsImported(false);
             setFile(undefined);
@@ -206,7 +210,7 @@ export default function ImportResultDialog({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error);
             return;
         }
 
@@ -258,10 +262,10 @@ export default function ImportResultDialog({
     }
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận nhập điểm',
-        description: 'Bạn có chắc chắn muốn nhập điểm cho học viên?',
+        title: 'Confirm action',
+        description: 'Import this results?',
         onConfirm: handleSubmit,
-        confirmText: 'Lưu',
+        confirmText: 'Import',
     });
 
     return (
@@ -270,45 +274,45 @@ export default function ImportResultDialog({
                 <DialogContent className='min-w-[1000px]'>
                     <ScrollArea className='px-2 h-[80vh] '>
                         <DialogHeader>
-                            <DialogTitle>Nhập điểm qua file Excel</DialogTitle>
+                            <DialogTitle>Import scores with Excel file</DialogTitle>
                             <DialogDescription>
-                                Tải về file mẫu và nhập điểm của học viên vào file Excel.
-                                Sau đó, chọn file Excel đã nhập và nhấn nút "Lưu thay đổi" để cập nhật điểm.
+                                Download the template file and fill in the scores of learners in the Excel file.
+                                After that, select the Excel file you have entered and click the "Save changes" button to update the score.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="flex flex-col gap-4 my-4">
-                            <h1 className='font-bold'>Nhập điểm qua file Excel</h1>
+                            <h1 className='font-bold'>Import scores with Excel file</h1>
                             <Button type='button' Icon={Download} iconPlacement='left' onClick={handleDownload}
-                                isLoading={isDownloadingFile} disabled={isDownloadingFile || isSubmitting}>Tải về template nhập điểm</Button>
-                            <p>Nhập file</p>
+                                isLoading={isDownloadingFile} disabled={isDownloadingFile || isSubmitting}>Download template</Button>
+                            <p>Upload file</p>
                             <FileUpload onChange={(files) => {
                                 setFile(files[0]);
                             }} />
                         </div>
                         {isImported && (
                             <Table>
-                                <TableCaption>Điểm xem trước sau khi nhập từ file.</TableCaption>
+                                <TableCaption>Preview scores.</TableCaption>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Học viên</TableHead>
-                                        <TableHead>Lý thuyết</TableHead>
+                                        <TableHead>Learner</TableHead>
+                                        {role === Role.Staff && <TableHead>Theoretical score</TableHead>}
                                         {criterias.map(criteria => (
                                             <TableHead key={criteria.id}>{criteria.name}
                                                 &#40;{criteria.weight}%&#41;
                                             </TableHead>
                                         ))}
-                                        <TableHead>Nhận xét</TableHead>
+                                        <TableHead>Comment</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {entranceTestStudents.map((student) => (
                                         <TableRow key={student.id}>
                                             <TableCell>{student.fullName}</TableCell>
-                                            <TableCell>{student.theoraticalScore}</TableCell>
+                                            {role === Role.Staff && <TableCell>{student.theoraticalScore}</TableCell>}
                                             {student.entranceTestResults.map(result => (
                                                 <TableCell key={result.criteriaId}>{result.score}</TableCell>
                                             ))}
-                                            <TableCell>{student.instructorComment || 'Không có'}</TableCell>
+                                            <TableCell>{student.instructorComment || '(None)'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -321,11 +325,11 @@ export default function ImportResultDialog({
                             </Table>
                         )}
                         <DialogFooter className='flex flex-row justify-center items-center'>
-                            <Button type="button" disabled={!file || isSubmitting} onClick={handleFileUpload}>Nhập điểm</Button>
+                            <Button type="button" disabled={!file || isSubmitting} onClick={handleFileUpload}>Import score</Button>
 
                             <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                                 onClick={handleOpenConfirmDialog}>
-                                Lưu
+                                Save
                             </Button>
 
                         </DialogFooter>

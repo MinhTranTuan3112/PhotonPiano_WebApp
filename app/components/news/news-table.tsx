@@ -20,7 +20,7 @@ export function PublishBadge({
     isPublished: boolean;
 }) {
     return <Badge variant={'outline'} className={isPublished ? 'text-green-600' : 'text-gray-500'}>
-        {isPublished ? 'Đã xuất bản' : 'Nháp'}
+        {isPublished ? 'Published' : 'Draft'}
     </Badge>
 }
 
@@ -35,7 +35,7 @@ export const columns: ColumnDef<Article>[] = [
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Chọn tất cả"
+                aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
@@ -43,15 +43,15 @@ export const columns: ColumnDef<Article>[] = [
                 variant={'theme'}
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label="Chọn dòng"
+                aria-label="Select row"
             />
         ),
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: "Tiêu đề",
-        header: "Tiêu đề",
+        accessorKey: "Title",
+        header: "Title",
         cell: ({ row }) => {
             return <div className="font-bold flex flex-col gap-1">
                 {row.original.title}
@@ -59,8 +59,8 @@ export const columns: ColumnDef<Article>[] = [
         }
     },
     {
-        accessorKey: "Nội dung",
-        header: "Nội dung",
+        accessorKey: "Content",
+        header: "Content",
         cell: ({ row }) => {
             return <div className="line-clamp-1" dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(row.original.content.slice(0, 100))
@@ -70,11 +70,11 @@ export const columns: ColumnDef<Article>[] = [
         }
     },
     {
-        accessorKey: 'Ngày tạo',
+        accessorKey: 'Created Date',
         header: (header) => {
             return <div className="flex flex-row items-center">
                 <Clock />
-                Ngày tạo
+                Created Date
             </div>
         },
         cell: ({ row }) => {
@@ -82,20 +82,20 @@ export const columns: ColumnDef<Article>[] = [
         }
     },
     {
-        accessorKey: 'Ngày xuất bản',
+        accessorKey: 'Publish date',
         header: (header) => {
             return <div className="flex flex-row items-center">
                 <Clock />
-                Ngày xuất bản
+                Publish date
             </div>
         },
         cell: ({ row }) => {
-            return <div>{row.original.publishedAt ? formatRFC3339ToDisplayableDate(row.original.publishedAt, false) : '(Chưa có)'}</div>
+            return <div>{row.original.publishedAt ? formatRFC3339ToDisplayableDate(row.original.publishedAt, false) : '(None)'}</div>
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: () => <div className="flex flex-row gap-1 items-center">Trạng thái</div>,
+        accessorKey: 'Status',
+        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
             return <div>
                 <PublishBadge isPublished={row.original.isPublished} />
@@ -103,9 +103,9 @@ export const columns: ColumnDef<Article>[] = [
         }
     },
     {
-        id: 'Thao tác',
-        accessorKey: 'Thao tác',
-        header: 'Thao tác',
+        id: 'Actions',
+        accessorKey: 'Actions',
+        header: 'Actions',
         cell: ({ row }) => {
             return <ActionDropdown row={row} />
         }
@@ -123,9 +123,9 @@ function ActionDropdown({ row }: {
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xóa bài viết',
-        description: 'Bạn có chắc chắn muốn xóa bài viết này không?',
-        confirmText: 'Xóa',
+        title: 'Confirm action',
+        description: 'Delete this article?',
+        confirmText: 'Delete',
         confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
         onConfirm: () => {
             const formData = new FormData();
@@ -141,12 +141,14 @@ function ActionDropdown({ row }: {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Xóa bài viết thành công!');
+            toast.success('Delete success!');
             return;
         }
 
         if (fetcher.data?.success === false) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
@@ -162,31 +164,31 @@ function ActionDropdown({ row }: {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0" type="button">
-                    <span className="sr-only">Thao tác</span>
+                    <span className="sr-only">Actions</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     navigate(`/staff/articles/${row.original.slug}`);
                 }}>
                     <Eye />
-                    Xem
+                    View
                 </DropdownMenuItem>
 
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
 
                 }}>
 
-                    {row.original.isPublished ? 'Hủy xuất bản' : 'Xuất bản'}
+                    {row.original.isPublished ? 'Unpublish' : 'Publish'}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem className="cursor-pointer text-red-700" onClick={handleOpenConfirmDialog}
                     disabled={isSubmitting}>
                     <Trash2 />
-                    Xóa
+                    Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

@@ -133,9 +133,9 @@ export default function SurveyDetailsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-lg font-bold">Chi tiết khảo sát</h1>
+            <h1 className="text-lg font-bold">Survey details</h1>
             <p className="text-sm text-muted-foreground">
-                Chi tiết thông tin của khảo sát
+                Survey details information
             </p>
 
             <Suspense fallback={<LoadingSkeleton />} key={id}>
@@ -184,12 +184,14 @@ function SurveyDetailsContent() {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật thành công!');
+            toast.success('Update successfully!');
             return;
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000,
+            });
             return;
         }
 

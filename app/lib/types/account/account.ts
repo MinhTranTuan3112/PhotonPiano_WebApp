@@ -24,6 +24,7 @@ export type Account = {
     preferredLearningMethods: string[];
     studentStatus?: StudentStatus;
     role: Role;
+    wantToContinue?: boolean;
 };
 
 export type AccountDetail = {
@@ -68,7 +69,13 @@ export type Level = {
    minimumScore: number;
    isGenreDivided: boolean;
    nextLevelId?: string;
+   themeColor? : string;
 }
+
+export type LevelDetails = {
+    accounts: Account[];
+    classes: Class[];
+} & Level;
 
 export const sampleLevels: Level[] = [
     {

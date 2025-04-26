@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
+import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 import React, { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -16,13 +17,14 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { Textarea } from '~/components/ui/textarea';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
+import { fetchAccounts } from '~/lib/services/account';
 import { fetchRooms } from '~/lib/services/rooms';
 import { fetchSlotById } from '~/lib/services/scheduler';
-import { Level } from '~/lib/types/account/account';
+import { Account, Level, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { Room } from '~/lib/types/room/room';
-import { SlotDetail } from '~/lib/types/Scheduler/slot';
+import { SlotDetail, TeacherModel } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { ATTENDANCE_STATUS, CLASS_STATUS, LEVEL, SHIFT_TIME, SLOT_STATUS } from '~/lib/utils/constants';
 
@@ -54,10 +56,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export const addSlotSchema = z.object({
     shift: z.string().optional(),
     room: z.string().optional(),
-    date: z.coerce.date({ message: 'Ngày không hợp lệ.' }).optional(),
+    date: z.coerce.date({ message: 'Invalid Date.' }).optional(),
     action: z.string(),
     slotId: z.string(),
     reason: z.string().optional(),
+    teacherId: z.string().optional(),
     idToken: z.string(),
 });
 
@@ -66,16 +69,16 @@ export type AddSlotSchema = z.infer<typeof addSlotSchema>;
 const resolver = zodResolver(addSlotSchema)
 
 
-const getLevelStyle = (level: number) => {
-    switch (level) {
-        case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
-        case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
-        case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
-        case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
-        case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
-        default: return "text-black font-semibold";
-    }
-};
+// const getLevelStyle = (level: number) => {
+//     switch (level) {
+//         case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
+//         case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
+//         case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
+//         case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
+//         case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
+//         default: return "text-black font-semibold";
+//     }
+// };
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -97,7 +100,20 @@ const getAttendanceStyle = (attendance: number) => {
 function LevelBadge({ level }: {
     level: Level
 }) {
-    return <div className={`uppercase w-full text-center my-1 p-2 rounded-lg`}>{level.name}</div>
+    return (
+        <div className='relative bg-white  w-full my-1 rounded-lg'>
+            <div
+                className="uppercase w-full text-center p-2 rounded-lg font-semibold"
+                style={{
+                    backgroundColor: `${level.themeColor}33`, // 20% opacity
+                    color: level.themeColor
+                }}
+            >
+                {level.name}
+            </div>
+        </div>
+
+    )
 }
 function StatusBadge({ status }: {
     status: number
@@ -186,8 +202,8 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     }
 
     const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-        title: 'Xác nhận xóa buổi học',
-        description: 'Bạn có chắc chắn muốn xóa buổi học này không?',
+        title: 'Confirm Deleting',
+        description: 'Do you want to delete this slot?',
         onConfirm: () => {
             handleDelete();
         }
@@ -210,25 +226,25 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
 
             <Form onSubmit={() => setIsOpenConfirmEdit(true)}>
                 <div className='flex flex-col sm:flex-row place-content-between gap-2 mb-8'>
-                    <Button type='button' variant={'outline'} onClick={() => navigate(-1)}><ArrowLeftCircle className='mr-4' /> Trở về</Button>
+                    <Button type='button' variant={'outline'} onClick={() => navigate(-1)}><ArrowLeftCircle className='mr-4' /> Back</Button>
                     <div className='flex gap-2'>
                         {
                             isEdit ? (
                                 <>
-                                    <Button type='submit' className='bg-green-500 hover:bg-green-300'><CheckIcon className='mr-4' /> Lưu thay đổi</Button>
-                                    <Button type='button' className='bg-red-400 hover:bg-red-200' onClick={() => setIsEditing(false)}><XIcon className='mr-4' /> Hủy thay đổi</Button>
+                                    <Button type='submit' className='bg-green-500 hover:bg-green-300'><CheckIcon className='mr-4' /> Save Changes</Button>
+                                    <Button type='button' className='bg-red-400 hover:bg-red-200' onClick={() => setIsEditing(false)}><XIcon className='mr-4' /> Cancel</Button>
                                 </>
                             ) : (
-                                <Button type='button' variant={'theme'} onClick={() => setIsEditing(true)}><Edit2Icon className='mr-4' /> Chỉnh sửa buổi học</Button>
+                                <Button type='button' variant={'theme'} onClick={() => setIsEditing(true)}><Edit2Icon className='mr-4' /> Edit Slot</Button>
                             )
                         }
-                        <Button type='button' variant={'destructive'} onClick={handleOpenDeleteModal}><Trash className='mr-4' /> Xóa buổi học</Button>
+                        <Button type='button' variant={'destructive'} onClick={handleOpenDeleteModal}><Trash className='mr-4' /> Delete Slot</Button>
                     </div>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Chi tiết buổi học</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Slot Detail</h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <DetailItem label="Ngày" labelIcon={<CalendarDays />} value={
+                    <DetailItem label="Date" labelIcon={<CalendarDays />} value={
                         isEdit ? (
                             <>
                                 <Controller
@@ -239,7 +255,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                                         <DatePickerInput value={value} onChange={onChange}
                                             ref={ref}
                                             onBlur={onBlur}
-                                            placeholder='Ngày học'
+                                            placeholder='Date'
                                             className='mt-2 w-64' />
                                     )}
                                 />
@@ -249,7 +265,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                             <p className="text-lg font-medium text-gray-800">{slot.date}</p>
                         )
                     } />
-                    <DetailItem label="Ca học" labelIcon={<Clock />} value={
+                    <DetailItem label="Shift" labelIcon={<Clock />} value={
                         isEdit ? (
                             <>
                                 <Controller
@@ -259,13 +275,13 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                                     render={({ field: { onChange, onBlur, value, ref } }) => (
                                         <Select onValueChange={onChange} value={value}>
                                             <SelectTrigger className="w-64 mt-2">
-                                                <SelectValue placeholder="Chọn ca học" />
+                                                <SelectValue placeholder="Pick a shift" />
                                             </SelectTrigger>
                                             <SelectGroup>
                                                 <SelectContent>
                                                     {
                                                         SHIFT_TIME.map((shift, index) => (
-                                                            <SelectItem value={index.toString()} key={index}>Ca {index + 1} ({shift})</SelectItem>
+                                                            <SelectItem value={index.toString()} key={index}>Shift {index + 1} ({shift})</SelectItem>
                                                         ))
                                                     }
                                                 </SelectContent>
@@ -277,10 +293,10 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                             </>
 
                         ) : (
-                            <p className="text-lg font-medium text-gray-800">{`Ca ${slot.shift + 1} (${SHIFT_TIME[slot.shift]})`}</p>
+                            <p className="text-lg font-medium text-gray-800">{`Shift ${slot.shift + 1} (${SHIFT_TIME[slot.shift]})`}</p>
                         )
                     } />
-                    <DetailItem label="Phòng học" labelIcon={<DoorClosed />} value={
+                    <DetailItem label="Room" labelIcon={<DoorClosed />} value={
                         isEdit ? (
                             <>
                                 <Controller
@@ -316,9 +332,9 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                                                 value: item?.id
                                             })}
                                             prechosenItem={slot.room}
-                                            placeholder='Chọn phòng học'
-                                            emptyText='Không tìm thấy phòng học.'
-                                            errorText='Lỗi khi tải danh sách phòng học.'
+                                            placeholder='Pick a room'
+                                            emptyText='There is no room available'
+                                            errorText='Error loading room list.'
                                             value={value}
                                             onChange={onChange}
                                             maxItemsDisplay={10}
@@ -332,55 +348,111 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
 
                         )
                     } />
-                    <DetailItem label="Trạng thái" labelIcon={<Music />} value={<StatusBadge status={slot.status} />} />
+                    <DetailItem label="Status" labelIcon={<Music />} value={<StatusBadge status={slot.status} />} />
                 </div>
                 <AlertDialog open={isOpenConfirmEdit} onOpenChange={setIsOpenConfirmEdit}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Cập nhật buổi học</AlertDialogTitle>
-                            <AlertDialogDescription>Hãy cung cấp lý do cho sự thay đổi này</AlertDialogDescription>
+                            <AlertDialogTitle>Update Slot</AlertDialogTitle>
+                            <AlertDialogDescription>Please specify reason for this change</AlertDialogDescription>
                         </AlertDialogHeader>
                         <Textarea {...register("reason")} />
                         <AlertDialogFooter>
                             <AlertDialogCancel className={
                                 buttonVariants({ variant: 'outline' })
-                            }>Hủy bỏ</AlertDialogCancel>
+                            }>Cancel</AlertDialogCancel>
                             <AlertDialogAction onClick={handleEdit} className={
                                 buttonVariants({ variant: 'theme' })
-                            }>Xác nhận</AlertDialogAction>
+                            }>Confirm</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                <h3 className="text-xl font-semibold text-gray-700 mb-3">Class Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <DetailItem label="Class Name" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Unassigned'}</p>} />
+
+                    <DetailItem label="Teacher Name" value={
+
+                        isEdit ? (
+                            <div>
+                                <Controller
+                                    control={control}
+                                    name='teacherId'
+                                    defaultValue={slot.teacherId}
+                                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                                        <GenericCombobox<TeacherModel>
+                                            className=''
+                                            idToken={idToken}
+                                            queryKey='teachers'
+                                            fetcher={async (query) => {
+                                                const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
+
+                                                const headers = response.headers;
+
+                                                const metadata: PaginationMetaData = {
+                                                    page: parseInt(headers['x-page'] || '1'),
+                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                };
+                                                const data = response.data as TeacherModel[]
+                                                return {
+                                                    data: data,
+                                                    metadata
+                                                };
+                                            }}
+                                            mapItem={(item) => ({
+                                                label: item?.fullName || item?.userName,
+                                                value: item?.accountFirebaseId
+                                            })}
+                                            prechosenItem={slot.teacher}
+                                            placeholder='Pick a teacher'
+                                            emptyText='There are no teacher available.'
+                                            errorText='Error loading teacher list'
+                                            value={value}
+                                            onChange={onChange}
+                                            maxItemsDisplay={10}
+                                        />
+                                    )}
+                                />
+
+                            </div>
+                        ) : (
+                            slot.teacherId ? (
+                                <span>
+                                    <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
+                                        {slot.teacher?.fullName || slot.teacher?.userName}
+                                    </Link>
+                                    {
+                                        slot.teacherId !== slot.class.instructorId && (
+                                            <span>(Replacement)</span>
+                                        )
+                                    }
+                                </span>
+
+                            ) : (
+                                <p className="text-lg font-medium text-gray-800">(Unassigned)</p>
+                            )
+                        )
+                    }
+
+                    />
+                    <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
+                    <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
+                </div>
             </Form>
-
-            <h3 className="text-xl font-semibold text-gray-700 mb-3">Thông tin lớp</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <DetailItem label="Tên lớp" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Chưa có lớp'}</p>} />
-
-                <DetailItem label="Giảng viên" value={
-                    slot.class?.instructor ? (
-                        <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
-                            {slot.class?.instructor?.fullName || slot.class?.instructor?.userName}
-                        </Link>
-                    ) : (
-                        <p className="text-lg font-medium text-gray-800">Chưa có giảng viên</p>
-                    )
-                } />
-                <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
-                <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
-            </div>
-
             {slot.slotStudents && (
                 <div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-3">Điểm danh buổi học</h3>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-3">Slot Attendance</h3>
                     <div className="overflow-x-auto">
                         <table className="min-w-full bg-white border rounded-lg">
                             <thead>
                                 <tr className="bg-gray-100 border-b">
-                                    <th className="text-left p-3">STT</th>
-                                    <th className="text-left p-3">Học viên</th>
+                                    <th className="text-left p-3">No.</th>
+                                    <th className="text-left p-3">Learner</th>
                                     <th className="text-left p-3">Email</th>
-                                    <th className="text-center p-3">TT Điểm danh</th>
+                                    <th className="text-center p-3">Attendance</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -391,7 +463,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                                             {student.studentAccount.avatarUrl && (
                                                 <img src={student.studentAccount.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full" />
                                             )}
-                                            {student.studentAccount.userName || student.studentAccount.fullName || 'Không xác định'}
+                                            {student.studentAccount.userName || student.studentAccount.fullName || 'Undefined'}
                                         </td>
                                         <td className="p-3">{student.studentAccount.email}</td>
                                         <td className="p-3">
@@ -417,10 +489,10 @@ function DetailItem({ label, value, labelIcon }: { label: string; value: ReactNo
 
 
     return (
-        <div className="bg-gray-100 p-4 rounded-lg">
+        <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg border-neutral-200 shadow-md hover:shadow-lg transition-all duration-300 p-6">
             <div className='flex gap-2 items-center'>
                 {labelIcon}
-                <p className="text-sm text-gray-500">{label}</p>
+                <p className="text-lg font-bold">{label}</p>
             </div>
             {value}
         </div>

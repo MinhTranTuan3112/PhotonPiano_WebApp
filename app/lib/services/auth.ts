@@ -47,7 +47,21 @@ export async function fetchSendForgotPasswordEmail(email: string) {
     return response;
 
 }
+export async function fetchChangePassword({email, resetPasswordToken,newPassword} : {
+    email : string,
+    resetPasswordToken : string,
+    newPassword : string
+}) {
 
+    const response = await axiosInstance.put('/auth/change-password', {
+        email,
+        resetPasswordToken,
+        password : newPassword
+    });
+
+    return response;
+
+}
 export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) {
 
     const response = await axiosInstance.get('/auth/current-info', {
@@ -57,5 +71,4 @@ export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) 
     });
 
     return response;
-
 }

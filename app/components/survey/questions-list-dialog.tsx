@@ -125,18 +125,18 @@ export default function QuestionsListDialog({
             enableHiding: false,
         },
         {
-            accessorKey: 'Nội dung câu hỏi',
-            header: 'Nội dung câu hỏi',
+            accessorKey: 'Question content',
+            header: 'Question content',
             cell: ({ row }) => {
                 return <div className="font-bold">{row.original.questionContent}</div>
             }
         },
         {
-            accessorKey: 'Các lựa chọn',
-            header: 'Các lựa chọn',
+            accessorKey: 'Options',
+            header: 'Options',
             cell: ({ row }) => {
                 return <div className="flex flex-col gap-1">
-                    {row.original.options.length === 0 ? "Không có lựa chọn" : row.original.options.map((option, index) => (
+                    {row.original.options.length === 0 ? "No options" : row.original.options.map((option, index) => (
                         <div className="" key={index}>
                             {option}
                         </div>
@@ -150,18 +150,18 @@ export default function QuestionsListDialog({
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
             <DialogContent className="min-w-[1000px]">
                 <DialogHeader className="w-full">
-                    <DialogTitle>Thêm câu hỏi từ ngân hàng câu hỏi</DialogTitle>
+                    <DialogTitle>Add from question bank</DialogTitle>
                     <DialogDescription>
-                        Chọn câu hỏi từ ngân hàng câu hỏi để thêm vào bài khảo sát hiện tại.
+                        Choose questions from the question bank to add to the current survey.
                     </DialogDescription>
                 </DialogHeader>
-                <Input placeholder="Nhập nội dung câu hỏi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <Input placeholder="Enter question content..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 <ScrollArea className="h-80 w-full px-3" onScroll={handleScroll}>
                     {isLoadingQuestions ? <LoadingSkeleton /> : <DataTable
                         enablePagination={false}
                         columns={columns}
                         data={fetchedData}
-                        emptyContent={'Không có câu hỏi nào.'}
+                        emptyContent={'No questions found.'}
                         enableColumnDisplayOptions={false}
                     />}
                     {isFetchingNextPage && (
@@ -174,7 +174,7 @@ export default function QuestionsListDialog({
                         setSelectedQuestions([])
                         setIsOpen(false)
                     }} disabled={selectedQuestions.length === 0}>
-                        Nhập câu hỏi &#40;{selectedQuestions.length}&#41;
+                        Choose &#40;{selectedQuestions.length}&#41; questions
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Delete, Import, Pencil, Save, Trash } from 'lucide-react'
-import { Suspense, useEffect } from 'react'
+import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
+import { CirclePlus, Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
+import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import { toast } from 'sonner'
@@ -12,7 +12,6 @@ import { Button } from '~/components/ui/button'
 import { DatePickerInput } from '~/components/ui/date-picker-input'
 import GenericCombobox from '~/components/ui/generic-combobox'
 import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Skeleton } from '~/components/ui/skeleton'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
@@ -20,7 +19,7 @@ import { fetchAccounts } from '~/lib/services/account'
 import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { fetchRooms } from '~/lib/services/rooms'
 import { Account, Role } from '~/lib/types/account/account'
-import { UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
+import { EntranceTestStatus, UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
 import { EntranceTestDetail } from '~/lib/types/entrance-test/entrance-test-detail'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
 import { Room } from '~/lib/types/room/room'
@@ -31,15 +30,21 @@ import { fetchAllMinimalCriterias } from '~/lib/services/criteria'
 import { MinimalCriteria } from '~/lib/types/criteria/criteria'
 import { useImportResultDialog } from '~/hooks/use-import-result-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime'
+import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
+import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
+import { getEntranceTestName } from './staff.entrance-tests.create'
 
 type Props = {}
 
 const getStatusStyle = (status: number) => {
     switch (status) {
-        case 0: return "text-green-500 font-semibold";
-        case 1: return "text-blue-500 font-semibold";
-        case 2: return "text-gray-400 font-semibold";
-        case 3: return "text-gray-400 font-semibold";
+        case 0: return "text-green-500 bg-green-200 font-semibold";
+        case 1: return "text-blue-500 bg-blue-200 font-semibold";
+        case 2: return "text-gray-500 bg-gray-200 font-semibold";
+        case 3: return "text-gray-500 bg-gray-200 font-semibold";
         default: return "text-black font-semibold";
     }
 };
@@ -60,13 +65,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             return redirect(role === Role.Instructor ? `/teacher/entrance-tests/${id}` : '/');
         }
 
+        const { searchParams } = new URL(request.url);
+
+        const tab = (searchParams.get('tab') || 'general')
 
         const promise = fetchAnEntranceTest({ id, idToken }).then((response) => {
 
             const entranceTestDetailsPromise: Promise<EntranceTestDetail> = response.data;
 
             return {
-                entranceTestDetailsPromise
+                entranceTestDetailsPromise,
             }
         });
 
@@ -78,6 +86,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             promise,
             criterias,
             idToken,
+            tab,
             role,
             id
         }
@@ -98,17 +107,37 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export default function StaffEntranceTestDetailsPage({ }: Props) {
 
-    const { promise, id } = useLoaderData<typeof loader>();
+    const { promise, id, ...data } = useLoaderData<typeof loader>();
+
+    const fetcher = useFetcher<typeof action>();
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Update test successfully!');
+            return;
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.warning(fetcher.data.error, {
+                position: 'top-center',
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [fetcher.data]);
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Chi tiết ca thi</h1>
-            <p className='text-muted-foreground'>Thông tin chung</p>
             <Suspense fallback={<LoadingSkeleton />} key={id}>
                 <Await resolve={promise}>
                     {({ entranceTestDetailsPromise }) => (
                         <Await resolve={entranceTestDetailsPromise}>
-                            <EntranceTestDetailsContent />
+                            <EntranceTestDetailsContent fetcher={fetcher} {...data} />
                         </Await>
                     )}
                 </Await>
@@ -123,10 +152,9 @@ const serverSchema = updateEntranceTestSchema.pick({
     instructorId: true,
     roomId: true,
     isAnnouncedScore: true
-
 }).extend({
-    date: z.string().nonempty({ message: 'Ngày thi không được để trống.' })
-});
+    date: z.coerce.date({ message: 'Test date cannot be empty.' })
+}).partial();
 
 type ServerUpdateEntranceTestFormData = z.infer<typeof serverSchema>;
 
@@ -136,7 +164,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (!params.id) {
             return {
                 success: false,
-                error: 'Không có mã đợt thi',
+                error: 'No test id found',
             }
         }
 
@@ -151,25 +179,29 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const { data, errors, receivedValues: defaultValues } =
             await getValidatedFormData<ServerUpdateEntranceTestFormData>(request, zodResolver(serverSchema));
 
+        console.log({ data });
+
         if (errors) {
             console.log({ errors });
 
             return { success: false, errors, defaultValues };
         }
 
-
         const updateRequest = {
             ...data,
-            date: data.date.toString(),
-            shift: parseInt(data.shift),
+            date: data.date ? data.date.toISOString().split('T')[0] : undefined,
+            shift: data.shift ? parseInt(data.shift) : undefined,
             id,
             instructorId: data.instructorId || undefined,
             idToken
         };
+
+        console.log({ updateRequest });
+
         const response = await fetchUpdateEntranceTest(updateRequest);
 
         return Response.json({
-            success: response.status === 204
+            success: true
         }, {
             status: 200
         });
@@ -194,17 +226,83 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
 }
 
+function StatusBadge({ status }: {
+    status: number
+}) {
+    return <div className={`${getStatusStyle(status)} uppercase text-center my-1 p-2 rounded-lg`}>{ENTRANCE_TEST_STATUSES[status]}</div>
+}
+
 const resolver = zodResolver(updateEntranceTestSchema);
 
-function EntranceTestDetailsContent() {
+export function EntranceTestDetailsContent({
+    fetcher, tab, idToken, criterias, role,
+}: {
+    fetcher: FetcherWithComponents<any>;
+    tab: string;
+    idToken: string;
+    criterias: MinimalCriteria[];
+    role: Role;
+}) {
 
-    const { idToken, criterias } = useLoaderData<typeof loader>();
+    const entranceTest = useAsyncValue() as EntranceTestDetail;
 
-    const entranceTestValue = useAsyncValue();
+    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
+        criterias: criterias,
+        entranceTestStudents: entranceTest.entranceTestStudents,
+        role
+    });
 
-    const entranceTest = entranceTestValue as EntranceTestDetail;
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    const fetcher = useFetcher<typeof action>();
+    return <>
+        <div className="flex flex-row justify-between items-center w-full">
+            <div className="">
+                <h1 className="text-xl font-bold">Test details information</h1>
+                <p className='text-sm text-muted-foreground mb-4'>
+                    Manage information about the time, exam room and score table, list of learners.
+                </p>
+            </div>
+            <div className="w-[20%]">
+                <StatusBadge status={entranceTest.testStatus} />
+            </div>
+        </div>
+        <Tabs value={tab} className="">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="general" onClick={() => setSearchParams({
+                    ...Object.fromEntries(searchParams.entries()),
+                    tab: "general",
+                })}>Basic information</TabsTrigger>
+                <TabsTrigger value="students" onClick={() => setSearchParams({
+                    ...Object.fromEntries(searchParams.entries()),
+                    tab: "students",
+                })}>Learners</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Basic information</CardTitle>
+                        <CardDescription>
+                            Basic information about the test.
+                        </CardDescription>
+                    </CardHeader>
+                    <EntranceTestForm fetcher={fetcher} idToken={idToken} role={role} {...entranceTest} />
+                </Card>
+            </TabsContent>
+            <TabsContent value="students">
+                <StudentsSection entranceTest={entranceTest} criterias={criterias} role={role}
+                    idToken={idToken} />
+            </TabsContent>
+        </Tabs>
+    </>
+}
+
+export function EntranceTestForm({
+    fetcher, idToken, role, ...defaultData
+}: {
+    role: Role;
+    fetcher: FetcherWithComponents<any>;
+    idToken: string;
+} & EntranceTestDetail) {
 
     const isSubmitting = fetcher.state === 'submitting';
 
@@ -213,46 +311,325 @@ function EntranceTestDetailsContent() {
         control,
         register,
         setValue: setFormValue,
-        getValues: getFormValues
+        getValues: getFormValues,
+        watch
     } =
         useRemixForm<UpdateEntranceTestFormData>({
             mode: 'onSubmit',
             resolver,
             defaultValues: {
-                name: entranceTest.name,
-                shift: entranceTest.shift.toString(),
-                instructorId: entranceTest.instructorId,
-                isAnnouncedScore: entranceTest.isAnnouncedScore,
-                roomId: entranceTest.roomId,
-                date: new Date(entranceTest.date)
+                name: defaultData.name,
+                shift: defaultData.shift.toString(),
+                instructorId: defaultData.instructorId,
+                isAnnouncedScore: defaultData.isAnnouncedScore,
+                roomId: defaultData.roomId,
+                roomName: defaultData.room?.name || '',
+                date: new Date(defaultData.date)
             },
             fetcher
         });
 
-    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật ca thi',
-        description: 'Bạn có chắc chắn muốn cập nhật thông tin ca thi này không?',
+    const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
+        title: 'Confirm update entrance test',
+        description: 'Are you sure you want to update this entrance test?',
         onConfirm: () => {
+            setFormValue('isAnnouncedScore', undefined);
             handleSubmit();
         }
-    })
+    });
+
+    const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
+
+    const [isEdit, setIsEdit] = useState(false);
+
+    return <>
+        <Form className='mt-4'
+            method='POST' navigate={false}>
+            <CardContent className="space-y-2">
+                {role === Role.Staff && <div className="flex justify-end mb-3 space-y-2">
+                    {
+                        isEdit ? (
+                            <>
+                                <Button variant={'destructive'} type="button" onClick={() => setIsEdit(false)}
+                                    Icon={XIcon} iconPlacement='left'>
+                                    Cancel changes
+                                </Button>
+                            </>
+                        ) : (
+                            <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"
+                                Icon={Edit2Icon} iconPlacement='left'>Edit
+                            </Button>
+                        )
+                    }
+                </div>}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Name: <span className='text-red-600'>*</span></span>
+                        {
+                            isEdit ? (
+                                <div >
+                                    <Input  {...register('name')} id="name" className="col-span-3"
+                                        placeholder='Test name...' readOnly={true} />
+                                </div>
+                            ) : (
+                                <p className="text-gray-900">{defaultData.name}</p>
+                            )
+                        }
+                        {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Shift: <span className='text-red-600'>*</span></span>
+                        {
+                            isEdit ? (
+                                <Controller
+                                    control={control}
+                                    name='shift'
+                                    render={({ field: { value, onChange } }) => (
+                                        <Select value={value}
+                                            onValueChange={(value) => {
+                                                onChange(value);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}>
+                                            <SelectTrigger className='w-64'>
+                                                <SelectValue placeholder="Select shift" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    {
+                                                        SHIFT_TIME.map((item, index) => (
+                                                            <SelectItem key={index} value={index.toString()}>Ca {index + 1} ({item})</SelectItem>
+                                                        ))
+                                                    }
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            ) : (
+                                <p className="text-gray-900">{`Ca ${defaultData.shift + 1}: ${SHIFT_TIME[defaultData.shift]}`}</p>
+                            )
+                        }
+                        {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Test date: <span className='text-red-600'>*</span></span>
+                        {
+                            isEdit ? (
+                                <Controller
+                                    control={control}
+                                    name='date'
+                                    render={({ field: { value, onChange, ref, onBlur } }) => (
+                                        <DatePickerInput
+                                            ref={ref}
+                                            onBlur={onBlur}
+                                            value={value}
+                                            onChange={(newDate) => {
+                                                onChange(newDate);
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: newDate as Date,
+                                                    roomName,
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
+                                            placeholder='Select test date'
+                                            className='w-full'
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <p className="text-gray-900">{formatRFC3339ToDisplayableDate(defaultData.date, false, false)}</p>
+                            )
+                        }
+                        {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Room: <span className='text-red-600'>*</span></span>
+                        {
+                            isEdit ? (
+                                <Controller
+                                    name='roomId'
+                                    control={control}
+                                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                                        <GenericCombobox<Room>
+                                            idToken={idToken}
+                                            queryKey='rooms'
+                                            fetcher={async (query) => {
+                                                const response = await fetchRooms(query);
+                                                const headers = response.headers;
+                                                const metadata: PaginationMetaData = {
+                                                    page: parseInt(headers['x-page'] || '1'),
+                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                };
+                                                return {
+                                                    data: response.data,
+                                                    metadata
+                                                };
+                                            }}
+                                            mapItem={(item) => ({
+                                                label: item?.name,
+                                                value: item?.id
+                                            })}
+                                            onItemChange={(room) => {
+                                                setFormValue('roomName', room?.name || '');
+                                                setFormValue('name', getEntranceTestName({
+                                                    date: testDate,
+                                                    roomName: room.name || '',
+                                                    shift: parseInt(testShift)
+                                                }));
+                                            }}
+                                            placeholder='Select room'
+                                            emptyText='No rooms found.'
+                                            errorText='Error loading rooms.'
+                                            value={value}
+                                            onChange={onChange}
+                                            maxItemsDisplay={10}
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <p className="text-gray-900">{defaultData.room?.name}</p>
+                            )
+                        }
+                        {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Teacher: <span className='text-red-600'>*</span></span>
+                        {
+                            isEdit ? (
+                                <Controller
+                                    control={control}
+                                    name='instructorId'
+                                    render={({ field: { value, onChange } }) => (
+                                        <GenericCombobox<Account>
+                                            queryKey='accounts'
+                                            fetcher={async (query) => {
+                                                const response = await fetchAccounts({
+                                                    page: query.page,
+                                                    pageSize: query.pageSize,
+                                                    idToken,
+                                                    roles: [Role.Instructor]
+                                                });
+                                                const headers = response.headers;
+                                                const metadata: PaginationMetaData = {
+                                                    page: parseInt(headers['x-page'] || '1'),
+                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                };
+                                                return {
+                                                    data: response.data,
+                                                    metadata
+                                                };
+                                            }}
+                                            idToken={idToken}
+                                            mapItem={(item) => ({
+                                                label: <div className="flex flex-row justify-center items-center">
+                                                    <Avatar className=''>
+                                                        <AvatarImage src={item.avatarUrl || "/images/noavatar.png"} alt="@shadcn" />
+                                                        <AvatarFallback>{item.fullName || item.email}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className='ml-2'>{item.fullName || item.email}</span>
+                                                </div>,
+                                                value: item?.accountFirebaseId
+                                            })}
+                                            placeholder='Select teacher'
+                                            emptyText='No teachers found.'
+                                            errorText='Error loading instructors.'
+                                            maxItemsDisplay={10}
+                                            value={value || ''}
+                                            onChange={(value) => {
+                                                onChange(value);
+                                            }}
+                                        />
+                                    )}
+                                />
+                            ) : (
+                                <p className="text-gray-900">{defaultData.instructor?.fullName || defaultData.instructor?.email}</p>
+                            )
+                        }
+                        {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <span className="text-gray-700 font-bold">Status: </span>
+                        <div className="">
+                            <StatusBadge status={defaultData.testStatus} />
+                        </div>
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg col-start-2">
+                        <span className="text-gray-700 font-bold">Number of learners: </span>
+                        <p className="text-gray-900">{defaultData.entranceTestStudents.length}</p>
+                    </div>
+                </div>
+            </CardContent>
+            <CardFooter className='mt-4 flex justify-end w-full'>
+                {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
+                    disabled={isSubmitting}
+                    type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                </Button>}
+            </CardFooter>
+        </Form>
+        {entranceTestConfirmDialog}
+    </>
+}
+
+function StudentsSection({
+    entranceTest,
+    criterias,
+    role,
+    idToken
+}: {
+    entranceTest: EntranceTestDetail,
+    criterias: MinimalCriteria[],
+    role: Role;
+    idToken: string;
+}) {
 
     const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
         criterias: criterias,
         entranceTestStudents: entranceTest.entranceTestStudents,
-        role: Role.Staff
+        role
+    });
+
+    const fetcher = useFetcher<typeof addStudentsToTestAction>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { handleOpen: handleOpenStudentListDialog, studentsListDialog } = useStudentListDialog({
+        entranceTest,
+        idToken,
+        onStudentsAdded: (students) => {
+            const formData = new FormData();
+
+            students.forEach((student) => {
+                formData.append('studentIds', student.accountFirebaseId);
+            })
+
+            formData.append('entranceTestId', entranceTest.id);
+
+            fetcher.submit(formData, {
+                action: '/add-students-to-test',
+                method: "POST"
+            });
+        }
     });
 
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Cập nhật thông tin đợt thi thành công!');
+            toast.success('Thêm học viên vào ca thi thành công!');
             return;
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error, {
-                position: 'top-center'
+            toast.warning(fetcher.data.error, {
+                duration: 5000
             });
             return;
         }
@@ -260,219 +637,46 @@ function EntranceTestDetailsContent() {
         return () => {
 
         }
+
     }, [fetcher.data]);
 
     return <>
-        <Form className='mt-4'
-            method='POST'
-            onSubmit={() => {
-                handleOpenModal();
-            }} navigate={false}>
-            <div className='flex gap-2 items-center'>
-                <Label className="w-32">
-                    Tên bài thi
-                </Label>
-                <Input  {...register('name')} id="name" className="col-span-3"
-                    placeholder='Nhập tên đợt thi...' readOnly={true}/>
-                {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
-            </div>
-            <div className='mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4 w-full'>
-                <div className='flex gap-2 items-center'>
-                    <Label className="w-32">
-                        Ca thi
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='shift'
-                        render={({ field: { value, onChange } }) => (
-                            <Select value={value}
-                                onValueChange={onChange}>
-                                <SelectTrigger className='w-64'>
-                                    <SelectValue placeholder="Chọn ca thi" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        {
-                                            SHIFT_TIME.map((item, index) => (
-                                                <SelectItem key={index} value={index.toString()}>Ca {index + 1} ({item})</SelectItem>
-                                            ))
-                                        }
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                    {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
+        <Card className="">
+            <CardHeader>
+                <CardTitle>Learners list</CardTitle>
+                <CardDescription>Learners in test.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="my-8">
+                    {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
+                        <Button type='button' variant={'outline'}
+                            Icon={CirclePlus} iconPlacement='left'
+                            disabled={isSubmitting} isLoading={isSubmitting}>
+                            Add learner
+                        </Button>
+                    </div>}
+
+                    <div className="flex justify-end">
+                        <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                            Icon={Import} iconPlacement='left'>Import with Excel file</Button>
+                    </div>
+                    <ResultTable data={entranceTest.entranceTestStudents} />
                 </div>
-                {/*Ngày thi */}
-                <div className='flex gap-2 items-center'>
-                    <Label className="w-32">
-                        Ngày thi
-                    </Label>
-                    <Controller
-                        control={control}
-                        name='date'
-                        render={({ field: { value, onChange, ref, onBlur } }) => (
-                            <DatePickerInput
-                                ref={ref}
-                                onBlur={onBlur}
-                                value={value}
-                                onChange={onChange}
-                                placeholder='Chọn ngày thi'
-                                className='w-56'
-                            />
-                        )}
-                    />
-                    {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
-                </div>
-                {/*Room */}
-                <div className='flex gap-2 items-center '>
-                    <Label className="w-32">
-                        Phòng thi
-                    </Label>
-                    <Controller
-                        name='roomId'
-                        control={control}
-                        render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <GenericCombobox<Room>
-                                idToken={idToken}
-                                queryKey='rooms'
-                                fetcher={async (query) => {
-                                    const response = await fetchRooms(query);
-
-                                    const headers = response.headers;
-
-                                    const metadata: PaginationMetaData = {
-                                        page: parseInt(headers['x-page'] || '1'),
-                                        pageSize: parseInt(headers['x-page-size'] || '10'),
-                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                        totalCount: parseInt(headers['x-total-count'] || '0'),
-                                    };
-
-                                    return {
-                                        data: response.data,
-                                        metadata
-                                    };
-                                }}
-                                mapItem={(item) => ({
-                                    label: item?.name,
-                                    value: item?.id
-                                })}
-                                placeholder='Chọn phòng thi'
-                                emptyText='Không tìm thấy phòng thi.'
-                                errorText='Lỗi khi tải danh sách phòng thi.'
-                                value={value}
-                                onChange={onChange}
-                                maxItemsDisplay={10}
-                            />
-                        )}
-                    />
-                    {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
-                </div>
-                <div className='flex gap-2 items-center'>
-                    {/*Người gác thi */}
-                    <Controller
-                        control={control}
-                        name='instructorId'
-                        render={({ field: { value, onChange } }) => (
-                            <GenericCombobox<Account>
-                                queryKey='accounts'
-                                fetcher={async (query) => {
-                                    const response = await fetchAccounts({
-                                        page: query.page,
-                                        pageSize: query.pageSize,
-                                        idToken,
-                                        roles: [Role.Instructor]
-                                    });
-
-                                    const headers = response.headers;
-
-                                    const metadata: PaginationMetaData = {
-                                        page: parseInt(headers['x-page'] || '1'),
-                                        pageSize: parseInt(headers['x-page-size'] || '10'),
-                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                        totalCount: parseInt(headers['x-total-count'] || '0'),
-                                    };
-
-                                    return {
-                                        data: response.data,
-                                        metadata
-                                    };
-
-                                }}
-                                idToken={idToken}
-                                mapItem={(item) => ({
-                                    label: <div className="flex flex-row justify-center items-center">
-                                        <Avatar className=''>
-                                            <AvatarImage src={item.avatarUrl || "/images/noavatar.png"} alt="@shadcn" />
-                                            <AvatarFallback>{item.fullName || item.email}</AvatarFallback>
-                                        </Avatar>
-                                        <span className='ml-2'>{item.fullName || item.email}</span>
-                                    </div>,
-                                    value: item?.accountFirebaseId
-                                })}
-                                placeholder='Chọn người gác thi'
-                                emptyText='Không tìm thấy người gác thi.'
-                                errorText='Lỗi khi tải danh sách người gác thi.'
-                                maxItemsDisplay={10}
-                                value={value || ''}
-                                onChange={onChange}
-                            />
-                        )}
-                    />
-                    {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
-                </div>
-            </div>
-            <div className='mt-4 grid grid-cols-1 lg:grid-cols-3'>
-                <div className='flex gap-4'>
-                    <span className='font-bold'>Sức chứa hiện tại :</span>
-                    <span className=''>{entranceTest.roomCapacity}</span>
-                </div>
-                <div className='flex gap-4'>
-                    <span className='font-bold'>Số học viên tham dự :</span>
-                    <span className=''>{entranceTest.registerStudents}</span>
-                </div>
-                <div className='flex gap-4'>
-                    <span className='font-bold'>Trạng thái :</span>
-                    <span className={getStatusStyle(entranceTest.status)}>{ENTRANCE_TEST_STATUSES[entranceTest.status]}</span>
-                </div>
-            </div>
-            <div className='mt-4 flex justify-end flex-wrap gap-4'>
-                <Button className='font-bold px-12' isLoading={isSubmitting}
-                    disabled={isSubmitting}
-                    type='submit'>
-                    <Save className='mr-4' />
-                    {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-                </Button>
-            </div>
-        </Form>
-        <h1 className="text-xl font-extrabold mt-8">Danh sách học viên</h1>
-        <p className='text-muted-foreground'>Danh sách học viên tham gia thi vào ca thi này</p>
-        {/* <ScoreTable data={entranceTest.entranceTestStudents} className='my-8' /> */}
-
-        <div className="my-8">
-            <div className="flex justify-end">
-                <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
-                    Icon={Import} iconPlacement='left'>Nhập điểm qua file Excel</Button>
-            </div>
-            <ResultTable data={entranceTest.entranceTestStudents} />
-        </div>
-
-
-        {/* <DataTable columns={studentColumns} data={entranceTest.entranceTestStudents} /> */}
-        <div className='flex flex-col md:flex-row justify-center gap-4'>
-            {
-                (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
-                    <Button className='px-12' variant={"destructive"}>
-                        <Trash className='mr-2' /> Xóa ca thi này
-                    </Button>
-                )
-            }
-            <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id} />
-        </div>
-
+            </CardContent>
+            <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
+                {
+                    (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
+                        <Button className='px-12' variant={"destructive"}>
+                            <Trash className='mr-2' /> Xóa ca thi này
+                        </Button>
+                    )
+                }
+                <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
+                    status={entranceTest.status} />
+            </CardFooter>
+        </Card>
         {importResultDialog}
-        {confirmDialog}
+        {studentsListDialog}
     </>
 }
 
@@ -495,10 +699,12 @@ function ComboboxSkeleton() {
 
 function PublishScoreSection({
     isAnnouncedScore,
-    id
+    id,
+    status
 }: {
     isAnnouncedScore: boolean
     id: string,
+    status: EntranceTestStatus;
 }) {
 
     const fetcher = useFetcher<typeof action>();
@@ -506,8 +712,8 @@ function PublishScoreSection({
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận công bố điểm số',
-        description: 'Bạn có chắc chắn muốn công bố điểm số cho ca thi này không?',
+        title: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
+        description: `Are you sure you want to ${isAnnouncedScore ? "cancel" : "publish"} test results?`,
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', id);
@@ -522,19 +728,19 @@ function PublishScoreSection({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Công bố điểm số thành công!');
+            toast.success('Success!');
             return;
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error, {
+            toast.warning(fetcher.data.error, {
                 position: 'top-center'
             });
             return;
         }
 
         return () => {
-            
+
         }
 
     }, [fetcher.data]);
@@ -542,18 +748,18 @@ function PublishScoreSection({
 
     return <>
         <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting} disabled={isSubmitting}>
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}>
             {
                 isAnnouncedScore === true ? (
                     <>
                         <Delete className='mr-4'
                         />
-                        Hủy công bố điểm số
+                        Cancel publishing score
                     </>
                 ) : (
                     <>
                         <Pencil className='mr-4' />
-                        Công bố điểm số
+                        Publish score
                     </>
                 )
             }

@@ -89,7 +89,7 @@ export default function ArticleContent({ article, hasPublishStatusDisplay = fals
 
                     {/* Article footer */}
                     <div className="flex flex-col gap-4">
-                        <h3 className="text-xl font-semibold">Chia sẻ bài viết này</h3>
+                        <h3 className="text-xl font-semibold">Share this post</h3>
                         <div className="flex gap-4">
                             <Button className="inline-flex h-10 items-center justify-center rounded-full px-2"
                                 type='button' size={'icon'} variant={'outline'}>
@@ -98,7 +98,7 @@ export default function ArticleContent({ article, hasPublishStatusDisplay = fals
                             <Button className="inline-flex h-10 items-center justify-center rounded-full px-2"
                                 type='button' size={'icon'} variant={'outline'} onClick={async () => {
                                     await navigator.clipboard.writeText(window.location.href);
-                                    toast.success('Đã sao chép liên kết bài viết vào clipboard!', {
+                                    toast.success('Copied link to clipboard!', {
                                         position: 'top-center',
                                         duration: 1250
                                     })

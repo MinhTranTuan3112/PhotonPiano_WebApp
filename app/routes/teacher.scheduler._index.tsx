@@ -48,6 +48,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     const response = await fetchSlots({ startTime, endTime, studentFirebaseId: accountId, idToken: idToken })
+    
+    const classId = response.data.classId;
+    const className = response.data.className;
+    
     const slots: SlotDetail[] = response.data
     return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
 }
@@ -56,14 +60,25 @@ export default function StaffScheduler({} : Props) {
     const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount } = useLoaderData<typeof loader>()
 
     return (
-        <Scheduler 
-            currentAccount={currentAccount}
-            idToken={idToken}
-            initialEndDate={endDate}
-            initialStartDate={startDate}
+        // <Scheduler 
+        //     currentAccount={currentAccount}
+        //     idToken={idToken}
+        //     initialEndDate={endDate}
+        //     initialStartDate={startDate}
+        //     initialSlots={slots}
+        //     initialYear={year}
+        //     initialWeekNumber={weekNumber}
+        //     role={role}/>
+
+        <Scheduler
             initialSlots={slots}
+            initialStartDate={startDate}
+            initialEndDate={endDate}
             initialYear={year}
             initialWeekNumber={weekNumber}
-            role={role}/>
+            idToken={idToken}
+            role={role}
+            currentAccount={currentAccount}
+        />
     )
 }

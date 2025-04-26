@@ -16,10 +16,12 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { ChevronDown, GripVertical } from "lucide-react"
+import { ChevronDown, Eye, GripVertical } from "lucide-react"
 import { Card, CardContent } from "../ui/card"
 import { cn } from "~/lib/utils"
 import { Level } from "~/lib/types/account/account"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { useNavigate } from "@remix-run/react"
 
 type SortableLevelProps = {
     level: Level;
@@ -33,6 +35,8 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
         transform: CSS.Transform.toString(transform),
         transition,
     }
+
+    const navigate = useNavigate();
 
     return (
         <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
@@ -49,6 +53,18 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
                         <h3 className="font-medium">Level <strong>{level.name}</strong></h3>
                         <p className="text-sm text-muted-foreground">{level.description}</p>
                     </div>
+
+                    <div className="">
+                        <TooltipProvider>
+                            <Tooltip delayDuration={300} >
+                                <TooltipTrigger onClick={() => navigate(`/admin/levels/${level.id}`)}><Eye className="hover:text-black/70"/></TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Xem chi tiết level</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
                 </CardContent>
             </Card>
         </div>
@@ -56,13 +72,12 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
 }
 
 type DraggableLevelsProps = {
-    inititalLevels: Level[]
-    onLevelsChange?: (levels: Level[]) => void
+    levels: Level[];
+    setLevels: React.Dispatch<React.SetStateAction<Level[]>>;
+    onLevelsChange?: (levels: Level[]) => void;
 }
 
-export function DraggableLevels({ inititalLevels, onLevelsChange }: DraggableLevelsProps) {
-
-    const [levels, setLevels] = React.useState<Level[]>(inititalLevels);
+export function DraggableLevels({ levels, setLevels, onLevelsChange }: DraggableLevelsProps) {
 
     const sensors = useSensors(
         useSensor(PointerSensor, {

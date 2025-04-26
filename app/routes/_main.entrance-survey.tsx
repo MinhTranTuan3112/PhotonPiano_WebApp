@@ -1,4 +1,3 @@
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react';
@@ -15,7 +14,6 @@ import { Label } from '~/components/ui/label';
 import { PasswordInput } from '~/components/ui/password-input';
 import { Skeleton } from '~/components/ui/skeleton';
 import StepperBar from '~/components/ui/stepper';
-import { Textarea } from '~/components/ui/textarea';
 import { UncheckableRadioGroup } from '~/components/ui/uncheckable-radio-group';
 import { fetchEntranceSurvey, fetchSendEntranceSurveyAnswers } from '~/lib/services/survey';
 import { QuestionType } from '~/lib/types/survey-question/survey-question';
@@ -25,8 +23,6 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
-import { fetchSignIn } from '~/lib/services/auth';
-import { isAxiosError } from 'axios';
 import { AuthResponse } from '~/lib/types/auth-response';
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime';
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie';
@@ -42,20 +38,20 @@ type SurveyStepProps = {
 };
 
 const entranceSurveySchema = z.object({
-    fullName: z.string({ message: 'Vui lòng nhập họ và tên của bạn.' }).min(1, { message: 'Vui lòng nhập họ và tên của bạn.' }),
-    email: z.string({ message: 'Email không được để trống' }).email({ message: 'Email không hợp lệ' }),
-    password: z.string({ message: 'Mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
-    confirmPassword: z.string({ message: 'Xác nhận mật khẩu không được để trống' }).min(6, { message: 'Mật khẩu phải chứa ít nhất 6 ký tự' }),
-    phone: z.string({ message: 'Số điện thoại không được để trống.' }).min(10, { message: 'Số điện thoại không hợp lệ.' }),
+    fullName: z.string({ message: 'Full name is required.' }).min(1, { message: 'Full name is required.' }),
+    email: z.string({ message: 'Invalid email' }).email({ message: 'Email is required' }),
+    password: z.string({ message: 'Password is required' }).min(6, { message: 'Password must have at least 6 characters.' }),
+    confirmPassword: z.string({ message: 'Please confirm password' }).min(6, { message: 'Password must have at least 6 characters.' }),
+    phone: z.string({ message: 'Phone is required.' }).min(10, { message: 'Invalid phone number.' }),
     // shortDescription: z.string({ message: 'Vui lòng giới thiệu về bản thân.' }).min(1, { message: 'Vui lòng giới thiệu về bản thân.' }),
-    isTermsAgreed: z.literal<boolean>(true, { errorMap: () => ({ message: "Vui lòng đọc và chấp thuận với điều khoản, chính sách của Photon Piano", }), }),
+    isTermsAgreed: z.literal<boolean>(true, { errorMap: () => ({ message: "Please read and accept Photon Piano terms and conditions", }), }),
     surveyAnswers: z.array(z.object({
         questionId: z.string(),
         answers: z.array(z.string()),
         otherAnswer: z.string().optional()
     }))
 }).refine(data => data.password === data.confirmPassword, {
-    message: 'Mật khẩu xác nhận không khớp',
+    message: 'Confirm password did not match',
     path: ['confirmPassword']
 });
 
@@ -114,18 +110,19 @@ export async function action({ request }: ActionFunctionArgs) {
             return { success: false, errors, defaultValues };
         }
 
-        const sendEntranceSurveyResponse = await fetchSendEntranceSurveyAnswers({
+        const response = await fetchSendEntranceSurveyAnswers({
             ...data, surveyAnswers: data.surveyAnswers.map(s => ({
                 surveyQuestionId: s.questionId,
                 answers: s.answers.length > 0 ? s.answers : s.otherAnswer ? [s.otherAnswer] : []
             }))
         });
 
-        const signInResponse = await fetchSignIn(data.email, data.password);
+        if (response.status === 200) {
 
-        if (signInResponse.status === 200) {
+            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data;
 
-            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await signInResponse.data;
+            console.log({ idToken, refreshToken, expiresIn, role, localId });
+
 
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn);
 
@@ -149,19 +146,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
         }
 
-
     } catch (error) {
         console.error({ error });
 
         if (isRedirectError(error)) {
             throw error;
-        }
-
-        if (isAxiosError(error) && error.response?.status === 401) {
-            return {
-                success: false,
-                error: 'Email hoặc mật khẩu không đúng',
-            }
         }
 
         const { message, status } = getErrorDetailsInfo(error);
@@ -224,10 +213,10 @@ function EntranceSurveyForm() {
     });
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận gửi khảo sát và đăng ký tài khoản Photon Piano?',
-        description: 'Bạn có chắc chắn muốn gửi khảo sát và đăng ký tài khoản không?',
+        title: 'Confirm action?',
+        description: 'Confirm with account registration?',
         onConfirm: handleSubmit,
-        confirmText: 'Gửi'
+        confirmText: 'Confirm'
     });
 
     const surveyAnswers = watch('surveyAnswers');
@@ -326,55 +315,54 @@ function EntranceSurveyForm() {
         ...questionSteps,
         {
             isRequired: true,
-            title: 'Đăng ký tài khoản',
+            title: 'Account registration',
             content: <>
                 <div className='mt-4 flex flex-col gap-4'>
                     <p className="text-sm text-muted-foreground">
-                        Đây là những thông tin cá nhân quan trọng của bạn
-                        mà <strong>Photon Piano</strong> sử dụng để liên lạc với bạn.
+                        Those are important personal information that <strong>Photon Piano</strong> uses to contact you.
                     </p>
                     <div className='flex gap-4 items-center'>
-                        <Label htmlFor="fullName" className="w-32">
-                            Họ và tên
+                        <Label htmlFor="fullName" className="w-40 font-bold">
+                            Full name
                         </Label>
                         <div className="w-full">
-                            <Input id="fullName" {...register('fullName')} placeholder='Nhập họ và tên của bạn...' />
+                            <Input id="fullName" {...register('fullName')} placeholder='Enter your fullname...' />
                             {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName.message}</p>}
                         </div>
                     </div>
                     <div className='flex gap-4 items-center'>
-                        <Label htmlFor="email" className="w-32">
+                        <Label htmlFor="email" className="w-40 font-bold">
                             Email
                         </Label>
                         <div className="w-full">
-                            <Input id="email" {...register('email')} placeholder='Nhập email của bạn...' />
+                            <Input id="email" {...register('email')} placeholder='Enter your email...' />
                             {errors.email && <p className='text-sm text-red-600'>{errors.email.message}</p>}
                         </div>
                     </div>
                     <div className='flex gap-4 items-center'>
-                        <Label htmlFor="phone" className="w-32" >
-                            SĐT
+                        <Label htmlFor="phone" className="w-40 font-bold" >
+                            Phone
                         </Label>
                         <div className="w-full">
-                            <Input id="phone" {...register('phone')} placeholder='Nhập số điện thoại của bạn...' />
+                            <Input id="phone" {...register('phone')} placeholder='Enter your phone number...' />
                             {errors.phone && <p className='text-sm text-red-600'>{errors.phone.message}</p>}
                         </div>
                     </div>
                     <div className='flex gap-4 items-center'>
-                        <Label htmlFor="password" className="w-32" >
-                            Mật khẩu
+                        <Label htmlFor="password" className="w-40 font-bold" >
+                            Password
                         </Label>
                         <div className="w-full">
-                            <PasswordInput id="password" {...register('password')} placeholder='Nhập mật khẩu...' />
+                            <PasswordInput id="password" {...register('password')} placeholder='Enter your password...' />
                             {errors.password && <p className='text-sm text-red-600'>{errors.password.message}</p>}
                         </div>
                     </div>
                     <div className='flex gap-4 items-center'>
-                        <Label htmlFor="confirmPassword" className="w-32" >
-                            Xác nhận mật khẩu
+                        <Label htmlFor="confirmPassword" className="w-40 font-bold" >
+                            Confirm password
                         </Label>
                         <div className="w-full">
-                            <PasswordInput id="confirmPassword" {...register('confirmPassword')} placeholder='Xác nhận mật khẩu...' />
+                            <PasswordInput id="confirmPassword" {...register('confirmPassword')} placeholder='Confirm password...' />
                             {errors.confirmPassword && <p className='text-sm text-red-600'>{errors.confirmPassword.message}</p>}
                         </div>
                     </div>
@@ -397,7 +385,7 @@ function EntranceSurveyForm() {
                             )}
                         />
                         <div className="">
-                            <span className='text-sm'>Tôi đồng ý với các <a className='underline font-bold' href='/'>quy định</a>   của trung tâm Photon Piano</span>
+                            <span className='text-sm'>I agree to the <a className='underline font-bold' href='/'>terms and conditions</a>  of Photon Piano center</span>
                             {errors.isTermsAgreed && <p className='text-sm text-red-600'>{errors.isTermsAgreed.message}</p>}
                         </div>
                     </div>
@@ -409,7 +397,9 @@ function EntranceSurveyForm() {
     useEffect(() => {
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
@@ -420,6 +410,8 @@ function EntranceSurveyForm() {
     }, [fetcher.data]);
 
     return <>
+        <div className="absolute inset-1 -z-[10000] bg-cover bg-no-repeat opacity-5 bg-[url('/images/notes_flows.png')]">
+        </div>
         <div className="mb-3">
             <StepperBar steps={steps.map(s => s.title)} currentStep={stepCnt} showIndicatorTitle={true} />
         </div>
@@ -431,29 +423,31 @@ function EntranceSurveyForm() {
                 </>}
             </section>
         ))}
-        <Form method='POST' onSubmit={handleSubmit}>
-            <div className="flex justify-between my-2">
-                <div className="flex justify-start">
+        <Form method='POST' onSubmit={handleOpenConfirmDialog}>
+            <div className={`flex my-2 ${stepCnt === 0 ? 'justify-end' : stepCnt === steps.length - 1 ? 'justify-start' : 'justify-between'}`}>
+                {stepCnt > 0 && <div className="flex">
                     <Button variant={'outline'} type='button' onClick={() => setStepCnt((prev) => Math.max(prev - 1, 0))}
                         size={'icon'}
                         className='rounded-full'>
                         <ArrowLeft />
                     </Button>
-                </div>
-                <div className="flex justify-end ">
+                </div>}
+
+                {stepCnt < steps.length - 1 && <div className="flex">
                     <Button variant={'outline'} type='button' onClick={() => setStepCnt(prev =>
                         prev < steps.length - 1 ? prev + 1 : prev
                     )}
                         size={'icon'} className='rounded-full'>
                         <ArrowRight />
                     </Button>
-                </div>
+                </div>}
             </div>
             {
                 stepCnt === steps.length - 1 && (
                     <Button className='mt-4 w-full' type='button' Icon={Piano} isLoading={isSubmitting}
                         disabled={isSubmitting}
-                        iconPlacement='left' onClick={handleOpenConfirmDialog}>Tham gia Photon Piano ngay
+                        iconPlacement='left' onClick={handleOpenConfirmDialog}>
+                        Join Photon Piano now
                     </Button>
                 )
             }

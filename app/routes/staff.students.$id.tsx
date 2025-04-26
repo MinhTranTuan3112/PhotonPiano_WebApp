@@ -2,11 +2,11 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData } from '@remix-run/react';
 import React, { Suspense } from 'react';
 import { Skeleton } from '~/components/ui/skeleton';
-import { fetchAccountDetail, fetchTeachDetail } from '~/lib/services/account';
-import { AccountDetail, TeacherDetail } from '~/lib/types/account/account';
+import { fetchAccountDetail } from '~/lib/services/account';
+import { AccountDetail } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { useNavigate } from 'react-router-dom';
-import { CircleArrowLeft, X } from 'lucide-react';
+import { CircleArrowLeft } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
 import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
@@ -58,7 +58,7 @@ export default function StaffStudentDetailPage() {
     <div className="container mx-auto px-4 py-6 animate-fade-in">
       <div className="mb-6">
         <Button variant="outline" onClick={() => navigate(-1)} className="flex items-center gap-2">
-          <CircleArrowLeft className="w-5 h-5" /> Trở về
+          <CircleArrowLeft className="w-5 h-5" /> Back
         </Button>
       </div>
 
@@ -81,16 +81,16 @@ export default function StaffStudentDetailPage() {
                     <span className="font-semibold">Level:</span> {student.level?.name.split('(')[0] || 'N/A'}
                   </p>
                   <div className="flex flex-col lg:flex-row lg:justify-between gap-2 text-sm text-gray-500 mt-2">
-                    <p><span className="font-semibold">Địa chỉ:</span> {student.address}</p>
-                    <p><span className="font-semibold">Giới tính:</span> {student.gender}</p>
-                    <p><span className="font-semibold">Ngày sinh:</span> {student.dateOfBirth}</p>
+                    <p><span className="font-semibold">Address:</span> {student.address}</p>
+                    <p><span className="font-semibold">Gender:</span> {student.gender}</p>
+                    <p><span className="font-semibold">Date of birth:</span> {student.dateOfBirth}</p>
                   </div>
-                  <p className="text-gray-500"><span className="font-semibold">Giới thiệu:</span> {student.shortDescription}</p>
+                  <p className="text-gray-500"><span className="font-semibold">Short bio:</span> {student.shortDescription}</p>
                 </div>
               </div>
 
               {/* Current Class */}
-              <Section title="🎓 Lớp hiện tại">
+              <Section title="🎓 Current class">
                 {student.currentClass ? (
                   <Card>
                     <CardHeader status={student.currentClass.status}>
@@ -101,12 +101,12 @@ export default function StaffStudentDetailPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <p className="text-gray-400 italic">Chưa có lớp học nào</p>
+                  <p className="text-gray-400 italic">Not currently in any classes</p>
                 )}
               </Section>
 
               {/* Past Classes */}
-              <Section title="📚 Các lớp đã học">
+              <Section title="📚 Studied classes">
                 {student.studentClasses.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {student.studentClasses.map(({ class: c }) => (
@@ -119,18 +119,18 @@ export default function StaffStudentDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400 italic">Chưa có lớp học nào.</p>
+                  <p className="text-gray-400 italic">No studied classes.</p>
                 )}
               </Section>
 
               {/* Free Time */}
-              <Section title="⏰ Lịch rảnh">
+              <Section title="⏰ Free Time">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm text-gray-700 border rounded-lg overflow-hidden">
                     <thead className="bg-gray-100 font-semibold">
                       <tr>
-                        <th className="px-4 py-2 border">Ca học</th>
-                        {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"].map((day, i) => (
+                        <th className="px-4 py-2 border">Shift</th>
+                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day, i) => (
                           <th key={i} className="px-4 py-2 border">{day}</th>
                         ))}
                       </tr>
@@ -162,13 +162,13 @@ export default function StaffStudentDetailPage() {
               </Section>
 
               {/* Surveys */}
-              <Section title="📝 Khảo sát đã thực hiện">
+              <Section title="📝 Survey Answered">
                 {student.learnerSurveys.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {student.learnerSurveys.map((survey, index) => (
                       <Card key={index} className="bg-gray-50">
                         <h4 className="text-lg font-bold text-primary">{survey.pianoSurvey.name}</h4>
-                        <p className="text-sm text-gray-500"><span className="font-semibold">Ngày:</span> {new Date(survey.createdAt).toLocaleDateString()}</p>
+                        <p className="text-sm text-gray-500"><span className="font-semibold">Date:</span> {new Date(survey.createdAt).toLocaleDateString()}</p>
                         <div className="mt-2">
                           {survey.learnerAnswers.map(answer => (
                             <div key={answer.surveyQuestion.id} className="mb-3">
@@ -179,7 +179,7 @@ export default function StaffStudentDetailPage() {
                                     <p key={i} className="text-sm">- {ans}</p>
                                   ))
                                 ) : (
-                                  <p className="italic text-gray-400 text-sm">Không có câu trả lời</p>
+                                  <p className="italic text-gray-400 text-sm">No answers found</p>
                                 )}
                               </div>
                             </div>
@@ -189,7 +189,7 @@ export default function StaffStudentDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-400 italic">Chưa có khảo sát nào.</p>
+                  <p className="text-gray-400 italic">No surveys found.</p>
                 )}
               </Section>
             </div>

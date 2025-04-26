@@ -25,6 +25,10 @@ const DatePickerInput = React.forwardRef<HTMLInputElement, Props>(
         }, [value])
 
         const handleDateChange = (selectedDate: Date | undefined) => {
+            if (selectedDate) {
+                // Add 7 hours to the selected date
+                selectedDate.setHours(selectedDate.getHours() + 7)
+            }
             setDate(selectedDate)
             if (selectedDate) {
                 setMonth(selectedDate.getMonth())
@@ -84,4 +88,3 @@ const DatePickerInput = React.forwardRef<HTMLInputElement, Props>(
 DatePickerInput.displayName = "DatePickerInput"
 
 export { DatePickerInput }
-

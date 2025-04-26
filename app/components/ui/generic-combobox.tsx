@@ -15,6 +15,7 @@ type Props<T> = {
     idToken: string;
     defaultValue?: string;
     onChange?: (value: string) => void;
+    onItemChange?: (item: T) => void; // Optional callback for item change
     value?: string;
     maxItemsDisplay?: number;
     placeholder?: string;
@@ -34,7 +35,8 @@ export default function GenericCombobox<T>({
     errorText = 'Lỗi',
     emptyText = 'Không có kết quả.',
     className,
-    prechosenItem
+    prechosenItem,
+    onItemChange
 }: Props<T>) {
 
     const [isPreloading, setIsPreloading] = useState(true);
@@ -130,6 +132,7 @@ export default function GenericCombobox<T>({
                                     <CommandItem key={item.value} onSelect={() => {
                                         setValue(item.value);
                                         onChange?.(item.value);
+                                        onItemChange?.(fetchedData.find(i => mapItem(i).value === item.value) as T);
                                         setOpen(false);
                                     }}>
                                         {item.label}

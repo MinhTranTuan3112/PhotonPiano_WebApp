@@ -13,39 +13,62 @@ import { MultiSelect } from '../ui/multi-select'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { action } from '~/routes/arrange-entrance-test'
 import { toast } from 'sonner'
+import { Account } from '~/lib/types/account/account'
+import { DataTable } from '../ui/data-table'
+import { studentColumns } from '../staffs/table/student-columns'
+import { Separator } from '../ui/separator'
+import { CreateEntranceTestForm } from '~/routes/staff.entrance-tests.create'
+import { ScrollArea } from '../ui/scroll-area'
 
-type Props = {
+export type ArrangeDialogProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    studentIds: string[];
+    students: Account[];
+    idToken: string;
 }
 
 export const resolver = zodResolver(entranceTestArrangementSchema);
 
-export default function ArrangeDialog({ isOpen, setIsOpen, studentIds }: Props) {
+export default function ArrangeDialog({ isOpen, setIsOpen, students, idToken }: ArrangeDialogProps) {
+
+    const studentIds = students.map(s => s.accountFirebaseId);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
+            <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
-                    <DialogTitle>Xếp lịch thi đầu vào</DialogTitle>
+                    <DialogTitle>Arrange entrance tests</DialogTitle>
                     <DialogDescription>
-                        Xếp lịch thi đầu vào cho các học viên đã đăng ký thi đầu vào và chờ xếp lịch
-                        dựa trên 2 chế độ là thủ công và tự động.
+                        Arrange entrance tests for learners who have registered for entrance tests
+                        and are waiting to be arranged based on 2 modes: manual and automatic.
                     </DialogDescription>
                 </DialogHeader>
                 <Tabs defaultValue="auto">
                     <TabsList className="grid w-full grid-cols-2 mb-2">
-                        <TabsTrigger value="auto">Tự động</TabsTrigger>
-                        <TabsTrigger value="manual">Thủ công</TabsTrigger>
+                        <TabsTrigger value="auto">Auto</TabsTrigger>
+                        <TabsTrigger value="manual">Manual</TabsTrigger>
                     </TabsList>
                     <TabsContent value="auto">
                         <AutoArrangementForm studentIds={studentIds} />
                     </TabsContent>
                     <TabsContent value="manual">
-
+                        <ScrollArea className='h-56 px-4'>
+                            <CreateEntranceTestForm studentIds={studentIds}
+                                hasWidthConstraint={false}
+                                idToken={idToken} />
+                        </ScrollArea>
                     </TabsContent>
                 </Tabs>
+
+                <div className="my-3">
+                    <h1 className="text-base font-bold">Learners to be arranged</h1>
+                    <Separator className='w-full my-2' />
+                    <DataTable
+                        columns={studentColumns.filter(col => col.id !== 'Actions' && col.id !== 'select')}
+                        data={students}
+                    />
+                </div>
+
             </DialogContent>
         </Dialog>
     )
@@ -81,13 +104,10 @@ function AutoArrangementForm({
 
     useEffect(() => {
 
-        if (fetcher.data?.success === true) {
-            toast.success('Xếp lịch thi thành công!');
-            return;
-        }
-
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(fetcher.data.error);
+            toast.warning(fetcher.data.error, {
+                duration: 5000
+            });
             return;
         }
 
@@ -112,7 +132,7 @@ function AutoArrangementForm({
                     value={value}
                     onChange={onChange}
                     className='w-full'
-                    placeholder='Chọn ngày cho đợt thi'
+                    placeholder='Select test date'
                 />
             )}
         />
@@ -129,7 +149,7 @@ function AutoArrangementForm({
                     })}
                     value={value}
                     onValueChange={onChange}
-                    placeholder='Chọn ca thi (nếu cần)'
+                    placeholder='Select shifts (optional)'
                 />
             )}
         />
@@ -140,7 +160,7 @@ function AutoArrangementForm({
             iconPlacement='left'
             isLoading={isSubmitting}
             disabled={isSubmitting}>
-            {isSubmitting ? 'Đang xếp lịch...' : 'Xếp lịch thi'}
+            {isSubmitting ? 'Arranging...' : 'Arrange'}
         </Button>
     </Form>
 }

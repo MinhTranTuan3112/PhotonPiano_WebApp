@@ -29,9 +29,9 @@ export type ImageFile = {
 } & File;
 
 export function useImagesDialog({
-    title = 'Thêm ảnh', description = 'Nhập ảnh từ url hoặc chọn ảnh từ thiết bị của bạn.',
+    title = 'Upload image', description = 'Enter image url or select image from your device.',
     maxImages = 1, defaultOpen = false, onConfirm, onCancel,
-    cancelText = 'Hủy', confirmText = 'Hoàn tất',
+    cancelText = 'Cancel', confirmText = 'Confirm',
     cancelButtonClassname, confirmButtonClassname,
     onFilesUploaded,
     requiresUpload = false }: Props) {
@@ -78,7 +78,7 @@ export function useImagesDialog({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Upload ảnh thành công!', {
+            toast.success('Upload success!', {
                 duration: 1250
             });
 
@@ -95,7 +95,9 @@ export function useImagesDialog({
         }
 
         if (fetcher.data?.success === false) {
-            toast.error(`Upload ảnh thất bại. Vui lòng thử lại sau. ${fetcher.data?.error}`);
+            toast.warning(`Upload failed. Please try again ${fetcher.data?.error}`, {
+                duration: 5000
+            });
             return;
         }
 
@@ -124,7 +126,7 @@ export function useImagesDialog({
         onConfirm(imageUrls);
         onFilesUploaded?.(imageFiles);
         
-        toast.success('Upload ảnh thành công!', {
+        toast.success('Upload success!', {
             duration: 1250
         });
 
@@ -143,7 +145,7 @@ export function useImagesDialog({
                     <DialogHeader className='mb-4'>
                         <DialogTitle>{title}</DialogTitle>
                         <DialogDescription>
-                            {description} <br /> <strong>Tối đa {maxImages} ảnh</strong>
+                            {description} <br /> <strong>Maximum of {maxImages} images</strong>
                         </DialogDescription>
                     </DialogHeader>
 

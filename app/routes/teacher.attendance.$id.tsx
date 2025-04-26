@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import { redirect, useLoaderData } from "@remix-run/react"
 import { motion } from "framer-motion"
 import {
     AlertTriangle,
@@ -22,7 +22,6 @@ import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent } from "~/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
-import { FileUpload } from "~/components/ui/file-upload"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
 import { Textarea } from "~/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
@@ -33,7 +32,6 @@ import { read, utils } from "xlsx"
 import {
     AlertDialog,
     AlertDialogAction,
-    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -43,14 +41,14 @@ import {
 } from "~/components/ui/alert-dialog";
 import { InfoIcon } from "lucide-react";
 import { useImagesDialog } from "~/hooks/use-images-dialog"
-
-import PlaceholderImage from '../lib/assets/images/placeholder.jpg'
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { Role } from "~/lib/types/account/account"
 
 
 // Extended SlotStudentModel to support multiple images
-interface ExtendedSlotStudentModel extends SlotStudentModel {
+type ExtendedSlotStudentModel = {
     gestureUrls: string[]
-}
+} & SlotStudentModel;
 
 // Function to validate if URL is a valid image URL
 const validateImageUrl = (url: string): boolean => {
@@ -84,30 +82,31 @@ const validateImageUrl = (url: string): boolean => {
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
-        const { idToken } = await requireAuth(request);
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Instructor) {
+            return redirect('/');
+        }
+
         const { id } = params;
         if (!id) {
             throw new Response("ID is required", { status: 400 });
         }
-        console.log(`Loading attendance details for slot ID: ${id}`);
+
         const response = await fetchSlotById(id, idToken);
-        const slotDetail: SlotDetail = response.data;
+        const slotDetail: SlotDetail = await response.data;
 
         const slotStudent: ExtendedSlotStudentModel[] = slotDetail.slotStudents!.map((student) => {
-            // Parse gestureUrl which might be a JSON string containing array of URLs
             let gestureUrls: string[] = [];
 
             if (student.gestureUrl) {
                 try {
-                    // Try to parse as JSON first (might be array or nested JSON string)
                     const parsedUrls = JSON.parse(student.gestureUrl);
 
-                    // Handle different possible formats
                     if (Array.isArray(parsedUrls)) {
-                        // Direct array of URLs
                         gestureUrls = parsedUrls;
                     } else if (typeof parsedUrls === 'string') {
-                        // Might be a nested JSON string
                         try {
                             const nestedParsed = JSON.parse(parsedUrls);
                             gestureUrls = Array.isArray(nestedParsed) ? nestedParsed : [parsedUrls];
@@ -134,14 +133,26 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
         });
 
         return { slotStudent, idToken, id };
+
     } catch (error) {
-        console.error("Failed to load attendance details:", error);
-        throw new Response("Failed to load attendance details", { status: 500 });
+
+        console.error({ error });
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+
     }
 };
 
 const AttendancePage = () => {
+
     const { slotStudent, idToken, id } = useLoaderData<typeof loader>()
+
     const [attendanceData, setAttendanceData] = useState<ExtendedSlotStudentModel[]>(slotStudent || [])
     const [showAbsentees, setShowAbsentees] = useState(false)
     const [flashingStudentId, setFlashingStudentId] = useState<string | null>(null)
@@ -153,7 +164,9 @@ const AttendancePage = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [showExcelHelpDialog, setShowExcelHelpDialog] = useState(false);
 
-    const navigate = useNavigate()
+    const navigate = (url: string) => {
+        window.location.href = url;
+    }
 
     useEffect(() => {
         if (slotStudent && slotStudent.length > 0) {
@@ -193,7 +206,7 @@ const AttendancePage = () => {
     }, [attendanceData])
 
 
-    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value: any) => {
+    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value) => {
         setAttendanceData((prev) =>
             prev.map((student) => {
                 if (student.studentFirebaseId === studentId) {
@@ -299,7 +312,7 @@ const AttendancePage = () => {
         try {
             const attendanceRequest = prepareAttendanceRequest();
             await fetchUpdateAttendanceStatus(attendanceRequest.SlotId, attendanceRequest.SlotStudentInfoRequests, idToken);
-            navigate(-1);
+            navigate('/teacher/attendance');
         } catch (error: any) {
             console.error("Error updating attendance:", error);
             alert("Failed to update attendance: " + error.message);
@@ -322,10 +335,10 @@ const AttendancePage = () => {
     const getDataIndicators = (student: ExtendedSlotStudentModel) => {
         const indicators = []
         if (student.gestureUrls.length > 0) indicators.push(`${student.gestureUrls.length} Hình ảnh`)
-        if (student.gestureComment) indicators.push("Ghi chú tư thế")
-        if (student.fingerNoteComment) indicators.push("Ghi chú ngón tay")
-        if (student.pedalComment) indicators.push("Ghi chú pedal")
-        if (student.attendanceComment) indicators.push("Ghi chú điểm danh")
+        if (student.gestureComment) indicators.push("Posture note")
+        if (student.fingerNoteComment) indicators.push("Finger note")
+        if (student.pedalComment) indicators.push("Pedal note")
+        if (student.attendanceComment) indicators.push("Attendance note")
         return indicators
     }
 
@@ -462,14 +475,15 @@ const AttendancePage = () => {
             <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
                 <div className="max-w-7xl mx-auto">
                     <Button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/teacher/scheduler')}
                         className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-lg"
                     >
-                        Quay lại
+                      Back
                     </Button>
+                    
                     <h1 className="text-xl md:text-2xl lg:text-4xl font-bold mb-6 text-center text-blue-700 flex items-center justify-center">
                         <Music className="w-6 h-6 md:w-8 md:h-8 mr-2 text-blue-600" />
-                        Điểm danh lớp Piano
+                        Taking attendance for Piano class
                     </h1>
                     <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <Button
@@ -477,14 +491,14 @@ const AttendancePage = () => {
                             className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg"
                         >
                             <UserX className="w-5 h-5 mr-2" />
-                            {showAbsentees ? "Ẩn" : "Hiển thị"} Vắng mặt
+                            {showAbsentees ? "Hide" : "Show"} Absent
                         </Button>
                         <div className="text-center sm:text-right text-gray-700">
                             <p className="text-sm md:text-base lg:text-lg font-semibold">
-                                Tổng số học sinh: {sortedAttendanceData.length}
+                                Totals: {sortedAttendanceData.length}
                             </p>
                             <p className="text-sm md:text-base lg:text-lg font-semibold">
-                                Số học sinh vắng mặt: {absentStudents.length}
+                                Absents: {absentStudents.length}
                             </p>
                         </div>
                     </div>
@@ -496,41 +510,41 @@ const AttendancePage = () => {
                                     className="text-blue-700 border-blue-200 hover:bg-blue-50 hover:text-blue-800"
                                 >
                                     <InfoIcon className="w-4 h-4 mr-2" />
-                                    Hướng dẫn nhập Excel
+                                    Excel Import Guide
                                 </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-white max-w-[95vw] sm:max-w-md">
                                 <AlertDialogHeader>
                                     <AlertDialogTitle className="text-blue-700">
-                                        Hướng dẫn nhập Excel
+                                        Excel Import Guide
                                     </AlertDialogTitle>
                                     <AlertDialogDescription className="text-sm text-gray-600">
-                                        <p>Tập tin Excel cần có cột <strong>&quot;Email&quot;</strong> để xác định học sinh và cột <strong>&quot;Status&quot;</strong>
-                                            (1 = Có mặt, 2 = Vắng mặt).</p>
-                                        <p className="mt-2">Có thể thêm các cột bổ sung:</p>
+                                        <p>The Excel file needs a column <strong>&quot;Email&quot;</strong> to identify students and a column <strong>&quot;Status&quot;</strong>
+                                            (1 = Present, 2 = Absent).</p>
+                                        <p className="mt-2">Additional columns can be added:</p>
                                         <ul className="list-disc pl-5 mt-1 space-y-1">
-                                            <li>&quot;AttendanceComment&quot; - Ghi chú điểm danh</li>
-                                            <li>&quot;GestureComment&quot; - Ghi chú tư thế</li>
-                                            <li>&quot;FingerNoteComment&quot; - Ghi chú ngón tay</li>
-                                            <li>&quot;PedalComment&quot; - Ghi chú pedal</li>
+                                            <li>&quot;AttendanceComment&quot; - Attendance notes</li>
+                                            <li>&quot;GestureComment&quot; - Posture notes</li>
+                                            <li>&quot;FingerNoteComment&quot; - Finger notes</li>
+                                            <li>&quot;PedalComment&quot; - Pedal notes</li>
                                         </ul>
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogAction className="bg-blue-600 text-white hover:bg-blue-700">
-                                        Đã hiểu
+                                        Understood
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
                     </div>
-                    <div className="relative flex-1 sm:flex-none">
+                    <div className="relative flex-1 sm:flex-none my-3">
                         <Button
                             onClick={() => document.getElementById('excelImport')?.click()}
                             className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg"
                         >
                             <Upload className="w-5 h-5 mr-2" />
-                            Nhập từ Excel
+                            Import from Excel
                         </Button>
                         <input
                             type="file"
@@ -549,7 +563,7 @@ const AttendancePage = () => {
                         >
                             <h2 className="text-lg md:text-xl lg:text-2xl font-bold mb-3 text-orange-600 flex items-center">
                                 <UserX className="w-5 h-5 md:w-6 md:h-6 mr-2 text-orange-500" />
-                                Danh sách vắng mặt
+                                Absence list
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {absentStudents.map((student) => (
@@ -571,96 +585,96 @@ const AttendancePage = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden">
                             <thead>
-                                <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
-                                    <th className="py-2 px-2 md:py-3 md:px-4 w-16 md:w-20 text-center"></th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-left">Email</th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-left">Họ và tên</th>
-                                    <th className="py-2 px-2 md:py-3 md:px-4 text-center">Điểm danh</th>
-                                </tr>
+                            <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
+                                <th className="py-2 px-2 md:py-3 md:px-4 w-16 md:w-20 text-center"></th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-left">Email</th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-left">Full name</th>
+                                <th className="py-2 px-2 md:py-3 md:px-4 text-center">Attendance</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {sortedAttendanceData.map((detail) => (
-                                    <motion.tr
-                                        key={detail.studentFirebaseId}
-                                        className={`bg-white/90 ${detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""} ${flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""
-                                            } ${highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""}`}
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.05 }}
-                                    >
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-center">
-                                            <div className="relative">
-                                                <img
-                                                    src={detail.studentAccount.avatarUrl || '/images/noavatar.png'}
-                                                    alt="Student Avatar"
-                                                    className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
-                                            {detail.studentAccount.email}
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
-                                            {detail.studentAccount.fullName}
-                                        </td>
-                                        <td className="py-3 px-2 md:py-4 md:px-4 text-center">
-                                            <div className="flex flex-col md:flex-row gap-2">
-                                                <Button
-                                                    onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
-                                                    variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
-                                                    className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 1
-                                                        ? "bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    <Check size={14} className="mr-1 md:mr-2" /> Có mặt
-                                                </Button>
-                                                <Button
-                                                    onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
-                                                    variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
-                                                    className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 2
-                                                        ? "bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
-                                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        }`}
-                                                >
-                                                    <UserX size={14} className="mr-1 md:mr-2" /> Vắng mặt
-                                                </Button>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                onClick={() => handleOpenDetails(detail.studentFirebaseId)}
-                                                                variant="secondary"
-                                                                className={`w-full text-xs md:text-sm relative ${hasAdditionalData(detail)
-                                                                    ? "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
-                                                                    : ""
-                                                                    }`}
-                                                            >
-                                                                <Eye size={14} className="mr-1 md:mr-2" /> Xem chi tiết
-                                                                {hasAdditionalData(detail) && (
-                                                                    <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-1.5">
-                                                                        <FileText size={10} className="mr-1" />
-                                                                        {getDataIndicators(detail).length}
-                                                                    </Badge>
-                                                                )}
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        {hasAdditionalData(detail) && (
-                                                            <TooltipContent>
-                                                                <p className="font-semibold text-xs mb-1">Dữ liệu có sẵn:</p>
-                                                                <ul className="text-xs list-disc pl-4">
-                                                                    {getDataIndicators(detail).map((indicator, idx) => (
-                                                                        <li key={idx}>{indicator}</li>
-                                                                    ))}
-                                                                </ul>
-                                                            </TooltipContent>
-                                                        )}
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
+                            {sortedAttendanceData.map((detail) => (
+                                <motion.tr
+                                    key={detail.studentFirebaseId}
+                                    className={`bg-white/90 ${detail.attendanceStatus === 2 ? "border-l-4 border-orange-400" : ""} ${flashingStudentId === detail.studentFirebaseId ? "animate-flash" : ""
+                                    } ${highlightedStudentId === detail.studentFirebaseId ? "bg-yellow-50" : ""}`}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                >
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-center">
+                                        <div className="relative">
+                                            <img
+                                                src={detail.studentAccount.avatarUrl || '/images/noavatar.png'}
+                                                alt="Student Avatar"
+                                                className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
+                                            />
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
+                                        {detail.studentAccount.email}
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-gray-700 text-xs md:text-sm lg:text-base">
+                                        {detail.studentAccount.fullName}
+                                    </td>
+                                    <td className="py-3 px-2 md:py-4 md:px-4 text-center">
+                                        <div className="flex flex-col md:flex-row gap-2">
+                                            <Button
+                                                onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
+                                                variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
+                                                className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 1
+                                                    ? "bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                }`}
+                                            >
+                                                <Check size={14} className="mr-1 md:mr-2" /> Attended
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
+                                                variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
+                                                className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 2
+                                                    ? "bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                }`}
+                                            >
+                                                <UserX size={14} className="mr-1 md:mr-2" /> Absent
+                                            </Button>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            onClick={() => handleOpenDetails(detail.studentFirebaseId)}
+                                                            variant="secondary"
+                                                            className={`w-full text-xs md:text-sm relative ${hasAdditionalData(detail)
+                                                                ? "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
+                                                                : ""
+                                                            }`}
+                                                        >
+                                                            <Eye size={14} className="mr-1 md:mr-2" /> Details
+                                                            {hasAdditionalData(detail) && (
+                                                                <Badge className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-1.5">
+                                                                    <FileText size={10} className="mr-1" />
+                                                                    {getDataIndicators(detail).length}
+                                                                </Badge>
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    {hasAdditionalData(detail) && (
+                                                        <TooltipContent>
+                                                            <p className="font-semibold text-xs mb-1">Data available</p>
+                                                            <ul className="text-xs list-disc pl-4">
+                                                                {getDataIndicators(detail).map((indicator, idx) => (
+                                                                    <li key={idx}>{indicator}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </TooltipContent>
+                                                    )}
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                    </td>
+                                </motion.tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>
@@ -669,7 +683,7 @@ const AttendancePage = () => {
                             onClick={handleSubmit}
                             className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg px-4 py-2 md:px-6 md:py-3"
                         >
-                            Xác nhận điểm danh
+                            Confirm
                         </Button>
                     </div>
                     {/* Redesigned "Xem chi tiet" dialog with multiple image support */}
@@ -690,13 +704,13 @@ const AttendancePage = () => {
                                             />
                                             <Badge
                                                 className={`absolute -bottom-1 -right-1 ${sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                    1
+                                                1
                                                     ? "bg-emerald-400 hover:bg-emerald-500"
                                                     : "bg-orange-400 hover:bg-orange-500"
-                                                    }`}
+                                                }`}
                                             >
                                                 {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                    1 ? (
+                                                1 ? (
                                                     <Check className="h-3 w-3" />
                                                 ) : (
                                                     <X className="h-3 w-3" />
@@ -716,23 +730,23 @@ const AttendancePage = () => {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <Badge className="bg-white/20 text-white hover:bg-white/30">
                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.attendanceStatus ===
-                                                        1
-                                                        ? "Có mặt"
-                                                        : "Vắng mặt"}
+                                                    1
+                                                        ? "Attended"
+                                                        : "Absent"}
                                                 </Badge>
                                                 {hasAdditionalData(
                                                     sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
                                                 ) && (
-                                                        <Badge className="bg-white/20 text-white hover:bg-white/30">
-                                                            <FileText className="w-3 h-3 mr-1" />
-                                                            {
-                                                                getDataIndicators(
-                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
-                                                                ).length
-                                                            }{" "}
-                                                            ghi chú
-                                                        </Badge>
-                                                    )}
+                                                    <Badge className="bg-white/20 text-white hover:bg-white/30">
+                                                        <FileText className="w-3 h-3 mr-1" />
+                                                        {
+                                                            getDataIndicators(
+                                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!,
+                                                            ).length
+                                                        }{" "}
+                                                        Notes
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -745,21 +759,21 @@ const AttendancePage = () => {
                                                     className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
                                                 >
                                                     <FileText className="w-4 h-4 mr-2" />
-                                                    Điểm danh
+                                                    Attendance
                                                 </TabsTrigger>
                                                 <TabsTrigger
                                                     value="technique"
                                                     className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
                                                 >
                                                     <Music className="w-4 h-4 mr-2" />
-                                                    Kỹ thuật
+                                                    Technique
                                                 </TabsTrigger>
                                                 <TabsTrigger
                                                     value="image"
                                                     className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none"
                                                 >
                                                     <ImageIcon className="w-4 h-4 mr-2" />
-                                                    Hình ảnh
+                                                    Images
                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls.length >
                                                         0 && (
                                                             <Badge className="ml-1 bg-blue-100 text-blue-700 hover:bg-blue-200">
@@ -780,7 +794,7 @@ const AttendancePage = () => {
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-medium text-gray-700 flex items-center">
                                                                 <FileText className="w-4 h-4 mr-2 text-blue-500" />
-                                                                Ghi chú điểm danh:
+                                                                Attendance notes:
                                                             </label>
                                                             <div className="relative">
                                                                 <Textarea
@@ -791,7 +805,7 @@ const AttendancePage = () => {
                                                                     onChange={(e) =>
                                                                         handleAttendanceChange(showViewDetails!, "attendanceComment", e.target.value)
                                                                     }
-                                                                    placeholder="Nhập ghi chú về việc điểm danh..."
+                                                                    placeholder="Enter notes about attendance..."
                                                                     className="text-sm min-h-[120px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
                                                                 />
                                                                 <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
@@ -804,12 +818,12 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 1
                                                                         ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                                                                         : "bg-orange-100 text-orange-700 hover:bg-orange-200"
-                                                                        }`}
+                                                                    }`}
                                                                 >
                                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                         .attendanceStatus === 1
-                                                                        ? "Có mặt"
-                                                                        : "Vắng mặt"}
+                                                                        ? "Attended"
+                                                                        : "Absent"}
                                                                 </Badge>
                                                             </div>
                                                             <div className="flex gap-2">
@@ -826,9 +840,9 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 1
                                                                         ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                                                         : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                                                                        }`}
+                                                                    }`}
                                                                 >
-                                                                    <Check className="w-4 h-4 mr-1" /> Có mặt
+                                                                    <Check className="w-4 h-4 mr-1" /> Attended
                                                                 </Button>
                                                                 <Button
                                                                     onClick={() => handleAttendanceChange(showViewDetails!, "attendanceStatus", 2)}
@@ -843,9 +857,9 @@ const AttendancePage = () => {
                                                                         .attendanceStatus === 2
                                                                         ? "bg-orange-500 hover:bg-orange-600 text-white"
                                                                         : "border-orange-200 text-orange-700 hover:bg-orange-50"
-                                                                        }`}
+                                                                    }`}
                                                                 >
-                                                                    <UserX className="w-4 h-4 mr-1" /> Vắng mặt
+                                                                    <UserX className="w-4 h-4 mr-1" /> Absent
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -859,7 +873,7 @@ const AttendancePage = () => {
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-medium text-gray-700 flex items-center">
                                                                 <Music className="w-4 h-4 mr-2 text-blue-500" />
-                                                                Tư thế:
+                                                                Posture:
                                                             </label>
                                                             <div className="relative">
                                                                 {" "}
@@ -871,7 +885,7 @@ const AttendancePage = () => {
                                                                     onChange={(e) =>
                                                                         handleAttendanceChange(showViewDetails!, "gestureComment", e.target.value)
                                                                     }
-                                                                    placeholder="Nhập ghi chú về tư thế chơi đàn..."
+                                                                    placeholder="Enter notes about playing posture..."
                                                                     className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
                                                                 />
                                                                 <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
@@ -880,7 +894,7 @@ const AttendancePage = () => {
                                                         <div className="space-y-2">
                                                             <label className="text-sm font-medium text-gray-700 flex items-center">
                                                                 <Music className="w-4 h-4 mr-2 text-blue-500" />
-                                                                Ngón tay:
+                                                                Finger:
                                                             </label>
                                                             <div className="relative">
                                                                 <Textarea
@@ -891,7 +905,7 @@ const AttendancePage = () => {
                                                                     onChange={(e) =>
                                                                         handleAttendanceChange(showViewDetails!, "fingerNoteComment", e.target.value)
                                                                     }
-                                                                    placeholder="Nhập ghi chú về kỹ thuật ngón tay..."
+                                                                    placeholder="Enter notes on finger technique..."
                                                                     className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
                                                                 />
                                                                 <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
@@ -911,7 +925,7 @@ const AttendancePage = () => {
                                                                     onChange={(e) =>
                                                                         handleAttendanceChange(showViewDetails!, "pedalComment", e.target.value)
                                                                     }
-                                                                    placeholder="Nhập ghi chú về kỹ thuật pedal..."
+                                                                    placeholder="Enter notes about pedal technique..."
                                                                     className="text-sm min-h-[100px] w-full border border-gray-300 rounded-md box-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none pl-4 pr-10 py-3"
                                                                 />
                                                                 <Pencil className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
@@ -928,17 +942,17 @@ const AttendancePage = () => {
                                                             <div className="flex items-center justify-between">
                                                                 <label className="text-sm font-medium text-gray-700 flex items-center">
                                                                     <ImageIcon className="w-4 h-4 mr-2 text-blue-500" />
-                                                                    Hình ảnh tư thế:
+                                                                    Posture image:
                                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
                                                                         .length > 0 && (
-                                                                            <Badge className="ml-2 bg-blue-100 text-blue-700">
-                                                                                {
-                                                                                    sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                        .gestureUrls.length
-                                                                                }{" "}
-                                                                                hình ảnh
-                                                                            </Badge>
-                                                                        )}
+                                                                        <Badge className="ml-2 bg-blue-100 text-blue-700">
+                                                                            {
+                                                                                sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                    .gestureUrls.length
+                                                                            }{" "}
+                                                                            images
+                                                                        </Badge>
+                                                                    )}
                                                                 </label>
                                                             </div>
                                                             {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls
@@ -959,43 +973,43 @@ const AttendancePage = () => {
                                                                                 {/* Image navigation controls */}
                                                                                 {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                                     .gestureUrls.length > 1 && (
-                                                                                        <>
-                                                                                            <Button
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() =>
-                                                                                                    setCurrentImageIndex((prev) =>
-                                                                                                        prev === 0
-                                                                                                            ? sortedAttendanceData.find(
-                                                                                                                (s) => s.studentFirebaseId === showViewDetails,
-                                                                                                            )!.gestureUrls.length - 1
-                                                                                                            : prev - 1,
-                                                                                                    )
-                                                                                                }
-                                                                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
-                                                                                            >
-                                                                                                <ChevronLeft className="h-4 w-4" />
-                                                                                            </Button>
-                                                                                            <Button
-                                                                                                variant="outline"
-                                                                                                size="icon"
-                                                                                                onClick={() =>
-                                                                                                    setCurrentImageIndex((prev) =>
-                                                                                                        prev ===
-                                                                                                            sortedAttendanceData.find(
-                                                                                                                (s) => s.studentFirebaseId === showViewDetails,
-                                                                                                            )!.gestureUrls.length -
-                                                                                                            1
-                                                                                                            ? 0
-                                                                                                            : prev + 1,
-                                                                                                    )
-                                                                                                }
-                                                                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
-                                                                                            >
-                                                                                                <ChevronRight className="h-4 w-4" />
-                                                                                            </Button>
-                                                                                        </>
-                                                                                    )}
+                                                                                    <>
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="icon"
+                                                                                            onClick={() =>
+                                                                                                setCurrentImageIndex((prev) =>
+                                                                                                    prev === 0
+                                                                                                        ? sortedAttendanceData.find(
+                                                                                                        (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                    )!.gestureUrls.length - 1
+                                                                                                        : prev - 1,
+                                                                                                )
+                                                                                            }
+                                                                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                        >
+                                                                                            <ChevronLeft className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="outline"
+                                                                                            size="icon"
+                                                                                            onClick={() =>
+                                                                                                setCurrentImageIndex((prev) =>
+                                                                                                    prev ===
+                                                                                                    sortedAttendanceData.find(
+                                                                                                        (s) => s.studentFirebaseId === showViewDetails,
+                                                                                                    )!.gestureUrls.length -
+                                                                                                    1
+                                                                                                        ? 0
+                                                                                                        : prev + 1,
+                                                                                                )
+                                                                                            }
+                                                                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white border-gray-200 h-8 w-8"
+                                                                                        >
+                                                                                            <ChevronRight className="h-4 w-4" />
+                                                                                        </Button>
+                                                                                    </>
+                                                                                )}
                                                                                 {/* Delete button */}
                                                                                 <Button
                                                                                     variant="destructive"
@@ -1009,50 +1023,50 @@ const AttendancePage = () => {
                                                                             {/* Image counter */}
                                                                             {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                                 .gestureUrls.length > 1 && (
-                                                                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
-                                                                                        {currentImageIndex + 1} /{" "}
-                                                                                        {
-                                                                                            sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                                .gestureUrls.length
-                                                                                        }
-                                                                                    </div>
-                                                                                )}
+                                                                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
+                                                                                    {currentImageIndex + 1} /{" "}
+                                                                                    {
+                                                                                        sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                            .gestureUrls.length
+                                                                                    }
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                         {/* Thumbnail navigation */}
                                                                         {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!
                                                                             .gestureUrls.length > 1 && (
-                                                                                <div className="flex flex-wrap gap-2 justify-center mt-2 mb-3">
-                                                                                    {sortedAttendanceData
-                                                                                        .find((s) => s.studentFirebaseId === showViewDetails)!
-                                                                                        .gestureUrls.map((url, index) => (
-                                                                                            <button
-                                                                                                key={index}
-                                                                                                onClick={() => setCurrentImageIndex(index)}
-                                                                                                className={`w-12 h-12 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? "border-blue-500" : "border-gray-200"
-                                                                                                    }`}
-                                                                                            >
-                                                                                                <img
-                                                                                                    src={url || "/placeholder.svg"}
-                                                                                                    alt={`Thumbnail ${index + 1}`}
-                                                                                                    className="w-full h-full object-cover"
-                                                                                                />
-                                                                                            </button>
-                                                                                        ))}
-                                                                                </div>
-                                                                            )}
+                                                                            <div className="flex flex-wrap gap-2 justify-center mt-2 mb-3">
+                                                                                {sortedAttendanceData
+                                                                                    .find((s) => s.studentFirebaseId === showViewDetails)!
+                                                                                    .gestureUrls.map((url, index) => (
+                                                                                        <button
+                                                                                            key={index}
+                                                                                            onClick={() => setCurrentImageIndex(index)}
+                                                                                            className={`w-12 h-12 rounded-md overflow-hidden border-2 ${currentImageIndex === index ? "border-blue-500" : "border-gray-200"
+                                                                                            }`}
+                                                                                        >
+                                                                                            <img
+                                                                                                src={url || "/placeholder.svg"}
+                                                                                                alt={`Thumbnail ${index + 1}`}
+                                                                                                className="w-full h-full object-cover"
+                                                                                            />
+                                                                                        </button>
+                                                                                    ))}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             ) : (
                                                                 <div className="bg-gray-50 rounded-lg p-6 border border-dashed border-gray-200 flex flex-col items-center justify-center">
                                                                     <div className="text-center mb-4">
                                                                         <ImageIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                                                                        <p className="text-sm text-gray-500">Chưa có hình ảnh tư thế</p>
-                                                                        <p className="text-xs text-gray-400 mt-1">Tải lên hình ảnh hoặc nhập URL bên dưới</p>
+                                                                        <p className="text-sm text-gray-500">There are no pose images yet</p>
+                                                                        <p className="text-xs text-gray-400 mt-1">Upload an image or enter the URL below</p>
                                                                     </div>
 
                                                                     <Button type="button" Icon={Upload} iconPlacement="left"
-                                                                        variant={'outline'} onClick={handleOpenImageDialog}>
-                                                                        Upload ảnh
+                                                                            variant={'outline'} onClick={handleOpenImageDialog}>
+                                                                        Upload photos
                                                                     </Button>
                                                                     {/* <FileUpload
                                                                         onChange={(files) => {
@@ -1068,8 +1082,8 @@ const AttendancePage = () => {
                                                             <div className="w-full mt-3">
                                                                 <p className="text-sm text-gray-500 mb-2">
                                                                     {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails)!.gestureUrls.length > 0
-                                                                        ? "Thêm hình ảnh mới:"
-                                                                        : "Hoặc nhập URL hình ảnh:"}
+                                                                        ? "Add new images:"
+                                                                        : "Or enter the image URL:"}
                                                                 </p>
                                                                 {/* URL input option with validation */}
                                                                 <div className="mt-2">
@@ -1115,11 +1129,11 @@ const AttendancePage = () => {
                                                                                 className="bg-blue-500 hover:bg-blue-600 text-white"
                                                                                 size="sm"
                                                                             >
-                                                                                Thêm
+                                                                                Add
                                                                             </Button>
                                                                         </div>
                                                                         <p id="urlError" className="text-xs text-red-500 mt-1 hidden">
-                                                                            URL không hợp lệ. Đảm bảo URL có định dạng hình ảnh (jpg, jpeg, png, gif, webp).
+                                                                            Invalid URL. Make sure the URL is in image format (jpg, jpeg, png, gif, webp).
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -1138,14 +1152,14 @@ const AttendancePage = () => {
                                             className="w-full sm:w-auto border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
                                         >
                                             <X className="w-4 h-4 mr-2" />
-                                            Đóng
+                                            Closed
                                         </Button>
                                         <Button
                                             onClick={() => setShowViewDetails(null)}
                                             className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
                                         >
                                             <Save className="w-4 h-4 mr-2" />
-                                            Lưu thay đổi
+                                            Save changes
                                         </Button>
                                     </div>
                                 </>
@@ -1157,15 +1171,15 @@ const AttendancePage = () => {
                             <DialogHeader>
                                 <DialogTitle className="flex items-center text-blue-700 text-sm md:text-base">
                                     <Music className="w-4 h-4 mr-2 text-blue-600" />
-                                    Xác nhận điểm danh
+                                    Confirm attendance
                                 </DialogTitle>
                             </DialogHeader>
                             <div className="space-y-3">
-                                <p className="text-gray-700 text-xs md:text-sm">Xem lại danh sách vắng mặt:</p>
+                                <p className="text-gray-700 text-xs md:text-sm">Review the absence list:</p>
                                 <div>
                                     <h3 className="text-xs md:text-sm font-semibold text-gray-700 flex items-center">
                                         <AlertTriangle className="w-3 h-3 mr-2 text-yellow-500" />
-                                        Học sinh vắng mặt:
+                                        Students absent:
                                     </h3>
                                     <ul className="list-disc pl-5 text-gray-700 text-xs md:text-sm mt-2">
                                         {absentStudents.map((student, index) => (
@@ -1183,14 +1197,14 @@ const AttendancePage = () => {
                                         disabled={isSubmitting}
                                         className="w-full sm:w-auto text-xs py-1"
                                     >
-                                        Hủy
+                                        Cancel
                                     </Button>
                                     <Button
                                         onClick={confirmSubmit}
                                         disabled={isSubmitting}
                                         className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-xs py-1"
                                     >
-                                        {isSubmitting ? "Đang nộp..." : "Xác nhận"}
+                                        {isSubmitting ? "Submitting..." : "Confirm"}
                                     </Button>
                                 </div>
                             </div>

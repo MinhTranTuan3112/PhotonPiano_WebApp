@@ -11,13 +11,13 @@ export async function fetchClasses({
   levels = [],
   statuses = [],
   isPublic,
-  idToken
+  idToken,
 }: Partial<
   QueryPagedRequest & {
     levels: string[];
     statuses: number[];
     isPublic?: boolean;
-    idToken : string
+    idToken: string;
   }
 >) {
   let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -39,10 +39,10 @@ export async function fetchClasses({
   }
 
   const response = await axiosInstance.get(url, {
-    headers : {
-        Authorization : `Bearer ${idToken}`
-    }
-});
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
 
   return response;
 }
@@ -269,6 +269,7 @@ export async function importStudentClassScoresFromExcel({
     },
   });
 
+  await new Promise((resolve) => setTimeout(resolve, 1500));
   return response;
 }
 
@@ -433,5 +434,66 @@ export async function fetchGradeTemplate({
     },
     responseType: "blob",
   });
+  return response;
+}
+
+export async function publishStudentClassScore({
+  classId,
+  idToken,
+}: {
+  classId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.post(
+    `/student-class/${classId}/publish-score`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export async function fetchStudentScoreDetails({
+  studentClassId,
+  idToken,
+}: {
+  studentClassId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.get(
+    `student-class/${studentClassId}/detailed-scores`,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export async function fetchUpdateLearningStatus({
+  idToken,
+  continueLearning,
+}: {
+  idToken: string;
+  continueLearning: boolean;
+}) {
+  const response = await axiosInstance.put(
+    `/accounts/continuation-status`,
+    {
+      wantToContinue: continueLearning,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
   return response;
 }
