@@ -193,97 +193,365 @@ export default function TuitionPage() {
     const handlePrintInvoice = () => {
         if (!selectedFee) return;
 
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) return;
+        // Create a new approach using an iframe
+        const printInvoiceWithIframe = () => {
+            // Create a new iframe element
+            const printIframe = document.createElement('iframe');
 
+            // Set it to be invisible 
+            printIframe.style.position = 'absolute';
+            printIframe.style.width = '0px';
+            printIframe.style.height = '0px';
+            printIframe.style.border = '0';
 
-        printWindow.document.write(`
-        <html>
+            // Add it to the page
+            document.body.appendChild(printIframe);
+
+            // Get the iframe's document
+            const iframeDocument = printIframe.contentDocument || printIframe.contentWindow.document;
+
+            // Open the document and write the invoice content
+            iframeDocument.open();
+            iframeDocument.write(`
+            <!DOCTYPE html>
+            <html>
             <head>
-                <title>Giấy báo học phí</title>
+                <title>Tuition Invoice - PhotonPiano</title>
                 <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
                     body {
                         font-family: Arial, sans-serif;
+                        background-color: white;
+                        color: #333;
+                        line-height: 1.6;
                         padding: 20px;
-                        background-color: #f4f4f4;
                     }
-                    .invoice-container {
-                        max-width: 600px;
-                        margin: 40px auto;
-                        padding: 20px;
+                    .invoice-wrapper {
+                        max-width: 800px;
+                        margin: 0 auto;
                         background: white;
-                        border-radius: 8px;
-                        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                        text-align: center;
                     }
-                    .invoice-header {
-                        font-size: 24px;
-                        font-weight: bold;
-                        text-transform: uppercase;
+                    .invoice-top-bar {
+                        height: 12px;
+                        background: #4776E6;
                         margin-bottom: 20px;
                     }
-                    .invoice-subtitle {
-                        font-size: 18px;
-                        margin-bottom: 10px;
+                    .invoice-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding-bottom: 20px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .brand {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                    .brand-logo {
+                        font-size: 26px;
+                        font-weight: 700;
+                        color: #4776E6;
+                    }
+                    .brand-tagline {
+                        font-size: 13px;
+                        color: #777;
+                        margin-top: 2px;
+                    }
+                    .invoice-title {
+                        text-align: right;
+                    }
+                    .invoice-title h1 {
+                        font-size: 22px;
+                        font-weight: 600;
+                        color: #333;
+                        text-transform: uppercase;
+                    }
+                    .invoice-title .invoice-number {
+                        color: #777;
+                        font-size: 14px;
+                        margin-top: 4px;
+                    }
+                    .invoice-body {
+                        padding: 20px 0;
+                    }
+                    .invoice-section {
+                        margin-bottom: 30px;
+                    }
+                    .section-title {
+                        font-size: 16px;
+                        font-weight: 600;
                         color: #555;
+                        text-transform: uppercase;
+                        margin-bottom: 15px;
                     }
                     .invoice-details {
-                        text-align: left;
-                        font-size: 16px;
-                        margin-top: 20px;
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        padding: 25px;
                     }
-                    .invoice-details p {
-                        margin: 8px 0;
+                    .detail-row {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 10px 0;
+                        border-bottom: 1px dashed #e0e0e0;
                     }
-                    .divider {
-                        height: 1px;
-                        background-color: #ddd;
-                        margin: 20px 0;
+                    .detail-row:last-child {
+                        border-bottom: none;
                     }
-                    .signature {
+                    .detail-label {
+                        font-weight: 500;
+                        color: #666;
+                    }
+                    .detail-value {
                         text-align: right;
-                        margin-top: 40px;
-                        font-size: 16px;
-                        font-style: italic;
+                        font-weight: 600;
+                        color: #333;
                     }
-                    .footer-note {
-                        margin-top: 20px;
-                        font-size: 14px;
-                        color: #888;
+                    .payment-box {
+                        background: #f0f7ff;
+                        border-radius: 8px;
+                        padding: 25px;
                         text-align: center;
+                        margin: 30px 0;
+                        border-left: 4px solid #4776E6;
+                    }
+                    .payment-amount-label {
+                        font-size: 14px;
+                        color: #666;
+                        margin-bottom: 8px;
+                    }
+                    .payment-amount {
+                        font-size: 28px;
+                        font-weight: 700;
+                        color: #4776E6;
+                        margin-bottom: 15px;
+                    }
+                    .tax-fee {
+                        font-size: 14px;
+                        color: #666;
+                        margin-bottom: 15px;
+                    }
+                    .payment-status-badge {
+                        display: inline-block;
+                        padding: 6px 14px;
+                        border-radius: 50px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                    }
+                    .status-pending {
+                        background: #fff8e1;
+                        color: #f59f00;
+                    }
+                    .status-success {
+                        background: #e6f7ee;
+                        color: #2b8a3e;
+                    }
+                    .status-failed {
+                        background: #fff5f5;
+                        color: #e03131;
+                    }
+                    .status-canceled {
+                        background: #f1f3f5;
+                        color: #495057;
+                    }
+                    .warning-box {
+                        background: #fff5f5;
+                        border-left: 4px solid #e03131;
+                        border-radius: 8px;
+                        padding: 15px 20px;
+                        margin: 20px 0;
+                        font-size: 14px;
+                        color: #e03131;
+                        font-weight: 500;
+                    }
+                    .invoice-footer {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 20px 0;
+                        border-top: 1px solid #eee;
+                    }
+                    .footer-left p {
+                        color: #777;
+                        font-size: 13px;
+                        margin-bottom: 5px;
+                    }
+                    .footer-right {
+                        text-align: right;
+                    }
+                    .signature-area {
+                        margin-top: 10px;
+                        width: 200px;
+                        text-align: center;
+                        margin-left: auto;
+                    }
+                    .signature-line {
+                        width: 100%;
+                        height: 1px;
+                        background: #ccc;
+                        margin: 40px 0 10px 0;
+                    }
+                    .signature-name {
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+                    .signature-title {
+                        font-size: 12px;
+                        color: #777;
+                    }
+                    .contact-info {
+                        margin-top: 20px;
+                        text-align: center;
+                        font-size: 13px;
+                        color: #777;
+                    }
+                    .invoice-date {
+                        font-size: 14px;
+                        color: #777;
+                        margin-bottom: 5px;
+                    }
+                    .barcode-container {
+                        text-align: center;
+                        margin: 30px 0;
+                    }
+                    .barcode {
+                        width: 150px;
+                        height: 60px;
+                        background: #f1f1f1;
+                        margin: 0 auto;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        color: #aaa;
+                        border-radius: 4px;
                     }
                 </style>
             </head>
             <body>
-                <div class="invoice-container">
-                    <div class="invoice-header">PhotonPiano</div>
-                    <div class="invoice-subtitle">Giấy báo học phí</div>
+                <div class="invoice-wrapper">
+                    <div class="invoice-top-bar"></div>
                     
-                    <div class="divider"></div>
-
-                    <div class="invoice-details">
-                        <p><strong>Học viên:</strong> ${selectedFee.studentClass.studentFullName}</p>
-                        <p><strong>Lớp:</strong> ${selectedFee.studentClass.className}</p>
-                        <p><strong>Thời gian:</strong> ${formatDate(selectedFee.startDate)} đến ${formatDate(selectedFee.endDate)} (dự kiến)</p>
-                        <p><strong>Số tiền:</strong> ${selectedFee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</p>
-                        <p><strong>Trạng thái thanh toán:</strong> ${PaymentStatusText[selectedFee.paymentStatus]}</p>
-                         <p><strong>Hạn chót đóng học phí:</strong> ${selectedFee.deadline}</p>
+                    <div class="invoice-header">
+                        <div class="brand">
+                            <div class="brand-logo">PhotonPiano</div>
+                            <div class="brand-tagline">Excellence in Music Education</div>
+                        </div>
+                        <div class="invoice-title">
+                            <h1>Tuition Invoice</h1>
+                            <div class="invoice-number">Invoice #${selectedFee.id || 'INV-00001'}</div>
+                        </div>
                     </div>
-
-                    <div class="divider"></div>
-
-                    <div class="signature">Người lập hóa đơn</div>
-
-                    <div class="footer-note">Vui lòng thanh toán trước ngày hết hạn để tránh gián đoạn học tập.</div>
+                    
+                    <div class="invoice-body">
+                        <div class="invoice-section">
+                            <div class="section-title">Student Information</div>
+                            <div class="invoice-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Student Name</div>
+                                    <div class="detail-value">${selectedFee.studentClass.studentFullName}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Class</div>
+                                    <div class="detail-value">${selectedFee.studentClass.className}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Period</div>
+                                    <div class="detail-value">${formatDate(selectedFee.startDate)} to ${formatDate(selectedFee.endDate)}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Payment Deadline</div>
+                                    <div class="detail-value">${formatDate(selectedFee.deadline)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-box">
+                            <div class="payment-amount-label">AMOUNT DUE</div>
+                            <div class="payment-amount">${selectedFee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
+                            <div class="tax-fee">Tax Fee: ${selectedFee.fee.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
+                            <div class="payment-status-badge status-${PaymentStatus[selectedFee.paymentStatus].toLowerCase()}">
+                                ${PaymentStatusText[selectedFee.paymentStatus]}
+                            </div>
+                        </div>
+                        
+                        ${selectedFee.paymentStatus === PaymentStatus.Pending ?
+                `<div class="warning-box">
+                              Please make your payment by ${formatDate(selectedFee.deadline)} to avoid any interruption to your studies.
+                          </div>` : ''}
+                        
+                        <div class="barcode-container">
+                            <div class="barcode">Payment Reference Code</div>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-footer">
+                        <div class="footer-left">
+                            <div class="invoice-date">Issue Date: ${new Date().toLocaleDateString("vi-VN")}</div>
+                            <p>Thank you for choosing PhotonPiano</p>
+                            <p>For any inquiries, please contact us</p>
+                        </div>
+                        
+                        <div class="footer-right">
+                            <div class="signature-area">
+                                <div class="signature-line"></div>
+                                <div class="signature-name">Administrator</div>
+                                <div class="signature-title">Issued By</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <p>PhotonPiano Music Academy</p>
+                        <p>123 Music Avenue, New York, NY 10001</p>
+                        <p>contact@photonpiano.com | +1 (800) 123-4567</p>
+                    </div>
                 </div>
+                
                 <script>
-                    window.print();
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                        }, 500);
+                    };
                 </script>
             </body>
-        </html>
-    `);
+            </html>
+        `);
+            iframeDocument.close();
 
-        printWindow.document.close();
+            // Wait a moment for the content to load
+            setTimeout(() => {
+                try {
+                    // Try to print
+                    printIframe.contentWindow.focus();
+                    printIframe.contentWindow.print();
+
+                    // Remove the iframe after printing (or after a delay if printing fails)
+                    setTimeout(() => {
+                        try {
+                            document.body.removeChild(printIframe);
+                        } catch (e) {
+                            console.error("Failed to remove iframe:", e);
+                        }
+                    }, 1000);
+                } catch (e) {
+                    console.error("Print error:", e);
+                    // If print fails, still try to clean up
+                    try {
+                        document.body.removeChild(printIframe);
+                    } catch (e) {
+                        console.error("Failed to remove iframe:", e);
+                    }
+                }
+            }, 500);
+        };
+
+        printInvoiceWithIframe();
     };
 
 

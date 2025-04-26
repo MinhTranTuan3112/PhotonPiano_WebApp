@@ -536,11 +536,11 @@ export default function StudentClassDetailPage() {
                                                                                     : "bg-red-100 text-red-800 border-red-200"
                                                                     }
                                                                 >
-                                                                    {criteria.score.toFixed(1)}
+                                                                    {criteria.score?.toFixed(1)}
                                                                 </Badge>
                                                             </td>
                                                             <td className="p-3 text-slate-700 text-center font-medium">
-                                                                {((criteria.score * criteria.weight) / 100).toFixed(2)}
+                                                                {((criteria.score * criteria.weight) / 100)?.toFixed(2)}
                                                             </td>
                                                         </tr>
                                                     ))}
