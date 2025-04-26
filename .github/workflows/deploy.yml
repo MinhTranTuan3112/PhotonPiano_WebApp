@@ -2,7 +2,7 @@ name: Build, Test & Deploy React Frontend
 
 on:
   pull_request:
-    branches: main, staging 
+    branches: [ main, staging ]
   workflow_dispatch:
 
 permissions:
