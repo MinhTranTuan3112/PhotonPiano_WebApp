@@ -9,6 +9,7 @@ import { fetchCreateSurvey } from '~/lib/services/survey';
 import SurveyForm, { SurveyFormData, surveyResolver } from '~/components/survey/survey-form';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -106,7 +107,7 @@ export default function CreateSurveyPage({ }: Props) {
     useEffect(() => {
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error);
+            toastWarning(fetcher.data.error);
             return;
         }
 

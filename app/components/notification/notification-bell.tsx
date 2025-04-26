@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { ScrollArea } from "../ui/scroll-area";
 import { timeAgo } from "~/lib/utils/datetime";
 import { useBatchUpdateNotifications } from "~/hooks/use-update-batch-notifications";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 
 const initialNotifications = [
@@ -194,7 +195,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
         }
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error);
+            toastWarning(fetcher.data?.error);
             return;
         }
 

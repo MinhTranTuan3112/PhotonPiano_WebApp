@@ -10,6 +10,7 @@ import { Role } from '~/lib/types/account/account';
 import { SurveyDetails } from '~/lib/types/survey/survey';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -189,7 +190,7 @@ function SurveyDetailsContent() {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000,
             });
             return;

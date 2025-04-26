@@ -14,6 +14,7 @@ import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/a
 import { toast } from "sonner";
 import { useRouteLoaderData } from "@remix-run/react";
 import { loader } from "~/root";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -171,7 +172,7 @@ function ActionsDropdown({ table, row }: {
                         const invalidStudents = students.filter((student) => student.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement);
 
                         if (invalidStudents.length > 0) {
-                            toast.warning(`Learners ${invalidStudents.map((s) => {
+                            toastWarning(`Learners ${invalidStudents.map((s) => {
                                 return s.fullName || s.email
                             }).join(',')} are not valid to be arranged`, {
                                 duration: 5000

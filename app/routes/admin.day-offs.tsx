@@ -16,6 +16,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getValidatedFormData } from 'remix-hook-form'
 import { toast } from 'sonner'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {}
 
@@ -199,7 +200,7 @@ export default function AdminDayOff({ }: Props) {
 
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

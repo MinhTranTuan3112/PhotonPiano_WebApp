@@ -19,6 +19,7 @@ import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 import { Role } from "~/lib/types/account/account"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import { toast } from "sonner"
+import { toastWarning } from "~/lib/utils/toast-utils"
 
 export function formatDate(dateString: string | undefined) {
     if (!dateString) return "";
@@ -586,7 +587,7 @@ export default function TuitionPage() {
             const tuitionId = selectedFee?.id;
 
             if (!tuitionId) {
-                toast.warning("Vui lòng chọn học phí cần thanh toán!", {
+                toastWarning("Vui lòng chọn học phí cần thanh toán!", {
                     position: 'top-center',
                     duration: 1250
                 });
@@ -609,7 +610,7 @@ export default function TuitionPage() {
     useEffect(() => {
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 position: 'top-center',
                 duration: 1250
             });

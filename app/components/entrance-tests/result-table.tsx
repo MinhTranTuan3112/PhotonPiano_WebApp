@@ -2,7 +2,7 @@ import { ColumnDef, Row, Table as TanstackTable } from '@tanstack/react-table';
 import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
-import { ArrowUpDown, Loader2, MoreHorizontal, Pencil, PencilLine, Trash2, User, X } from 'lucide-react';
+import { ArrowUpDown, CircleHelp, Loader2, MoreHorizontal, Pencil, PencilLine, Piano, Trash2, User, X } from 'lucide-react';
 import { DataTable } from '../ui/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import {
@@ -50,6 +50,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { fetchLevels } from '~/lib/services/level';
 import { Badge } from '../ui/badge';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import { toastWarning } from '~/lib/utils/toast-utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -188,7 +190,7 @@ function ActionDropdown({ row, table }: {
         }
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error, {
+            toastWarning(fetcher.data?.error, {
                 duration: 5000
             });
             return;
@@ -343,7 +345,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
         }
 
         if (fetcher.data?.success === false && fetcher.data?.error) {
-            toast.warning(fetcher.data?.error, {
+            toastWarning(fetcher.data?.error, {
                 duration: 5000
             });
             return;
@@ -363,7 +365,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
             <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
                     <DialogTitle className='flex flex-row justify-between mr-4'>
-                        <div className="">Piano entrance test details results</div>
+                        <div className="flex flex-row gap-2 items-center"> <Piano className='size-5' /> Piano entrance test details results</div>
                         <div className="">
                             <Badge variant={'outline'} className={`uppercase ${entranceTestStudent.isScoreAnnounced ? 'text-green-600' : 'text-gray-500'}`}>
                                 {entranceTestStudent.isScoreAnnounced === true ? 'Published' : 'Not Published'}
@@ -408,9 +410,19 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     </TableCell>
                                 </TableRow> : getValues().scores.map((result, index) => (
                                     <TableRow key={result.id} className='w-full'>
-                                        <TableCell className='flex flex-col gap-2'>
+                                        <TableCell className='flex flex-row gap-2 items-center'>
                                             <p className="">{result.criteriaName}</p>
-                                            <p className="text-sm text-muted-foreground">{result.criteriaDescription}</p>
+                                            {result.criteriaDescription && <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side='right'>
+                                                        <p className='max-w-prose'>{result.criteriaDescription}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>}
+
                                         </TableCell>
                                         <TableCell className='font-bold'>
                                             {role === Role.Instructor ? <Input
@@ -422,7 +434,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                     setValue(`scores.${index}.score`, newScore);
                                                 }}
                                                 readOnly={role !== Role.Instructor} /> :
-                                                result.score ? formatScore(result.score) : '(Chưa có)'}
+                                                result.score ? formatScore(result.score) : '(None)'}
 
                                         </TableCell>
                                         <TableCell className=''>{result.weight}%</TableCell>
@@ -436,13 +448,34 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell className='font-bold'>Theoretical score:</TableCell>
+                                    <TableCell className='flex flex-row gap-2 items-center'>
+                                        <span className="font-bold">Theoretical score</span>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                                                </TooltipTrigger>
+                                                <TooltipContent side='right'>
+                                                    <p className='max-w-prose'>
+                                                        Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
+                                                        <br />
+                                                        Treble clef &#40;right hand&#41; usually for the melody.
+                                                        <br />
+                                                        Bass clef &#40;left hand&#41; usually for chords or bass notes.
+                                                        <br />
+                                                        Pianists must read and process two staves simultaneously, often with multiple voices in each.
+
+                                                    </p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </TableCell>
                                     <TableCell className='font-bold'>
                                         {role === Role.Staff ? <>
                                             <Input {...register('theoraticalScore')}
                                                 type='number'
                                                 id='theoraticalScore'
-                                                placeholder='Nhập điểm lý thuyết...'
+                                                placeholder='Enter theoretical score...'
                                                 readOnly={role !== Role.Staff}
                                                 step={'any'}
                                                 className='' />
@@ -456,7 +489,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
                                 <TableRow>
                                     <TableCell className='font-bold text-red-600'>Final band score:</TableCell>
-                                    <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : 'Chưa có'}</TableCell>
+                                    <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : '(None)'}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                     <TableCell className='font-bold'>Level to be arranged:</TableCell>

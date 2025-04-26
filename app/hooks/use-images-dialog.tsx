@@ -5,6 +5,7 @@ import CustomImagesInput from '~/components/custom-images-input';
 import { Button, buttonVariants } from '~/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { TEST_IMAGE_GROUP_ID } from '~/lib/utils/constants';
+import { toastWarning } from '~/lib/utils/toast-utils';
 import { action } from '~/routes/images';
 
 type Props = {
@@ -95,7 +96,7 @@ export function useImagesDialog({
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning(`Upload failed. Please try again ${fetcher.data?.error}`, {
+            toastWarning(`Upload failed. Please try again ${fetcher.data?.error}`, {
                 duration: 5000
             });
             return;

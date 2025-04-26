@@ -11,12 +11,12 @@ import { Switch } from "../ui/switch";
 import { Slider } from "../ui/slider";
 
 export const entranceTestSettingsSchema = z.object({
-    minStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
-    maxStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
+    minStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Min learners in test must > 0' }),
+    maxStudentsPerEntranceTest: z.coerce.number().min(1, { message: 'Max learners in test must > 0' }),
     allowEntranceTestRegistering: z.coerce.boolean(),
-    testFee: z.coerce.number().min(0, { message: 'Lệ phí thi phải lớn hơn hoặc bằng 0' }),
-    theoryPercentage: z.coerce.number().min(0, { message: 'Tỉ lệ lý thuyết phải lớn hơn hoặc bằng 0' }),
-    practicePercentage: z.coerce.number().min(0, { message: 'Tỉ lệ thực hành phải lớn hơn hoặc bằng 0' }),
+    testFee: z.coerce.number().min(0, { message: 'Test fee must > 0' }),
+    theoryPercentage: z.coerce.number().min(0, { message: 'Theory weight must > 0' }),
+    practicePercentage: z.coerce.number().min(0, { message: 'Practical weight must > 0' }),
 });
 
 export type EntranceTestSettingsFormData = z.infer<typeof entranceTestSettingsSchema>;
@@ -59,19 +59,21 @@ export default function EntranceTestConfigForm({
     const practicePercentage = watch('practicePercentage');
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Lưu cấu hình',
-        description: 'Bạn có chắc chắn muốn lưu cấu hình này không?',
+        title: 'Confirm action',
+        description: 'Save this config?',
         onConfirm: handleSubmit,
     });
 
     return (
         <>
-            <h2 className="text-base font-bold">Cấu hình thi đầu vào</h2>
-            <p className='text-sm text-muted-foreground'>Quản lý cấu hình hệ thống liên quan đến thi đầu vào</p>
+            <h2 className="text-base font-bold">Entrance tests system config</h2>
+            <p className='text-sm text-muted-foreground'>
+                Entrance tests system config allows you to configure the entrance test system. 
+            </p>
             <Form method='POST' className='my-4 flex flex-col gap-4'>
 
                 <div className="flex flex-row">
-                    <Label className='w-[23%] flex items-center'>Cho phép đăng ký thi đầu vào:</Label>
+                    <Label className='w-[23%] flex items-center'>Allow entrance test registering:</Label>
                     <Controller
                         control={control}
                         name='allowEntranceTestRegistering'
@@ -83,43 +85,43 @@ export default function EntranceTestConfigForm({
                 {errors.allowEntranceTestRegistering && <p className='text-red-500 text-sm'>{errors.allowEntranceTestRegistering.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[30%] flex items-center'>Số học viên tối thiểu trong 1 ca thi:</Label>
+                    <Label className='w-[30%] flex items-center'>Min learners in test:</Label>
                     <Input {...register('minStudentsPerEntranceTest')}
-                        placeholder='Nhập số lượng học viên tối thiểu trong 1 ca thi...'
+                        placeholder='Enter min learners in test...'
                         type='number'
                         className='max-w-[10%]' />
                 </div>
                 {errors.minStudentsPerEntranceTest && <p className='text-red-500 text-sm'>{errors.minStudentsPerEntranceTest.message}</p>}
 
                 <div className="flex flex-row">
-                    <Label className='w-[30%] flex items-center'>Số học viên tối đa trong 1 ca thi:</Label>
+                    <Label className='w-[30%] flex items-center'>Max learners in test:</Label>
                     <Input {...register('maxStudentsPerEntranceTest')}
-                        placeholder='Nhập số lượng học viên tối đa trong 1 ca thi...'
+                        placeholder='Enter max learners in test...'
                         type='number'
                         className='max-w-[10%]' />
                 </div>
                 {errors.maxStudentsPerEntranceTest && <p className='text-red-500 text-sm'>{errors.maxStudentsPerEntranceTest.message}</p>}
 
                 <div className="flex flex-row max-w-[30%]">
-                    <Label className='w-[30%] flex items-center'>Lệ phí thi: </Label>
+                    <Label className='w-[30%] flex items-center'>Test fee: </Label>
                     <Input {...register('testFee')}
-                        placeholder='Nhập lệ phí thi...'
+                        placeholder='Enter test fee...'
                         type='number' />
                     <div className="flex items-center ml-1">đ</div>
                 </div>
                 {errors.testFee && <p className='text-red-500 text-sm'>{errors.testFee.message}</p>}
 
                 <div className="max-w-[50%]">
-                    <h1 className="text-base font-bold">Tỉ trọng điểm thi:</h1>
+                    <h1 className="text-base font-bold">Score weight rate:</h1>
                     <br />
                     <div className="flex justify-between mb-2">
                         <div className="text-center">
                             <div className="text-2xl font-bold">{theoryPercentage}%</div>
-                            <div className="text-sm text-muted-foreground">Lý thuyết</div>
+                            <div className="text-sm text-muted-foreground">Theoretical</div>
                         </div>
                         <div className="text-center">
                             <div className="text-2xl font-bold">{100 - theoryPercentage}%</div>
-                            <div className="text-sm text-muted-foreground">Thực hành</div>
+                            <div className="text-sm text-muted-foreground">Practical</div>
                         </div>
                     </div>
                     <Slider value={[theoryPercentage]} max={100} step={1} onValueChange={(value) => {
@@ -131,7 +133,7 @@ export default function EntranceTestConfigForm({
                 <div className="my-2">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
                         onClick={handleOpenConfirmDialog}>
-                        {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                        {isSubmitting ? 'Save...' : 'Save'}
                     </Button>
                 </div>
             </Form>

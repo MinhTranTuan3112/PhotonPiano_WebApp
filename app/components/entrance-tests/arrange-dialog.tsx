@@ -19,6 +19,7 @@ import { studentColumns } from '../staffs/table/student-columns'
 import { Separator } from '../ui/separator'
 import { CreateEntranceTestForm } from '~/routes/staff.entrance-tests.create'
 import { ScrollArea } from '../ui/scroll-area'
+import { toastWarning } from '~/lib/utils/toast-utils'
 
 export type ArrangeDialogProps = {
     isOpen: boolean;
@@ -105,7 +106,7 @@ function AutoArrangementForm({
     useEffect(() => {
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

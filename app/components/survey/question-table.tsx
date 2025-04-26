@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 import { useQuestionDialog } from "~/hooks/use-question-dialog";
 import { loader } from "~/root";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 
 function QuestionTypeBadge({ type }: { type: QuestionType }) {
@@ -117,7 +118,7 @@ function ActionDropdown({ row }: {
         }
 
         if (fetcher.data?.success === false) {
-            toast.warning(fetcher.data.error);
+            toastWarning(fetcher.data.error);
             return
         }
 

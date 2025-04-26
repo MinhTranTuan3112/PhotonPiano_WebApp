@@ -19,6 +19,7 @@ import { Controller } from 'react-hook-form';
 import RichTextEditor from '../text-editor';
 import { loader } from '~/root';
 import { Role } from '~/lib/types/account/account';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 const getStatusStyle = (status: ApplicationStatus) => {
     switch (status) {
@@ -253,7 +254,7 @@ function ActionDialog({
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.warning(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;
