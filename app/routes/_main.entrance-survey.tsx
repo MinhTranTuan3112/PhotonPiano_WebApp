@@ -21,13 +21,14 @@ import { SurveyDetails } from '~/lib/types/survey/survey';
 import { getAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { useEffect } from 'react';
-import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { AuthResponse } from '~/lib/types/auth-response';
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime';
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie';
 import { Role } from '~/lib/types/account/account';
 import { toastWarning } from '~/lib/utils/toast-utils';
+import { useTermsDialog } from '~/components/home/terms-and-conditions';
+
 
 type Props = {}
 
@@ -220,6 +221,12 @@ function EntranceSurveyForm() {
         confirmText: 'Confirm'
     });
 
+    const { termsDialog, openTermsDialog } = useTermsDialog({
+        onAccept: () => {
+            setFormValue('isTermsAgreed', true);
+        }
+    })
+
     const surveyAnswers = watch('surveyAnswers');
 
     const questionSteps = survey.pianoSurveyQuestions.sort(ps => ps.orderIndex).map(({ question, isRequired, orderIndex, questionId }) => {
@@ -281,7 +288,7 @@ function EntranceSurveyForm() {
                 />}
 
                 {(question.type === QuestionType.OpenText || question.type === QuestionType.NumericInput) && <>
-                    <Input placeholder='Nhập câu trả lời...' type={question.type === QuestionType.OpenText ? 'text' : 'number'}
+                    <Input placeholder='Enter answer...' type={question.type === QuestionType.OpenText ? 'text' : 'number'}
                         value={surveyAnswers.find(s => s.questionId === question.id)?.answers[0]}
                         onChange={(e) => {
                             const newAnswer = e.target.value;
@@ -296,7 +303,7 @@ function EntranceSurveyForm() {
                 </>}
 
                 {question.allowOtherAnswer && <section className='my-3'>
-                    <Input placeholder='Câu trả lời khác...' className='rounded-xl' value={surveyAnswers.find(s => s.questionId === question.id)?.otherAnswer}
+                    <Input placeholder='Other answer...' className='rounded-xl' value={surveyAnswers.find(s => s.questionId === question.id)?.otherAnswer}
                         onChange={(e) => {
                             const newAnswer = e.target.value;
                             setFormValue('surveyAnswers', surveyAnswers.map(s => {
@@ -386,7 +393,8 @@ function EntranceSurveyForm() {
                             )}
                         />
                         <div className="">
-                            <span className='text-sm'>I agree to the <a className='underline font-bold' href='/'>terms and conditions</a>  of Photon Piano center</span>
+                            <span className='text-sm'>I agree to the<Button className='font-bold' type='button' variant={'link'}
+                                onClick={openTermsDialog}>terms and conditions</Button>of Photon Piano center</span>
                             {errors.isTermsAgreed && <p className='text-sm text-red-600'>{errors.isTermsAgreed.message}</p>}
                         </div>
                     </div>
@@ -454,6 +462,7 @@ function EntranceSurveyForm() {
             }
         </Form>
         {confirmDialog}
+        {termsDialog}
     </>
 
 }
