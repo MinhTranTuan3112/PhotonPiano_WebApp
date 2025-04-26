@@ -5,7 +5,7 @@ export function useQuestionDialog({
     ...props
 }: {
 
-} & Omit<QuestionDialogProps, 'isOpen' | 'setIsOpen'>) {
+} & Omit<QuestionDialogProps, 'isOpen' | 'setIsOpen'>) { 
 
     const [isOpen, setIsOpen] = useState(false);
 
