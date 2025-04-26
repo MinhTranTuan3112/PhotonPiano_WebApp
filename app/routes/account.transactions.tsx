@@ -93,9 +93,9 @@ export default function TransactionHistoryPage({ }: Props) {
 
     return (
         <article className="px-10 pb-4">
-            <h1 className="text-2xl font-bold">Lịch sử giao dịch</h1>
-            <p className="text-muted-foreground text-sm">Lịch sử các giao dịch ở Photon Piano liên quan đến vấn đề đào tạo như phí thi đầu vào,
-                học phí,...
+            <h1 className="text-2xl font-bold">Transactions history</h1>
+            <p className="text-muted-foreground text-sm">
+                Transactions history at Photon Piano center related to training issues such as entrance exam fees, tuition fees,...
             </p>
             <SearchForm />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(loaderData.query)}>
@@ -103,7 +103,7 @@ export default function TransactionHistoryPage({ }: Props) {
                     {({ transactionsPromise, metadata }) => (
                         <Await resolve={transactionsPromise}>
                             <GenericDataTable columns={columns}
-                                emptyText="Không có giao dịch nào."
+                                emptyText="No transactions found."
                                 metadata={metadata} />
                         </Await>
                     )}
@@ -129,20 +129,20 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-10 pb-4">
-            <h1 className="text-2xl font-bold">Lịch sử giao dịch</h1>
-            <p className="text-muted-foreground text-sm">Lịch sử các giao dịch ở Photon Piano liên quan đến vấn đề đào tạo như phí thi đầu vào,
-                học phí,...
+            <h1 className="text-2xl font-bold">Transactions history</h1>
+            <p className="text-muted-foreground text-sm">
+                Transactions history at Photon Piano center related to training issues such as entrance exam fees, tuition fees,...
             </p>
             <SearchForm />
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                         flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}
                     replace={true}
                     reloadDocument={false}>
-                    <RotateCcw /> Thử lại
+                    <RotateCcw /> Retry
                 </Link>
             </div>
         </article>

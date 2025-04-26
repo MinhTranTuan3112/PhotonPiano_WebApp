@@ -1,10 +1,11 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData } from '@remix-run/react';
-import { Music2 } from 'lucide-react';
+import { CircleHelp, Music2 } from 'lucide-react';
 import { Suspense, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import Image from '~/components/ui/image';
 import { Skeleton } from '~/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 import { fetchEntranceTestStudentDetails } from '~/lib/services/entrance-tests';
 import { Role } from '~/lib/types/account/account';
 import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test';
@@ -262,7 +263,7 @@ function EntranceTestStudentContent({
     <div>
       <div className='flex gap-4 text-xl font-bold mt-8'>
         <Music2 />
-        Kết quả
+        Results
       </div>
       {
         entranceTestStudent.entranceTestResults.length > 0 ? (
@@ -287,9 +288,19 @@ function EntranceTestStudentContent({
                       key={result.id}
                       className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 flex flex-row gap-2 items-center">
                         <div className="text-gray-800 font-medium">{result.criteria.name}</div>
-                        <div className="text-sm text-muted-foreground">{result.criteria.description}</div>
+                        {result.criteria.description && <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                            </TooltipTrigger>
+                            <TooltipContent side='right'>
+                              <p className='max-w-prose'>{result.criteria.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>}
+
                       </td>
                       <td className="py-3 px-4 text-center font-bold text-gray-700">
                         {formatScore(result.score)}
@@ -304,7 +315,25 @@ function EntranceTestStudentContent({
                     <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(practicalScore)}</td>
                   </tr>
                   <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-800 font-medium">Theoretical result: &#40;{practicalPercentage}%&#41;</td>
+                    <td className="py-3 px-4 text-gray-800 font-medium flex flex-row gap-2 items-center">Theoretical score <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                        </TooltipTrigger>
+                        <TooltipContent side='right'>
+                          <p className='max-w-prose'>
+                            Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
+                            <br />
+                            Treble clef &#40;right hand&#41; usually for the melody.
+                            <br />
+                            Bass clef &#40;left hand&#41; usually for chords or bass notes.
+                            <br />
+                            Pianists must read and process two staves simultaneously, often with multiple voices in each.
+
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider> &#40;{practicalPercentage}%&#41;</td>
                     <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : '(Chưa có)'}</td>
                   </tr>
                 </tbody>

@@ -20,7 +20,7 @@ import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
 
 function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
     const defaultNavItem = {
-        name: "Quản lý thông tin",
+        name: "Manage",
         url: "/account/profile",
     };
     let otherNavItems: BreadcumbNavItem[] = []

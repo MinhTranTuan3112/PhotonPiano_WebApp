@@ -90,7 +90,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 const schema = z.object({
-    id: z.string().nonempty({ message: 'Id không được để trống' }),
+    id: z.string().nonempty({ message: 'Id is required' }),
     note: z.string().optional(),
     status: z.number()
 });
