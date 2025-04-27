@@ -1,8 +1,9 @@
-import { redirect } from "@vercel/remix";
 import { getCurrentTimeInSeconds } from "./datetime";
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./cookie";
 import { fetchRefreshToken } from "../services/auth";
 import { AuthResponse } from "../types/auth-response";
+import { redirect } from "@remix-run/node";
+
 
 interface AuthData {
   idToken?: string

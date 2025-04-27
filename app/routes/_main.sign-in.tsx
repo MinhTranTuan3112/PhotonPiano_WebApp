@@ -4,7 +4,6 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
 import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@vercel/remix'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod'
 import { useRemixForm, getValidatedFormData } from "remix-hook-form";
@@ -22,6 +21,7 @@ import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 import pianoBackgroundImg from '../lib/assets/images/piano_background.jpg';
 import { Role } from '~/lib/types/account/account'
 import { toastWarning } from '~/lib/utils/toast-utils'
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 
 type Props = {}
 
