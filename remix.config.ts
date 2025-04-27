@@ -2,4 +2,8 @@
 module.exports = {
     serverBuildTarget: "node-cjs", // Tạo file server cho Node.js CommonJS
     ignoredRouteFiles: ["**/.*"],  // Bỏ qua các file ẩn
+    // Tắt Turbo Stream
+    browserNodeBuiltinsPolyfill: { modules: { stream: true } },
+    // Đảm bảo không sử dụng Turbo
+    serverDependenciesToBundle: "all",
 };
