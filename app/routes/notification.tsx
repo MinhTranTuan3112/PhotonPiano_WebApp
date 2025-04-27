@@ -43,3 +43,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     }
 }
+// Thêm loader để tránh Remix gọi /notification.data (tránh turbo stream)
+export async function loader() {
+    return Response.json({});
+}
