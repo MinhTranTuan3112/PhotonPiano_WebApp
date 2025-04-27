@@ -10,7 +10,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const id = formData.get('id') as string;
 
         if (!id) {
-            return json(
+            return Response.json(
                 { success: false, error: "Invalid request" },
                 { headers: { "Content-Type": "application/json" } }
             );
@@ -18,7 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const response = await toggleNotificationStatus({ id, idToken });
 
-        return json(
+        return Response.json(
             { success: response.status === 204 },
             { headers: { "Content-Type": "application/json" } }
         );
