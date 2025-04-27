@@ -180,6 +180,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
         fetcher.submit({ id }, {
             action: '/notification',
             method: 'POST',
+            encType: 'application/json',
             flushSync: true,
         });
 
