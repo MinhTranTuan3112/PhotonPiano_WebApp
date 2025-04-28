@@ -186,7 +186,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   } = useRemixForm<UpdateSlotSchema>({
     mode: "onSubmit",
     resolver,
-    submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+    submitConfig: { action: '/endpoint/classes', method: 'POST', navigate: false },
     fetcher: updateFetcher,
     defaultValues: {
       action: "EDIT",
@@ -231,7 +231,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
       id: classInfo.id,
       idToken: idToken
     }, {
-      action: "/api/classes",
+      action: "/endpoint/classes",
       method: "DELETE"
     })
   }
@@ -448,7 +448,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
       { studentId: selectedStudentId, classId: classInfo.id, idToken },
       {
         method: "DELETE",
-        action: "/api/delete-student-class",
+        action: "/endpoint/delete-student-class",
       }
     );
   }
@@ -559,7 +559,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   } = useRemixForm<UpdateDescriptionSchema>({
     mode: "onSubmit",
     resolver,
-    submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+    submitConfig: { action: '/endpoint/classes', method: 'POST', navigate: false },
     fetcher: updateFetcher,
     defaultValues: {
       action: "EDIT",
@@ -603,7 +603,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       id: classInfo.id,
       idToken: idToken
     }, {
-      action: "/api/classes",
+      action: "/endpoint/classes",
       method: "DELETE"
     })
   }
@@ -716,7 +716,7 @@ export default function StaffClassDetailPage({ }: Props) {
       id: classId,
       idToken: idToken
     }, {
-      action: "/api/classes",
+      action: "/endpoint/classes",
       method: "PATCH"
     })
   }

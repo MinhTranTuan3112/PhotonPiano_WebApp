@@ -75,7 +75,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
     } = useRemixForm<ScheduleClassSchema>({
         mode: "onSubmit",
         resolver,
-        submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+        submitConfig: { action: '/endpoint/classes', method: 'POST', navigate: false },
         fetcher,
         defaultValues: {
             action: "SCHEDULE",

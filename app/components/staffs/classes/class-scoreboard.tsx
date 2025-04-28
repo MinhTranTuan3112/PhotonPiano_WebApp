@@ -32,7 +32,7 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
       // Use the fetcher to submit the form
       publishFetcher.submit(
         { classId: classInfo.id, idToken: authData.idToken },
-        { method: "POST", action: "/api/student-class/publish-scores" },
+        { method: "POST", action: "/endpoint/student-class/publish-scores" },
       )
     } catch (error) {
       toast.error("Không thể công bố điểm. Vui lòng thử lại sau.")
