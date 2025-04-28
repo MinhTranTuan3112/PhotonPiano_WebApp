@@ -83,7 +83,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
             },
             {
                 method: "POST",
-                action: "/api/add-students-to-class",
+                action: "/endpoint/add-students-to-class",
             }
         );
     }
