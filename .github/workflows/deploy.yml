@@ -42,9 +42,8 @@ jobs:
       - name: 🏗️ Build Project
         run: npm run build
 
-      # Uncomment if you have tests
-      # - name: ✅ Run Tests
-      #   run: npm test
+      - name: 🔍 Inspect Build Output
+        run: ls -la build build/server || echo "Server directory not found"
 
   docker-build-and-push:
     needs: build-and-test
