@@ -136,12 +136,48 @@ jobs:
             # Login to GitHub Container Registry
             echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
+            # Backup current image
+            CURRENT_IMAGE=$(docker inspect --format='{{.Config.Image}}' photonpiano-web 2>/dev/null || echo "")
+            if [ ! -z "$CURRENT_IMAGE" ]; then
+              docker tag $CURRENT_IMAGE ${{ env.IMAGE_NAME_WEB }}:backup
+              echo "Backed up current image as ${{ env.IMAGE_NAME_WEB }}:backup"
+            else
+              echo "No running container found, no backup created"
+            fi
+
             # Pull the latest frontend image
-            docker pull ${{ env.IMAGE_NAME_WEB }}:latest 
-            
-            # If the container is running, restart it; otherwise, let docker-compose handle it later
-            docker restart photonpiano-web || true
-            
-            # Go to main directory and restart all services to ensure proper coordination
+            docker pull ${{ env.IMAGE_NAME_WEB }}:latest
+
+            # Go to main directory and deploy new image
             cd ~/photonpiano
             docker compose -p photonpiano up -d --force-recreate
+
+            # Health check (wait up to 30 seconds for container to be healthy)
+            echo "Checking container health..."
+            for i in {1..6}; do
+              if docker inspect photonpiano-web --format='{{.State.Health.Status}}' 2>/dev/null | grep -q "healthy"; then
+                echo "Container is healthy"
+                # Clean up old images (optional)
+                docker image prune -f
+                exit 0
+              elif docker inspect photonpiano-web --format='{{.State.Status}}' 2>/dev/null | grep -q "running"; then
+                echo "Container is running, waiting for health check..."
+                sleep 5
+              else
+                echo "Container is not running, initiating rollback..."
+                break
+              fi
+            done
+
+            # Rollback if health check fails
+            echo "Health check failed, rolling back to backup image..."
+            if [ -n "$(docker images -q ${{ env.IMAGE_NAME_WEB }}:backup)" ]; then
+              # Update docker-compose.yml to use backup image
+              sed -i "s|image: ${{ env.IMAGE_NAME_WEB }}:latest|image: ${{ env.IMAGE_NAME_WEB }}:backup|g" ~/photonpiano/docker-compose.yml
+              docker compose -p photonpiano up -d --force-recreate
+              echo "Rolled back to ${{ env.IMAGE_NAME_WEB }}:backup"
+              exit 1
+            else
+              echo "No backup image available, cannot rollback"
+              exit 1
+            fi
