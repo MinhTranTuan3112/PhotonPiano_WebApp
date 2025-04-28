@@ -180,7 +180,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     } = useRemixForm<AddSlotSchema>({
         mode: "onSubmit",
         resolver,
-        submitConfig: { action: '/api/slots', method: 'POST', navigate: false },
+        submitConfig: { action: '/endpoint/slots', method: 'POST', navigate: false },
         fetcher: editFetcher,
         defaultValues: {
             action: "EDIT",
@@ -215,7 +215,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
             slotId: slot.id,
             idToken: idToken
         }, {
-            action: "/api/slots",
+            action: "/endpoint/slots",
             method: "DELETE",
 
         })

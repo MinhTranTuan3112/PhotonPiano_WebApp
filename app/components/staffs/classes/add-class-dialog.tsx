@@ -51,7 +51,7 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
     } = useRemixForm<AddSlotSchema>({
         mode: "onSubmit",
         resolver,
-        submitConfig: { action: '/api/classes', method: 'POST', navigate: false },
+        submitConfig: { action: '/endpoint/classes', method: 'POST', navigate: false },
         fetcher,
         defaultValues: {
             action: "ADD",

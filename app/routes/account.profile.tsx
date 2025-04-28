@@ -590,7 +590,7 @@ function AcademicInfoSection() {
         try {
             fetcher.submit(
                 { continueLearning: status.toString() },
-                { method: "POST", action: "/api/account/update-learning-status" },
+                { method: "POST", action: "/endpoint/account/update-learning-status" },
             )
 
             toast.success("Learning status updated successfully!", {
