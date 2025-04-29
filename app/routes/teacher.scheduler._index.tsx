@@ -14,6 +14,7 @@ import { fetchCurrentAccountInfo } from "~/lib/services/auth"
 import { Scheduler } from "~/components/scheduler/scheduler"
 import { redirect, useLoaderData } from "@remix-run/react"
 import { Role } from "~/lib/types/account/account"
+import { TeacherScheduler } from "~/components/scheduler/teacher-schedule"
 
 type Props = {}
 
@@ -48,15 +49,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     const response = await fetchSlots({ startTime, endTime, studentFirebaseId: accountId, idToken: idToken })
-    
+
     const classId = response.data.classId;
     const className = response.data.className;
-    
+
     const slots: SlotDetail[] = response.data
     return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
 }
 
-export default function StaffScheduler({} : Props) {
+export default function StaffScheduler({ }: Props) {
     const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount } = useLoaderData<typeof loader>()
 
     return (
@@ -70,14 +71,23 @@ export default function StaffScheduler({} : Props) {
         //     initialWeekNumber={weekNumber}
         //     role={role}/>
 
-        <Scheduler
+        // <Scheduler
+        //     initialSlots={slots}
+        //     initialStartDate={startDate}
+        //     initialEndDate={endDate}
+        //     initialYear={year}
+        //     initialWeekNumber={weekNumber}
+        //     idToken={idToken}
+        //     role={role}
+        //     currentAccount={currentAccount}
+        // />
+        <TeacherScheduler
             initialSlots={slots}
             initialStartDate={startDate}
             initialEndDate={endDate}
             initialYear={year}
             initialWeekNumber={weekNumber}
             idToken={idToken}
-            role={role}
             currentAccount={currentAccount}
         />
     )

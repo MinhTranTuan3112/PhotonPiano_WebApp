@@ -24,6 +24,7 @@ import {
     Upload,
     Users,
     Eye,
+    X,
 } from "lucide-react"
 import React, { useState } from "react"
 import { Badge } from "~/components/ui/badge"
@@ -41,6 +42,7 @@ import { requireAuth } from "~/lib/utils/auth"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 import { toast } from "sonner"
 import { CertificateModal } from "~/components/ui/view-certificate-modal"
+import { Certificate } from "~/lib/types/certificate/certifcate"
 
 const getStatusBadge = (status: number) => {
     switch (status) {
@@ -139,11 +141,16 @@ export default function TeacherClassDetailsPage() {
     const [isLoadingScores, setIsLoadingScores] = useState(false)
 
     // Certificate modal state
-    const [certificateModalOpen, setCertificateModalOpen] = useState(false)
-    const [selectedCertificate, setSelectedCertificate] = useState<{ url: string; studentName: string }>({
-        url: "",
-        studentName: "",
-    })
+    const [certificateModalOpen, setCertificateModalOpen] = useState(false);
+    const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+
+    const [validationErrorModalOpen, setValidationErrorModalOpen] = useState(false)
+    const [validationErrorDetails, setValidationErrorDetails] = useState("")
+
+    const showValidationErrorModal = (errorMessage: string) => {
+        setValidationErrorDetails(errorMessage)
+        setValidationErrorModalOpen(true)
+    }
 
     React.useEffect(() => {
         async function loadScores() {
@@ -157,7 +164,7 @@ export default function TeacherClassDetailsPage() {
                     setClassScores(response.data)
                 } catch (error) {
                     console.error("Error loading scores:", error)
-                    toast.error("Không thể tải điểm số:" + error)
+                    toast.warning("Không thể tải điểm số:" + error)
                 } finally {
                     setIsLoadingScores(false)
                 }
@@ -190,7 +197,7 @@ export default function TeacherClassDetailsPage() {
             window.URL.revokeObjectURL(url)
         } catch (error) {
             const err = getErrorDetailsInfo(error)
-            toast.error("Can not download template: " + err.message)
+            toast.warning("Can not download template: " + err.message)
         }
     }, [classDetailsData.id, classDetailsData.idToken, classDetailsData.name])
 
@@ -200,13 +207,13 @@ export default function TeacherClassDetailsPage() {
             setSelectedFile(file)
             setUploadSuccess(false)
             console.log("File selected:", file.name)
-            toast.info(`Đã chọn tệp: ${file.name}`)
+            toast.info(`Has picked file: ${file.name}`)
         }
     }
 
     const handleUploadAndProcess = async () => {
         if (!selectedFile || !classDetailsData.idToken) {
-            toast.error("Chưa chọn tệp hoặc không có quyền truy cập")
+            toast.warning("Has not pick file or Unauthorized");
             return
         }
 
@@ -229,22 +236,15 @@ export default function TeacherClassDetailsPage() {
             if (fileInput) {
                 fileInput.value = ""
             }
-
-            // Refresh the data by fetching class details again
+            
             if (classDetailsData.idToken) {
                 try {
                     const response = await fetchClassDetails({
                         id: classDetailsData.id,
                         idToken: classDetailsData.idToken,
                     })
-
-                    // This ensures the UI reflects the changes immediately
                     Object.assign(classDetailsData, response.data)
-
-                    // Force a re-render by setting state
-                    setClassScores(null) // Clear existing scores
-
-                    // Fetch fresh scores data
+                    setClassScores(null) 
                     const scoresResponse = await fetchStudentClassScores({
                         classId: classDetailsData.id,
                         idToken: classDetailsData.idToken,
@@ -252,23 +252,36 @@ export default function TeacherClassDetailsPage() {
                     setClassScores(scoresResponse.data)
                 } catch (error) {
                     const err = getErrorDetailsInfo(error)
-                    toast.error("Can not update data: " + err.message)
+                    toast.warning("Can not update data: " + err.message)
                 }
             }
         } catch (error) {
             const err = getErrorDetailsInfo(error)
-            toast.error("Can not import score: " + err.message)
+            if (err.message && err.message.length > 100 && err.message.includes("Invalid scores detected")) {
+                showValidationErrorModal(err.message)
+            } else {
+                toast.warning("Can not import score: " + err.message)
+            }
         } finally {
             setIsUploading(false)
         }
     }
 
-    // Handle opening the certificate modal
-    const handleViewCertificate = (certificateUrl: string, studentName: string) => {
-        setSelectedCertificate({
-            url: certificateUrl,
-            studentName: studentName,
-        })
+    const handleViewCertificate = (studentClass: any) => {
+        const certificate: Certificate = {
+            studentClassId: studentClass.id || "",
+            className: classDetailsData.name || "",
+            levelName: classDetailsData.level?.name || "",
+            completionDate: studentClass.completionDate || new Date().toISOString(),
+            certificateUrl: studentClass.certificateUrl || "",
+            certificateHtml: studentClass.certificateHtml || "",
+            gpa: studentClass.gpa || 0,
+            studentName: studentClass.student?.fullName || "Student",
+            instructorName: classDetailsData.instructor?.fullName || "Instructor",
+            skillsEarned: classDetailsData.level?.skillsEarned || [],
+        }
+
+        setSelectedCertificate(certificate)
         setCertificateModalOpen(true)
     }
 
@@ -337,7 +350,7 @@ export default function TeacherClassDetailsPage() {
                     })
                     .catch((error) => {
                         console.error("Error refreshing data after score update:", error)
-                        toast.error("Không thể cập nhật dữ liệu sau khi cập nhật điểm. Vui lòng tải lại trang.")
+                        toast.warning("Không thể cập nhật dữ liệu sau khi cập nhật điểm. Vui lòng tải lại trang.")
                     })
             }
         },
@@ -540,10 +553,10 @@ export default function TeacherClassDetailsPage() {
                                                 <div className="flex items-start gap-3">
                                                     <div
                                                         className={`p-2 rounded-full ${index % 3 === 0
-                                                                ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
-                                                                : index % 3 === 1
-                                                                    ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                                                                    : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+                                                            ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                                                            : index % 3 === 1
+                                                                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                                                : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
                                                             }`}
                                                     >
                                                         <Sparkles className="h-4 w-4" />
@@ -676,10 +689,10 @@ export default function TeacherClassDetailsPage() {
                                                             {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                                 <span
                                                                     className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                            ? "bg-green-100 text-green-800"
-                                                                            : studentClass.gpa >= 5
-                                                                                ? "bg-amber-100 text-amber-800"
-                                                                                : "bg-red-100 text-red-800"
+                                                                        ? "bg-green-100 text-green-800"
+                                                                        : studentClass.gpa >= 5
+                                                                            ? "bg-amber-100 text-amber-800"
+                                                                            : "bg-red-100 text-red-800"
                                                                         }`}
                                                                 >
                                                                     {studentClass.gpa ? studentClass.gpa.toFixed(1) : "(Chưa có)"}
@@ -824,7 +837,42 @@ export default function TeacherClassDetailsPage() {
                                     </Button>
 
                                     <div className="flex-1 flex items-center gap-4">
-                                        <div className="border-2 border-dashed rounded-lg p-4 text-center flex-1">
+                                        <label
+                                            htmlFor="file-upload"
+                                            className="border-2 border-dashed rounded-lg p-6 text-center flex-1 relative transition-all duration-200 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer"
+                                            onDragOver={(e) => {
+                                                e.preventDefault()
+                                                e.currentTarget.classList.add("border-blue-500", "bg-blue-50", "dark:bg-blue-900/20")
+                                            }}
+                                            onDragLeave={(e) => {
+                                                e.preventDefault()
+                                                e.currentTarget.classList.remove("border-blue-500", "bg-blue-50", "dark:bg-blue-900/20")
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault()
+                                                e.currentTarget.classList.remove("border-blue-500", "bg-blue-50", "dark:bg-blue-900/20")
+
+                                                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                                    const file = e.dataTransfer.files[0]
+                                                    if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+                                                        setSelectedFile(file)
+                                                        setUploadSuccess(false)
+                                                        toast.info(`Đã chọn tệp: ${file.name}`)
+
+                                                        // Update the file input for consistency
+                                                        const fileInput = document.getElementById("file-upload") as HTMLInputElement
+                                                        if (fileInput) {
+                                                            // Create a new DataTransfer object
+                                                            const dataTransfer = new DataTransfer()
+                                                            dataTransfer.items.add(file)
+                                                            fileInput.files = dataTransfer.files
+                                                        }
+                                                    } else {
+                                                        toast.warning("Chỉ chấp nhận file Excel (.xlsx, .xls)")
+                                                    }
+                                                }
+                                            }}
+                                        >
                                             <Input
                                                 type="file"
                                                 accept=".xlsx, .xls"
@@ -832,14 +880,31 @@ export default function TeacherClassDetailsPage() {
                                                 className="hidden"
                                                 id="file-upload"
                                             />
-                                            <label htmlFor="file-upload" className="cursor-pointer">
-                                                <div className="flex flex-col items-center justify-center gap-2">
-                                                    <FileSpreadsheet className="h-8 w-8 text-muted-foreground" />
-                                                    <p className="font-medium text-sm">Click to upload</p>
-                                                    <p className="text-xs text-muted-foreground">Excel files only (.xlsx, .xls)</p>
+                                            <div className="flex flex-col items-center justify-center gap-3">
+                                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-full">
+                                                    <FileSpreadsheet className="h-8 w-8 text-blue-500" />
                                                 </div>
-                                            </label>
-                                        </div>
+                                                <div>
+                                                    <p className="font-medium text-sm">
+                                                        {selectedFile ? selectedFile.name : "Click to upload or drag and drop"}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground mt-1">Excel files only (.xlsx, .xls)</p>
+                                                </div>
+                                                {selectedFile && (
+                                                    <Badge variant="outline" className="mt-2 gap-1">
+                                                        <FileSpreadsheet className="h-3 w-3" />
+                                                        {selectedFile.name}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            {!selectedFile && (
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border">
+                                                        <p className="font-medium">Drop your Excel file here</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </label>
 
                                         <Button
                                             className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
@@ -933,10 +998,10 @@ export default function TeacherClassDetailsPage() {
                                                         {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                                             <span
                                                                 className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
-                                                                        ? "bg-green-100 text-green-800"
-                                                                        : studentClass.gpa >= 5
-                                                                            ? "bg-amber-100 text-amber-800"
-                                                                            : "bg-red-100 text-red-800"
+                                                                    ? "bg-green-100 text-green-800"
+                                                                    : studentClass.gpa >= 5
+                                                                        ? "bg-amber-100 text-amber-800"
+                                                                        : "bg-red-100 text-red-800"
                                                                     }`}
                                                             >
                                                                 {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : "Not graded"}
@@ -959,12 +1024,7 @@ export default function TeacherClassDetailsPage() {
                                                                 variant="outline"
                                                                 size="sm"
                                                                 className="h-8 gap-1"
-                                                                onClick={() =>
-                                                                    handleViewCertificate(
-                                                                        studentClass.certificateUrl,
-                                                                        studentClass.student?.fullName || "Student",
-                                                                    )
-                                                                }
+                                                                onClick={() => handleViewCertificate(studentClass)}
                                                             >
                                                                 <FileText className="h-3.5 w-3.5" />
                                                                 View
@@ -997,14 +1057,59 @@ export default function TeacherClassDetailsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Validation Error Modal */}
+            {validationErrorModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+                        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold flex items-center gap-2 text-orange-600">
+                                <CircleX className="h-5 w-5" />
+                                Mức cảnh báo cao nhất
+                            </h3>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setValidationErrorModalOpen(false)}
+                                className="h-8 w-8"
+                            >
+                                <span className="sr-only">Close</span>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <div className="p-4 overflow-auto flex-1">
+                            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-md border border-orange-200 dark:border-orange-800">
+                                <h4 className="font-medium mb-2 text-orange-800">The following validation errors were found:</h4>
+                                <div className="space-y-3">
+                                    {validationErrorDetails.split("Invalid scores detected:").map((error, index) => {
+                                        if (index === 0) return null // Skip the first part before "Invalid scores detected:"
+                                        return (
+                                            <div key={index} className="pl-4 border-l-2 border-orange-300 dark:border-orange-700">
+                                                <p className="text-sm text-orange-700 dark:text-orange-200">{error.trim()}</p>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                            <div className="mt-4">
+                                <p className="text-sm text-muted-foreground">
+                                    Please correct these errors in your Excel file and try uploading again.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex justify-end">
+                            <Button onClick={() => setValidationErrorModalOpen(false)}>Close</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {uploadConfirmationDialog}
 
             {/* Certificate Modal */}
             <CertificateModal
                 isOpen={certificateModalOpen}
                 onClose={() => setCertificateModalOpen(false)}
-                certificateUrl={selectedCertificate.url}
-                studentName={selectedCertificate.studentName}
+                certificate={selectedCertificate}
             />
         </div>
     )
