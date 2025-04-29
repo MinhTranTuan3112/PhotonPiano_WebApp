@@ -1,393 +1,480 @@
-import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, useAsyncValue, useLoaderData } from '@remix-run/react';
-import { CircleHelp, Music2 } from 'lucide-react';
-import { Suspense, useState } from 'react';
-import { Button } from '~/components/ui/button';
-import Image from '~/components/ui/image';
-import { Skeleton } from '~/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
-import { fetchEntranceTestStudentDetails } from '~/lib/services/entrance-tests';
-import { Role } from '~/lib/types/account/account';
-import { sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test';
-import { EntranceTestStudentDetail } from '~/lib/types/entrance-test/entrance-test-student-detail';
-import { requireAuth } from '~/lib/utils/auth';
-import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from '~/lib/utils/constants';
-import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
-import { formatScore } from '~/lib/utils/score';
+import { type LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { Await, useAsyncValue, useLoaderData } from "@remix-run/react"
+import { CircleHelp, Music2, Award, User, Calendar, Clock, MapPin, Mail, Phone, Home, Piano } from "lucide-react"
+import { Suspense, useState } from "react"
+import { Button } from "~/components/ui/button"
+import Image from "~/components/ui/image"
+import { Skeleton } from "~/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
+import { fetchEntranceTestStudentDetails } from "~/lib/services/entrance-tests"
+import { Role } from "~/lib/types/account/account"
+import type { EntranceTestStudentDetail } from "~/lib/types/entrance-test/entrance-test-student-detail"
+import { requireAuth } from "~/lib/utils/auth"
+import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants"
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { formatScore } from "~/lib/utils/score"
 
 type Props = {}
 
-// async function getSampleEntranceTest(id: string) {
-//   await new Promise(resolve => setTimeout(resolve, 1000));
-//   return smapleEntranceTest;
-// }
-async function getSampleEntranceTests() {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return sampleEntranceTests;
-}
-// const smapleEntranceTest: EntranceTestStudentDetail = {
-//   id: "abc",
-//   studentFirebaseId: "a",
-//   entranceTestId: "b",
-//   student: {
-//     address: "Thong Nhat, Dong Nai",
-//     email: "nguynan001@gmail.com",
-//     phone: "0987654321",
-//     username: "Ng Ân",
-//     status: 0,
-//     avatarUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/1200px-Wolfgang-amadeus-mozart_1.jpg"
-//   },
-//   entranceTest: {
-//     ...sampleEntranceTests[0],
-//     entranceTestStudents: [],
-//     instructor: {
-//       status: 0,
-//       username: "HungDepTrai",
-//       address: "TN, ĐN",
-//       email: "thanhhung16082003@gmail.com",
-//       phone: "0987654321",
-//       avatarUrl: "https://hips.hearstapps.com/hmg-prod/images/beethoven-600x600.jpg?crop=1xw:1.0xh;center,top&resize=640:*"
-//     },
-//   },
-//   entranceTestResults: [
-//     {
-//       criteriaId: "a",
-//       criteriaName: "Đúng nhịp",
-//       entranceTestStudentId: "abc",
-//       id: "a",
-//       score: 7
-//     },
-//     {
-//       criteriaId: "b",
-//       criteriaName: "Độ chính xác",
-//       entranceTestStudentId: "abc",
-//       id: "b",
-//       score: 8.5
-//     },
-//     {
-//       criteriaId: "c",
-//       criteriaName: "Âm sắc",
-//       entranceTestStudentId: "abc",
-//       id: "c",
-//       score: 5.5
-//     },
-//     {
-//       criteriaId: "d",
-//       criteriaName: "Phong thái",
-//       entranceTestStudentId: "abc",
-//       id: "d",
-//       score: 9
-//     }
-//   ],
-//   bandScore: 7.5,
-//   level: 4,
-//   instructorComment: "Em thể hiện rất tốt tuy nhiên âm nhạc của em còn cứng quá! Em cần luyện tập thêm nhấn nhá các nốt và thả hồn mình vào bản nhạc!",
-// }
-
 const getStatusStyle = (status: number) => {
   switch (status) {
-    case 0: return "bg-green-400 font-bold";
-    case 1: return "bg-blue-500 font-bold";
-    case 2: return "bg-gray-400 font-bold";
-    case 3: return "bg-gray-400 font-bold";
-    default: return "bg-black font-bold";
+    case 0:
+      return "bg-emerald-500 font-bold"
+    case 1:
+      return "bg-blue-600 font-bold"
+    case 2:
+      return "bg-gray-500 font-bold"
+    case 3:
+      return "bg-gray-500 font-bold"
+    default:
+      return "bg-black font-bold"
   }
-};
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-
   try {
-
-
-    const { idToken, role, accountId } = await requireAuth(request);
+    const { idToken, role, accountId } = await requireAuth(request)
 
     if (role !== Role.Student) {
-      return redirect('/');
+      return redirect("/")
     }
 
     if (!params.id) {
-      return redirect('/account/my-exams');
+      return redirect("/account/my-exams")
     }
 
-    const id = params.id as string;
+    const id = params.id as string
 
-    const promise = fetchEntranceTestStudentDetails({ id, studentId: accountId || '', idToken }).then((response) => {
-      const entranceTestStudentPromise: Promise<EntranceTestStudentDetail> = response.data;
+    const promise = fetchEntranceTestStudentDetails({ id, studentId: accountId || "", idToken }).then((response) => {
+      const entranceTestStudentPromise: Promise<EntranceTestStudentDetail> = response.data
 
-      const headers = response.headers;
+      const headers = response.headers
 
       return {
         entranceTestStudentPromise,
-        theoryPercentage: parseInt(headers['x-theory-percentage'] || '50'),
-        practicalPercentage: parseInt(headers['x-practical-percentage'] || '50'),
+        theoryPercentage: Number.parseInt(headers["x-theory-percentage"] || "50"),
+        practicalPercentage: Number.parseInt(headers["x-practical-percentage"] || "50"),
       }
-    });
+    })
 
     return {
       promise,
-      id
+      id,
     }
-
   } catch (error) {
-
-    console.error({ error });
+    console.error({ error })
 
     if (isRedirectError(error)) {
-      throw error;
+      throw error
     }
 
-    const { message, status } = getErrorDetailsInfo(error);
+    const { message, status } = getErrorDetailsInfo(error)
 
-    throw new Response(message, { status });
+    throw new Response(message, { status })
   }
 }
 
 export default function ExamDetail({ }: Props) {
-
   const [isOpenSwitchShiftDialog, setIsOpenSwitchShiftDialog] = useState(false)
-
-  const { promise, id } = useLoaderData<typeof loader>();
+  const { promise, id } = useLoaderData<typeof loader>()
 
   return (
-    <div className='px-10'>
-      <div className='font-bold text-2xl'>Test details</div>
-      <Suspense fallback={<LoadingSkeleton />} key={id}>
-        <Await resolve={promise}>
-          {({ entranceTestStudentPromise, ...data }) => (
-            <Await resolve={entranceTestStudentPromise}>
-              <EntranceTestStudentContent {...data} />
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2 mb-8">
+          <Piano className="h-8 w-8 text-black" />
+          <span>Piano Test Details</span>
+        </h1>
+
+        <div className="relative">
+          
+
+          <Suspense fallback={<LoadingSkeleton />} key={id}>
+            <Await resolve={promise}>
+              {({ entranceTestStudentPromise, ...data }) => (
+                <Await resolve={entranceTestStudentPromise}>
+                  <EntranceTestStudentContent {...data} />
+                </Await>
+              )}
             </Await>
-          )}
-        </Await>
-      </Suspense>
+          </Suspense>
+        </div>
+      </div>
     </div>
   )
 }
 
 function EntranceTestStudentContent({
   theoryPercentage,
-  practicalPercentage
+  practicalPercentage,
 }: {
-  theoryPercentage: number;
-  practicalPercentage: number;
+  theoryPercentage: number
+  practicalPercentage: number
 }) {
+  const entranceTestStudentValue = useAsyncValue()
+  const entranceTestStudent = entranceTestStudentValue as EntranceTestStudentDetail
+  const practicalScore = entranceTestStudent.entranceTestResults.reduce(
+    (acc, result) => (result.score * result.weight) / 100 + acc,
+    0,
+  )
 
-  const entranceTestStudentValue = useAsyncValue();
-
-  const entranceTestStudent = entranceTestStudentValue as EntranceTestStudentDetail;
-
-  const practicalScore = entranceTestStudent.entranceTestResults.reduce((acc, result) => (result.score * result.weight / 100) + acc, 0);
-
-  return <div className='mt-8'>
-    <div>
-      <div className="flex place-content-between">
-        <div className='flex gap-4 text-xl font-bold'>
-          <Music2 />
-          General information
-        </div>
-        <div className={`${getStatusStyle(entranceTestStudent.entranceTest.status)} rounded-xl px-8 py-2 text-white`}>{ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}</div>
-      </div>
-
-      <div className='mt-4 grid grid-cols-2 lg:grid-cols-3 gap-4'>
-        <div className="flex flex-col">
-          <div className="font-bold">Room</div>
-          <div>{entranceTestStudent.entranceTest.roomName}</div>
-        </div>
-        <div className="flex flex-col">
-          <div className="font-bold">Shift</div>
-          <div>{entranceTestStudent.entranceTest.shift + 1} ({SHIFT_TIME[entranceTestStudent.entranceTest.shift]})</div>
-        </div>
-        <div className="flex flex-col">
-          <div className="font-bold">Date</div>
-          <div>{entranceTestStudent.entranceTest.date}</div>
+  return (
+    <div className="space-y-8">
+      {/* General Information Card */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <Music2 className="h-5 w-5 text-black" />
+            General Information
+          </h2>
+          <div
+            className={`${getStatusStyle(entranceTestStudent.entranceTest.status)} rounded-full px-4 py-1.5 text-white text-sm`}
+          >
+            {ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}
+          </div>
         </div>
 
-        {/* <div className="flex flex-col">
-          <div className="font-bold">Số học viên tham dự</div>
-          <div>{entranceTestStudent.entranceTest.registerStudents} / {entranceTestStudent.entranceTest.roomCapacity ?? 20}</div>
-        </div> */}
-        <div className="flex flex-col">
-          <div className="font-bold">Type</div>
-          <div>Entrance test</div>
-        </div>
-      </div>
-      {/* {
-      entranceTestStudent.entranceTest.status === 0 && (
-        <div className='flex justify-center my-4'>
-          <Button className='px-32 font-bold' onClick={() => setIsOpenSwitchShiftDialog(true)}>Đổi ca thi</Button>
-          <ExamSwitchingDialog isOpen={isOpenSwitchShiftDialog} setIsOpen={setIsOpenSwitchShiftDialog} 
-            entranceTestPromise={loaderData.entranceTestsPromise}/>
-        </div>
-      )
-    } */}
-    </div>
-    <div className='mt-8'>
-      <div className='flex gap-4 text-xl font-bold'>
-        <Music2 />
-        Teacher information
-      </div>
-      {
-        entranceTestStudent.entranceTest.instructor ? (
-          <div className='flex gap-8 mt-4 items-center'>
-            <Image src={entranceTestStudent.entranceTest.instructor?.avatarUrl ?? '/images/noavatar.png'} className='w-48' />
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 flex-grow'>
-              <div className="flex flex-col">
-                <div className="font-bold">Name</div>
-                <div>{entranceTestStudent.entranceTest.instructor.fullName}</div>
+        <div className="p-6 bg-white bg-opacity-80 backdrop-blur-sm relative">
+          {/* Decorative background */}
+          <div className="absolute inset-0 bg-[url('/images/notes_flows.png')] bg-no-repeat bg-cover opacity-5 z-0"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            <div className="flex items-start space-x-3">
+              <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Room</p>
+                <p className="text-base font-semibold text-gray-900">{entranceTestStudent.entranceTest.roomName}</p>
               </div>
-              <div className="flex flex-col">
-                <div className="font-bold">Phone</div>
-                <div>{entranceTestStudent.entranceTest.instructor.phone}</div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Clock className="h-5 w-5 text-gray-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Shift</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {entranceTestStudent.entranceTest.shift + 1} ({SHIFT_TIME[entranceTestStudent.entranceTest.shift]})
+                </p>
               </div>
-              <div className="flex flex-col">
-                <div className="font-bold">Email</div>
-                <div>{entranceTestStudent.entranceTest.instructor.email}</div>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Calendar className="h-5 w-5 text-gray-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Date</p>
+                <p className="text-base font-semibold text-gray-900">{entranceTestStudent.entranceTest.date}</p>
               </div>
-              <div className="flex flex-col">
-                <div className="font-bold">Address</div>
-                <div>{entranceTestStudent.entranceTest.instructor.address}</div>
-              </div>
-              <div className="">
-                <Button type='button'>View teacher profile</Button>
+            </div>
+
+            <div className="flex items-start space-x-3">
+              <Award className="h-5 w-5 text-gray-500 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Type</p>
+                <p className="text-base font-semibold text-gray-900">Entrance Test</p>
               </div>
             </div>
           </div>
-        ) : (
-          <div className='italic text-center mt-4'>
-            No teacher assigned yet<br />
-          </div>
-        )
-      }
-
-    </div>
-    <div>
-      <div className='flex gap-4 text-xl font-bold mt-8'>
-        <Music2 />
-        Results
+        </div>
       </div>
-      {
-        entranceTestStudent.entranceTestResults.length > 0 ? (
-          <div className="bg-gray-100 py-10 px-6 md:px-12 lg:px-20 mt-4 rounded-xl relative">
-            <div className="absolute inset-1 z-0 bg-cover bg-no-repeat opacity-5 bg-[url('/images/notes_flows.png')]">
-            </div>
-            <div className="max-w-4xl mx-auto bg-opacity-50 bg-white rounded-xl shadow-lg p-8 relative z-10">
-              <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-6">
-                Piano test results
-              </h1>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gradient-to-r from-black to-gray-700 text-white rounded-t-xl">
-                    <th className="text-left py-3 px-4 font-medium rounded-tl-xl">Criteria</th>
-                    <th className="text-center py-3 px-4 font-medium">Score</th>
-                    <th className="text-center py-3 px-4 font-medium rounded-tr-xl">Weight</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entranceTestStudent.entranceTestResults.map((result) => (
-                    <tr
-                      key={result.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-3 px-4 flex flex-row gap-2 items-center">
-                        <div className="text-gray-800 font-medium">{result.criteria.name}</div>
-                        {result.criteria.description && <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <CircleHelp className='cursor-pointer size-4 text-gray-400' />
-                            </TooltipTrigger>
-                            <TooltipContent side='right'>
-                              <p className='max-w-prose'>{result.criteria.description}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>}
 
-                      </td>
-                      <td className="py-3 px-4 text-center font-bold text-gray-700">
-                        {formatScore(result.score)}
-                      </td>
-                      <td className="py-3 px-4 text-center font-bold text-gray-700">
-                        {result.weight}%
-                      </td>
-                    </tr>
-                  ))}
-                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-800 font-medium">Practical score: &#40;{theoryPercentage}%&#41;</td>
-                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(practicalScore)}</td>
-                  </tr>
-                  <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4 text-gray-800 font-medium flex flex-row gap-2 items-center">Theoretical score <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <CircleHelp className='cursor-pointer size-4 text-gray-400' />
-                        </TooltipTrigger>
-                        <TooltipContent side='right'>
-                          <p className='max-w-prose'>
-                            Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
-                            <br />
-                            Treble clef &#40;right hand&#41; usually for the melody.
-                            <br />
-                            Bass clef &#40;left hand&#41; usually for chords or bass notes.
-                            <br />
-                            Pianists must read and process two staves simultaneously, often with multiple voices in each.
+      {/* Teacher Information Card */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <User className="h-5 w-5 text-black" />
+            Teacher Information
+          </h2>
+        </div>
 
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider> &#40;{practicalPercentage}%&#41;</td>
-                    <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">{entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : '(Chưa có)'}</td>
-                  </tr>
-                </tbody>
-              </table>
+        <div className="p-6">
+          {entranceTestStudent.entranceTest.instructor ? (
+            <div className="flex flex-col md:flex-row gap-6 items-center">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 flex-shrink-0">
+                <Image
+                  src={entranceTestStudent.entranceTest.instructor?.avatarUrl ?? "/images/noavatar.png"}
+                  className="w-full h-full object-cover"
+                  alt="Teacher"
+                />
+              </div>
 
-              <div className='mt-4 flex flex-col items-center'>
-                <div className='font-bold text-xl'>
-                  <span>Final band score : </span>
-                  <span className='text-2xl text-red-500'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore || 0) : '(Chưa có)'}</span>
-                </div>
-                <div className='font-bold text-lg'>
-                  <span>Level : </span>
-                  <span className='text-blue-500'>{entranceTestStudent.level?.name}</span>
-                </div>
-                <div className='mt-4 flex justify-start w-full'>
-                  <span className='font-bold  '>Comment :
-                    <span className='font-normal italic'> {entranceTestStudent.instructorComment || "(None)"}</span>
-                  </span>
-                </div>
-                <div className='italic mt-8 text-center text-sm'>
-                  Congratulations on passing this test<br />
-                  Remember to check the system regularly to receive class placement results!
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+                <div className="flex items-start space-x-3">
+                  <User className="h-5 w-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Name</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.fullName}
+                    </p>
+                  </div>
                 </div>
 
+                <div className="flex items-start space-x-3">
+                  <Phone className="h-5 w-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Phone</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.phone}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Mail className="h-5 w-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Email</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <Home className="h-5 w-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Address</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.address}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 mt-2">
+                  <Button type="button" className="bg-black hover:bg-gray-800 text-white">
+                    View Teacher Profile
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className='italic text-center mt-4'>
-            Test results have not been published yet<br />
-          </div>
-        )
-      }
+          ) : (
+            <div className="py-8 text-center">
+              <User className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 italic">No teacher assigned yet</p>
+            </div>
+          )}
+        </div>
+      </div>
 
+      {/* Results Card */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <Award className="h-5 w-5 text-black" />
+            Results
+          </h2>
+        </div>
+
+        <div className="p-6">
+          {entranceTestStudent.entranceTestResults.length > 0 ? (
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 relative overflow-hidden">
+              {/* Piano keys decorative element */}
+              <div className="absolute top-0 left-0 right-0 h-3 flex">
+                {[...Array(24)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-full ${i % 7 === 2 || i % 7 === 6 ? "w-4 bg-white border border-gray-200" : "w-4 bg-black"}`}
+                  />
+                ))}
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 h-3 flex">
+                {[...Array(24)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-full ${i % 7 === 2 || i % 7 === 6 ? "w-4 bg-white border border-gray-200" : "w-4 bg-black"}`}
+                  />
+                ))}
+              </div>
+
+              {/* Background image */}
+              <div className="absolute inset-0 bg-[url('/images/notes_flows.png')] bg-no-repeat bg-cover opacity-5 z-0"></div>
+
+              <div className="max-w-4xl mx-auto bg-white bg-opacity-90 rounded-xl shadow-lg p-8 relative z-10 mt-4 mb-4">
+                <h3 className="text-3xl font-bold text-center mb-8 text-gray-800">Piano Test Results</h3>
+
+                <div className="overflow-hidden rounded-lg border border-gray-200">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-black to-gray-800 text-white">
+                        <th className="text-left py-3 px-4 font-medium rounded-tl-lg">Criteria</th>
+                        <th className="text-center py-3 px-4 font-medium w-24">Score</th>
+                        <th className="text-center py-3 px-4 font-medium rounded-tr-lg w-24">Weight</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entranceTestStudent.entranceTestResults.map((result, index) => (
+                        <tr
+                          key={result.id}
+                          className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                            }`}
+                        >
+                          <td className="py-3 px-4 flex flex-row gap-2 items-center">
+                            <div className="text-gray-800 font-medium">{result.criteria.name}</div>
+                            {result.criteria.description && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <CircleHelp className="cursor-pointer size-4 text-gray-400" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="right" className="max-w-sm">
+                                    <p>{result.criteria.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-center font-bold text-gray-700">{formatScore(result.score)}</td>
+                          <td className="py-3 px-4 text-center font-bold text-gray-700">{result.weight}%</td>
+                        </tr>
+                      ))}
+
+                      <tr className="bg-gray-100 border-b border-gray-200">
+                        <td className="py-3 px-4 text-gray-800 font-medium">Practical score: ({theoryPercentage}%)</td>
+                        <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">
+                          {formatScore(practicalScore)}
+                        </td>
+                      </tr>
+
+                      <tr className="bg-gray-100">
+                        <td className="py-3 px-4 text-gray-800 font-medium flex flex-row gap-2 items-center">
+                          Theoretical score
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CircleHelp className="cursor-pointer size-4 text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent side="right" className="max-w-sm">
+                                <p>
+                                  Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
+                                  <br />
+                                  Treble clef (right hand) usually for the melody.
+                                  <br />
+                                  Bass clef (left hand) usually for chords or bass notes.
+                                  <br />
+                                  Pianists must read and process two staves simultaneously, often with multiple voices
+                                  in each.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          ({practicalPercentage}%)
+                        </td>
+                        <td colSpan={2} className="py-3 px-4 text-center font-bold text-gray-700">
+                          {entranceTestStudent.theoraticalScore
+                            ? formatScore(entranceTestStudent.theoraticalScore)
+                            : "(Not available)"}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-8 flex flex-col items-center space-y-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-lg font-semibold text-gray-700">Final band score:</span>
+                    <span className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
+                      {entranceTestStudent.bandScore
+                        ? formatScore(entranceTestStudent.bandScore || 0)
+                        : "(Not available)"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-lg font-semibold text-gray-700">Level:</span>
+                    <span className="text-xl font-bold text-blue-600">
+                      {entranceTestStudent.level?.name || "(Not assigned)"}
+                    </span>
+                  </div>
+
+                  <div className="w-full mt-6 p-4 border-t border-gray-200">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-gray-700">Teacher's Comment:</span>
+                      <p className="mt-2 italic text-gray-600">
+                        {entranceTestStudent.instructorComment || "(No comments provided)"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {entranceTestStudent.bandScore && (
+                    <div className="mt-6 text-center p-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+                      <Award className="h-8 w-8 text-amber-600 mx-auto mb-2" />
+                      <p className="text-gray-700 font-medium">Congratulations on completing this test!</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Remember to check the system regularly to receive class placement results.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="py-16 text-center">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <Piano className="h-10 w-10 text-gray-400" />
+              </div>
+              <p className="text-gray-500 italic">Test results have not been published yet</p>
+              <p className="text-sm text-gray-400 mt-2">Please check back later</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-  </div>
+  )
 }
 
 function LoadingSkeleton() {
-  return <div className="flex flex-col justify-center items-center  my-4 gap-6">
-    <Skeleton className="h-[300px] w-full rounded-md" />
-  </div>
+  return (
+    <div className="space-y-8">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100">
+          <Skeleton className="h-7 w-48" />
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-start space-x-3">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100">
+          <Skeleton className="h-7 w-48" />
+        </div>
+        <div className="p-6">
+          <div className="flex flex-col md:flex-row gap-6 items-center">
+            <Skeleton className="w-32 h-32 rounded-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-start space-x-3">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-5 w-32" />
+                  </div>
+                </div>
+              ))}
+              <div className="md:col-span-2 mt-2">
+                <Skeleton className="h-10 w-40" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-100">
+          <Skeleton className="h-7 w-48" />
+        </div>
+        <div className="p-6">
+          <Skeleton className="h-[400px] w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  )
 }
-
-// export function ErrorBoundary() {
-//   return <div className="flex flex-col justify-center items-center my-24 p-8 bg-gray-200 text-black rounded-lg shadow-lg relative">
-//     {/* Background Images */}
-//     <img src="/images/notes_flows.png" alt="Musical Notes" className="absolute top-0 left-0 opacity-10 w-full" />
-//     <img src="/images/grand_piano_1.png" alt="Grand Piano" className="absolute bottom-0 right-0 opacity-20 w-1/3" />
-
-//     {/* Icon and Heading */}
-//     <div className="flex flex-col items-center relative z-10">
-//       <h1 className="text-xl font-extrabold">Chưa có kết quả</h1>
-//       <h2 className="text-base font-bold mt-2">Bạn vui lòng chờ kết quả thi được công bố nhé</h2>
-//     </div>
-//   </div>
-// }
