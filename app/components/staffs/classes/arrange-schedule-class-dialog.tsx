@@ -50,16 +50,16 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
     const [searchParams, setSearchParams] = useSearchParams();
 
     const scheduleClassSchema = z.object({
-        shift: z.string({ message: "Vui lòng chọn ca học" }),
+        shift: z.string({ message: "Please pick a shift" }),
         startWeek: z
             .date()
             .refine((date: Date) => date.getDay() === 1, {
-                message: "Ngày được chọn phải là Thứ Hai",
+                message: "The choosen day must be monday",
             })
             .refine((date: Date) => date > addDays(new Date(), -1), {
-                message: "Tuần bắt đầu phải sau hôm nay"
+                message: "Start week must be after today"
             }),
-        dayOfWeeks: z.array(z.string()).min(slotsPerWeek, { message: `Phải chọn ${slotsPerWeek} ngày trong tuần` }),
+        dayOfWeeks: z.array(z.string()).min(slotsPerWeek, { message: `Must select ${slotsPerWeek} day(s) in the week` }),
         id: z.string(),
         idToken: z.string(),
         action: z.string()
@@ -85,8 +85,8 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
     });
 
     const { open: handleOpenModal, dialog: confirmModal } = useConfirmationDialog({
-        title: 'Xác nhận sắp xếp thời khóa biểu lớp học',
-        description: 'Bạn có chắc chắn về hành động này không? Điều này sẽ không thể hoàn tác.',
+        title: 'Confirm arrange class schedule',
+        description: 'Are you sure about this action? This can not be rollbacked!.',
         onConfirm: () => {
             handleSubmit();
         }
@@ -104,13 +104,13 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className=''>
                 <DialogHeader>
-                    <DialogTitle>Trình xếp lịch</DialogTitle>
+                    <DialogTitle>Auto Scheduling</DialogTitle>
                 </DialogHeader>
                 <div>
                     <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center'>
                         <TriangleAlert size={100} />
                         <div>
-                            Quá trình tự động xếp lịch có thể thất bại vì trùng lịch học. Nếu điều này xảy ra, vui lòng chọn phòng học, ca học hoặc tuần bắt đầu khác.
+                        The auto-scheduling process may fail due to schedule conflicts. If this happens, please select a different classroom, session, or start week.
                         </div>
                     </div>
                     <div className='grid grid-cols-2 gap-2 mt-4'>
@@ -119,18 +119,18 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                             <span>{level.name.split('(')[0]}</span>
                         </div>
                         <div>
-                            <span className='mr-4 font-semibold'>Số buổi 1 tuần : </span>
+                            <span className='mr-4 font-semibold'>Slots per week: </span>
                             <span>{slotsPerWeek}</span>
                         </div>
                         <div>
-                            <span className='mr-4 font-semibold'>Tổng số buổi học : </span>
+                            <span className='mr-4 font-semibold'>Total slots: </span>
                             <span>{totalSlots}</span>
                         </div>
                     </div>
                 </div>
                 <Form onSubmit={handleSubmit}>
                     <div className='grid grid-cols-2 gap-4 mt-4'>
-                        <div className='flex flex-col'>Tuần bắt đầu<div className='italic text-sm'>(Vui lòng chỉ chọn thứ hai)</div></div>
+                        <div className='flex flex-col'>Start week<div className='italic text-sm'>(Please select monday)</div></div>
                         <div>
                             <Controller
                                 control={control}
@@ -141,7 +141,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                             />
                             {errors.startWeek && <div className='text-red-500'>{errors.startWeek.message}</div>}
                         </div>
-                        <div className='flex items-center'>Ca học</div>
+                        <div className='flex items-center'>Shift</div>
                         <div>
                             <Controller
                                 control={control}
@@ -149,7 +149,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                                 render={({ field: { onChange, onBlur, value, ref } }) => (
                                     <Select onValueChange={onChange} value={value}>
                                         <SelectTrigger className="">
-                                            <SelectValue placeholder="Chọn ca học" />
+                                            <SelectValue placeholder="Pick a shift" />
                                         </SelectTrigger>
                                         <SelectGroup>
                                             <SelectContent>
@@ -166,7 +166,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                             {errors.shift && <div className='text-red-500'>{errors.shift.message}</div>}
                         </div>
 
-                        <div className='flex flex-col'>Ngày học<div className='italic text-sm'>(Vui lòng chọn {slotsPerWeek})</div></div>
+                        <div className='flex flex-col'>Day Of Week<div className='italic text-sm'>(Please select {slotsPerWeek})</div></div>
                         <div>
                             <Controller
                                 control={control}
@@ -174,7 +174,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                                 render={({ field: { onChange, onBlur, value, ref } }) => (
                                     <MultiSelect options={daysOftheWeek}
                                         value={value}
-                                        placeholder='Ngày trong tuần'
+                                        placeholder='Day(s) of week'
                                         className='w-full'
                                         maxItems={slotsPerWeek}
                                         onValueChange={onChange} />
@@ -184,8 +184,8 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                         </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' type='submit'>Hoàn Tất</Button>
-                        <Button className='flex-grow' type='button' variant={'outline'} onClick={() => setIsOpen(false)}>Hủy bỏ</Button>
+                        <Button className='flex-grow' type='submit'>Proceed</Button>
+                        <Button className='flex-grow' type='button' variant={'outline'} onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>

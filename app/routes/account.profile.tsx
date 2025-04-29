@@ -30,6 +30,7 @@ import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
 import { Switch } from '~/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import { toastWarning } from '~/lib/utils/toast-utils'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -161,16 +162,16 @@ export default function AccountProfilePage() {
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center mb-6">
                     <GraduationCap className="h-8 w-8 mr-3 text-primary" />
-                    <h1 className="text-3xl font-bold">Hồ sơ cá nhân</h1>
+                    <h1 className="text-3xl font-bold">Profile</h1>
                 </div>
 
                 <Tabs defaultValue="personal" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-8">
                         <TabsTrigger value="personal" className="text-base">
-                            <User className="mr-2 h-4 w-4" /> Thông tin cá nhân
+                            <User className="mr-2 h-4 w-4" /> Basic personal information
                         </TabsTrigger>
                         <TabsTrigger value="academic" className="text-base">
-                            <BookOpen className="mr-2 h-4 w-4" /> Thông tin đào tạo
+                            <BookOpen className="mr-2 h-4 w-4" /> Academic information
                         </TabsTrigger>
                     </TabsList>
 
@@ -178,11 +179,10 @@ export default function AccountProfilePage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl flex items-center">
-                                    <User className="mr-2 h-5 w-5" /> Thông tin cá nhân
+                                    <User className="mr-2 h-5 w-5" /> Basic personal information
                                 </CardTitle>
                                 <CardDescription>
-                                    Đây là những thông tin cá nhân quan trọng của bạn mà <strong>Photon Piano</strong> sử dụng để liên lạc
-                                    với bạn.
+                                    This is important personal information that <strong>Photon Piano</strong> uses to contact you.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -203,11 +203,10 @@ export default function AccountProfilePage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-xl flex items-center">
-                                    <BookOpen className="mr-2 h-5 w-5" /> Thông tin đào tạo
+                                    <BookOpen className="mr-2 h-5 w-5" /> Academic information
                                 </CardTitle>
                                 <CardDescription>
-                                    Đây là những thông tin liên quan đến việc học piano của bạn tại trung tâm{" "}
-                                    <strong>Photon Piano</strong>.
+                                    This is the information related to your piano learning at <strong>Photon Piano</strong>.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -230,10 +229,38 @@ export default function AccountProfilePage() {
 }
 
 function ProfileForm() {
-    const accountValue = useAsyncValue()
-    const account = accountValue as Account
+
     const { refetchAccountInfo } = useAuth()
-    const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+    const fetcher = useFetcher<typeof action>();
+
+    const accountValue = useAsyncValue();
+    const account = accountValue as Account
+
+    const isSubmitting = fetcher.state === "submitting";
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Update successfully!');
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toastWarning(`Update failed!`, {
+                description: `${fetcher.data.error || ""}`,
+                position: "top-center",
+                duration: 1250,
+            });
+            return;
+        }
+
+        return () => {
+            
+        }
+
+    }, [fetcher.data]);
+
 
     const {
         handleSubmit,
@@ -245,6 +272,7 @@ function ProfileForm() {
     } = useRemixForm<ProfileFormData>({
         mode: "onSubmit",
         resolver,
+        fetcher,
         defaultValues: {
             ...account,
             dateOfBirth: account.dateOfBirth ? new Date(account.dateOfBirth || "") : new Date(),
@@ -252,58 +280,15 @@ function ProfileForm() {
     })
 
     const { open: handleOpenConfirmationDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: "Xác nhận cập nhật thông tin",
-        description: "Bạn có chắc chắn muốn cập nhật thông tin cá nhân của mình không?",
-        onConfirm: async () => {
-            setIsSubmitting(true)
-            try {
-                const formData = new FormData()
-
-                // Add all form values to formData
-                const values = getValues()
-                Object.entries(values).forEach(([key, value]) => {
-                    if (key === "dateOfBirth" && value instanceof Date) {
-                        formData.append(key, value.toISOString())
-                    } else if (value !== undefined && value !== null) {
-                        formData.append(key, String(value))
-                    }
-                })
-
-                const response = await fetch("/account/profile", {
-                    method: "POST",
-                    body: formData,
-                })
-
-                const data = await response.json()
-
-                if (data.success) {
-                    toast.success("Lưu thông tin thành công!", {
-                        position: "top-center",
-                        duration: 1250,
-                    })
-                    refetchAccountInfo()
-                } else {
-                    toast.error(`Lưu thất bại! ${data.error || ""}`, {
-                        position: "top-center",
-                        duration: 1250,
-                    })
-                }
-            } catch (error) {
-                console.error(error)
-                toast.error("Có lỗi xảy ra khi cập nhật thông tin", {
-                    position: "top-center",
-                    duration: 1250,
-                })
-            } finally {
-                setIsSubmitting(false)
-            }
-        },
-        confirmText: "Cập nhật",
+        title: "Confrm action",
+        description: "Update profile?",
+        onConfirm: handleSubmit,
+        confirmText: "Update",
     })
 
     const { open: handleOpenImageDialog, dialog: imagesDialog } = useImagesDialog({
-        title: "Thêm ảnh",
-        description: "Nhập ảnh từ url hoặc chọn ảnh từ thiết bị của bạn.",
+        title: "Add profile image",
+        description: "Import image from url or upload from your device.",
         onConfirm: (imageUrls) => {
             setValue("avatarUrl", imageUrls[0])
         },
@@ -350,7 +335,7 @@ function ProfileForm() {
                         </div>
                         <Button type="button" className="w-full" variant="outline" size="sm" onClick={handleOpenImageDialog}>
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload ảnh
+                            Upload avatar
                         </Button>
                         {errors.avatarUrl && <p className="text-sm text-destructive">{errors.avatarUrl.message}</p>}
                     </div>
@@ -359,14 +344,14 @@ function ProfileForm() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="fullName" className="font-medium">
-                                    Họ và tên
+                                    Full name
                                 </Label>
                                 <Input
                                     {...register("fullName")}
                                     name="fullName"
                                     id="fullName"
                                     type="text"
-                                    placeholder="Nhập họ và tên..."
+                                    placeholder="Enter fullname..."
                                     className="bg-background"
                                 />
                                 {errors.fullName && <p className="text-sm text-destructive">{errors.fullName.message}</p>}
@@ -374,7 +359,7 @@ function ProfileForm() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="userName" className="font-medium">
-                                    Tên người dùng
+                                    Username
                                 </Label>
                                 <div className="relative">
                                     <SquareUserRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -383,11 +368,13 @@ function ProfileForm() {
                                         name="userName"
                                         id="userName"
                                         type="text"
-                                        placeholder="Nhập tên người dùng..."
+                                        placeholder="Enter username..."
                                         className="pl-10 bg-background"
                                     />
                                 </div>
-                                <p className="text-xs text-muted-foreground">Đây là tên người dùng được hiển thị công khai của bạn.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    This is your public username.
+                                </p>
                                 {errors.userName && <p className="text-sm text-destructive">{errors.userName.message}</p>}
                             </div>
                         </div>
@@ -410,14 +397,14 @@ function ProfileForm() {
                                     />
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    <strong>Photon Piano</strong> sẽ sử dụng email này để liên lạc với bạn.
+                                    <strong>Photon Piano</strong> will use this email to contact you.
                                 </p>
                                 {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="phone" className="font-medium">
-                                    Số điện thoại
+                                    Phone
                                 </Label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -426,12 +413,12 @@ function ProfileForm() {
                                         name="phone"
                                         id="phone"
                                         type="tel"
-                                        placeholder="Nhập số điện thoại..."
+                                        placeholder="Enter phone number..."
                                         className="pl-10 bg-background"
                                     />
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Số điện thoại này sẽ được sử dụng để liên lạc với bạn khi cần thiết.
+                                    This phone number will be used to contact you when necessary.
                                 </p>
                                 {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
                             </div>
@@ -440,7 +427,7 @@ function ProfileForm() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="dateOfBirth" className="font-medium">
-                                    Ngày sinh
+                                    Date of birth
                                 </Label>
                                 <div className="relative">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -454,7 +441,7 @@ function ProfileForm() {
                                                 onBlur={onBlur}
                                                 ref={ref}
                                                 className="pl-10 bg-background w-full"
-                                                placeholder="Chọn ngày sinh"
+                                                placeholder="Select date of birth"
                                             />
                                         )}
                                     />
@@ -464,7 +451,7 @@ function ProfileForm() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="gender" className="font-medium">
-                                    Giới tính
+                                    Gender
                                 </Label>
                                 <Controller
                                     control={control}
@@ -472,13 +459,13 @@ function ProfileForm() {
                                     render={({ field: { onChange, value } }) => (
                                         <Select value={value?.toString()} onValueChange={onChange}>
                                             <SelectTrigger className="bg-background">
-                                                <SelectValue placeholder="Chọn giới tính" />
+                                                <SelectValue placeholder="Select gender" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    <SelectLabel>Giới tính</SelectLabel>
-                                                    <SelectItem value={Gender.Male.toString()}>Nam</SelectItem>
-                                                    <SelectItem value={Gender.Female.toString()}>Nữ</SelectItem>
+                                                    <SelectLabel>Gender</SelectLabel>
+                                                    <SelectItem value={Gender.Male.toString()}>Male</SelectItem>
+                                                    <SelectItem value={Gender.Female.toString()}>Female</SelectItem>
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -490,7 +477,7 @@ function ProfileForm() {
 
                         <div className="space-y-2">
                             <Label htmlFor="address" className="font-medium">
-                                Địa chỉ
+                                Address
                             </Label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -499,28 +486,30 @@ function ProfileForm() {
                                     name="address"
                                     id="address"
                                     type="text"
-                                    placeholder="Nhập địa chỉ..."
+                                    placeholder="Enter address..."
                                     className="pl-10 bg-background"
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Địa chỉ này sẽ được sử dụng để gửi hồ sơ, tài liệu quan trọng nếu cần thiết.
+                                This address will be used to send important documents if necessary.
                             </p>
                             {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="shortDescription" className="font-medium">
-                                Mô tả ngắn về bản thân
+                                Short description
                             </Label>
                             <Textarea
                                 {...register("shortDescription")}
                                 name="shortDescription"
                                 id="shortDescription"
-                                placeholder="Nhập mô tả ngắn về bản thân..."
+                                placeholder="Enter short description..."
                                 className="min-h-[100px] bg-background"
                             />
-                            <p className="text-xs text-muted-foreground">Mô tả ngắn về bản thân giúp người khác hiểu rõ bạn hơn.</p>
+                            <p className="text-xs text-muted-foreground">.
+                                Short description about yourself to help others understand you better.
+                            </p>
                             {errors.shortDescription && <p className="text-sm text-destructive">{errors.shortDescription.message}</p>}
                         </div>
                     </div>
@@ -531,18 +520,18 @@ function ProfileForm() {
                         trigger={
                             <Button type="button" variant="outline" size="lg">
                                 <Lock className="mr-2 h-4 w-4" />
-                                Yêu cầu đặt lại mật khẩu
+                                Change password
                             </Button>
                         }
                     />
                     <Button type="submit" size="lg" disabled={isSubmitting}>
                         {isSubmitting ? (
                             <>
-                                <span className="animate-spin mr-2">⏳</span> Đang cập nhật
+                                <span className="animate-spin mr-2">⏳</span> Saving...
                             </>
                         ) : (
                             <>
-                                <Pencil className="mr-2 h-4 w-4" /> Cập nhật thông tin
+                                <Pencil className="mr-2 h-4 w-4" /> Save
                             </>
                         )}
                     </Button>
@@ -612,12 +601,12 @@ function AcademicInfoSection() {
                 <Card className="bg-muted/40">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
-                            <GraduationCap className="mr-2 h-4 w-4" /> Level Piano
+                            <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between">
-                            <span className="text-lg font-medium">Hiện tại</span>
+                            <span className="text-lg font-medium">Current</span>
                             <LevelBadge level={account.level} />
                         </div>
                     </CardContent>
@@ -626,12 +615,12 @@ function AcademicInfoSection() {
                 <Card className="bg-muted/40">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
-                            <BookOpen className="mr-2 h-4 w-4" /> Tình trạng học tập
+                            <BookOpen className="mr-2 h-4 w-4" /> Academic status
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between">
-                            <span className="text-lg font-medium">Trạng thái</span>
+                            <span className="text-lg font-medium">Status</span>
                             <StatusBadge status={account.studentStatus || 0} />
                         </div>
                     </CardContent>
@@ -640,8 +629,10 @@ function AcademicInfoSection() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Tiếp tục học tập</CardTitle>
-                    <CardDescription>Chọn "Yes" nếu bạn muốn tiếp tục học tập tại Photon Piano trong kỳ học tới.</CardDescription>
+                    <CardTitle className="text-lg">Continue learning</CardTitle>
+                    <CardDescription>
+                        Click "Yes" to continue learning at Photon Piano in the next semester.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
@@ -649,8 +640,8 @@ function AcademicInfoSection() {
                             <h4 className="font-medium">Continuing Learning</h4>
                             <p className="text-sm text-muted-foreground">
                                 {continueLearning
-                                    ? "Bạn đã đăng ký tiếp tục học tập trong kỳ học tới."
-                                    : "Bạn chưa đăng ký tiếp tục học tập trong kỳ học tới."}
+                                    ? "You have registered to continue learning in the next semester."
+                                    : "You haven't registered to continue learning in the next semester."}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">

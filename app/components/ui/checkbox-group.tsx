@@ -1,6 +1,5 @@
-import { Checkbox } from "./checkbox"
-import { Label } from "./label"
-
+import { cn } from "~/lib/utils"
+import { Check } from "lucide-react"
 
 type Option = {
     value: string
@@ -15,51 +14,58 @@ type Props = {
 }
 
 export default function CheckboxGroup({ options, values, onChange, showCheckboxes = true }: Props) {
-
-    const handleChange = (changedValue: string, isChecked: boolean) => {
-        const newValue = isChecked
-            ? [...values, changedValue]
-            : values.filter(v => v !== changedValue);
-        onChange(newValue);
-    };
+    const handleChange = (changedValue: string) => {
+        const isCurrentlySelected = values.includes(changedValue)
+        const newValues = isCurrentlySelected ? values.filter((v) => v !== changedValue) : [...values, changedValue]
+        onChange(newValues)
+    }
 
     return (
-        <div className="space-y-2">
-            {options.map((option) => (
-                <div className="relative group w-full" key={option.value} >
-                    <div
-                        role="button"
-                        className={`w-full border relative p-px font-semibold leading-6 hover:text-white hover:shadow-xl hover:scale-[101%] cursor-pointer rounded-xl transition-transform duration-200 ease-in-out active:scale-95
-                                                ${values.includes(option.value) ? 'text-white shadow-xl bg-sky-500' : ''}`}
-                                                
-                    >
-                        <span
-                            className="absolute inset-0 rounded-xl bg-sky-500 p-[2px] opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                        ></span>
+        <div className="space-y-3">
+            {options.map((option, index) => {
+                const isSelected = values.includes(option.value)
+                // Alternate between slightly different blue gradients for visual interest
+                const gradientClass = index % 2 === 0 ? "from-blue-500 to-blue-600" : "from-blue-600 to-blue-500"
 
-                        <span className="relative z-10 block px-6 py-3 rounded-xl">
-                            <div className="relative z-10 flex items-center space-x-2">
-                                <span className="transition-all duration-500 group-hover:translate-x-1 flex flex-row items-center justify-center gap-1">
-                                    {showCheckboxes && (
-                                        <Checkbox
-                                            id={option.value}
-                                            checked={values.includes(option.value)}
-                                            onCheckedChange={(checked) => handleChange(option.value, checked as boolean)}
-                                        />
+                return (
+                    <label
+                        key={option.value}
+                        className={cn(
+                            "flex w-full cursor-pointer items-center rounded-xl border-2 p-3 transition-all",
+                            isSelected
+                                ? `border-blue-500 bg-gradient-to-r ${gradientClass} text-white shadow-md`
+                                : "border-blue-100 bg-white text-gray-800 hover:border-blue-300 hover:bg-blue-50",
+                            "focus-within:ring-2 focus-within:ring-blue-400 focus-within:ring-offset-2",
+                        )}
+                        htmlFor={option.value}
+                    >
+                        <div className="flex w-full items-center">
+                            {showCheckboxes && (
+                                <div
+                                    className={cn(
+                                        "mr-3 flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all",
+                                        isSelected ? "border-white bg-blue-700" : "border-blue-300 bg-white",
                                     )}
-                                    <Label
-                                        htmlFor={option.value}
-                                        className="text-sm font-medium leading-none w-full cursor-pointer"
-                                    >
-                                        {option.label}
-                                    </Label>
-                                </span>
-                            </div>
-                        </span>
-                    </div>
-                </div>
-            ))}
+                                >
+                                    {isSelected && <Check className="h-3.5 w-3.5 text-white" />}
+                                </div>
+                            )}
+
+                            <span className={cn("flex-1 text-base", isSelected ? "font-medium" : "font-normal")}>{option.label}</span>
+
+                            <input
+                                type="checkbox"
+                                id={option.value}
+                                value={option.value}
+                                checked={isSelected}
+                                onChange={() => handleChange(option.value)}
+                                className="sr-only"
+                                aria-labelledby={`${option.value}-label`}
+                            />
+                        </div>
+                    </label>
+                )
+            })}
         </div>
     )
 }
-
