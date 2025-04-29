@@ -8,7 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Form, useFetcher } from '@remix-run/react';
+import { Form, useFetcher, useLoaderData, useRouteLoaderData } from '@remix-run/react';
 import { useRemixForm } from 'remix-hook-form';
 import { ApplicationType, SendApplicationFormData, sendApplicationSchema } from '~/lib/types/application/application';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,7 +26,7 @@ import { APPLICATION_TYPE } from '~/lib/utils/constants';
 import { Textarea } from '../ui/textarea';
 import { FileUpload } from '../ui/file-upload';
 import { action } from '~/routes/account.applications._index';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { Input } from '../ui/input';
@@ -36,6 +36,7 @@ import axios from 'axios';
 import Combobox from '../ui/combobox';
 import { objectToFormData } from '~/lib/utils/form';
 import { toastWarning } from '~/lib/utils/toast-utils';
+import { fetchRefundTuitionSystemConfig } from '~/lib/services/system-config';
 
 
 type Props = {
@@ -52,6 +53,9 @@ type Bank = {
 export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
 
     const fetcher = useFetcher<typeof action>();
+    const [selectedReason, setSelectedReason] = useState<string>("");
+    const [customReason, setCustomReason] = useState<string>("");
+    const [showCustomReason, setShowCustomReason] = useState<boolean>(false);
 
     const {
         handleSubmit,
@@ -59,7 +63,8 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         control,
         register,
         getValues: getFormValues,
-        watch
+        watch,
+        setValue
     } = useRemixForm<SendApplicationFormData>({
         mode: 'onSubmit',
         resolver: zodResolver(sendApplicationSchema),
@@ -67,8 +72,94 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         submitConfig: {
             encType: 'multipart/form-data',
         },
+        defaultValues: {
+            type: undefined // Initialize with undefined to ensure it's properly set when selected
+        },
         stringifyAllValues: false
     });
+
+    const authData = useRouteLoaderData<any>("root");
+
+    const type = watch('type');
+
+    console.log("Dialog open:", isOpen);
+    console.log("Application type:", type);
+    console.log("ApplicationType.RefundTuition:", ApplicationType.RefundTuition);
+    console.log("type === ApplicationType.RefundTuition:", type === ApplicationType.RefundTuition);
+    console.log("Auth data:", authData);
+    console.log("Auth data idToken:", authData?.idToken);
+    console.log("Query enabled:", isOpen && !!authData?.idToken && type === ApplicationType.RefundTuition);
+
+    const { data: refundReasonsData, refetch: refetchRefundReasons } = useQuery({
+        queryKey: ['refundReasons', authData?.idToken, type],
+        queryFn: async () => {
+            console.log("Fetching refund reasons with idToken:", authData?.idToken);
+            if (!authData || !authData.idToken) {
+                console.log("No auth data or idToken available");
+                return { reasonRefundTuition: [] };
+            }
+            try {
+                const response = await fetchRefundTuitionSystemConfig({ idToken: authData.idToken });
+                console.log("Refund API response:", response);
+                console.log("Refund API response data:", response.data);
+                return response.data;
+            } catch (error) {
+                console.error("Error fetching refund reasons:", error);
+                return { reasonRefundTuition: [] };
+            }
+        },
+        refetchOnWindowFocus: false,
+        enabled: isOpen && !!authData?.idToken && type === ApplicationType.RefundTuition
+    });
+
+    console.log("Raw refundReasonsData:", refundReasonsData);
+    let refundReasons: string[] = [];
+
+    if (refundReasonsData) {
+        console.log("refundReasonsData.reasonRefundTuition:", refundReasonsData.reasonRefundTuition);
+        console.log("Type of refundReasonsData.reasonRefundTuition:", typeof refundReasonsData.reasonRefundTuition);
+
+        if (Array.isArray(refundReasonsData.reasonRefundTuition)) {
+            console.log("reasonRefundTuition is an array");
+            refundReasons = refundReasonsData.reasonRefundTuition;
+        } else if (typeof refundReasonsData.reasonRefundTuition === 'string') {
+            console.log("reasonRefundTuition is a string");
+            try {
+                // Try to parse as JSON
+                refundReasons = JSON.parse(refundReasonsData.reasonRefundTuition);
+                console.log("Successfully parsed reasonRefundTuition as JSON:", refundReasons);
+            } catch (e) {
+                console.error("Error parsing refundReasonsData.reasonRefundTuition as JSON:", e);
+                // If parsing fails, treat it as a single reason
+                refundReasons = [refundReasonsData.reasonRefundTuition];
+                console.log("Treating reasonRefundTuition as a single reason:", refundReasons);
+            }
+        } else if (refundReasonsData.reasonRefundTuition) {
+            console.log("reasonRefundTuition is not an array or string, but exists");
+            // If it's not an array or string but exists, convert to string and use as a single reason
+            refundReasons = [String(refundReasonsData.reasonRefundTuition)];
+        }
+
+        // If we have a configValue property directly in the response
+        if (refundReasonsData.configValue) {
+            console.log("Found configValue property:", refundReasonsData.configValue);
+            try {
+                const parsedValue = JSON.parse(refundReasonsData.configValue);
+                if (Array.isArray(parsedValue)) {
+                    console.log("configValue is a valid JSON array");
+                    refundReasons = parsedValue;
+                } else {
+                    console.log("configValue is valid JSON but not an array");
+                    refundReasons = [String(parsedValue)];
+                }
+            } catch (e) {
+                console.error("Error parsing configValue as JSON:", e);
+                refundReasons = [refundReasonsData.configValue];
+            }
+        }
+    }
+
+    console.log("Processed refund reasons:", refundReasons);
 
     const { data, isLoading: isFetchingBanks, isError } = useQuery({
         queryKey: ['banks'],
@@ -94,8 +185,24 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         value: bank.shortName
     }));
 
+    // Handle reason selection
+    const handleReasonChange = (value: string) => {
+        setSelectedReason(value);
+        if (value === "other") {
+            setShowCustomReason(true);
+            setValue('reason', customReason);
+        } else {
+            setShowCustomReason(false);
+            setValue('reason', value);
+        }
+    };
 
-    const type = watch('type');
+    // Handle custom reason input
+    const handleCustomReasonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        setCustomReason(value);
+        setValue('reason', value);
+    };
 
     const isSubmitting = fetcher.state === 'submitting';
 
@@ -106,8 +213,30 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         confirmText: 'Send',
     });
 
+    // Reset reason selection when dialog opens/closes or application type changes
     useEffect(() => {
+        if (isOpen) {
+            // Reset form values when dialog opens
+            if (!type) {
+                console.log("Dialog opened, type is undefined");
+            }
 
+            if (type === ApplicationType.RefundTuition) {
+                console.log("Application type is RefundTuition, refetching refund reasons");
+                refetchRefundReasons();
+                setSelectedReason("");
+                setCustomReason("");
+                setShowCustomReason(false);
+            }
+        } else {
+            // Reset form when dialog closes
+            setValue('type', undefined);
+            console.log("Dialog closed, reset type to undefined");
+        }
+    }, [isOpen, type, refetchRefundReasons, setValue]);
+
+    // Handle form submission result
+    useEffect(() => {
         if (fetcher.data?.success === true) {
             toast.success('Sent successfully!');
             onOpenChange(false);
@@ -121,19 +250,20 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
             return;
         }
 
-
         return () => {
-
+            // Cleanup
         }
-
-    }, [fetcher.data]);
+    }, [fetcher.data, onOpenChange]);
 
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange} >
                 <DialogContent className='min-w-[1000px]'>
                     <ScrollArea className='h-96 px-4'>
-                        <Form method='POST' onSubmit={handleSubmit} action='/account/applications' navigate={false}
+                        <Form method='POST' 
+                            onSubmit={handleSubmit} 
+                            action='/account/applications' 
+                            navigate={false}
                             encType='multipart/form-data'
                             className='px-1'>
                             <DialogHeader>
@@ -148,8 +278,16 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                     name='type'
                                     render={({ field: { onChange, onBlur, value, ref } }) => (
                                         <Select value={value?.toString()} onValueChange={(value) => {
-                                            onChange(parseInt(value));
-                                            console.log(getFormValues());
+                                            const parsedValue = parseInt(value);
+
+                                            // Use setTimeout to delay the onChange call
+                                            // This prevents the dialog from closing when RefundTuition is selected
+                                            setTimeout(() => {
+                                                onChange(parsedValue);
+                                                console.log("Selected application type:", parsedValue);
+                                                console.log("ApplicationType.RefundTuition:", ApplicationType.RefundTuition);
+                                                console.log("parsedValue === ApplicationType.RefundTuition:", parsedValue === ApplicationType.RefundTuition);
+                                            }, 0);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select application type" />
@@ -202,7 +340,56 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                     <Input {...register('bankAccountNumber')} type='number' placeholder='Enter credit no...' />
                                     {errors.bankAccountNumber && <p className="text-red-500">{errors.bankAccountNumber.message}</p>}
                                 </>}
-                                <Textarea {...register('reason')} placeholder='Enter reason...' />
+                                {type === ApplicationType.RefundTuition ? (
+                                    <>
+                                        <Controller
+                                            control={control}
+                                            name='reasonSelect'
+                                            render={({ field: { onChange, value } }) => (
+                                                <Select 
+                                                    value={selectedReason} 
+                                                    onValueChange={(value) => {
+                                                        console.log("Selected reason:", value);
+                                                        handleReasonChange(value);
+                                                    }}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a reason" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectLabel>Refund Reasons</SelectLabel>
+                                                            {refundReasons && refundReasons.length > 0 ? (
+                                                                refundReasons.map((reason, index) => {
+                                                                    console.log("Rendering refund reason:", reason);
+                                                                    return (
+                                                                        <SelectItem key={index} value={reason}>
+                                                                            {reason}
+                                                                        </SelectItem>
+                                                                    );
+                                                                })
+                                                            ) : (
+                                                                <SelectItem value="" disabled>
+                                                                    No reasons available
+                                                                </SelectItem>
+                                                            )}
+                                                            <SelectItem value="other">Other (specify)</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {showCustomReason && (
+                                            <Textarea 
+                                                value={customReason}
+                                                onChange={handleCustomReasonChange}
+                                                placeholder='Enter your reason...' 
+                                            />
+                                        )}
+                                    </>
+                                ) : (
+                                    <Textarea {...register('reason')} placeholder='Enter reason...' />
+                                )}
                                 {errors.reason && <p className="text-red-500">{errors.reason.message}</p>}
                                 <Controller
                                     control={control}
@@ -228,4 +415,3 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         </>
     )
 }
-
