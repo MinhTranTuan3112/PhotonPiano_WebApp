@@ -105,10 +105,10 @@ const arrangeClassesSchema = z.object({
     startWeek: z
         .date()
         .refine((date: Date) => date.getDay() === 1, {
-            message: "Ngày được chọn phải là Thứ Hai",
+            message: "The day choosen must be monday",
         })
         .refine((date: Date) => date > addDays(new Date(), -1), {
-            message: "Tuần bắt đầu phải sau hôm nay"
+            message: "Start week must be in the future"
         }),
     // shifts: z.array(z.string()).min(1, { message: `Phải chọn ít nhất 1 ca học` }),
     idToken: z.string(),
@@ -147,7 +147,7 @@ const densityColor = [
         color: "#095e20"
     },
 ]
-const dayOfWeekVn = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+const dayOfWeekVn = ["M", "T", "W", "Th", "F", "S", "Su"]
 
 const getTileColor = (freeSlots: FreeSlot[], dayOfWeek: number, shift: number, levelId?: string) => {
     const freeSlotCount = freeSlots.filter(fs => fs.dayOfWeek === dayOfWeek && fs.shift === shift && levelId === fs.levelId).length
@@ -177,7 +177,7 @@ export async function action({ request }: ActionFunctionArgs) {
         if (shifts.length === 0 || !startWeek) {
             return {
                 success: false,
-                error: 'Dữ liệu gửi đi bị thiếu!',
+                error: 'Invalid Data!',
                 status: 400
             }
         }
@@ -210,7 +210,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
     const { currentAccount } = useAuth()
     const { promise, idToken, configPromise, slotsPromise } = useLoaderData<typeof loader>();
 
-    const loadingMessage = "Đang thực hiện, vui lòng chờ!"
+    const loadingMessage = "Processing... Please wait!"
     const [searchParams, setSearchParams] = useSearchParams();
     const [isOpenLoading, setIsOpenLoading] = useState(false);
     const [result, setResult] = useState(false);
@@ -232,8 +232,8 @@ export default function StaffAutoArrangeClass({ }: Props) {
     });
 
     const { open: handleOpentModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận xếp lớp',
-        description: 'Bạn có chắc chắn muốn thực hiện quá trình tự động xếp lớp không? Hành động này không thể hoàn tác!',
+        title: 'Confirm The Action',
+        description: 'Do you want to proceed this auto-arrange process! This action can not be rollbacked!',
         onConfirm: () => {
             handleSubmit();
         }
@@ -265,20 +265,20 @@ export default function StaffAutoArrangeClass({ }: Props) {
     return (
         <div>
             <div className='px-8'>
-                <h3 className="text-lg font-bold">Xếp Lớp Tự Động</h3>
+                <h3 className="text-lg font-bold">Auto-Arrange Classes</h3>
                 <p className="text-sm text-muted-foreground">
-                    Chỉ vài thao tác cơ bản để xếp lớp tất cả học viên 1 cách tự động
+                    Just a few simple steps to arrangle all classes automatically
                 </p>
                 <Suspense fallback={<LoadingSkeleton height={100} />}>
                     <Await resolve={configPromise}>
                         {(data) => (
                             <div className='grid grid-cols-2 w-full mt-4'>
                                 <div className='flex gap-2'>
-                                    <span className='font-bold'>Sĩ số lớp tối thiểu :</span>
+                                    <span className='font-bold'>Minimum Class Size :</span>
                                     <span className=''>{data.configs.find(c => c.configName === MIN_STUDENTS)?.configValue}</span>
                                 </div>
                                 <div className='flex gap-2'>
-                                    <span className='font-bold'>Sĩ số lớp tối đa :</span>
+                                    <span className='font-bold'>Maximum Class Size :</span>
                                     <span className=''>{data.configs.find(c => c.configName === MAX_STUDENTS)?.configValue}</span>
                                 </div>
                             </div>
@@ -290,7 +290,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                         <Await resolve={promise}>
                             {(data) => (
                                 <div className='mt-4 space-y-6'>
-                                    <div className='text-lg font-semibold'>Tổng số học sinh cần xếp lớp: <span className='font-bold'>{data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0)}</span></div>
+                                    <div className='text-lg font-semibold'>Total learners waiting for class: <span className='font-bold'>{data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0)}</span></div>
 
                                     {/* Level Breakdown */}
                                     <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
@@ -320,7 +320,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                         {errors.studentNumber && <div className='text-red-500'>{errors.studentNumber.message}</div>}
                                         <Checkbox checked={isDefineStudentCount} onCheckedChange={() => setIsDefineStudentCount(!isDefineStudentCount)} /> <span className='italic text-sm'>Xác định số học viên cụ thể</span>
                                     </div> */}
-                                    <div className='text-lg font-semibold my-4'>Biểu đồ khung giờ học viên</div>
+                                    <div className='text-lg font-semibold my-4'>Learner schedule heatmap</div>
                                     <div className='grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 w-full'>
                                         {densityColor.map((note, index) => (
                                             <div className='flex gap-2 items-center' key={index}>
@@ -372,7 +372,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     </Suspense>
                                     {/* Start Week Selection */}
                                     <div className='flex flex-wrap gap-4 items-center'>
-                                        <span className='font-bold'>Chọn tuần bắt đầu:</span>
+                                        <span className='font-bold'>Choose start week:</span>
                                         <div>
                                             <Controller
                                                 control={control}
@@ -428,8 +428,8 @@ export default function StaffAutoArrangeClass({ }: Props) {
                                     */}
                                     {/* Buttons */}
                                     <div className='flex flex-wrap justify-center gap-4 mt-4'>
-                                        <Button type='submit' Icon={CalendarSync} iconPlacement='left' className='px-8'>Bắt đầu xếp lớp</Button>
-                                        <Button type='button' variant={'outline'} Icon={Calendar} iconPlacement='left'>Xem lịch nghỉ</Button>
+                                        <Button type='submit' Icon={CalendarSync} iconPlacement='left' className='px-8'>Start Arranging</Button>
+                                        <Button type='button' variant={'outline'} Icon={Calendar} iconPlacement='left'>View Day-Offs</Button>
                                     </div>
                                 </div>
                             )}
@@ -442,22 +442,22 @@ export default function StaffAutoArrangeClass({ }: Props) {
                     <DialogContent className='' preventClosing={!result}>
                         {(result && fetcher.data?.success === true) ? (
                             <div className="text-center">
-                                <p className="font-bold text-xl text-green-600">XẾP LỚP HOÀN TẤT</p>
+                                <p className="font-bold text-xl text-green-600">SCHEDULE COMPLETE</p>
                                 <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
                                 {(() => {
                                     const classes = (fetcher.data?.data?.data as Class[]) ?? [];
                                     return (
                                         <div>
-                                            <div className='mt-4 font-bold'>Có {classes.length} lớp đã được tạo</div>
+                                            <div className='mt-4 font-bold'>{classes.length} class(es) created</div>
                                             <div className='max-h-96 overflow-y-auto p-1'>
                                                 {
                                                     classes.length > 0 && (
                                                         <table className="min-w-full border border-gray-300 shadow-md rounded-lg">
                                                             <thead className="bg-gray-600 text-white">
                                                                 <tr>
-                                                                    <th className="py-2 px-4 border">Tên lớp</th>
-                                                                    <th className="py-2 px-4 border">Số học viên</th>
-                                                                    <th className="py-2 px-4 border">Thời khóa biểu</th>
+                                                                    <th className="py-2 px-4 border">Name</th>
+                                                                    <th className="py-2 px-4 border">Learner number</th>
+                                                                    <th className="py-2 px-4 border">Schedule Desc</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -480,7 +480,7 @@ export default function StaffAutoArrangeClass({ }: Props) {
                             </div>
                         ) : (result && fetcher.data?.success === false && fetcher.data.error) ? (
                             <div className="text-center">
-                                <p className="font-bold text-xl text-red-600">THẤT BẠI</p>
+                                <p className="font-bold text-xl text-red-600">FAILURE</p>
                                 <XCircle size={100} className="text-red-600 mx-auto mt-4" />
                                 <p>{fetcher.data.error}</p>
                             </div>
