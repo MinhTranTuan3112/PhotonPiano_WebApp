@@ -33,16 +33,20 @@ ENV VITE_API_PROGRESS_URL=${VITE_API_PROGRESS_URL}
 COPY . .
 
 RUN npm run build
+# Debug: List build output
+RUN ls -la /app/build /app/build/server || echo "Server directory not found"
 
 # Stage 2: Run
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/build ./build
+RUN npm install --production
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["npx", "remix-serve", "./build/server/nodejs-eyJydW50aW1lIjoibm9kZWpzIn0/index.js"]
+CMD ["npx", "remix-serve", "./build/server/index.js"]

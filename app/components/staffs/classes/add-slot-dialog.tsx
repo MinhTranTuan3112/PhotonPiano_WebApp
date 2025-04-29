@@ -60,7 +60,7 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
     } = useRemixForm<AddSlotSchema>({
         mode: "onSubmit",
         resolver,
-        submitConfig : {action : '/api/slots', method : 'POST', navigate : false},
+        submitConfig : {action : '/endpoint/slots', method : 'POST', navigate : false},
         fetcher,
         defaultValues : {
             action : "ADD",
