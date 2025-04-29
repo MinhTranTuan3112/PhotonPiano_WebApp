@@ -117,7 +117,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         return Response.json({
             success: false,
-            error: 'Thanh toán thất bại!',
+            error: 'Payment failed!',
         }, {
             status: 400
         });
@@ -581,13 +581,13 @@ export default function TuitionPage() {
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: "Xác nhận",
-        description: "Bạn có chắc chắn muốn thanh toán học phí không?",
-        confirmText: 'Thanh toán',
+        description: "Are you sure you want to pay the tuition?",
+        confirmText: 'Yes',
         onConfirm: () => {
             const tuitionId = selectedFee?.id;
 
             if (!tuitionId) {
-                toastWarning("Vui lòng chọn học phí cần thanh toán!", {
+                toastWarning("Please select the tuition fee to pay!", {
                     position: 'top-center',
                     duration: 1250
                 });
