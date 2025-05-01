@@ -309,11 +309,11 @@ export default function TeacherClassDetailsPage() {
 
     // Add confirmation dialog for file upload
     const { open: openUploadConfirmation, dialog: uploadConfirmationDialog } = useConfirmationDialog({
-        title: "Xác nhận tải lên",
-        description: "Bạn có chắc chắn muốn tải lên và xử lý tệp này không? Điều này sẽ cập nhật điểm số của học sinh.",
+        title: "Upload Confirmation",
+        description: "Are you sure you want to upload and process this file? This will update student scores.",
         onConfirm: handleUploadAndProcess,
-        confirmText: "Tải lên",
-        cancelText: "Hủy",
+        confirmText: "Upload",
+        cancelText: "Cancel",
         confirmButtonClassname: "bg-green-600 hover:bg-green-700 text-white",
     })
 
@@ -925,12 +925,6 @@ export default function TeacherClassDetailsPage() {
                                         </Button>
                                     </div>
                                 </div>
-
-                                {uploadSuccess && (
-                                    <div className="mt-4 bg-green-50 text-green-700 p-3 rounded-md text-sm">
-                                        Grades uploaded and processed successfully!
-                                    </div>
-                                )}
                             </CardContent>
                         </Card>
 

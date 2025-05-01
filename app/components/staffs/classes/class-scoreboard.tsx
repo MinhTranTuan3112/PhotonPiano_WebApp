@@ -1,5 +1,5 @@
 import { Await, useFetcher, useRouteLoaderData } from "@remix-run/react";
-import { BellRing, Loader2, Sheet, TriangleAlert } from "lucide-react";
+import { BellRing, Loader2, Sheet, TriangleAlert } from 'lucide-react';
 import React, { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Button, buttonVariants } from "~/components/ui/button";
@@ -19,8 +19,8 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
   const authData = useRouteLoaderData<typeof loader>("root")
 
   const { loadingDialog } = useLoadingDialog({
-    loadingMessage: "Đang công bố điểm...",
-    successMessage: "Công bố điểm thành công!",
+    loadingMessage: "Publishing scores...",
+    successMessage: "Scores published successfully!",
     fetcher: publishFetcher,
     action: () => {
       window.location.reload()
@@ -35,15 +35,15 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
         { method: "POST", action: "/endpoint/student-class/publish-scores" },
       )
     } catch (error) {
-      toast.error("Không thể công bố điểm. Vui lòng thử lại sau.")
+      toast.error("Unable to publish scores. Please try again later.")
     }
   }
 
   const { open: openConfirmDialog, dialog: ConfirmDialog } = useConfirmationDialog({
-    title: "Xác nhận công bố điểm",
+    title: "Confirm Score Publication",
     description:
-      "Bạn có chắc chắn muốn công bố điểm cho tất cả học viên trong lớp này không? Sau khi công bố, học viên sẽ có thể xem điểm của mình.",
-    confirmText: publishFetcher.state === "submitting" ? "Đang xử lý..." : "Xác nhận công bố",
+      "Are you sure you want to publish scores for all students in this class? After publishing, students will be able to view their scores.",
+    confirmText: publishFetcher.state === "submitting" ? "Processing..." : "Confirm Publication",
     onConfirm: handlePublishScores,
     confirmButtonClassname:
       publishFetcher.state === "submitting"
@@ -54,14 +54,14 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bảng điểm</CardTitle>
-        <CardDescription>Danh sách này hiển thị các cột điểm của từng học viên trong lớp</CardDescription>
+        <CardTitle>Scoreboard</CardTitle>
+        <CardDescription>This list displays the score columns for each student in the class</CardDescription>
       </CardHeader>
       <CardContent>
         {!classInfo.isPublic ? (
           <div className="bg-gray-100 rounded-lg p-2 flex gap-2 items-center">
             <TriangleAlert size={100} />
-            <div>Bảng điểm của học viên sẽ được kích hoạt sau khi công bố lớp.</div>
+            <div>Student scoreboard will be activated after the class is published.</div>
           </div>
         ) : (
           <>
@@ -73,10 +73,10 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
                 iconPlacement="left"
                 className={publishFetcher.state === "submitting" ? "opacity-70 cursor-not-allowed" : ""}
               >
-                Công bố điểm
+                Publish Scores
               </Button>
               <Button Icon={Sheet} iconPlacement="left" variant={"outline"}>
-                Xuất ra Excel
+                Export to Excel
               </Button>
             </div>
             <Suspense fallback={<LoadingSkeleton />}>
@@ -92,7 +92,7 @@ export function ClassScoreboard({ classInfo, scorePromise }: { classInfo: ClassD
                       <table className="w-full border-collapse border border-gray-300">
                         <thead>
                           <tr className="bg-gray-200 text-gray-700">
-                            <th className="border border-gray-300 px-4 py-2">Học viên</th>
+                            <th className="border border-gray-300 px-4 py-2">Student</th>
                             {sortedCriteria.map((criteria) => (
                               <th key={criteria.id} className="border border-gray-300 px-4 py-2">
                                 {criteria.name}

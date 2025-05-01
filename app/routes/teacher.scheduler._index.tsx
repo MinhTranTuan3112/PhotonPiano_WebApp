@@ -71,23 +71,14 @@ export default function StaffScheduler({ }: Props) {
         //     initialWeekNumber={weekNumber}
         //     role={role}/>
 
-        // <Scheduler
-        //     initialSlots={slots}
-        //     initialStartDate={startDate}
-        //     initialEndDate={endDate}
-        //     initialYear={year}
-        //     initialWeekNumber={weekNumber}
-        //     idToken={idToken}
-        //     role={role}
-        //     currentAccount={currentAccount}
-        // />
-        <TeacherScheduler
+        <Scheduler
             initialSlots={slots}
             initialStartDate={startDate}
             initialEndDate={endDate}
             initialYear={year}
             initialWeekNumber={weekNumber}
             idToken={idToken}
+            role={role}
             currentAccount={currentAccount}
         />
     )

@@ -1,159 +1,146 @@
-import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, MapPinHouse, Upload, Lock, GraduationCap, User, BookOpen, Pencil, Calendar, MapPin } from 'lucide-react'
-import { z } from 'zod'
-import { accountInfoSchema } from '~/lib/utils/schemas'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
-import React, { Suspense, useEffect } from 'react'
-import { Skeleton } from '~/components/ui/skeleton'
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Account, Gender, Level, Role, StudentStatus } from '~/lib/types/account/account'
-import { toast } from 'sonner'
-import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
-import { Textarea } from '~/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { useImagesDialog } from '~/hooks/use-images-dialog'
-import { LevelBadge, StatusBadge } from '~/components/staffs/table/student-columns'
-import { Controller } from 'react-hook-form'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { DatePickerInput } from '~/components/ui/date-picker-input'
-import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
-import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
-import { requireAuth } from '~/lib/utils/auth'
-import { fetchCurrentAccountInfo } from '~/lib/services/auth'
-import { fetchUpdateAccountInfo } from '~/lib/services/account'
-import { useAuth } from '~/lib/contexts/auth-context'
-import ForgotPasswordDialog from '~/components/auth/forgot-password-dialog'
-import { Switch } from '~/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
+import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from "@remix-run/react"
+import { Button } from "~/components/ui/button"
+import { Input } from "~/components/ui/input"
+import {
+    SquareUserRound,
+    Mail,
+    Phone,
+    MapPinIcon as MapPinHouse,
+    Upload,
+    Lock,
+    GraduationCap,
+    User,
+    BookOpen,
+} from "lucide-react"
+import type { z } from "zod"
+import { accountInfoSchema } from "~/lib/utils/schemas"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { getValidatedFormData, useRemixForm } from "remix-hook-form"
+import { Suspense, useEffect } from "react"
+import { Skeleton } from "~/components/ui/skeleton"
+import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { type Account, Gender, Role } from "~/lib/types/account/account"
+import { toast } from "sonner"
+import { Label } from "~/components/ui/label"
+import { Textarea } from "~/components/ui/textarea"
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
+import { useImagesDialog } from "~/hooks/use-images-dialog"
+import { LevelBadge, StatusBadge } from "~/components/staffs/table/student-columns"
+import { Controller } from "react-hook-form"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "~/components/ui/select"
+import { DatePickerInput } from "~/components/ui/date-picker-input"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
+import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
+import { requireAuth } from "~/lib/utils/auth"
+import { fetchCurrentAccountInfo } from "~/lib/services/auth"
+import { fetchUpdateAccountInfo } from "~/lib/services/account"
+import { useAuth } from "~/lib/contexts/auth-context"
+import ForgotPasswordDialog from "~/components/auth/forgot-password-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card"
+
 type Props = {}
 
-type ProfileFormData = z.infer<typeof accountInfoSchema>;
+type ProfileFormData = z.infer<typeof accountInfoSchema>
 
-const resolver = zodResolver(accountInfoSchema);
-
-// async function getSampleProfileInfo() {
-
-//     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-//     return {
-//         userName: 'abc',
-//         email: 'abc@gmail.com',
-//         fullName: 'Nguyễn Văn A',
-//         address: '123 abc',
-//         phone: '0123456789',
-//         shortDescription: '...',
-//         level: Level.Beginner,
-//         role: Role.Student,
-//         studentStatus: StudentStatus.AttemptingEntranceTest,
-//         gender: Gender.Male
-//     } as Account;
-// }
+const resolver = zodResolver(accountInfoSchema)
 
 export async function loader({ request }: LoaderFunctionArgs) {
-
     try {
-
-        const { idToken, role } = await requireAuth(request);
+        const { idToken, role } = await requireAuth(request)
 
         if (role !== Role.Student) {
-            return redirect('/sign-in');
+            return redirect("/sign-in")
         }
 
         const promise = fetchCurrentAccountInfo({ idToken }).then((response) => {
-            const accountPromise: Promise<Account> = response.data;
-
-            return { accountPromise };
-        });
+            const accountPromise: Promise<Account> = response.data
+            return { accountPromise }
+        })
 
         return {
             promise,
-            role
+            role,
         }
-
     } catch (error) {
-        console.error({ error });
+        console.error({ error })
 
         if (isRedirectError(error)) {
-            throw error;
+            throw error
         }
 
-        const { message, status } = getErrorDetailsInfo(error);
-
-        throw new Response(message, { status });
-
+        const { message, status } = getErrorDetailsInfo(error)
+        throw new Response(message, { status })
     }
 }
 
 type ServerFormData = {
-    dateOfBirth: string;
-} & Omit<ProfileFormData, 'dateOfBirth'>;
+    dateOfBirth: string
+} & Omit<ProfileFormData, "dateOfBirth">
 
 export async function action({ request }: ActionFunctionArgs) {
-
     try {
-
-        const { idToken, role } = await requireAuth(request);
+        const { idToken, role } = await requireAuth(request)
 
         if (role !== Role.Student) {
-            return redirect('/');
+            return redirect("/")
         }
 
-        const { errors, data, receivedValues: defaultValues } =
-            await getValidatedFormData<ServerFormData>(request, resolver);
+        const {
+            errors,
+            data,
+            receivedValues: defaultValues,
+        } = await getValidatedFormData<ServerFormData>(request, resolver)
 
         if (errors) {
-            return { success: false, errors, defaultValues };
+            return { success: false, errors, defaultValues }
         }
 
-        // let uploadImageUrl: string | undefined = undefined;
+        // Server-side form processing
+        try {
+            const response = await fetchUpdateAccountInfo({ idToken, request: data })
 
-        // if (data.avatar) {
+            return {
+                success: response.status === 204,
+            }
+        } catch (apiError) {
+            console.error("API Error:", apiError)
 
-        //     const uploadImageResponse = await uploadImageFile({
-        //         file: data.avatar,
-        //         name: data.avatar?.name,
-        //         groupId: TEST_IMAGE_GROUP_ID,
-        //         size: data.avatar?.size,
-        //     });
+            // Handle API errors more gracefully
+            const errorDetails = apiError instanceof Error ? apiError.message : "Unknown error"
 
-        //     const imageData = await uploadImageResponse.data;
-
-        //     const imageCID = imageData.cid;
-
-        //     uploadImageUrl = getImageUrl(imageCID);
-        // }
-
-        const response = await fetchUpdateAccountInfo({ idToken, request: data });
-
-        return {
-            success: response.status === 204
+            return {
+                success: false,
+                error: errorDetails,
+                status: 500,
+            }
         }
-
     } catch (error) {
-        console.error({ error });
+        console.error({ error })
 
         if (isRedirectError(error)) {
-            throw error;
+            throw error
         }
 
-        const { message, status } = getErrorDetailsInfo(error);
+        const { message, status } = getErrorDetailsInfo(error)
 
         return {
             success: false,
             error: message,
-            status
+            status,
         }
     }
-
 }
 
-
-export default function AccountProfilePage() {
+export default function AccountProfilePage({ }: Props) {
     const { promise } = useLoaderData<typeof loader>()
 
     return (
@@ -232,8 +219,8 @@ export default function AccountProfilePage() {
 function ProfileForm() {
     const accountValue = useAsyncValue()
     const account = accountValue as Account
+    const fetcher = useFetcher<typeof action>()
     const { refetchAccountInfo } = useAuth()
-    const [isSubmitting, setIsSubmitting] = React.useState(false)
 
     const {
         handleSubmit,
@@ -249,55 +236,15 @@ function ProfileForm() {
             ...account,
             dateOfBirth: account.dateOfBirth ? new Date(account.dateOfBirth || "") : new Date(),
         },
+        fetcher,
     })
+
+    const isSubmitting = fetcher.state === "submitting"
 
     const { open: handleOpenConfirmationDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: "Xác nhận cập nhật thông tin",
         description: "Bạn có chắc chắn muốn cập nhật thông tin cá nhân của mình không?",
-        onConfirm: async () => {
-            setIsSubmitting(true)
-            try {
-                const formData = new FormData()
-
-                // Add all form values to formData
-                const values = getValues()
-                Object.entries(values).forEach(([key, value]) => {
-                    if (key === "dateOfBirth" && value instanceof Date) {
-                        formData.append(key, value.toISOString())
-                    } else if (value !== undefined && value !== null) {
-                        formData.append(key, String(value))
-                    }
-                })
-
-                const response = await fetch("/account/profile", {
-                    method: "POST",
-                    body: formData,
-                })
-
-                const data = await response.json()
-
-                if (data.success) {
-                    toast.success("Lưu thông tin thành công!", {
-                        position: "top-center",
-                        duration: 1250,
-                    })
-                    refetchAccountInfo()
-                } else {
-                    toast.error(`Lưu thất bại! ${data.error || ""}`, {
-                        position: "top-center",
-                        duration: 1250,
-                    })
-                }
-            } catch (error) {
-                console.error(error)
-                toast.error("Có lỗi xảy ra khi cập nhật thông tin", {
-                    position: "top-center",
-                    duration: 1250,
-                })
-            } finally {
-                setIsSubmitting(false)
-            }
-        },
+        onConfirm: handleSubmit,
         confirmText: "Cập nhật",
     })
 
@@ -305,11 +252,31 @@ function ProfileForm() {
         title: "Thêm ảnh",
         description: "Nhập ảnh từ url hoặc chọn ảnh từ thiết bị của bạn.",
         onConfirm: (imageUrls) => {
+            console.log({ imageUrls })
             setValue("avatarUrl", imageUrls[0])
         },
         requiresUpload: true,
         maxImages: 1,
     })
+
+    useEffect(() => {
+        if (fetcher.data?.success === true) {
+            toast.success("Lưu thông tin thành công!", {
+                position: "top-center",
+                duration: 1250,
+            })
+            refetchAccountInfo()
+            return
+        }
+
+        if (fetcher.data?.success === false && fetcher.data.error) {
+            toast.error(`Lưu thất bại! ${fetcher.data.error}`, {
+                position: "top-center",
+                duration: 1250,
+            })
+            return
+        }
+    }, [fetcher.data, refetchAccountInfo])
 
     return (
         <>
@@ -339,14 +306,6 @@ function ProfileForm() {
                                         : "PP"}
                                 </AvatarFallback>
                             </Avatar>
-                            <button
-                                type="button"
-                                onClick={handleOpenImageDialog}
-                                className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 shadow-md hover:bg-primary/90 transition-colors"
-                            >
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Change avatar</span>
-                            </button>
                         </div>
                         <Button type="button" className="w-full" variant="outline" size="sm" onClick={handleOpenImageDialog}>
                             <Upload className="mr-2 h-4 w-4" />
@@ -442,23 +401,20 @@ function ProfileForm() {
                                 <Label htmlFor="dateOfBirth" className="font-medium">
                                     Ngày sinh
                                 </Label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                                    <Controller
-                                        control={control}
-                                        name="dateOfBirth"
-                                        render={({ field: { onChange, onBlur, value, ref } }) => (
-                                            <DatePickerInput
-                                                value={value}
-                                                onChange={onChange}
-                                                onBlur={onBlur}
-                                                ref={ref}
-                                                className="pl-10 bg-background w-full"
-                                                placeholder="Chọn ngày sinh"
-                                            />
-                                        )}
-                                    />
-                                </div>
+                                <Controller
+                                    control={control}
+                                    name="dateOfBirth"
+                                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                                        <DatePickerInput
+                                            value={value}
+                                            onChange={onChange}
+                                            onBlur={onBlur}
+                                            ref={ref}
+                                            className="w-full"
+                                            placeholder="Chọn ngày sinh"
+                                        />
+                                    )}
+                                />
                                 {errors.dateOfBirth && <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>}
                             </div>
 
@@ -493,7 +449,7 @@ function ProfileForm() {
                                 Địa chỉ
                             </Label>
                             <div className="relative">
-                                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <MapPinHouse className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     {...register("address")}
                                     name="address"
@@ -542,7 +498,7 @@ function ProfileForm() {
                             </>
                         ) : (
                             <>
-                                <Pencil className="mr-2 h-4 w-4" /> Cập nhật thông tin
+                                <Upload className="mr-2 h-4 w-4" /> Cập nhật thông tin
                             </>
                         )}
                     </Button>
@@ -553,7 +509,6 @@ function ProfileForm() {
         </>
     )
 }
-
 
 function LoadingSkeleton() {
     return (
@@ -582,29 +537,6 @@ function LoadingSkeleton() {
 function AcademicInfoSection() {
     const accountValue = useAsyncValue()
     const account = accountValue as Account
-    const [isLoading, setIsLoading] = React.useState(false)
-    const [continueLearning, setContinueLearning] = React.useState(account.wantToContinue || false)
-    const fetcher = useFetcher()
-
-    const handleUpdateLearningStatus = async (status: boolean) => {
-        try {
-            fetcher.submit(
-                { continueLearning: status.toString() },
-                { method: "POST", action: "/endpoint/account/update-learning-status" },
-            )
-
-            toast.success("Learning status updated successfully!", {
-                position: "top-center",
-                duration: 1250,
-            })
-        } catch (error) {
-            console.error("Failed to update learning status:", error)
-            toast.error("Failed to update learning status", {
-                position: "top-center",
-                duration: 1250,
-            })
-        }
-    }
 
     return (
         <div className="space-y-8">
@@ -637,33 +569,6 @@ function AcademicInfoSection() {
                     </CardContent>
                 </Card>
             </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Tiếp tục học tập</CardTitle>
-                    <CardDescription>Chọn "Yes" nếu bạn muốn tiếp tục học tập tại Photon Piano trong kỳ học tới.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h4 className="font-medium">Continuing Learning</h4>
-                            <p className="text-sm text-muted-foreground">
-                                {continueLearning
-                                    ? "Bạn đã đăng ký tiếp tục học tập trong kỳ học tới."
-                                    : "Bạn chưa đăng ký tiếp tục học tập trong kỳ học tới."}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground ml-2">{account.wantToContinue ? "Yes" : "No"}</span>
-                            <Switch
-                                id="continueLearning"
-                                checked={account.wantToContinue || false}
-                                onCheckedChange={(checked) => handleUpdateLearningStatus(checked)}
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }
