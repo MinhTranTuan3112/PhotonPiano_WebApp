@@ -7,12 +7,12 @@ import { cn } from "~/lib/utils";
 
 interface CustomProgressProps
   extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
-  indicatorColor: string;
+  indicatorColor?: string;
 }
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   CustomProgressProps
->(({ className, value, indicatorColor, ...props }, ref) => (
+>(({ className, value, indicatorColor = "bg-blue-500", ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
