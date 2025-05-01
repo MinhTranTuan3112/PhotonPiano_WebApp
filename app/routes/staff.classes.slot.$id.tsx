@@ -8,6 +8,7 @@ import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '~/components/ui/alert-dialog';
+import { Badge } from '~/components/ui/badge';
 import { Button, buttonVariants } from '~/components/ui/button';
 import { DatePickerInput } from '~/components/ui/date-picker-input';
 import GenericCombobox from '~/components/ui/generic-combobox';
@@ -123,9 +124,9 @@ function StatusBadge({ status }: {
 function AttendanceDisplay({ attendance }: {
     attendance: number
 }) {
-    return <div className={`${getAttendanceStyle(attendance)} font-bold text-center`}>
+    return <Badge className={`${getAttendanceStyle(attendance)} font-bold text-center`} variant={'outline'}>
         {ATTENDANCE_STATUS[attendance]}
-    </div>
+    </Badge>
 }
 
 
@@ -466,7 +467,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
                                             {student.studentAccount.userName || student.studentAccount.fullName || 'Undefined'}
                                         </td>
                                         <td className="p-3">{student.studentAccount.email}</td>
-                                        <td className="p-3">
+                                        <td className="p-3 flex justify-center">
                                             <AttendanceDisplay attendance={student.attendanceStatus} />
                                         </td>
                                     </tr>

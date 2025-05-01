@@ -27,6 +27,7 @@ import {
     Info,
     MoveRight,
     Music, RefreshCw, Settings,
+    StickyNote,
     ThumbsUp,
     User,
     Users,
