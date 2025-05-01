@@ -67,8 +67,8 @@ export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: 
             enableHiding: false,
         },
         {
-            accessorKey: 'Tên',
-            header: 'Tên học viên',
+            accessorKey: 'Name',
+            header: 'Learner Name',
             cell: ({ row }) => <div>{row.original.fullName || row.original.userName}</div>
         },
         {
@@ -82,9 +82,9 @@ export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: 
             cell: ({ row }) => <LevelBadge level={row.original.level} />
         },
         {
-            accessorKey: 'Hành động',
+            accessorKey: 'Action',
             header: () => <div className="flex flex-row gap-1 items-center"></div>,
-            cell: ({ row }) => <Button onClick={() =>   window.open(`/staff/students/${row.original.accountFirebaseId}`, '_blank')}>Xem</Button>
+            cell: ({ row }) => <Button onClick={() =>   window.open(`/staff/students/${row.original.accountFirebaseId}`, '_blank')}>View</Button>
         }
     ];
 }

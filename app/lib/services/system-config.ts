@@ -160,6 +160,30 @@ export async function fetchDeadlineSchedulerSystemConfig({
     return response;
 }
 
+export async function fetchRefundTuitionSystemConfig({
+                                                             idToken
+                                                         }: {
+    idToken: string
+}) {
+    console.log("Fetching refund reasons with idToken:", idToken);
+
+    try {
+        // Using the specific endpoint for getting config by name
+        const response = await axiosInstance.get("/system-configs/refund-reason", {
+            headers: {
+                Authorization: `Bearer ${idToken}`
+            }
+        });
+
+        console.log("Refund API response:", response);
+
+        return response;
+    } catch (error) {
+        console.error("Error fetching refund reasons from API:", error);
+        throw error;
+    }
+}
+
 export async function fetchUpdateClassSystemConfig({
     idToken,
     ...data
@@ -168,6 +192,39 @@ export async function fetchUpdateClassSystemConfig({
 } & Partial<ClassSettingsFormData>) {
 
     const response = await axiosInstance.put("/system-configs/classes", { ...data }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+
+export async function fetchUpdateRefundTuitionSystemConfig({
+    idToken,
+    reasonRefundTuition
+}: {
+    idToken: string;
+    reasonRefundTuition?: string[] | string | null;
+}) {
+
+    let parsedReasonRefundTuition = reasonRefundTuition;
+    if (typeof reasonRefundTuition === 'string') {
+        try {
+            parsedReasonRefundTuition = JSON.parse(reasonRefundTuition);
+        } catch (e) {
+            console.error("Failed to parse reasonRefundTuition:", e);
+            parsedReasonRefundTuition = [];
+        }
+    }
+
+    const requestData = {
+        ReasonRefundTuition: parsedReasonRefundTuition
+    };
+
+    console.log("Sending to backend:", requestData);
+
+    const response = await axiosInstance.put("/system-configs/refund", requestData, {
         headers: {
             Authorization: `Bearer ${idToken}`
         }

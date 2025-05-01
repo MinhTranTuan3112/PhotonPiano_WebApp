@@ -29,6 +29,19 @@ export const schedulerConfigSchema = z.object({
         },
         z.array(z.string()).optional()
     ),
+    reasonRefundTuition: z.preprocess(
+        (val) => {
+            if (typeof val === 'string') {
+                try {
+                    return JSON.parse(val);
+                } catch (e) {
+                    return [val];
+                }
+            }
+            return val;
+        },
+        z.array(z.string()).optional()
+    ),
     maxAbsenceRate: z.coerce.number().min(0, { message: 'The absence rate must be greater than or equal to 0' }).max(1, { message: 'The absence rate cannot be greater than 1' }),
     theoryPercentage: z.coerce.number().min(0, { message: 'The theory percentage must be greater than or equal to 0' }).max(100, { message: 'The theory percentage cannot be greater than 100%' }),
     practicePercentage: z.coerce.number().min(0, { message: 'The practice percentage must be greater than or equal to 0' }).max(100, { message: 'The practice percentage cannot be greater than 100%' })
@@ -45,6 +58,8 @@ type Props = {
 export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ...defaultData }: Props) {
     const [newReason, setNewReason] = useState("");
     const [reasons, setReasons] = useState<string[]>(defaultData.reasonCancelSlot || []);
+    const [newRefundReason, setNewRefundReason] = useState("");
+    const [refundReasons, setRefundReasons] = useState<string[]>(defaultData.reasonRefundTuition || []);
     const [theoryPercentage, setTheoryPercentage] = useState(defaultData.theoryPercentage || 50);
 
     const {
@@ -62,6 +77,7 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
             module: 'scheduler',
             ...defaultData,
             reasonCancelSlot: reasons,
+            reasonRefundTuition: refundReasons,
             maxAbsenceRate: defaultData.maxAbsenceRate || 0.3,
             theoryPercentage: defaultData.theoryPercentage || 50,
             practicePercentage: defaultData.practicePercentage || 50
@@ -75,7 +91,8 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
 
     useEffect(() => {
         setValue('reasonCancelSlot', reasons);
-    }, [reasons, setValue]);
+        setValue('reasonRefundTuition', refundReasons);
+    }, [reasons, refundReasons, setValue]);
 
     const setFormValue = (field: string, value: any) => {
         setValue(field as any, value);
@@ -98,6 +115,26 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
         if (e.key === 'Enter') {
             e.preventDefault();
             handleAddReason();
+        }
+    };
+
+    const handleAddRefundReason = () => {
+        if (newRefundReason.trim() && !refundReasons.includes(newRefundReason.trim())) {
+            setRefundReasons([...refundReasons, newRefundReason.trim()]);
+            setNewRefundReason("");
+        }
+    };
+
+    const handleRemoveRefundReason = (index: number) => {
+        const updatedRefundReasons = [...refundReasons];
+        updatedRefundReasons.splice(index, 1);
+        setRefundReasons(updatedRefundReasons);
+    };
+
+    const handleRefundKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddRefundReason();
         }
     };
 
@@ -153,13 +190,13 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
                             </div>
                         </div>
 
-                    
+
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="bg-slate-50">
-                        <CardTitle className="text-base font-medium">Class Cancellation Reasons</CardTitle>
+                        <CardTitle className="text-base font-medium">Slot Cancellation Reasons</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
                         <div className="flex flex-wrap gap-2 mb-4 min-h-10">
@@ -199,6 +236,52 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
                         </div>
                         <p className='text-xs text-muted-foreground'>
                             Common reasons for class cancellations (e.g., "Teacher illness", "Technical issues")
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="bg-slate-50">
+                        <CardTitle className="text-base font-medium">Refund Tuition Reasons</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-4">
+                        <div className="flex flex-wrap gap-2 mb-4 min-h-10">
+                            {refundReasons.length > 0 ? (
+                                refundReasons.map((reason, index) => (
+                                    <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
+                                        {reason}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveRefundReason(index)}
+                                            className="ml-2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </Badge>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No reasons added yet</p>
+                            )}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <Input
+                                value={newRefundReason}
+                                onChange={e => setNewRefundReason(e.target.value)}
+                                placeholder="Add new reason"
+                                onKeyDown={handleRefundKeyPress}
+                                className="flex-1"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleAddRefundReason}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        <p className='text-xs text-muted-foreground'>
+                            Common reasons for tuition refunds (e.g., "Student withdrawal", "Course cancellation")
                         </p>
                     </CardContent>
                 </Card>

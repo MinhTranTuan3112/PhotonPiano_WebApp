@@ -14,7 +14,7 @@ import { SHIFT_TIME } from "~/lib/utils/constants";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
 import { formEntryToString } from "~/lib/utils/form";
 
-const DAYS = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -62,7 +62,7 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!dataString) {
         return {
             success: false,
-            error: 'Dữ liệu đã bị gửi thiếu.',
+            error: 'Invalid data.',
             status: 400
         }
     }
@@ -92,8 +92,8 @@ export default function AccountFreeSlots() {
     })
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật lịch',
-        description: 'Bạn có chắc chắn muốn cập nhật không?',
+        title: 'Confirm updating',
+        description: 'Are you sure want to update your free slots?',
         onConfirm: () => {
             saveSlots();
         }
@@ -126,8 +126,8 @@ export default function AccountFreeSlots() {
 
     return (
         <div className="px-10 py-6">
-            <h1 className="font-bold text-2xl mb-2">Bạn rảnh những khung giờ nào?</h1>
-            <p className="mb-4">Hãy chọn tất cả các khung giờ trong tuần mà bạn có thể học để chúng tôi có thể sắp xếp lịch cho bạn một cách hợp lý nhất có thể!</p>
+            <h1 className="font-bold text-2xl mb-2">What time do you free?</h1>
+            <p className="mb-4">Pick all slot in the week that you're able to take piano lesson, this help us to schedule classes in the most convenient way possible!</p>
 
             <div className="overflow-x-auto">
                 <div className="grid grid-cols-8 gap-2 border-b pb-2">
@@ -172,7 +172,7 @@ export default function AccountFreeSlots() {
             </div>
 
             <div className="mt-6 text-center">
-                <Button onClick={handleOpenModal} className="w-64 py-2 text-white font-bold rounded-lg">Lưu</Button>
+                <Button onClick={handleOpenModal} className="w-64 py-2 text-white font-bold rounded-lg">Save</Button>
             </div>
             {loadingDialog}
             {confirmDialog}

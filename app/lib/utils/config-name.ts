@@ -42,3 +42,4 @@ export const REASON_CANCEL_SLOT = "Lý do hủy tiết"
 
 export const MAX_ABSENCE_RATE = "Tỉ lệ điểm danh tối đa để qua"
 
+export const REFUND_REASON = "Lý do hoàn tiền"

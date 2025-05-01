@@ -68,7 +68,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // if (!paymentStatuses.length) { // Chỉ áp dụng khi không có filter cụ thể
         //     tuition = tuition.filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
         // }
-        
+
         tuition = tuition.sort( (a, b) =>  a.paymentStatus - b.paymentStatus  )
 
         return { tuition, idToken, role };
@@ -117,7 +117,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         return Response.json({
             success: false,
-            error: 'Thanh toán thất bại!',
+            error: 'Payment failed!',
         }, {
             status: 400
         });
@@ -435,7 +435,7 @@ export default function TuitionPage() {
             <body>
                 <div class="invoice-wrapper">
                     <div class="invoice-top-bar"></div>
-                    
+
                     <div class="invoice-header">
                         <div class="brand">
                             <div class="brand-logo">PhotonPiano</div>
@@ -446,7 +446,7 @@ export default function TuitionPage() {
                             <div class="invoice-number">Invoice #${selectedFee.id || 'INV-00001'}</div>
                         </div>
                     </div>
-                    
+
                     <div class="invoice-body">
                         <div class="invoice-section">
                             <div class="section-title">Student Information</div>
@@ -469,33 +469,33 @@ export default function TuitionPage() {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="payment-box">
                             <div class="payment-amount-label">AMOUNT DUE</div>
-                            <div class="payment-amount">${selectedFee.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
-                            <div class="tax-fee">Tax Fee: ${selectedFee.fee.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
+                            <div class="payment-amount">${selectedFee.amount.toLocaleString("en-US", { style: "currency", currency: "VND" })}</div>
+                            <div class="tax-fee">Tax Fee: ${selectedFee.fee.toLocaleString("en-US", { style: "currency", currency: "VND" })}</div>
                             <div class="payment-status-badge status-${PaymentStatus[selectedFee.paymentStatus].toLowerCase()}">
                                 ${PaymentStatusText[selectedFee.paymentStatus]}
                             </div>
                         </div>
-                        
+
                         ${selectedFee.paymentStatus === PaymentStatus.Pending ?
                 `<div class="warning-box">
                               Please make your payment by ${formatDate(selectedFee.deadline)} to avoid any interruption to your studies.
                           </div>` : ''}
-                        
+
                         <div class="barcode-container">
                             <div class="barcode">Payment Reference Code</div>
                         </div>
                     </div>
-                    
+
                     <div class="invoice-footer">
                         <div class="footer-left">
-                            <div class="invoice-date">Issue Date: ${new Date().toLocaleDateString("vi-VN")}</div>
+                            <div class="invoice-date">Issue Date: ${new Date().toLocaleDateString("en-US")}</div>
                             <p>Thank you for choosing PhotonPiano</p>
                             <p>For any inquiries, please contact us</p>
                         </div>
-                        
+
                         <div class="footer-right">
                             <div class="signature-area">
                                 <div class="signature-line"></div>
@@ -504,14 +504,14 @@ export default function TuitionPage() {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="contact-info">
                         <p>PhotonPiano Music Academy</p>
                         <p>123 Music Avenue, New York, NY 10001</p>
                         <p>contact@photonpiano.com | +1 (800) 123-4567</p>
                     </div>
                 </div>
-                
+
                 <script>
                     window.onload = function() {
                         setTimeout(function() {
@@ -580,14 +580,14 @@ export default function TuitionPage() {
     }
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: "Xác nhận",
-        description: "Bạn có chắc chắn muốn thanh toán học phí không?",
-        confirmText: 'Thanh toán',
+        title: "Confirm",
+        description: "Are you sure you want to pay the tuition?",
+        confirmText: 'Yes',
         onConfirm: () => {
             const tuitionId = selectedFee?.id;
 
             if (!tuitionId) {
-                toastWarning("Vui lòng chọn học phí cần thanh toán!", {
+                toastWarning("Please select the tuition fee to pay!", {
                     position: 'top-center',
                     duration: 1250
                 });

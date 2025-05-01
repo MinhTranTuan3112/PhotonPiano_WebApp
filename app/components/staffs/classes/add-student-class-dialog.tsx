@@ -99,8 +99,8 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
     };
 
     const { open: handleOpenAddModel, dialog: confirmAddDialog } = useConfirmationDialog({
-        title: 'Xác nhận thêm học viên',
-        description: 'Bạn có chắc chắn muốn thêm các học viên này không?',
+        title: 'Confirm add new learner(s)',
+        description: 'Do you want to add these new learners to this class?',
         onConfirm: () => {
             handleAdd();
         }
@@ -110,7 +110,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className='max-w-3xl'>
                 <DialogHeader>
-                    <DialogTitle>Thêm học sinh vào lớp</DialogTitle>
+                    <DialogTitle>Add learners to the class</DialogTitle>
                 </DialogHeader>
                 <div>
                     <div className='flex place-content-between'>
@@ -119,14 +119,14 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             <span>{classInfo.level.name.split('(')[0]}</span>
                         </div>
                         <div className='flex gap-2'>
-                            <span className='font-bold'>Tối đa : </span>
+                            <span className='font-bold'>Max : </span>
                             <span>{classInfo.capacity}</span>
                         </div>
                     </div>
                     <div className='flex gap-2 mt-2 font-bold italic items-center'>
-                        <TriangleAlert /> Chỉ được bổ sung thêm <span className='text-xl'>{classInfo.capacity - classInfo.studentNumber}</span> học viên nữa
+                        <TriangleAlert /> Can only add <span className='text-xl'>{classInfo.capacity - classInfo.studentNumber}</span> more learners
                     </div>
-                    <div className='italic text-sm'>(Đã chọn {selectedRowIds.length} / {classInfo.capacity - classInfo.studentNumber})</div>
+                    <div className='italic text-sm'>(Selected {selectedRowIds.length} / {classInfo.capacity - classInfo.studentNumber})</div>
                     <Form method='GET' onSubmit={handleSearch}>
                         <div className='mt-2 flex gap-2'>
                             <Button variant={'outline'} onClick={handleRefresh} type='button'><RefreshCcw /></Button>
@@ -154,16 +154,16 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                         allowSkipLevel && (
                             <div className='flex gap-2 items-center italic mt-2'>
                                 <Checkbox checked={isIncludeOther} onCheckedChange={() => handleIncludeOther()}></Checkbox>
-                                Bao gồm các học viên level khác
+                                Include other levels
                             </div>
                         )
                     }
                     <div className='flex gap-2 items-center italic mt-2'>
                         <Checkbox checked={isAutoFill} onCheckedChange={() => setIsAutoFill(!isAutoFill)}></Checkbox>
-                        Phân bổ ngẫu nhiên để đủ sĩ số
+                        Randomly distribute to reach minimum class size
                     </div>
                     <div className='flex gap-2 mt-2 '>
-                        <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full'>Xác nhận thêm</Button>
+                        <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full'>Apply</Button>
                     </div>
                 </div>
 

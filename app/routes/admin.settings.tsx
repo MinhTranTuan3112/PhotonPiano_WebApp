@@ -15,6 +15,7 @@ import {
     fetchSystemConfigs,
     fetchUpdateClassSystemConfig,
     fetchUpdateEntranceTestSystemConfig,
+    fetchUpdateRefundTuitionSystemConfig,
     fetchUpdateSchedulerSystemConfig,
     fetchUpdateSurveySystemConfig,
     fetchUpdateTuitionSystemConfig
@@ -33,7 +34,7 @@ import {
     MAX_STUDENTS_IN_TEST,
     MIN_QUESTIONS_PER_SURVEY,
     MIN_STUDENTS,
-    MIN_STUDENTS_IN_TEST, PAYMENT_DEADLINE_DAYS, PAYMENT_REMINDER_DAY, REASON_CANCEL_SLOT,
+    MIN_STUDENTS_IN_TEST, PAYMENT_DEADLINE_DAYS, PAYMENT_REMINDER_DAY, REASON_CANCEL_SLOT, REFUND_REASON,
     TAX_RATE_2025,
     TEST_FEE, TRIAL_SESSION_COUNT,
 } from '~/lib/utils/config-name';
@@ -99,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
         if (role !== Role.Administrator) {
             return redirect('/');
         }
-        
+
 
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<SettingsFormData>(request, zodResolver(settingsSchema));
@@ -127,6 +128,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
             case 'scheduler':
                 await fetchUpdateSchedulerSystemConfig({ idToken, ...data });
+                await fetchUpdateRefundTuitionSystemConfig({ idToken, reasonRefundTuition: data.reasonRefundTuition });
                 break;
 
             case 'classes':
@@ -263,6 +265,7 @@ export default function AdminSettingsPage({ }: Props) {
                                     deadlineAttendance={parseInt(configs.find(c => c.configName === ATTENDANCE_DEADLINE)?.configValue || '1')}
                                     reasonCancelSlot={JSON.parse(configs.find(c => c.configName === REASON_CANCEL_SLOT)?.configValue || '[]')}
                                     maxAbsenceRate={parseFloat(configs.find(c => c.configName === MAX_ABSENCE_RATE)?.configValue || '0.3')}
+                                    reasonRefundTuition={JSON.parse(configs.find(c => c.configName === REFUND_REASON)?.configValue || '[]')}
                                 />
                             </TabsContent>
 

@@ -30,7 +30,7 @@ function getBreadcrumbPageName({ pathname }: {
     pathname: string,
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
-        name: "Quản lý",
+        name: "Manage",
         url: "/staff/dashboard",
     };
     let otherNavItems: BreadcumbNavItem[] = []
@@ -38,7 +38,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/teacher/profile':
             otherNavItems = [
                 {
-                    name: "Thông tin cá nhân",
+                    name: "Profile",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -47,7 +47,7 @@ function getBreadcrumbPageName({ pathname }: {
         case pathname === '/teacher/classes':
             otherNavItems = [
                 {
-                    name: "Class list",
+                    name: "Classes",
                     url: pathname,
                     isCurrentPage: true
                 }
@@ -66,14 +66,14 @@ function getBreadcrumbPageName({ pathname }: {
             const param = pathname.replace('/teacher/entrance-tests', "")
             otherNavItems = [
                 {
-                    name: "Quản lý thi đầu vào",
+                    name: "Entrance tests",
                     url: '/teacher/entrance-tests',
                     isCurrentPage: param.length === 0
                 }
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Chi tiết ca thi",
+                    name: "Test details",
                     url: pathname,
                     isCurrentPage: true
                 })
