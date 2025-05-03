@@ -76,7 +76,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => {
     const now = new Date(); // Current time
     const slot = new Date(slotDate); // Slot date (e.g. 2025-04-21T00:00:00)
-    
+    console.log(now)
+    console.log(slot)
     // Nếu slot ở tương lai thì không được phép điểm danh
     if (slot > now) {
         return true;
@@ -103,7 +104,8 @@ const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => 
     
     const slotWithDeadline = new Date(slot);
     slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
-    
+    console.log(slotWithDeadline)
+    console.log(now > slotWithDeadline)
     // Nếu đã quá thời gian cho phép điểm danh
     return now > slotWithDeadline;
     
