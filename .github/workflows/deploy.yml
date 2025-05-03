@@ -147,6 +147,6 @@ jobs:
             # If the container is running, restart it; otherwise, let docker-compose handle it later
             docker restart photonpiano-web || true
             
-            # Go to main directory and restart all services to ensure proper coordination
-            cd ~/photonpiano
-            docker compose -p photonpiano up -d --force-recreate
+#            # Go to main directory and restart all services to ensure proper coordination
+#            cd ~/photonpiano
+#            docker compose -p photonpiano up -d --force-recreate
