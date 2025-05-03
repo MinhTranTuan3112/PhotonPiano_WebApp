@@ -25,8 +25,6 @@ import { fetchAccounts } from '~/lib/services/account'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Shift } from '~/lib/types/entrance-test/entrance-test'
 import { fetchCreateEntranceTest } from '~/lib/services/entrance-tests'
-import { format } from 'date-fns'
-import { date } from 'zod'
 import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {};
@@ -164,8 +162,8 @@ export default function CreateEntranceTestPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Tạo mới ca thi đầu vào</h1>
-            <p className="text-muted-foreground">Thông tin cơ bản</p>
+            <h1 className="text-xl font-extrabold">Create new test</h1>
+            <p className="text-muted-foreground">Basic information</p>
 
             <CreateEntranceTestForm idToken={idToken} />
 
