@@ -56,6 +56,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const deadlineData : SystemConfig = deadlineResponse.data;
 
         const slots: SlotDetail[] = response.data;
+
+    
         return Response.json({
             slots,
             selectedDate: formattedDate,
@@ -278,15 +280,15 @@ export default function TeacherAttendance_index() {
                                     <div className={`px-2 py-1 rounded text-xs font-medium ${
                                         slot.status === SlotStatus.Finished
                                             ? "bg-gray-200 text-gray-700"
-                                            : slot.status === SlotStatus.Ongoing
+                                            : (slot.status === SlotStatus.Ongoing
                                                 ? "bg-green-200 text-green-700"
-                                                : "bg-blue-200 text-blue-700"
+                                                : "bg-blue-200 text-blue-700")
                                     }`}>
                                         {slot.status === SlotStatus.Finished
                                             ? "Completed"
-                                            : slot.status === SlotStatus.Ongoing
+                                            : (slot.status === SlotStatus.Ongoing
                                                 ? "On Going"
-                                                : "Up Coming"}
+                                                : "Up Coming")}
                                     </div>
                                 </div>
                             </CardHeader>
@@ -310,7 +312,7 @@ export default function TeacherAttendance_index() {
                                     </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={slot.status === SlotStatus.Finished || isNotToday(slot.date, deadlineData.configValue)}
+                                        disabled={isNotToday(slot.date, deadlineData.configValue)}
                                         onClick={() => navigate(`/teacher/attendance/${slot.id}`)}
                                     >
                                         Attendance
