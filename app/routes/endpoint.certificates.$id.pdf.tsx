@@ -78,7 +78,7 @@ async function convertHtmlToPdf(html: string): Promise<Buffer> {
             "--disable-dev-shm-usage", // Overcome limited resource problems
             "--disable-gpu", // Often necessary in Linux environments
             "--disable-features=IsolateOrigins",
-            "--disable-site-isolation-trials"
+            "--disable-site-isolation-trials" 
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     });
@@ -92,7 +92,7 @@ async function convertHtmlToPdf(html: string): Promise<Buffer> {
             timeout: 30000, // 30 seconds timeout
         });
 
-        
+
         // Set viewport size before generating PDF
         await page.setViewport({
             width: 1240,
