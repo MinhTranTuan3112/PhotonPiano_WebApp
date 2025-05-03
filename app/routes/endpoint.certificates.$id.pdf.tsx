@@ -20,7 +20,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         })
 
         if (!response.data || !response.data.certificateHtml) {
-            const htmlUrl = new URL(`/api/certificates/${certificateId}/html`, request.url)
+            const htmlUrl = new URL(`/endpoint/certificates/${certificateId}/html`, request.url)
             const htmlResponse = await fetch(htmlUrl.toString(), {
                 headers: {
                     Cookie: request.headers.get("Cookie") || "",
