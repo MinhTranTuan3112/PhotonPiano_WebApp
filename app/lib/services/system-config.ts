@@ -160,6 +160,19 @@ export async function fetchDeadlineSchedulerSystemConfig({
     return response;
 }
 
+export async function fetchSystemConfigServerTime({
+    idToken
+}: {
+    idToken: string
+}) {
+    const response = await axiosInstance.get("/system-configs/current-server-time", {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
 export async function fetchRefundTuitionSystemConfig({
                                                              idToken
                                                          }: {

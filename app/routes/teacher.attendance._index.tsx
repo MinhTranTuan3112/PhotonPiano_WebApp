@@ -18,7 +18,7 @@ import { fetchSlots } from "~/lib/services/scheduler";
 import { Shift, SlotDetail, SlotStatus } from "~/lib/types/Scheduler/slot";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
-import {fetchDeadlineSchedulerSystemConfig} from "~/lib/services/system-config";
+import {fetchDeadlineSchedulerSystemConfig, fetchSystemConfigServerTime} from "~/lib/services/system-config";
 import {SystemConfig} from "~/lib/types/systemconfig/systemConfig";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -50,19 +50,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             idToken
         });
         
+        
 
         const deadlineResponse = await fetchDeadlineSchedulerSystemConfig({idToken});
         
         const deadlineData : SystemConfig = deadlineResponse.data;
 
         const slots: SlotDetail[] = response.data;
+        
+        const currentServerTime = await fetchSystemConfigServerTime({idToken});
+        
+        const currentServerDateTime = currentServerTime.data;
 
     
         return Response.json({
             slots,
             selectedDate: formattedDate,
             idToken,
-            deadlineData
+            deadlineData,
+            currentServerDateTime
         });
     } catch (error) {
         console.error("Error loading attendance data:", error);
@@ -73,17 +79,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 };
 
-const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => {
-    const now = new Date(); // Current time
-    const slot = new Date(slotDate); // Slot date (e.g. 2025-04-21T00:00:00)
-    console.log(now)
-    console.log(slot)
-    // Nếu slot ở tương lai thì không được phép điểm danh
+const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTime: string): boolean => {
+    const now = new Date(serverDateTime); // Use server time instead of local time
+    const slot = new Date(slotDate);
+
+    // If slot is in the future, attendance is not allowed
     if (slot > now) {
         return true;
     }
-    
-    // Nếu slot không phải hôm nay thì cũng không cho phép điểm danh
+
+    // If slot is not today, attendance is not allowed
     if (
         now.getFullYear() !== slot.getFullYear() ||
         now.getMonth() !== slot.getMonth() ||
@@ -91,8 +96,8 @@ const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => 
     ) {
         return true;
     }
-    
-    // Nếu là hôm nay, kiểm tra deadline
+
+    // If it's today, check the deadline
     let additionalHours = 0;
     if (deadlineValue) {
         try {
@@ -101,19 +106,16 @@ const isNotToday = (slotDate: string, deadlineValue: string | null): boolean => 
             console.warn("Error parsing deadline value:", error);
         }
     }
-    
+
     const slotWithDeadline = new Date(slot);
     slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
-    console.log(slotWithDeadline)
-    console.log(now > slotWithDeadline)
-    // Nếu đã quá thời gian cho phép điểm danh
+
+    // If past the attendance deadline
     return now > slotWithDeadline;
-    
-    // return false;
 };
 
 export default function TeacherAttendance_index() {
-    const { slots, selectedDate, deadlineData} = useLoaderData<typeof loader>();
+    const { slots, selectedDate, deadlineData, currentServerDateTime} = useLoaderData<typeof loader>();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [calendarOpen, setCalendarOpen] = useState(false);
@@ -314,7 +316,7 @@ export default function TeacherAttendance_index() {
                                     </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={isNotToday(slot.date, deadlineData.configValue)}
+                                        disabled={isNotToday(slot.date, deadlineData.configValue, currentServerDateTime)}
                                         onClick={() => navigate(`/teacher/attendance/${slot.id}`)}
                                     >
                                         Attendance

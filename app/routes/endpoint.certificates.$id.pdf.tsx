@@ -68,18 +68,38 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 async function convertHtmlToPdf(html: string): Promise<Buffer> {
+    console.log("Node ENV:", process.env.NODE_ENV);
+    console.log("Puppeteer executable path:", process.env.PUPPETEER_EXECUTABLE_PATH || "default");
     const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    })
+        headless: true, // Use the new headless mode
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage", // Overcome limited resource problems
+            "--disable-gpu", // Often necessary in Linux environments
+            "--disable-features=IsolateOrigins",
+            "--disable-site-isolation-trials"
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    });
 
     try {
-        const page = await browser.newPage()
+        const page = await browser.newPage();
+
+        // Add better error handling for page content loading
         await page.setContent(html, {
             waitUntil: "networkidle0",
-        })
+            timeout: 30000, // 30 seconds timeout
+        });
 
-        // Set page size to A4 for certificates
+        // Set viewport size before generating PDF
+        await page.setViewport({
+            width: 1240,
+            height: 1754, // Approximately A4 size at 96 DPI
+            deviceScaleFactor: 1,
+        });
+
+        // Generate PDF with improved settings
         const pdfBuffer = await page.pdf({
             format: "A4",
             printBackground: true,
@@ -89,10 +109,14 @@ async function convertHtmlToPdf(html: string): Promise<Buffer> {
                 bottom: "0.5cm",
                 left: "0.5cm",
             },
-        })
+            timeout: 60000, // 60 seconds timeout for PDF generation
+        });
 
-        return Buffer.from(pdfBuffer)
+        return Buffer.from(pdfBuffer);
+    } catch (error) {
+        console.error("PDF generation error details:", error);
+        throw error;
     } finally {
-        await browser.close()
+        await browser.close();
     }
 }
