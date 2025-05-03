@@ -46,7 +46,6 @@
     "@tanstack/react-virtual": "^3.13.2",
     "@tiptap/extension-image": "^2.11.0",
     "@tiptap/extension-placeholder": "^2.11.0",
-    "@rollup/rollup-linux-x64-musl":  "^4.40.1",
     "@tiptap/pm": "^2.11.0",
     "@tiptap/react": "^2.11.0",
     "@tiptap/starter-kit": "^2.11.0",
@@ -80,7 +79,8 @@
     "tiptap-extension-resize-image": "^1.2.1",
     "xlsx": "^0.18.5",
     "zod": "^3.24.1",
-    "semver": "^7.5.3"
+    "semver": "^7.5.3",
+    "rollup": "^4.40.1"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.2",
