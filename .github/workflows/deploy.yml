@@ -144,27 +144,10 @@
               # Pull the latest frontend image
               docker pull ${{ env.IMAGE_NAME_WEB }}:latest 
               
-              # Check if the frontend container is running
-              if docker ps -q -f name=photonpiano-web | grep -q .; then
-              # If container exists, stop and remove only the frontend container
-              echo "Stopping and removing existing frontend container..."
-              docker stop photonpiano-web
-              docker rm photonpiano-web
-              fi
+              # If the container is running, restart it; otherwise, let docker-compose handle it later
+              docker restart photonpiano-web || true
               
-              # Check if the network exists
-              if ! docker network ls | grep -q app-network; then
-              echo "Creating app-network..."
-              docker network create app-network
-              fi
-              
-              # Start only the frontend container with the appropriate network
-              echo "Starting new frontend container..."
-              docker run -d \
-              --name photonpiano-web \
-              --network app-network \
-              -p 3000:3000 \
-              --restart unless-stopped \
-              ${{ env.IMAGE_NAME_WEB }}:latest
-              
-              echo "Frontend deployment completed successfully!"
+              # Go to main directory and restart all services to ensure proper coordination
+              cd ~/photonpiano
+              docker compose -p photonpiano pull
+              docker compose -p photonpiano up -d --force-recreate
