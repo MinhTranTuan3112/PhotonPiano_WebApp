@@ -71,7 +71,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         fetcher,
         submitConfig: {
             encType: 'multipart/form-data',
-        },
+        }, 
         defaultValues: {
             type: undefined // Initialize with undefined to ensure it's properly set when selected
         },
