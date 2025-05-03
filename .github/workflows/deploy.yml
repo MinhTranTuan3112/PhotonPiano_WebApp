@@ -144,9 +144,12 @@ jobs:
             # Pull the latest frontend image
             docker pull ${{ env.IMAGE_NAME_WEB }}:latest 
             
-            # If the container is running, restart it; otherwise, let docker-compose handle it later
-            docker restart photonpiano-web || true
-            
-#            # Go to main directory and restart all services to ensure proper coordination
-#            cd ~/photonpiano
-#            docker compose -p photonpiano up -d --force-recreate
+            #remove old container if exists
+            docker rm -f photonpiano-web || true
+
+            # Run the new container
+            docker run -d \
+              --name photonpiano-web \
+              --env-file ~/photonpiano/frontend/.env \
+              -p 3000:3000 \ 
+              ${{ env.IMAGE_NAME_WEB }}:latest
