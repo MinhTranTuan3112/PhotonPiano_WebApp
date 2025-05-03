@@ -92,6 +92,7 @@ async function convertHtmlToPdf(html: string): Promise<Buffer> {
             timeout: 30000, // 30 seconds timeout
         });
 
+        
         // Set viewport size before generating PDF
         await page.setViewport({
             width: 1240,
