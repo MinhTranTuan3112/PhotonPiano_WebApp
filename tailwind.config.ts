@@ -57,7 +57,7 @@ export default {
     			background: 'hsl(var(--background))',
     			foreground: 'hsl(var(--foreground))',
     			theme: {
-    				DEFAULT: 'hsl(var(--theme))',
+    				DEFAULT: '#0284c7',
     				foreground: 'hsl(var(--theme-foreground))'
     			},
     			card: {

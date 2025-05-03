@@ -3,195 +3,84 @@ import { Await, useLoaderData } from '@remix-run/react';
 import React, { Suspense } from 'react';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccountDetail } from '~/lib/services/account';
-import { AccountDetail } from '~/lib/types/account/account';
+import { AccountDetail, Role } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { useNavigate } from 'react-router-dom';
-import { CircleArrowLeft } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import Image from '~/components/ui/image';
+import { CalendarDays, ClipboardCheck, Clock, Eye, Piano } from 'lucide-react';
 import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
 import { Class } from '~/lib/types/class/class';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { LearnerSurveyWithAnswersDetail } from '~/lib/types/survey/survey';
+import StudiedClassesSection, { ClassCard } from '~/components/learner/learner-details/studied-classes-section';
+import StudentHeader from '~/components/learner/learner-details/student-header';
+
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  const { idToken, role } = await requireAuth(request);
-  if (role !== 4) return redirect('/');
-  if (!params.id) return redirect('/staff/students');
+  try {
 
-  const promise = fetchAccountDetail(params.id, idToken).then((response) => {
-    const student = response.data as AccountDetail;
-    return { student };
-  });
+    const { idToken, role } = await requireAuth(request);
+    if (role !== Role.Staff) {
+      return redirect('/');
+    }
 
-  return { promise, idToken };
+    if (!params.id) {
+      return redirect('/staff/students');
+    }
+
+    const promise = fetchAccountDetail(params.id, idToken).then((response) => {
+      const student = response.data as AccountDetail;
+      return { student };
+    });
+
+    return { promise, idToken };
+  } catch (error) {
+    console.error({ error });
+
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    const { message, status } = getErrorDetailsInfo(error);
+
+    throw new Response(message, { status });
+  }
 }
-
-const getClassCover = (status: number) => {
-  switch (status) {
-    case 0:
-      return "bg-gradient-to-r from-gray-500 to-gray-700 text-white font-semibold";
-    case 1:
-      return "bg-gradient-to-r from-green-400 via-green-500 to-green-600 text-white font-semibold";
-    case 2:
-      return "bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-800 text-white font-semibold";
-    case 3:
-      return "bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white font-semibold";
-    default:
-      return "bg-gradient-to-r from-zinc-700 via-neutral-800 to-black text-white font-semibold";
-  }
-};
-
-const getEntranceTestCover = (dateString: string) => {
-  const date = new Date(dateString)
-  if (date > new Date()) {
-    return "bg-green-500 text-white font-semibold";
-  } else {
-    return "bg-gray-500 text-white font-semibold";
-  }
-};
 
 
 export default function StaffStudentDetailPage() {
   const { promise } = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
-
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
-      <div className="mb-6">
-        <Button variant="outline" onClick={() => navigate(-1)} className="flex items-center gap-2">
-          <CircleArrowLeft className="w-5 h-5" /> Back
-        </Button>
-      </div>
-
       <Suspense fallback={<LoadingSkeleton />}>
         <Await resolve={promise}>
           {({ student }) => (
             <div className="bg-white shadow-2xl rounded-2xl p-6 space-y-8">
-              {/* Profile Info */}
-              <div className="flex flex-col lg:flex-row items-center gap-6 border-b pb-6">
-                <Image
-                  src={student.avatarUrl || '/images/noavatar.png'}
-                  alt={student.fullName}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-primary"
-                />
-                <div className="flex-1 space-y-2 text-center lg:text-left">
-                  <h2 className="text-3xl font-bold text-gray-900">{student.fullName || student.userName}</h2>
-                  <p className="text-gray-600">{student.email}</p>
-                  <p className="text-gray-600">{student.phone}</p>
-                  <p className="text-gray-500">
-                    <span className="font-semibold">Level:</span> {student.level?.name.split('(')[0] || 'N/A'}
-                  </p>
-                  <div className="flex flex-col lg:flex-row lg:justify-between gap-2 text-sm text-gray-500 mt-2">
-                    <p><span className="font-semibold">Address:</span> {student.address}</p>
-                    <p><span className="font-semibold">Gender:</span> {student.gender}</p>
-                    <p><span className="font-semibold">Date of birth:</span> {student.dateOfBirth}</p>
-                  </div>
-                  <p className="text-gray-500"><span className="font-semibold">Short bio:</span> {student.shortDescription}</p>
-                </div>
+
+              <div className="">
+                <h1 className="text-2xl font-bold">Learner details</h1>
+                <div className="text-sm text-muted-foreground">View learner details information including basic personal information, classes, free times and surveys</div>
               </div>
 
-              {/* Current Class */}
-              <Section title="🎓 Current class">
-                {student.currentClass ? (
-                  <Card>
-                    <CardHeader status={student.currentClass.status}>
-                      {student.currentClass.name}
-                    </CardHeader>
-                    <CardContent>
-                      <ClassDetails classObj={student.currentClass} />
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <p className="text-gray-400 italic">Not currently in any classes</p>
-                )}
-              </Section>
+              <StudentHeader student={student} />
 
-              {/* Past Classes */}
-              <Section title="📚 Studied classes">
-                {student.studentClasses.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {student.studentClasses.map(({ class: c }) => (
-                      <Card key={c.id}>
-                        <CardHeader status={c.status}>{c.name}</CardHeader>
-                        <CardContent>
-                          <ClassDetails classObj={c} />
-                        </CardContent>
-                      </Card>
-                    ))}
+              {student.currentClass && (
+                <div className='space-y-4'>
+                  <div className="flex items-center gap-2 text-lg font-medium text-neutral-800">
+                    <Piano className="h-5 w-5 text-theme" />
+                    <h3 className='font-bold'>Current Class</h3>
                   </div>
-                ) : (
-                  <p className="text-gray-400 italic">No studied classes.</p>
-                )}
-              </Section>
-
-              {/* Free Time */}
-              <Section title="⏰ Free Time">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm text-gray-700 border rounded-lg overflow-hidden">
-                    <thead className="bg-gray-100 font-semibold">
-                      <tr>
-                        <th className="px-4 py-2 border">Shift</th>
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day, i) => (
-                          <th key={i} className="px-4 py-2 border">{day}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.keys(SHIFT_TIME).map((shiftKey) => {
-                        const shift = parseInt(shiftKey);
-                        return (
-                          <tr key={shift} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 border font-medium text-center">{SHIFT_TIME[shift]}</td>
-                            {Array.from({ length: 7 }).map((_, dayIndex) => {
-                              const hasSlot = student.freeSlots.some(slot => slot.dayOfWeek === dayIndex && slot.shift === shift);
-                              return (
-                                <td key={dayIndex} className="px-4 py-2 border text-center">
-                                  {hasSlot ? (
-                                    <span className="inline-block bg-green-500 text-white px-2 py-1 rounded-full text-xs">✔️</span>
-                                  ) : (
-                                    <span className="text-gray-300">–</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <ClassCard classObj={student.currentClass} type='current' />
                 </div>
-              </Section>
+              )}
 
-              {/* Surveys */}
-              <Section title="📝 Survey Answered">
-                {student.learnerSurveys.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {student.learnerSurveys.map((survey, index) => (
-                      <Card key={index} className="bg-gray-50">
-                        <h4 className="text-lg font-bold text-primary">{survey.pianoSurvey.name}</h4>
-                        <p className="text-sm text-gray-500"><span className="font-semibold">Date:</span> {new Date(survey.createdAt).toLocaleDateString()}</p>
-                        <div className="mt-2">
-                          {survey.learnerAnswers.map(answer => (
-                            <div key={answer.surveyQuestion.id} className="mb-3">
-                              <p className="font-medium">{answer.surveyQuestion.orderIndex}. {answer.surveyQuestion.questionContent}</p>
-                              <div className="ml-4 text-gray-600">
-                                {answer.answers.length > 0 ? (
-                                  answer.answers.map((ans, i) => (
-                                    <p key={i} className="text-sm">- {ans}</p>
-                                  ))
-                                ) : (
-                                  <p className="italic text-gray-400 text-sm">No answers found</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-400 italic">No surveys found.</p>
-                )}
-              </Section>
+              <StudiedClassesSection student={student} type='past' />
+
+              <FreeTimesSection student={student} />
+
+              <SurveysSection learnerSurveys={student.learnerSurveys} />
             </div>
           )}
         </Await>
@@ -208,33 +97,150 @@ function LoadingSkeleton() {
     </div>
   );
 }
-// Components
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div>
-    <h3 className="text-2xl font-semibold mb-4">{title}</h3>
-    {children}
+
+function FreeTimesSection({ student }: {
+  student: AccountDetail;
+}) {
+
+  return <div className="space-y-4">
+    <div className="flex items-center gap-2 text-lg font-medium text-neutral-800">
+      <Clock className="h-5 w-5 text-theme" />
+      <h3 className='font-bold'>Free Times</h3>
+    </div>
+
+    <div className="overflow-x-auto rounded-xl border border-neutral-200 shadow-sm">
+      <table className="min-w-full bg-white text-sm">
+        <thead>
+          <tr className="bg-neutral-900 text-white">
+            <th className="px-4 py-3 border-r border-neutral-700 text-left">Shift</th>
+            {daysOfWeek.map((day, i) => (
+              <th key={i} className="px-4 py-3 text-center border-r border-neutral-700 last:border-r-0">
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(SHIFT_TIME).map((shiftKey) => {
+            const shift = parseInt(shiftKey);
+            const isEvenRow = shift % 2 === 0;
+
+            return (
+              <tr
+                key={shift}
+                className={isEvenRow ? "bg-neutral-50" : "bg-white"}
+              >
+                <td className="px-4 py-3 border-r border-neutral-200 font-medium">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-3 w-3 rounded-full bg-theme"></span>
+                    {SHIFT_TIME[shift]}
+                  </div>
+                </td>
+
+                {Array.from({ length: 7 }).map((_, dayIndex) => {
+                  const hasSlot = student.freeSlots.some(
+                    slot => slot.dayOfWeek === dayIndex && slot.shift === shift
+                  );
+
+                  return (
+                    <td
+                      key={dayIndex}
+                      className="px-4 py-3 border-r border-neutral-200 last:border-r-0 text-center"
+                    >
+                      {hasSlot ? (
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-theme text-white shadow-sm">
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-neutral-400">
+                          –
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
+    <div className="flex justify-end">
+      <div className="flex items-center gap-4 text-sm text-neutral-600">
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-theme"></span>
+          <span>Available</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-neutral-200"></span>
+          <span>Unavailable</span>
+        </div>
+      </div>
+    </div>
   </div>
-);
+}
 
-const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
-  <div className={`rounded-xl border shadow-lg bg-white ${className}`}>{children}</div>
-);
 
-const CardHeader: React.FC<{ children: React.ReactNode; status: number }> = ({ children, status }) => (
-  <div className={`${getClassCover(status)} p-4 rounded-t-xl text-center font-semibold py-2 text-white`}>
-    {children}
+function SurveysSection({
+  learnerSurveys
+}: {
+  learnerSurveys: LearnerSurveyWithAnswersDetail[];
+}) {
+
+  const navigate = useNavigate();
+
+  return <div className="space-y-4">
+    <div className="flex items-center gap-2 text-lg font-medium text-neutral-800">
+      <ClipboardCheck className="h-5 w-5 text-theme" />
+      <h3 className='font-bold'>Completed Surveys</h3>
+    </div>
+
+    {learnerSurveys.length > 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {learnerSurveys.map(({ pianoSurvey: survey, createdAt }, index) => (
+          <Card
+            key={index}
+            className="overflow-hidden border-t-4 border-t-theme hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate(`/staff/surveys/${survey.id}`)}
+          >
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">{survey.name}</CardTitle>
+              <CardDescription className="line-clamp-2">
+                {survey.description}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              <div className="flex items-center text-sm text-muted-foreground mt-2">
+                <CalendarDays className="mr-2 h-4 w-4 text-theme" />
+                <span>Completed on: </span>
+                <span className="ml-1 font-medium text-neutral-700">
+                  {formatRFC3339ToDisplayableDate(createdAt, false)}
+                </span>
+
+              </div>
+
+              {/* Piano key decorative element */}
+              <div className="mt-4 flex h-2">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-full ${i % 2 === 0 ? 'bg-black w-3' : 'bg-white border-r border-neutral-200 w-2'}`}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    ) : (
+      <Card className="bg-neutral-50 border border-dashed">
+        <CardContent className="flex flex-col items-center justify-center p-6 text-neutral-500">
+          <ClipboardCheck className="h-12 w-12 mb-2 opacity-20" />
+          <p>No surveys completed yet</p>
+        </CardContent>
+      </Card>
+    )}
   </div>
-);
-
-const CardContent: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="pt-2 text-sm space-y-1 p-4">{children}</div>
-);
-
-const ClassDetails: React.FC<{ classObj: Class }> = ({ classObj }) => (
-  <>
-    <p><span className="font-semibold">Level:</span> {classObj.level?.name || "N/A"}</p>
-    <p><span className="font-semibold">Ngày bắt đầu:</span> {classObj.startTime || "TBD"}</p>
-    <p><span className="font-semibold">Thời khóa biểu:</span> {classObj.scheduleDescription || "N/A"}</p>
-    <p><span className="font-semibold">Trạng thái:</span> {CLASS_STATUS[classObj.status]}</p>
-  </>
-);
+}

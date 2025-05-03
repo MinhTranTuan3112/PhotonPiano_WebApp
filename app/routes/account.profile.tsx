@@ -1,7 +1,7 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, MapPinHouse, Upload, Lock, GraduationCap, User, BookOpen, Pencil, Calendar, MapPin } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, Upload, Lock, GraduationCap, User, BookOpen, Pencil, Calendar, MapPin } from 'lucide-react'
 import { z } from 'zod'
 import { accountInfoSchema } from '~/lib/utils/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,11 +9,9 @@ import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import React, { Suspense, useEffect } from 'react'
 import { Skeleton } from '~/components/ui/skeleton'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Account, Gender, Level, Role, StudentStatus } from '~/lib/types/account/account'
+import { Account, Gender, Role } from '~/lib/types/account/account'
 import { toast } from 'sonner'
 import { Label } from '~/components/ui/label'
-import { Separator } from '~/components/ui/separator'
-import { Textarea } from '~/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { useImagesDialog } from '~/hooks/use-images-dialog'
 import { LevelBadge, StatusBadge } from '~/components/staffs/table/student-columns'
@@ -31,6 +29,7 @@ import { Switch } from '~/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { toastWarning } from '~/lib/utils/toast-utils'
+import { Textarea } from '~/components/ui/textarea'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -243,6 +242,7 @@ function ProfileForm() {
 
         if (fetcher.data?.success === true) {
             toast.success('Update successfully!');
+            refetchAccountInfo();
             return;
         }
 
@@ -598,7 +598,7 @@ function AcademicInfoSection() {
     return (
         <div className="space-y-8">
             <div className="grid md:grid-cols-2 gap-8">
-                <Card className="bg-muted/40">
+                <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
                             <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
@@ -612,7 +612,7 @@ function AcademicInfoSection() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-muted/40">
+                <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
                             <BookOpen className="mr-2 h-4 w-4" /> Academic status
@@ -627,7 +627,7 @@ function AcademicInfoSection() {
                 </Card>
             </div>
 
-            <Card>
+            <Card className='border-l-4 border-l-theme'>
                 <CardHeader>
                     <CardTitle className="text-lg">Continue learning</CardTitle>
                     <CardDescription>
