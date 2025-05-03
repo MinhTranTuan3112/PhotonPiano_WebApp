@@ -34,19 +34,19 @@ export default function MyTestCard({ entranceTest }: Props) {
                     </div>
                     <div className='grid grid-cols-1 lg:grid-cols-2 gap-2 mt-4'>
                         <div>
-                            <span className='font-bold'>Ca thi : </span>
+                            <span className='font-bold'>Shift : </span>
                             <span>{entranceTest.shift + 1} ({SHIFT_TIME[entranceTest.shift]})</span>
                         </div>
                         <div>
-                            <span className='font-bold'>Ngày thi : </span>
+                            <span className='font-bold'>Date : </span>
                             <span>{entranceTest.date}</span>
                         </div>
                         <div>
-                            <span className='font-bold'>Địa điểm : </span>
+                            <span className='font-bold'>Location : </span>
                             <span>{entranceTest.roomName}</span>
                         </div>
                         <div>
-                            <span className='font-bold'>Giảng viên chấm : </span>
+                            <span className='font-bold'>Teacher : </span>
                             <span>{entranceTest.instructorName}</span>
                         </div>
                     </div>
@@ -54,7 +54,7 @@ export default function MyTestCard({ entranceTest }: Props) {
                 <div>
                     <Button variant={'expandIcon'} onClick={() => navigate(`/account/my-exams/${entranceTest.id}`)}
                         Icon={ArrowRight} iconPlacement='right'>
-                        Xem
+                        View
                     </Button>
                 </div>
             </div>

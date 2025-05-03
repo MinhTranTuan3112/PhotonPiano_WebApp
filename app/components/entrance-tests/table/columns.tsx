@@ -171,7 +171,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(authData.role === Role.Staff ? `/staff/entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
+                    onClick={() => navigate(authData.role === Role.Staff ? `../entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
                     <Eye /> View
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}

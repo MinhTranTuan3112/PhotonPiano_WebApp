@@ -624,7 +624,7 @@ function StudentsSection({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Thêm học viên vào ca thi thành công!');
+            toast.success('Add success!');
             return;
         }
 
@@ -664,17 +664,18 @@ function StudentsSection({
                     <ResultTable data={entranceTest.entranceTestStudents} />
                 </div>
             </CardContent>
-            <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
+            {role === Role.Staff && <CardFooter className="flex flex-col md:flex-row justify-center gap-4">
                 {
                     (entranceTest.status === 0 || entranceTest.status === 3) && entranceTest.registerStudents === 0 && (
                         <Button className='px-12' variant={"destructive"}>
-                            <Trash className='mr-2' /> Xóa ca thi này
+                            <Trash className='mr-2' /> Delete this test
                         </Button>
                     )
                 }
                 <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
                     status={entranceTest.status} />
-            </CardFooter>
+            </CardFooter>}
+
         </Card>
         {importResultDialog}
         {studentsListDialog}
