@@ -33,98 +33,128 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { toastWarning } from '~/lib/utils/toast-utils'
 type Props = {}
 
-type ProfileFormData = z.infer<typeof accountInfoSchema>
+type ProfileFormData = z.infer<typeof accountInfoSchema>;
 
-const resolver = zodResolver(accountInfoSchema)
+const resolver = zodResolver(accountInfoSchema);
+
+// async function getSampleProfileInfo() {
+
+//     await new Promise((resolve) => setTimeout(resolve, 1000));
+
+//     return {
+//         userName: 'abc',
+//         email: 'abc@gmail.com',
+//         fullName: 'Nguyễn Văn A',
+//         address: '123 abc',
+//         phone: '0123456789',
+//         shortDescription: '...',
+//         level: Level.Beginner,
+//         role: Role.Student,
+//         studentStatus: StudentStatus.AttemptingEntranceTest,
+//         gender: Gender.Male
+//     } as Account;
+// }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+
     try {
-        const { idToken, role } = await requireAuth(request)
+
+        const { idToken, role } = await requireAuth(request);
 
         if (role !== Role.Student) {
-            return redirect("/sign-in")
+            return redirect('/sign-in');
         }
 
         const promise = fetchCurrentAccountInfo({ idToken }).then((response) => {
-            const accountPromise: Promise<Account> = response.data
-            return { accountPromise }
-        })
+            const accountPromise: Promise<Account> = response.data;
+
+            return { accountPromise };
+        });
 
         return {
             promise,
-            role,
+            role
         }
+
     } catch (error) {
-        console.error({ error })
+        console.error({ error });
 
         if (isRedirectError(error)) {
-            throw error
+            throw error;
         }
 
-        const { message, status } = getErrorDetailsInfo(error)
-        throw new Response(message, { status })
+        const { message, status } = getErrorDetailsInfo(error);
+
+        throw new Response(message, { status });
+
     }
 }
 
 type ServerFormData = {
-    dateOfBirth: string
-} & Omit<ProfileFormData, "dateOfBirth">
+    dateOfBirth: string;
+} & Omit<ProfileFormData, 'dateOfBirth'>;
 
 export async function action({ request }: ActionFunctionArgs) {
+
     try {
-        const { idToken, role } = await requireAuth(request)
+
+        const { idToken, role } = await requireAuth(request);
 
         if (role !== Role.Student) {
-            return redirect("/")
+            return redirect('/');
         }
 
-        const {
-            errors,
-            data,
-            receivedValues: defaultValues,
-        } = await getValidatedFormData<ServerFormData>(request, resolver)
+        const { errors, data, receivedValues: defaultValues } =
+            await getValidatedFormData<ServerFormData>(request, resolver);
 
         if (errors) {
-            return { success: false, errors, defaultValues }
+            return { success: false, errors, defaultValues };
         }
 
-        // Server-side form processing
-        try {
-            const response = await fetchUpdateAccountInfo({ idToken, request: data })
+        // let uploadImageUrl: string | undefined = undefined;
 
-            return {
-                success: response.status === 204,
-            }
-        } catch (apiError) {
-            console.error("API Error:", apiError)
+        // if (data.avatar) {
 
-            // Handle API errors more gracefully
-            const errorDetails = apiError instanceof Error ? apiError.message : "Unknown error"
+        //     const uploadImageResponse = await uploadImageFile({
+        //         file: data.avatar,
+        //         name: data.avatar?.name,
+        //         groupId: TEST_IMAGE_GROUP_ID,
+        //         size: data.avatar?.size,
+        //     });
 
-            return {
-                success: false,
-                error: errorDetails,
-                status: 500,
-            }
+        //     const imageData = await uploadImageResponse.data;
+
+        //     const imageCID = imageData.cid;
+
+        //     uploadImageUrl = getImageUrl(imageCID);
+        // }
+
+        const response = await fetchUpdateAccountInfo({ idToken, request: data });
+
+        return {
+            success: response.status === 204
         }
+
     } catch (error) {
-        console.error({ error })
+        console.error({ error });
 
         if (isRedirectError(error)) {
-            throw error
+            throw error;
         }
 
-        const { message, status } = getErrorDetailsInfo(error)
+        const { message, status } = getErrorDetailsInfo(error);
 
         return {
             success: false,
             error: message,
-            status,
+            status
         }
     }
+
 }
 
-export default function AccountProfilePage({ }: Props) {
+
+export default function AccountProfilePage() {
     const { promise } = useLoaderData<typeof loader>()
 
     return (
@@ -226,7 +256,7 @@ function ProfileForm() {
         }
 
         return () => {
-            
+
         }
 
     }, [fetcher.data]);
@@ -247,10 +277,7 @@ function ProfileForm() {
             ...account,
             dateOfBirth: account.dateOfBirth ? new Date(account.dateOfBirth || "") : new Date(),
         },
-        fetcher,
     })
-
-    const isSubmitting = fetcher.state === "submitting"
 
     const { open: handleOpenConfirmationDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: "Confrm action",
@@ -263,31 +290,11 @@ function ProfileForm() {
         title: "Add profile image",
         description: "Import image from url or upload from your device.",
         onConfirm: (imageUrls) => {
-            console.log({ imageUrls })
             setValue("avatarUrl", imageUrls[0])
         },
         requiresUpload: true,
         maxImages: 1,
     })
-
-    useEffect(() => {
-        if (fetcher.data?.success === true) {
-            toast.success("Lưu thông tin thành công!", {
-                position: "top-center",
-                duration: 1250,
-            })
-            refetchAccountInfo()
-            return
-        }
-
-        if (fetcher.data?.success === false && fetcher.data.error) {
-            toast.error(`Lưu thất bại! ${fetcher.data.error}`, {
-                position: "top-center",
-                duration: 1250,
-            })
-            return
-        }
-    }, [fetcher.data, refetchAccountInfo])
 
     return (
         <>
@@ -317,6 +324,14 @@ function ProfileForm() {
                                         : "PP"}
                                 </AvatarFallback>
                             </Avatar>
+                            <button
+                                type="button"
+                                onClick={handleOpenImageDialog}
+                                className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 shadow-md hover:bg-primary/90 transition-colors"
+                            >
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Change avatar</span>
+                            </button>
                         </div>
                         <Button type="button" className="w-full" variant="outline" size="sm" onClick={handleOpenImageDialog}>
                             <Upload className="mr-2 h-4 w-4" />
@@ -465,7 +480,7 @@ function ProfileForm() {
                                 Address
                             </Label>
                             <div className="relative">
-                                <MapPinHouse className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     {...register("address")}
                                     name="address"
@@ -528,6 +543,7 @@ function ProfileForm() {
     )
 }
 
+
 function LoadingSkeleton() {
     return (
         <div className="flex flex-col md:flex-row gap-8">
@@ -555,6 +571,29 @@ function LoadingSkeleton() {
 function AcademicInfoSection() {
     const accountValue = useAsyncValue()
     const account = accountValue as Account
+    const [isLoading, setIsLoading] = React.useState(false)
+    const [continueLearning, setContinueLearning] = React.useState(account.wantToContinue || false)
+    const fetcher = useFetcher()
+
+    const handleUpdateLearningStatus = async (status: boolean) => {
+        try {
+            fetcher.submit(
+                { continueLearning: status.toString() },
+                { method: "POST", action: "/endpoint/account/update-learning-status" },
+            )
+
+            toast.success("Learning status updated successfully!", {
+                position: "top-center",
+                duration: 1250,
+            })
+        } catch (error) {
+            console.error("Failed to update learning status:", error)
+            toast.error("Failed to update learning status", {
+                position: "top-center",
+                duration: 1250,
+            })
+        }
+    }
 
     return (
         <div className="space-y-8">
