@@ -149,4 +149,5 @@ jobs:
             
             # Go to main directory and restart all services to ensure proper coordination
             cd ~/photonpiano
+            docker compose -p photonpiano pull
             docker compose -p photonpiano up -d --force-recreate
