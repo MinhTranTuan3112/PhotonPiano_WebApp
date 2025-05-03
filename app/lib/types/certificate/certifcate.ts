@@ -4,6 +4,7 @@ export type Certificate = {
   levelName: string;
   completionDate: string;
   certificateUrl: string;
+  certificateHtml?: string;
   gpa: number;
   studentName: string;
   instructorName: string;
