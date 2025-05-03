@@ -155,7 +155,7 @@ export function CertificateModal({ certificate, isOpen, onClose }: CertificateMo
                     <Button
                         className="w-full"
                         variant="outline"
-                        onClick={() => window.open(`/api/certificates/${certificate.studentClassId}/pdf`, "_blank")}
+                        onClick={() => window.open(`/endpoint/certificates/${certificate.studentClassId}/pdf`, "_blank")}
                         disabled={!certificate.certificateUrl}
                     >
                         <Download className="mr-2 h-4 w-4" />
