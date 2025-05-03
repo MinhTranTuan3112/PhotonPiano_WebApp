@@ -9,6 +9,9 @@ declare module "@remix-run/node" {
 }
 
 export default defineConfig({
+  optimizeDeps: {
+    entries: [],
+  },
   plugins: [
     remix({
       // presets: [vercelPreset()],
@@ -28,5 +31,5 @@ export default defineConfig({
         console.log('VITE_IS_DEVELOPMENT:', process.env.VITE_IS_DEVELOPMENT);
       },
     },
-  ],
+  ]
 });

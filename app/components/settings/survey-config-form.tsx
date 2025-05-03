@@ -101,6 +101,8 @@ export default function SurveyConfigForm({ fetcher, isSubmitting, idToken, ...de
                                         totalCount: parseInt(headers['x-total-count'] || '0'),
                                     };
 
+                                    console.log({ response });
+
                                     return {
                                         data: response.data,
                                         metadata
