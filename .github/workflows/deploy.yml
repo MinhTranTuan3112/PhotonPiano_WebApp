@@ -100,7 +100,6 @@ jobs:
   deploy-to-server:
     needs: docker-build-and-push
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -119,13 +118,18 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            set -e # Stop script if there's an error
+            #!/bin/bash
+            set -e
             
-            # Ensure directory structure exists
-            mkdir -p ~/photonpiano/frontend
+            # Chuyển đến thư mục photonpiano
+            cd ~/photonpiano || exit
             
-            # Create .env file for frontend
-            cat > ~/photonpiano/frontend/.env <<EOF
+            # Đăng nhập vào GitHub Container Registry
+            echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Cập nhật file .env cho frontend
+            mkdir -p frontend
+            cat > frontend/.env <<EOF
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
             VITE_COOKIE_SECRET=${{ secrets.VITE_COOKIE_SECRET }}
             VITE_IS_DEVELOPMENT=${{ secrets.VITE_IS_DEVELOPMENT }}
@@ -135,21 +139,14 @@ jobs:
             VITE_PINATA_GATEWAY_BASE_URL=${{ secrets.VITE_PINATA_GATEWAY_BASE_URL }}
             VITE_API_PUB_SUB_URL=${{ secrets.VITE_API_PUB_SUB_URL }}
             VITE_API_NOTIFICATION_URL=${{ secrets.VITE_API_NOTIFICATION_URL }}
-            VITE_API_PROGRESS_URL=${{ secrets.VITE_API_PROGRESS_URL }}
+            VITE_API_PROGRESS_URL=${{ env.VITE_API_PROGRESS_URL }}
             EOF
             
-            # Login to GitHub Container Registry
-            echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Pull image FE mới
+            docker pull ${{ env.IMAGE_NAME_WEB }}:latest
             
-            # Pull the latest frontend image
-            docker pull ${{ env.IMAGE_NAME_WEB }}:latest 
+            # Cập nhật container FE
+            docker compose -p photonpiano up -d --no-recreate photonpiano-web
             
-            #remove old container if exists
-            docker rm -f photonpiano-web || true
-
-            # Run the new container
-            docker run -d \
-              --name photonpiano-web \
-              --env-file ~/photonpiano/frontend/.env \
-              -p 3000:3000 \
-              ${{ env.IMAGE_NAME_WEB }}:latest
+            # Làm sạch tài nguyên không sử dụng
+            docker system prune -f
