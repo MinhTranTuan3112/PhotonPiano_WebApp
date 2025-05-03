@@ -21,15 +21,15 @@ function QuestionTypeBadge({ type }: { type: QuestionType }) {
 
 export const columns: ColumnDef<SurveyQuestion>[] = [
     {
-        accessorKey: 'Nội dung câu hỏi',
-        header: 'Nội dung câu hỏi',
+        accessorKey: 'Question content',
+        header: 'Question content',
         cell: ({ row }) => {
             return <div className="font-bold">{row.original.questionContent}</div>
         }
     },
     {
-        accessorKey: 'Loại câu hỏi',
-        header: 'Loại câu hỏi',
+        accessorKey: 'Type',
+        header: 'Type',
         cell: ({ row }) => {
             return <div className="">
                 <QuestionTypeBadge type={row.original.type} />
@@ -37,8 +37,8 @@ export const columns: ColumnDef<SurveyQuestion>[] = [
         }
     },
     {
-        accessorKey: 'Các lựa chọn',
-        header: 'Các lựa chọn',
+        accessorKey: 'Options',
+        header: 'Options',
         cell: ({ row }) => {
             return <div className="">
                 {row.original.options.length > 0 ? row.original.options.map((option, index) => {
@@ -48,27 +48,25 @@ export const columns: ColumnDef<SurveyQuestion>[] = [
         }
     },
     {
-        accessorKey: 'Cho phép câu trả lời khác',
-        header: (header) => {
-            return <div className="max-w-10">Cho phép câu trả lời khác</div>
-        },
+        accessorKey: 'Allow other answer',
+        header: 'Allow other answer',
         cell: ({ row }) => {
             return <div className="">{row.original.allowOtherAnswer ? <Check className="text-green-600" /> : <CircleX className="text-red-600" />}</div>
         }
     },
     {
-        accessorKey: 'Giới hạn độ tuổi',
-        header: 'Giới hạn độ tuổi',
+        accessorKey: 'Age constraint',
+        header: 'Age constraint',
         cell: ({ row }) => {
             return <div className="">
-                {row.original.minAge ? `Từ ${row.original.minAge} tuổi` : ''} {row.original.maxAge ? ` đến ${row.original.maxAge} tuổi` : '(Không)'}
+                {row.original.minAge ? `From ${row.original.minAge}` : ''} {row.original.maxAge ? ` to ${row.original.maxAge}` : '(None)'}
             </div>
         }
     },
     {
-        id: 'Thao tác',
-        accessorKey: 'Thao tác',
-        header: 'Thao tác',
+        id: 'Actions',
+        accessorKey: 'Actions',
+        header: 'Actions',
         cell: ({ row }) => {
             return <ActionDropdown row={row} />
         }
@@ -84,8 +82,8 @@ function ActionDropdown({ row }: {
     const loaderData = useRouteLoaderData<typeof loader>("root");
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận xóa câu hỏi',
-        description: 'Bạn có chắc chắn muốn xóa câu hỏi này không?',
+        title: 'Confirm action',
+        description: 'Delete this question?',
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', row.original.id);
@@ -95,7 +93,7 @@ function ActionDropdown({ row }: {
             });
         },
         confirmButtonClassname: 'bg-red-600 text-white',
-        confirmText: 'Xóa'
+        confirmText: 'Delete'
     });
 
     const { isOpen: isQuestionDialogOpen, handleOpen: handleOpenQuestionDialog, questionDialog } = useQuestionDialog({
@@ -113,7 +111,7 @@ function ActionDropdown({ row }: {
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Câu hỏi đã được xóa thành công.');
+            toast.success('Delete success.');
             return;
         }
 
@@ -138,17 +136,17 @@ function ActionDropdown({ row }: {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={() => {
                     handleOpenQuestionDialog();
                 }}>
                     <PencilLine />
-                    Sửa
+                    Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleOpenConfirmDialog}>
                     <CircleX />
-                    Xóa
+                    Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

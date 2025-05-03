@@ -221,7 +221,7 @@ export default function QuestionDialog({
                                 <div className="flex flex-row gap-3">
                                     <Input value={newOption} onChange={(e) => {
                                         setNewOption(prev => e.target.value);
-                                    }} placeholder='Thêm lựa chọn mới...' onKeyDown={handleKeyDown} />
+                                    }} placeholder='Add new option...' onKeyDown={handleKeyDown} />
                                     <Button type='button' variant={'outline'} size={'icon'}
                                         onClick={addOption} disabled={newOption.trim() === ''}>
                                         <CirclePlus />

@@ -215,7 +215,7 @@ const data = {
                     url: "/teacher/entrance-tests",
                 },
                 {
-                    title: "Class list",
+                    title: "Classes",
                     url: "/teacher/classes",
                 },
                 {

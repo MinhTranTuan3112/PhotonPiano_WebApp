@@ -4,7 +4,7 @@ import { ca } from "date-fns/locale";
 import { Award } from "lucide-react";
 import React from "react";
 import CertificateCard from "~/components/ui/certificate/certificate-card";
-import CertificateModal from "~/components/ui/certificate/certificate-modal";
+import { CertificateModal } from "~/components/ui/certificate/certificate-modal";
 import { fetchCertificate, fetchStudentCertificates } from "~/lib/services/certificate";
 import { Role } from "~/lib/types/account/account";
 import { Certificate } from "~/lib/types/certificate/certifcate";
