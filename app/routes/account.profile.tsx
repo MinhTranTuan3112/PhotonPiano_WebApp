@@ -242,6 +242,7 @@ function ProfileForm() {
 
         if (fetcher.data?.success === true) {
             toast.success('Update successfully!');
+            refetchAccountInfo();
             return;
         }
 
@@ -597,7 +598,7 @@ function AcademicInfoSection() {
     return (
         <div className="space-y-8">
             <div className="grid md:grid-cols-2 gap-8">
-                <Card className="bg-muted/40">
+                <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
                             <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
@@ -611,7 +612,7 @@ function AcademicInfoSection() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-muted/40">
+                <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
                             <BookOpen className="mr-2 h-4 w-4" /> Academic status
@@ -626,7 +627,7 @@ function AcademicInfoSection() {
                 </Card>
             </div>
 
-            <Card>
+            <Card className='border-l-4 border-l-theme'>
                 <CardHeader>
                     <CardTitle className="text-lg">Continue learning</CardTitle>
                     <CardDescription>
