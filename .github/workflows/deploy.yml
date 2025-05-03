@@ -36,10 +36,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 📦 Install Dependencies
+      - name: Clean dependencies
         run: |
-          rm -rf node_modules package-lock.json
-          npm ci
+          rm -rf node_modules
+          rm -f package-lock.json
+
+      - name: 📦 Install Dependencies
+        run: npm install
 
       - name: 🏗️ Build Project
         run: npm run build
