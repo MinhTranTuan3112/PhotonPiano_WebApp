@@ -151,5 +151,5 @@ jobs:
             docker run -d \
               --name photonpiano-web \
               --env-file ~/photonpiano/frontend/.env \
-              -p 3000:3000 \ 
+              -p 3000:3000 \
               ${{ env.IMAGE_NAME_WEB }}:latest
