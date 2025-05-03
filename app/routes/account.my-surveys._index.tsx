@@ -1,5 +1,5 @@
 import {LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from "@remix-run/react";
 import {  RotateCcw, Search } from "lucide-react";
 import { Suspense } from "react";
 import { columns } from "~/components/survey/survey-table";

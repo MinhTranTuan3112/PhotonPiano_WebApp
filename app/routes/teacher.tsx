@@ -189,19 +189,19 @@ const data = {
     },
     navMain: [
         {
-            title: "Thông tin chung",
+            title: "General",
             url: "",
             icon: CircleUserRound,
             isActive: true,
             items: [
                 {
-                    title: "Thông tin cá nhân",
+                    title: "Profile",
                     url: "/teacher/profile",
                 }
             ],
         },
         {
-            title: "Quản lý đào tạo",
+            title: "Academic",
             url: "",
             icon: BookOpen,
             isActive: true,
@@ -211,7 +211,7 @@ const data = {
                     url: "/teacher/scheduler",
                 },
                 {
-                    title: "Quản lý thi đầu vào",
+                    title: "Tests",
                     url: "/teacher/entrance-tests",
                 },
                 {

@@ -1,24 +1,18 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData, useSearchParams } from '@remix-run/react';
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import MyTestCard from '~/components/entrance-tests/my-test-card';
 import Paginator from '~/components/paginator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchEntranceTests } from '~/lib/services/entrance-tests';
 import { Role } from '~/lib/types/account/account';
-import { EntranceTest, sampleEntranceTests } from '~/lib/types/entrance-test/entrance-test';
+import { EntranceTest } from '~/lib/types/entrance-test/entrance-test';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
 type Props = {}
-
-async function getSampleEntranceTests() {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  return [sampleEntranceTests[0], sampleEntranceTests[1]];
-}
 
 
 export async function loader({ request }: LoaderFunctionArgs) {

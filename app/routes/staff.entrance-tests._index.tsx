@@ -104,7 +104,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
                                 <Button variant={'outline'} Icon={CirclePlus} iconPlacement='left'
-                                    onClick={() => navigate('/staff/entrance-tests/create')}>
+                                    onClick={() => navigate('../entrance-tests/create')}>
                                     Create new test
                                 </Button>
                             } metadata={metadata}
