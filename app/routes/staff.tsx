@@ -82,14 +82,23 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
-        case pathname === '/staff/students':
+        case pathname.startsWith('/staff/students'):
+            const learnerParam = pathname.replace('/staff/students', "");
             otherNavItems = [
                 {
                     name: "Learners",
-                    url: pathname,
-                    isCurrentPage: true
+                    url: '/staff/students',
+                    isCurrentPage: learnerParam.length === 0
                 }
             ]
+
+            if (learnerParam.length > 1) {
+                otherNavItems.push({
+                    name: "Learner details",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
             break;
         case pathname === '/staff/classes':
             otherNavItems = [
