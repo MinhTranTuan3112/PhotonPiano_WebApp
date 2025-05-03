@@ -90,6 +90,15 @@ function getBreadcrumbPageName({ pathname }: {
                 },
             ]
             break;
+        case pathname === '/admin/dashboard':
+            otherNavItems = [
+                {
+                    name: "Dashboard",
+                    url: '/admin/dashboard',
+                    isCurrentPage: true
+                },
+            ]
+            break;
         default:
             break;
     }
