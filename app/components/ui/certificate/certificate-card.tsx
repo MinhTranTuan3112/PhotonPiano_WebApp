@@ -61,7 +61,7 @@ export default function CertificateCard({ certificate, onClick }: CertificateCar
                     variant="outline"
                     onClick={(e) => {
                         e.stopPropagation()
-                        window.open(`/api/certificates/${certificate.studentClassId}/pdf`, "_blank")
+                        window.open(`/endpoint/certificates/${certificate.studentClassId}/pdf`, "_blank")
                     }}
                 >
                     <FileText className="mr-2 h-4 w-4" />
