@@ -47,7 +47,7 @@ const data = {
                 },
                 {
                     title: "My classes",
-                    url: "/account/class_list",
+                    url: "/account/classes",
                 },
                 {
                     title: "My exams",

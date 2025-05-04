@@ -55,7 +55,7 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
             ]
             break;
 
-        case pathname === '/account/class':
+        case pathname === '/account/classes':
             otherNavItems = [
                 {
                     name: "My classes",
