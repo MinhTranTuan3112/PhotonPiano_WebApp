@@ -146,7 +146,7 @@ jobs:
             docker pull ${{ env.IMAGE_NAME_WEB }}:latest
             
             # Cập nhật container FE
-            docker compose -p photonpiano up -d --no-recreate photonpiano-web
+            docker compose -p photonpiano up -d --force-recreate photonpiano-web
             
             # Làm sạch tài nguyên không sử dụng
             docker system prune -f
