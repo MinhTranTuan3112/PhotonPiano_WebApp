@@ -29,7 +29,7 @@ type Props = {
 }
 
 const addClassSchema = z.object({
-    level: z.string({ message: "Phải chọn 1 level" }),
+    level: z.string({ message: "Must pick a level" }),
     idToken: z.string(),
     action: z.string()
 });
@@ -60,8 +60,8 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
     });
 
     const { open: handleOpenAddModal, dialog: confirmAddModal } = useConfirmationDialog({
-        title: 'Xác nhận thêm lớp học',
-        description: 'Bạn có chắc chắn muốn thêm lớp học này không?',
+        title: 'Confirm adding new class',
+        description: 'Are you sure about this action?',
         onConfirm: () => {
             handleSubmit();
         }
@@ -78,7 +78,7 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className=''>
                 <DialogHeader>
-                    <DialogTitle>Thêm lớp mới</DialogTitle>
+                    <DialogTitle>Add New Class</DialogTitle>
                 </DialogHeader>
                 <Form onSubmit={handleOpenAddModal}>
                     <div className='grid grid-cols-2 gap-4'>
@@ -93,7 +93,7 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
                                     <div>
                                         <Select value={value} onValueChange={onChange}>
                                             <SelectTrigger className="mt-2">
-                                                <SelectValue placeholder="Chọn level" />
+                                                <SelectValue placeholder="Pick a level" />
                                             </SelectTrigger>
                                             <SelectGroup>
                                                 <SelectContent>
@@ -117,8 +117,8 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
                         </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow'>Tạo lớp học</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Hủy bỏ</Button>
+                        <Button className='flex-grow'>Create Class</Button>
+                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>
