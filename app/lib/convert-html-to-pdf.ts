@@ -48,6 +48,8 @@ export async function convertHtmlToPdf(
   } else {
     // For production/serverless, use @sparticuz/chromium
     console.log("Using @sparticuz/chromium for serverless environment");
+    console.log("PLEASE WORK");
+
     const executablePath = await chromium.executablePath();
 
     browser = await puppeteer.launch({
