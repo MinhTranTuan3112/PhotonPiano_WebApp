@@ -1,8 +1,14 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
+# Install Chrome dependencies for Puppeteer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+    
 WORKDIR /app
-
 
 COPY package*.json ./
 RUN npm install
@@ -38,7 +44,54 @@ RUN npm run build
 RUN ls -la /app/build /app/build/server || echo "Server directory not found"
 
 # Stage 2: Run
-FROM node:20-alpine
+FROM node:20-slim
+
+# Install Chrome and dependencies for Puppeteer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libc6 \
+    libcairo2 \
+    libcups2 \
+    libdbus-1-3 \
+    libexpat1 \
+    libfontconfig1 \
+    libgbm1 \
+    libgcc1 \
+    libglib2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libstdc++6 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6 \
+    lsb-release \
+    wget \
+    xdg-utils \
+    gnupg \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directories for Chrome
+RUN mkdir -p /tmp/chrome-user-data /app/output
 
 WORKDIR /app
 
@@ -46,7 +99,13 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/build ./build
 RUN npm install --production
 
+# Set environment variables for Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 ENV NODE_ENV=production
+ENV CHROME_PATH=/usr/bin/google-chrome-stable
+ENV CHROME_USER_DATA_DIR=/tmp/chrome-user-data
+
 
 EXPOSE 3000
 
