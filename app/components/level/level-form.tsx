@@ -65,13 +65,13 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
         <>
             <Form method='POST' className='flex flex-col gap-5'>
 
-                <div className="flex flex-row gap-3 max-w-[70%]">
+                <div className="flex flex-col gap-3 max-w-[70%]">
                     <Label className='font-bold' htmlFor='name'>Name</Label>
                     <Input {...register('name')} id='name' placeholder='Enter level name...' />
                 </div>
                 {errors.name && <p className='text-red-500 text-sm'>{errors.name.message}</p>}
 
-                <div className="flex flex-row gap-3">
+                <div className="flex flex-col gap-3">
                     <Label className='font-bold' htmlFor='description'>Description</Label>
                     <Textarea {...register('description')} id='description' placeholder='Enter level description...' />
                 </div>
@@ -104,24 +104,24 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
                     </Button>
                 </div>
 
-                <div className="flex flex-row gap-3 max-w-[20%]">
-                    <Label className='font-bold' htmlFor='slotPerWeek'>Slots per week</Label>
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                    <Label className='font-bold w-64' htmlFor='slotPerWeek'>Slots per week</Label>
                     <Input {...register('slotPerWeek')} id='slotPerWeek'
                         type='number'
                         placeholder='Enter number of slots per week...' />
                 </div>
                 {errors.slotPerWeek && <p className='text-red-500 text-sm'>{errors.slotPerWeek.message}</p>}
 
-                <div className="flex flex-row gap-3 max-w-[20%]">
-                    <Label className='font-bold' htmlFor='totalSlots'>Total slots</Label>
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                    <Label className='font-bold w-64' htmlFor='totalSlots'>Total slots</Label>
                     <Input {...register('totalSlots')} id='totalSlots'
                         type='number'
                         placeholder='Enter total slots...' />
                 </div>
                 {errors.totalSlots && <p className='text-red-500 text-sm'>{errors.totalSlots.message}</p>}
 
-                <div className="flex flex-row gap-3 max-w-[20%]">
-                    <Label className='font-bold' htmlFor='pricePerSlot'>Slot price</Label>
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                    <Label className='font-bold w-64' htmlFor='pricePerSlot'>Slot price</Label>
                     <Input {...register('pricePerSlot')} id='pricePerSlot'
                         type='number'
                         placeholder='Enter slot price...' />

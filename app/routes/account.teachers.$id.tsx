@@ -14,8 +14,8 @@ import TeacherDetails from '~/components/learner/teacher-details/teacher-details
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
     const { idToken, role } = await requireAuth(request);
-    if (role !== 4) return redirect('/');
-    if (!params.id) return redirect('/staff/teachers');
+    if (role !== 1) return redirect('/');
+    if (!params.id) return redirect('/sign-in');
 
     const promise = fetchTeachDetail(params.id, idToken).then((response) => {
         const teacher = response.data as TeacherDetail;
@@ -26,7 +26,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 
-export default function StaffTeacherDetailPage() {
+export default function AccountTeacherDetailPage() {
     const { promise } = useLoaderData<typeof loader>();
     const navigate = useNavigate();
 
