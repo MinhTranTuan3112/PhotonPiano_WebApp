@@ -62,7 +62,7 @@ RUN npm run build
 RUN ls -la /app/build /app/build/server || echo "Server directory not found"
 
 # Stage 2: Run
-FROM node:20-alpine
+FROM node:20-slim
 
 # Install only the minimal dependencies needed for Puppeteer to run Chrome
 RUN apt-get update && apt-get install -y \
