@@ -27,9 +27,9 @@ type Props = {
 }
 
 export const addSlotSchema = z.object({
-    shift: z.string({message : "Vui lòng chọn ca học"}),
-    room: z.string({message : "Vui lòng chọn phòng học"}),
-    date: z.coerce.date({ message: 'Ngày không hợp lệ.' }),
+    shift: z.string({message : "Please select a shift"}),
+    room: z.string({message : "Please select a room"}),
+    date: z.coerce.date({ message: 'Invalid date.' }),
     action : z.string(),
     classId : z.string(),
     idToken : z.string(),
@@ -73,7 +73,7 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className=''>
                 <DialogHeader>
-                    <DialogTitle>Thêm buổi học mới</DialogTitle>
+                    <DialogTitle>Add New Slot</DialogTitle>
                 </DialogHeader>
                 {/* {errors.action && <div className='text-red-500'>{errors.action.message}</div>}
                 {errors.classId && <div className='text-red-500'>{errors.classId.message}</div>}
@@ -81,7 +81,7 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
 
                 <Form method='POST' onSubmit={handleSubmit} >
                     <div className='grid grid-cols-2 gap-4'>
-                        <div className='flex items-center'>Ngày học</div>
+                        <div className='flex items-center'>Date</div>
                         <div>
                             <Controller
                                 control={control}
@@ -91,13 +91,13 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
                                         ref={ref}
                                         onBlur={onBlur}
                                         className='w-full'
-                                        placeholder='Ngày học' />
+                                        placeholder='Date' />
                                 )}
                             />
                             {errors.date && <div className='text-red-500'>{errors.date.message}</div>}
                         </div>
 
-                        <div className='flex items-center'>Ca học</div>
+                        <div className='flex items-center'>Shift</div>
                         <div>
                             <Controller
                                 control={control}
@@ -105,13 +105,13 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
                                 render={({ field: { onChange, onBlur, value, ref } }) => (
                                     <Select name='shift' value={value} onValueChange={onChange}>
                                         <SelectTrigger className="">
-                                            <SelectValue placeholder="Chọn ca học" />
+                                            <SelectValue placeholder="Pick a shift" />
                                         </SelectTrigger>
                                         <SelectGroup>
                                             <SelectContent>
                                                 {
                                                     SHIFT_TIME.map((shift, index) => (
-                                                        <SelectItem value={index.toString()} key={index}>Ca {index + 1} ({shift})</SelectItem>
+                                                        <SelectItem value={index.toString()} key={index}>Shift {index + 1} ({shift})</SelectItem>
                                                     ))
                                                 }
                                             </SelectContent>
@@ -124,7 +124,7 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
 
                         </div>
                         {/* <input type='hidden' name='roomId' value={selectedRoomId}></input> */}
-                        <div className='flex items-center'>Phòng học</div>
+                        <div className='flex items-center'>Room</div>
                         <div>
                             <Controller
                                 control={control}
@@ -157,9 +157,9 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
                                             label: item?.name,
                                             value: item?.id
                                         })}
-                                        placeholder='Chọn phòng học'
-                                        emptyText='Không tìm thấy phòng học.'
-                                        errorText='Lỗi khi tải danh sách phòng học.'
+                                        placeholder='Pick a Room'
+                                        emptyText='Can not find any rooms.'
+                                        errorText='Error loading room list.'
                                         value={value}
                                         onChange={onChange}
                                         maxItemsDisplay={10}
@@ -170,8 +170,8 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
                         </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' type='submit'>Tạo buổi học</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Hủy bỏ</Button>
+                        <Button className='flex-grow' type='submit'>Create Slot</Button>
+                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>
