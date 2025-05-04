@@ -9,7 +9,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "~/components/ui/button";
 import { Account, Level } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
 import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
 import Image from "~/components/ui/image";
@@ -22,33 +21,34 @@ const getStatusStyle = (status: number) => {
     }
 };
 
-export function LevelBadge({ level }: {
-    level?: Level
-}) {
-    return <Badge variant={'outline'} className={`uppercase`}>
-        {level ? level.name : 'Unspecified'}
-    </Badge>
-}
+// const getLevelStyle = (level?: Level) => {
+//     switch (level) {
+//         case 0: return "text-blue-500 font-semibold";
+//         case 1: return "text-pink-500 font-semibold";
+//         case 2: return "text-red-500 font-semibold";
+//         case 3: return "text-green-500 font-semibold";
+//         case 4: return "text-red-400 font-semibold";
+//         default: return "text-black font-semibold";
+//     }
+// };
 
 export function StatusBadge({ status }: {
     status: number
 }) {
-    return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>
-        {status === 0 ? "Active" : "Inactive"}
-    </Badge>
+    return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{status === 0 ? "Active" : "Inactive"}</Badge>
 }
 
-export const teacherColumns: ColumnDef<Account>[] = [
+export const staffColumns: ColumnDef<Account>[] = [
     {
-        accessorKey: 'Image',
-        header: 'Image',
+        accessorKey: 'Avatar',
+        header: 'Ảnh',
         cell: ({ row }) => {
-            return <div><Image className="w-32 h-32" src={row.original.avatarUrl || "/images/noavatar.png"} /></div>
+            return <div><Image className="w-32 h-32" src={row.original.avatarUrl || "/images/noavatar.png"}/></div>
         }
     },
     {
         accessorKey: 'Name',
-        header: 'Teacher Name',
+        header: 'Staff Name',
         cell: ({ row }) => {
             return <div>{row.original.fullName || row.original.userName}</div>
         }
@@ -68,13 +68,6 @@ export const teacherColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: 'Level',
-        header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
-        cell: ({ row }) => {
-            return <LevelBadge level={row.original.level} />
-        }
-    },
-    {
         accessorKey: 'Status',
         header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
@@ -82,37 +75,36 @@ export const teacherColumns: ColumnDef<Account>[] = [
         }
     },
     {
-        accessorKey: "Actions",
-        header: "Actions",
+        accessorKey: "Action",
+        header: "Action",
         cell: ({ row, table }) => {
-            return <ActionsDropdown table={table} accountId={row.original.accountFirebaseId} status={row.original.status} />
+            return <ActionsDropdown table={table} accountId={row.original.accountFirebaseId} status={row.original.status}/>
         }
     }
 ]
 
+
 function ActionsDropdown({ table, accountId, status }: {
     table: Table<Account>,
-    accountId: string,
+    accountId : string
     status: number
 }) {
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">Action</span>
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>Action</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/teachers/${accountId}`}>
-                    <User /> View Info
-                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                     {
                         status === 0 ? (
-                            <div className="text-red-600  flex gap-2">
+                            <div className="text-red-600 flex gap-2">
                                 <BanIcon /> Disable
                             </div>
                         ) : (
