@@ -1,6 +1,7 @@
 import { Class } from "../class/class";
 import { StudentClassWithClass } from "../class/student-class";
 import { EntranceTest } from "../entrance-test/entrance-test";
+import { EntranceTestStudent, EntranceTestStudentDetail } from "../entrance-test/entrance-test-student";
 import { FreeSlot } from "../free-slot/free-slot";
 import { LearnerSurveyWithAnswers, LearnerSurveyWithAnswersDetail } from "../survey/survey";
 
@@ -31,6 +32,7 @@ export type AccountDetail = {
     currentClass? : Class
     studentClasses : StudentClassWithClass[],
     learnerSurveys : LearnerSurveyWithAnswersDetail[],
+    entranceTestStudents : EntranceTestStudentDetail[],
     freeSlots : FreeSlot[]
 } & Account
 

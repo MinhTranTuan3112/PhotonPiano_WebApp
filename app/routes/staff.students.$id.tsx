@@ -1,20 +1,20 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useLoaderData } from '@remix-run/react';
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchAccountDetail } from '~/lib/services/account';
 import { AccountDetail, Role } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, ClipboardCheck, Clock, Eye, Piano } from 'lucide-react';
-import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
-import { Class } from '~/lib/types/class/class';
+import { CalendarDays, ClipboardCheck, Clock, Piano } from 'lucide-react';
+import { SHIFT_TIME } from '~/lib/utils/constants';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { LearnerSurveyWithAnswersDetail } from '~/lib/types/survey/survey';
 import StudiedClassesSection, { ClassCard } from '~/components/learner/learner-details/studied-classes-section';
 import StudentHeader from '~/components/learner/learner-details/student-header';
+import EntranceTestsSection from '~/components/learner/learner-details/entrance-tests-section';
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -30,12 +30,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       return redirect('/staff/students');
     }
 
-    const promise = fetchAccountDetail(params.id, idToken).then((response) => {
+    const id = params.id as string;
+
+    const promise = fetchAccountDetail(id, idToken).then((response) => {
       const student = response.data as AccountDetail;
       return { student };
     });
 
-    return { promise, idToken };
+    return { promise, idToken, id };
   } catch (error) {
     console.error({ error });
 
@@ -51,10 +53,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 
 export default function StaffStudentDetailPage() {
-  const { promise } = useLoaderData<typeof loader>();
+  const { promise, id } = useLoaderData<typeof loader>();
   return (
     <div className="container mx-auto px-4 py-6 animate-fade-in">
-      <Suspense fallback={<LoadingSkeleton />}>
+      <Suspense fallback={<LoadingSkeleton />} key={id}>
         <Await resolve={promise}>
           {({ student }) => (
             <div className="bg-white shadow-2xl rounded-2xl p-6 space-y-8">
@@ -65,6 +67,8 @@ export default function StaffStudentDetailPage() {
               </div>
 
               <StudentHeader student={student} />
+
+              <EntranceTestsSection student={student} />
 
               {student.currentClass && (
                 <div className='space-y-4'>

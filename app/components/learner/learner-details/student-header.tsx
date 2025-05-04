@@ -57,9 +57,7 @@ export default function StudentHeader({ student }: Props) {
                                         Username
                                     </Label>
                                     <div>{student.userName || <NoInformation />}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        This is learner public username.
-                                    </p>
+                                    
                                 </div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -69,9 +67,7 @@ export default function StudentHeader({ student }: Props) {
                                         Email
                                     </Label>
                                     <p>{student.email}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Use this email to contact learner.
-                                    </p>
+                                    
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="font-bold flex flex-row gap-1 items-center">
@@ -79,9 +75,7 @@ export default function StudentHeader({ student }: Props) {
                                         Phone
                                     </Label>
                                     <div>{student.phone || <NoInformation />}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        This phone number will be used to contact learner when necessary.
-                                    </p>
+                                    
                                 </div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -107,9 +101,7 @@ export default function StudentHeader({ student }: Props) {
                                     Address
                                 </Label>
                                 <div>{student.address || <NoInformation />}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    This address will be used to send important documents to learners if necessary.
-                                </p>
+                                
                             </div>
                             <div className="space-y-2">
                                 <Label className="font-bold">
@@ -163,14 +155,10 @@ export default function StudentHeader({ student }: Props) {
                         <CardTitle className="text-lg">Continue learning</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">
-                                    {student.wantToContinue
-                                        ? "This learner have registered to continue learning in the next semester."
-                                        : "This learner haven't registered to continue learning in the next semester."}
-                                </p>
-                            </div>
+                        <div className="space-y-1">
+                            <Badge variant={'outline'} className={`uppercase ${student.wantToContinue ? 'text-green-500' : 'text-red-500'}`}>
+                                {student.wantToContinue ? 'Registered' : 'Not registered'}
+                            </Badge>
                         </div>
                     </CardContent>
                 </Card>
