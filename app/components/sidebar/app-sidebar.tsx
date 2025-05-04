@@ -50,7 +50,7 @@ const data = {
                     url: "/account/classes",
                 },
                 {
-                    title: "My exams",
+                    title: "My tests",
                     url: "/account/my-exams",
                 },
 

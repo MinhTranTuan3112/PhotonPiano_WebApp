@@ -88,14 +88,14 @@ function getBreadcrumbPageName(pathname: string): BreadcumbNavItem[] {
             const param = pathname.replace('/account/my-exams', "")
             otherNavItems = [
                 {
-                    name: "My exams",
+                    name: "My tests",
                     url: '/account/my-exams',
                     isCurrentPage: param.length === 0
                 }
             ]
             if (param.length > 1) {
                 otherNavItems.push({
-                    name: "Exam details",
+                    name: "Test details",
                     url: pathname,
                     isCurrentPage: true
                 })
