@@ -37,6 +37,7 @@ export default function Paginator({
                         <PaginationPrevious
                             isActive={page !== 1}
                             onClick={handlePrevious}
+                            className='cursor-pointer'
                         />
                     </PaginationItem>
                     
@@ -74,6 +75,7 @@ export default function Paginator({
                         <PaginationNext
                             isActive={page !== totalPage}
                             onClick={handleNext}
+                            className='cursor-pointer'
                         />
                     </PaginationItem>
                 </PaginationContent>

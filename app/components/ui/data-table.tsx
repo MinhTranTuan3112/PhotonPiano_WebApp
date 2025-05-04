@@ -159,7 +159,7 @@ export function DataTable<TData, TValue>({
             </div>
             <div className="rounded-md border">
                 <Table className="w-full">
-                    <TableHeader className="bg-gradient-to-r from-indigo-600 to-teal-500 ">
+                    <TableHeader className="bg-gradient-to-bl from-theme/100 to-theme/30">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
