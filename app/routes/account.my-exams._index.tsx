@@ -1,7 +1,9 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData, useSearchParams } from '@remix-run/react';
+import { BookOpenCheck } from 'lucide-react';
 import { Suspense } from 'react'
 import MyTestCard from '~/components/entrance-tests/my-test-card';
+import { TestCard } from '~/components/learner/learner-details/entrance-tests-section';
 import Paginator from '~/components/paginator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchEntranceTests } from '~/lib/services/entrance-tests';
@@ -84,8 +86,11 @@ export default function MyExams({ }: Props) {
 
   return (
     <div className='px-10'>
-      <div className='font-bold text-2xl'>My tests</div>
-      <div className=''>
+      <div className="flex items-center gap-2 text-lg font-medium text-neutral-800">
+        <BookOpenCheck className="h-5 w-5 text-theme" />
+        <h3 className='font-bold'>Entrance Tests</h3>
+      </div>
+      <div className='text-sm text-muted-foreground'>
         Make sure to keep track of the schedule for important entrance exams so you don't miss them!
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
@@ -114,7 +119,8 @@ function StudentEntranceTests({
   const [searchParams, setSearchParams] = useSearchParams();
 
   return <div className="py-4">
-    {entranceTests.map(entranceTest => <MyTestCard entranceTest={entranceTest} key={entranceTest.id} />)}
+    {entranceTests.map(entranceTest => <TestCard entranceTest={entranceTest} key={entranceTest.id} type='current'
+      role={Role.Student} />)}
 
     <div className="my-4">
       <Paginator page={page} totalPage={totalPage} onPageChanged={(newPage) => {

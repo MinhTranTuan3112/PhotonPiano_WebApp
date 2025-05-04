@@ -96,24 +96,24 @@ export const columns: ColumnDef<Transaction>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: 'Mã giao dịch',
-        header: 'Mã giao dịch',
+        accessorKey: 'Transaction Code',
+        header: 'Transaction Code',
         cell: ({ row }) => {
             return <div className="font-bold">{row.original.transactionCode}</div>
         }
     },
     {
-        accessorKey: 'Loại giao dịch',
-        header: 'Loại giao dịch',
+        accessorKey: 'Type',
+        header: 'Type',
         cell: ({ row }) => {
             const type = row.original.transactionType;
 
-            return type === 0 ? "Phí thi đầu vào" : "Học phí"
+            return type === 0 ? "Entrance test fee" : "Tuition fee"
         }
     },
     {
-        accessorKey: 'Phương thức thanh toán',
-        header: 'Phương thức thanh toán',
+        accessorKey: 'Payment Method',
+        header: 'Payment Method',
         cell: ({ row }) => {
             const method = row.original.paymentMethod;
 
@@ -121,8 +121,8 @@ export const columns: ColumnDef<Transaction>[] = [
         }
     },
     {
-        accessorKey: 'Trạng thái',
-        header: 'Trạng thái',
+        accessorKey: 'Status',
+        header: 'Status',
         cell: ({ row }) => {
             const status = row.original.paymentStatus;
 
@@ -147,16 +147,16 @@ export const columns: ColumnDef<Transaction>[] = [
         }
     },
     {
-        accessorKey: "Số tiền",
-        header: () => <div className="text-right">Số tiền</div>,
+        accessorKey: "Amount",
+        header: () => <div className="text-right">Amount</div>,
         cell: ({ row }) => {
             const amount = row.original.amount;
             return <div className="text-right font-medium">{formatPrice(amount)} đ</div>
         }
     },
     {
-        accessorKey: 'Thời gian giao dịch',
-        header: () => <div className="">Thời gian giao dịch</div>,
+        accessorKey: 'Created Date',
+        header: () => <div className="">Created Date</div>,
         cell: ({ row }) => {
             return <div className="">{formatRFC3339ToDisplayableDate(row.original.createdAt)}</div>
         }
@@ -176,14 +176,14 @@ export const columns: ColumnDef<Transaction>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" >
-                        <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem className="cursor-pointer"
                             onClick={() => {
                                 navigator.clipboard.writeText(transaction.transactionCode || transaction.id);
-                                toast.success('Đã sao chép mã giao dịch!');
+                                toast.success('Copied transaction code to clipboard!');
                             }}
                         >
-                            <Copy />  Copy mã giao dịch
+                            <Copy />  Copy transaction code
                         </DropdownMenuItem>
                         {/* <DropdownMenuSeparator />
                         <DropdownMenuItem>View customer</DropdownMenuItem>

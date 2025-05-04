@@ -121,7 +121,7 @@ function EntranceTestStudentContent({
   return (
     <div className="space-y-8">
       {/* General Information Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-l-4 border-l-theme">
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <Music2 className="h-5 w-5 text-black" />
@@ -177,7 +177,7 @@ function EntranceTestStudentContent({
       </div>
 
       {/* Teacher Information Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-l-4 border-l-theme">
         <div className="px-6 py-5 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <User className="h-5 w-5 text-black" />
@@ -254,7 +254,7 @@ function EntranceTestStudentContent({
       </div>
 
       {/* Results Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-t-4 border-t-theme">
         <div className="px-6 py-5 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <Award className="h-5 w-5 text-black" />
