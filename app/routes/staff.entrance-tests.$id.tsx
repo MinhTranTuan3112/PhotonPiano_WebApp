@@ -268,7 +268,7 @@ export function EntranceTestDetailsContent({
             </div>
         </div>
         <Tabs value={tab} className="">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 my-4">
                 <TabsTrigger value="general" onClick={() => setSearchParams({
                     ...Object.fromEntries(searchParams.entries()),
                     tab: "general",
@@ -279,7 +279,7 @@ export function EntranceTestDetailsContent({
                 })}>Learners</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
-                <Card>
+                <Card className='border-t-4 border-t-theme'>
                     <CardHeader>
                         <CardTitle>Basic information</CardTitle>
                         <CardDescription>
@@ -642,7 +642,7 @@ function StudentsSection({
     }, [fetcher.data]);
 
     return <>
-        <Card className="">
+        <Card className="border-t-4 border-t-theme">
             <CardHeader>
                 <CardTitle>Learners list</CardTitle>
                 <CardDescription>Learners in test.</CardDescription>

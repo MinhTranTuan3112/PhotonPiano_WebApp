@@ -137,7 +137,7 @@ export default function SurveyDetailsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-lg font-bold">Survey details</h1>
+            <h1 className="text-2xl font-bold">Survey details</h1>
             <p className="text-sm text-muted-foreground">
                 Survey details information
             </p>

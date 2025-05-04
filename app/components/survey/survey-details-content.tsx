@@ -42,7 +42,7 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="border-t-4 border-t-theme">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
@@ -51,7 +51,7 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
                                 {surveyDetails.description || "No description provided"}
                             </CardDescription>
                         </div>
-                        <Badge variant={surveyDetails.isEntranceSurvey ? "default" : "outline"}>
+                        <Badge variant={surveyDetails.isEntranceSurvey ? "theme" : "outline"}>
                             {surveyDetails.isEntranceSurvey ? "Entrance Survey" : "Regular Survey"}
                         </Badge>
                     </div>
@@ -103,7 +103,7 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
                 </TabsList>
 
                 <TabsContent value="questions" className="mt-4">
-                    <Card>
+                    <Card className="border-l-4 border-l-theme">
                         <CardHeader>
                             <CardTitle>Survey Questions</CardTitle>
                             <CardDescription>This survey contains {totalQuestions} questions</CardDescription>
@@ -153,7 +153,7 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
                 </TabsContent>
 
                 <TabsContent value="responses" className="mt-4">
-                    <Card>
+                    <Card className="border-l-4 border-l-theme">
                         <CardHeader>
                             <CardTitle>Learner Responses</CardTitle>
                             <CardDescription>{totalLearners} learners have responded to this survey</CardDescription>

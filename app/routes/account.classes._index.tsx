@@ -515,7 +515,7 @@ export default function StudentClassList() {
                                     </CardContent>
 
                                     <CardFooter className="p-5 pt-0">
-                                        <Link to={`/account/class_list/${classItem.id}`} className="w-full">
+                                        <Link to={`/account/classes/${classItem.id}`} className="w-full">
                                             <Button
                                                 className="w-full bg-purple-600 hover:bg-purple-700 group-hover:shadow-md transition-all duration-200"
                                                 variant="default"

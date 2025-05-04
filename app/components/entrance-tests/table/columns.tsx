@@ -24,7 +24,7 @@ const getStatusStyle = (status: number) => {
     }
 };
 
-function StatusBadge({ status }: {
+export function TestStatusBadge({ status }: {
     status: number
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{ENTRANCE_TEST_STATUSES[status]}</Badge>
@@ -100,7 +100,7 @@ export const columns: ColumnDef<EntranceTest>[] = [
         accessorKey: "Status",
         header: "Status",
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.testStatus} />
+            return <TestStatusBadge status={row.original.testStatus} />
         }
     },
     {
