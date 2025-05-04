@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "@remix-run/react";
-import { Calendar1, CircleUserRound, DoorClosed, DoorOpen, LayoutDashboard, Pen, Settings } from "lucide-react";
+import { Calendar1, CircleUserRound, DoorClosed, DoorOpen, LayoutDashboard, Pen, Settings, User } from "lucide-react";
 import React from "react";
 import { NavMain } from "~/components/sidebar/nav-main";
 import { NavUser } from "~/components/sidebar/nav-user";
@@ -13,7 +13,7 @@ import {
     BreadcrumbSeparator
 } from "~/components/ui/breadcrumb";
 import { buttonVariants } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator"; 
+import { Separator } from "~/components/ui/separator";
 import {
     Sidebar,
     SidebarContent,
@@ -99,6 +99,15 @@ function getBreadcrumbPageName({ pathname }: {
                 },
             ]
             break;
+        case pathname === '/admin/accounts':
+            otherNavItems = [
+                {
+                    name: "Manage Accounts",
+                    url: '/admin/accounts',
+                    isCurrentPage: true
+                },
+            ]
+            break;
         default:
             break;
     }
@@ -180,11 +189,17 @@ const data = {
             url: "/admin/dashboard",
             icon: LayoutDashboard,
             isActive: true,
-        },       
+        },
         {
             title: "Levels",
             url: "/admin/levels",
             icon: Settings,
+            isActive: true,
+        },
+        {
+            title: "Accounts",
+            url: "/admin/accounts",
+            icon: User,
             isActive: true,
         },
         {

@@ -2,11 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, Loader2 } from 'lucide-react';
+import { Search, CalendarSync, RotateCcw, Loader2, PlusCircle } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
+import LevelForm from '~/components/level/level-form';
+import { staffColumns } from '~/components/staffs/table/staff-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { teacherColumns } from '~/components/staffs/table/teacher-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
@@ -14,6 +16,7 @@ import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchLevels } from '~/lib/services/level';
 import { Account, Level, Role } from '~/lib/types/account/account';
@@ -31,7 +34,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const { idToken, role } = await requireAuth(request);
 
-    if (role !== 4) {
+    if (role !== 3) {
       return redirect('/');
     }
 
@@ -42,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       pageSize: Number.parseInt(searchParams.get('size') || '10'),
       sortColumn: searchParams.get('column') || 'Id',
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
-      roles: [Role.Instructor],
+      roles: (!searchParams.get('isTeacher') || searchParams.get('isTeacher') === 'true') ? [Role.Instructor] : [Role.Staff],
       levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
       accountStatus: getParsedParamsArray({ paramsValue: searchParams.get('status') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
@@ -180,40 +183,78 @@ function SearchForm() {
       className='col-span-full w-full'
       defaultValue={trimQuotes(searchParams.get('q') || '')} />
 
-    <div className="">
+    <div className="flex gap-2">
       <Button type='submit' Icon={Search} iconPlacement='left'
+        variant={'theme'}
         isLoading={isSubmitting}
         disabled={isSubmitting}>Search</Button>
+      <Button type='submit' Icon={PlusCircle} iconPlacement='left'
+        variant={'outline'}
+        isLoading={isSubmitting}
+        disabled={isSubmitting}>Add New Account</Button>
     </div>
   </Form>
 }
 
-export default function StaffTeachersPage({ }: Props) {
+export default function AdminManageAccountPage({ }: Props) {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams();
   const { promise, query } = useLoaderData<typeof loader>();
+
+  const handleTabChange = (tab: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("isTeacher", tab === "teachers" ? "true" : "false");
+    newParams.set("page", "1");
+    setSearchParams(newParams);
+  };
 
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Teacher List</h3>
+      <h3 className="text-lg font-medium">System Accounts</h3>
       <p className="text-sm text-muted-foreground">
-        Manage Center Teacher Information
+        Mange Staff And Teacher Accounts
       </p>
-      <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
-        <SearchForm />
-      </div>
-      <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
-        <Await resolve={promise} >
-          {({ accountsPromise, metadata }) => (
-            <Await resolve={accountsPromise}>
-              <GenericDataTable
-                columns={teacherColumns}
-                emptyText='No teachers.'
-                metadata={metadata}
-              />
+
+      <Tabs defaultValue={query.roles[0] === Role.Instructor ? "teachers" : "staffs"}>
+        <TabsList className="w-full flex mt-4">
+          <TabsTrigger value="teachers" className='w-full' onClick={() => handleTabChange("teachers")}>Teachers</TabsTrigger>
+          <TabsTrigger value="staffs" className='w-full' onClick={() => handleTabChange("staffs")}>Staffs</TabsTrigger>
+        </TabsList>
+        <div className='flex flex-col lg:flex-row lg:place-content-between mt-4 gap-4'>
+          <SearchForm />
+        </div>
+        <TabsContent value="teachers">
+          <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
+            <Await resolve={promise} >
+              {({ accountsPromise, metadata }) => (
+                <Await resolve={accountsPromise}>
+                  <GenericDataTable
+                    columns={teacherColumns}
+                    emptyText='No accounts.'
+                    metadata={metadata}
+                  />
+                </Await>
+              )}
             </Await>
-          )}
-        </Await>
-      </Suspense>
+          </Suspense>
+        </TabsContent>
+        <TabsContent value='staffs'>
+          <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
+            <Await resolve={promise} >
+              {({ accountsPromise, metadata }) => (
+                <Await resolve={accountsPromise}>
+                  <GenericDataTable
+                    columns={staffColumns}
+                    emptyText='No accounts.'
+                    metadata={metadata}
+                  />
+                </Await>
+              )}
+            </Await>
+          </Suspense>
+        </TabsContent>
+      </Tabs>
+
     </div>
   )
 }
@@ -232,9 +273,9 @@ export function ErrorBoundary() {
 
   return (
     <article className="px-8">
-      <h3 className="text-lg font-medium">Teacher List</h3>
+      <h3 className="text-lg font-medium">Accounts List</h3>
       <p className="text-sm text-muted-foreground">
-        Manage Center Teacher Information
+        Manage Center Accounts Information
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
@@ -243,7 +284,7 @@ export function ErrorBoundary() {
         <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
           'An Error Occured.'} </h1>
         <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
-                      flex flex-row gap-1`}
+                          flex flex-row gap-1`}
           to={pathname ? `${pathname}${search}` : '/'}
           replace={true}
           reloadDocument={false}>
