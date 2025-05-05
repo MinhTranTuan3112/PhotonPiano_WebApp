@@ -206,7 +206,7 @@ const AttendancePage = () => {
     }, [attendanceData])
 
 
-    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value) => {
+    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value: any) => {
         setAttendanceData((prev) =>
             prev.map((student) => {
                 if (student.studentFirebaseId === studentId) {
