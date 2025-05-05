@@ -45,14 +45,24 @@ function getBreadcrumbPageName({ pathname }: {
                 },
             ]
             break;
-        case pathname === '/admin/levels':
+        case pathname.startsWith('/admin/levels'):
+            const levelParam = pathname.replace('/admin/levels', "");
             otherNavItems = [
                 {
                     name: "Manage Levels",
                     url: '/admin/levels',
-                    isCurrentPage: true
+                    isCurrentPage: levelParam.length === 0
                 },
             ]
+
+            if (levelParam.length > 1) {
+                otherNavItems.push({
+                    name: "Level Details",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+
             break;
         case pathname === '/admin/criteria':
             otherNavItems = [

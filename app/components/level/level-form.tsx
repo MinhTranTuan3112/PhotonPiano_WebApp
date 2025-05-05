@@ -10,6 +10,8 @@ import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Controller } from 'react-hook-form';
+import { HexColorPicker } from "react-colorful";
 
 type Props = {
     isEditing?: boolean;
@@ -25,9 +27,8 @@ export const levelSchema = z.object({
     slotPerWeek: z.coerce.number().min(1, { message: 'Total slots per week must > 0' }),
     totalSlots: z.coerce.number().min(1, { message: 'Total slots must > 0' }),
     pricePerSlot: z.coerce.number().min(1, { message: 'Price per slot must > 0' }),
-    minimumScore: z.coerce.number().min(0, { message: 'Min score must > 0' }),
+    themeColor: z.string().optional(),
     isGenreDivided: z.boolean().optional(),
-    nextLevelId: z.string().optional(),
 });
 
 export type LevelFormData = z.infer<typeof levelSchema>;
@@ -39,6 +40,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
         formState: { errors },
         control,
         setValue: setFormValue,
+        getValues: getFormValue,
         register,
         watch
     } = useRemixForm<LevelFormData>({
@@ -60,6 +62,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
     });
 
     const [newSkill, setNewSkill] = useState('');
+    const [selectedColor, setSelectedColor] = useState<string>(getFormValue('themeColor') || '#000000');
 
     return (
         <>
@@ -81,7 +84,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
                 {skillsEarned.length > 0 && skillsEarned.map((skill, index) => (
                     <div key={index} className="flex flex-row gap-3 items-center">
                         <Label className='font-bold'>{index + 1}. </Label>
-                        <Input {...register(`skillsEarned.${index}`)} placeholder='Enter skills earned...'
+                        <Input placeholder='Enter skills earned...'
                             value={skill}
                             onChange={(e) => {
                                 const newSkills = [...skillsEarned];
@@ -127,6 +130,27 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
                         placeholder='Enter slot price...' />
                 </div>
                 {errors.pricePerSlot && <p className='text-red-500 text-sm'>{errors.pricePerSlot.message}</p>}
+
+                <div className="flex flex-row gap-3 w-full items-center">
+
+                    <Label className='font-bold'>Theme color:</Label>
+                    <Controller
+                        name='themeColor'
+                        control={control}
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <HexColorPicker color={value} onChange={(newColor) => {
+                                setSelectedColor(newColor);
+                                onChange(newColor);
+                            }} onBlur={onBlur} />
+                        )}
+                    />
+
+                    <div className="h-10 w-32 rounded-md" style={{
+                        backgroundColor: selectedColor,
+                    }}>
+                    </div>
+
+                </div>
 
                 <div className="">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog}>

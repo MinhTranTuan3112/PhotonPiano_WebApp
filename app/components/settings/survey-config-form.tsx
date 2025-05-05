@@ -14,7 +14,7 @@ import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 
 export const surveyConfigSchema = z.object({
     instrumentName: z.string().nonempty({ message: 'Instrument name is required' }),
-    instrumentFrequencyInResponse: z.coerce.number().min(0, { message: 'Instrument name frequency must >= 0' }),
+    instrumentFrequencyInResponse: z.coerce.number().min(-1, { message: 'Instrument name frequency must >= 0' }),
     entranceSurveyId: z.string({ message: 'Please choose an entrance survey' }).nonempty({ message: 'Please choose an entrance survey' }),
     maxQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Max number of questions must > 0' }),
     minQuestionsPerSurvey: z.coerce.number().min(1, { message: 'Min number of questions must > 0' }),

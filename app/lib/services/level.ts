@@ -1,3 +1,4 @@
+import { LevelFormData } from "~/components/level/level-form";
 import axiosInstance from "../utils/axios-instance";
 
 export async function fetchLevels() {
@@ -21,6 +22,27 @@ export async function fetchALevel({
 
   return response;
 }
+
+
+export async function fetchUpdateLevel({
+  idToken, id, ...data
+}: {
+  idToken: string;
+} & Partial<LevelFormData>) {
+
+  const response = await axiosInstance.put(
+    `/levels/${id}`,
+    { ...data },
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
 
 export async function fetchUpdateLevelMinimumGpa({
   idToken,
