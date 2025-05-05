@@ -22,6 +22,7 @@ env:
   VITE_API_PUB_SUB_URL: ${{ secrets.VITE_API_PUB_SUB_URL }}
   VITE_API_NOTIFICATION_URL: ${{ secrets.VITE_API_NOTIFICATION_URL }}
   VITE_API_PROGRESS_URL: ${{ secrets.VITE_API_PROGRESS_URL }}
+  VITE_PINATA_JWT: ${{ secrets.VITE_PINATA_JWT }}
 
 jobs:
   build-and-test:
@@ -96,6 +97,7 @@ jobs:
             VITE_API_PUB_SUB_URL=${{ env.VITE_API_PUB_SUB_URL }}
             VITE_API_NOTIFICATION_URL=${{ env.VITE_API_NOTIFICATION_URL }}
             VITE_API_PROGRESS_URL=${{ env.VITE_API_PROGRESS_URL }}
+            VITE_PINATA_JWT=${{ env.VITE_PINATA_JWT }}
 
   deploy-to-server:
     needs: docker-build-and-push
@@ -140,6 +142,7 @@ jobs:
             VITE_API_PUB_SUB_URL=${{ secrets.VITE_API_PUB_SUB_URL }}
             VITE_API_NOTIFICATION_URL=${{ secrets.VITE_API_NOTIFICATION_URL }}
             VITE_API_PROGRESS_URL=${{ env.VITE_API_PROGRESS_URL }}
+            VITE_PINATA_JWT=${{ secrets.VITE_PINATA_JWT }}
             EOF
             
             # Pull image FE mới
