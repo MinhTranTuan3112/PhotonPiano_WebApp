@@ -225,15 +225,19 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
     }
   })
 
-  const handleDelete = () => {
-    deleteFetcher.submit({
-      action: "DELETE",
-      id: classInfo.id,
-      idToken: idToken
-    }, {
-      action: "/endpoint/classes",
-      method: "DELETE"
-    })
+  const handleDelete = async () => {
+    await fetch("/endpoint/classes", {
+      method: "DELETE",
+      body: new URLSearchParams({
+        action: "DELETE",
+        id: classInfo.id,
+        idToken: idToken
+      }),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    });
+    navigate(`/staff/classes`)
   }
 
   function DetailCard({ title, content, index }: { title: string, content: ReactNode, index: number }) {
@@ -597,7 +601,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
     }
   })
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     fetcher.submit({
       action: "DELETE_SCHEDULE",
       id: classInfo.id,
@@ -606,6 +610,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       action: "/endpoint/classes",
       method: "DELETE"
     })
+
   }
 
   return (
@@ -722,10 +727,13 @@ export default function StaffClassDetailPage({ }: Props) {
   }
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Class Detail Information</h3>
-      <p className="text-sm text-muted-foreground">
-        Manage student information, class schedules and transcripts
-      </p>
+      <div className="flex items-center gap-3 mb-4">
+        <Music2 className="h-8 w-8 text-sky-600" />
+        <div>
+          <h3 className="text-2xl font-bold text-sky-800">Class Detail Information</h3>
+          <p className="text-sm text-sky-600">Manage student information, class schedules and transcripts</p>
+        </div>
+      </div>
       <Suspense fallback={<LoadingSkeleton />}>
         <Await resolve={promise}>
           {

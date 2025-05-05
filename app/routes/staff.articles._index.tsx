@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useAsyncValue, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react';
-import { PencilLine, RotateCcw, Search } from 'lucide-react';
+import { PencilLine, PenSquare, RotateCcw, Search } from 'lucide-react';
 import { Suspense, useState } from 'react'
 import ArticleCard from '~/components/news/article-card';
 import { columns } from '~/components/news/news-table';
@@ -129,11 +129,13 @@ export default function NewsManagementPage({ }: Props) {
     return (
         <article className='px-10'>
 
-            <h3 className="text-lg font-bold">Manage news</h3>
-            <p className="text-sm text-muted-foreground">
-                Manage news and articles on the website
-            </p>
-
+            <div className="flex items-center gap-3 mb-4">
+                <PenSquare className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage News</h3>
+                    <p className="text-sm text-sky-600">Manage news and articles on the website</p>
+                </div>
+            </div>
             <SearchForm />
 
             <div className="flex flex-row justify-between w-full my-5">

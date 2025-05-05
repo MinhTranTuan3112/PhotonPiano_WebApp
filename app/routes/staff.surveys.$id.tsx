@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react';
-import { PencilLine, X } from 'lucide-react';
+import { FileQuestion, PencilLine, X } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react'
 import { getValidatedFormData } from 'remix-hook-form';
 import { toast } from 'sonner';
@@ -137,10 +137,13 @@ export default function SurveyDetailsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-2xl font-bold">Survey details</h1>
-            <p className="text-sm text-muted-foreground">
-                Survey details information
-            </p>
+            <div className="flex items-center gap-3 mb-4">
+                <FileQuestion className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Survey details</h3>
+                    <p className="text-sm text-sky-600">Survey details information</p>
+                </div>
+            </div>
 
             <Suspense fallback={<LoadingSkeleton />} key={id}>
                 <Await resolve={promise}>
@@ -207,7 +210,7 @@ function SurveyContent() {
 
     }, [fetcher.data]);
 
-   
+
 
     return <div className="">
         <div className="flex justify-end my-4">

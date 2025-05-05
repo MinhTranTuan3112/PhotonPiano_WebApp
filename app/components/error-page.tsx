@@ -20,7 +20,7 @@ export default function ErrorPage({ error }: Props) {
                     <h1 className="text-8xl font-extrabold font-serif">{error?.status || "Oops!"}</h1>
                     <h2 className="text-5xl font-bold mt-2 font-mono">{error?.statusText || "Error"}</h2>
                     <p className="text-xl font-medium text-gray-800 mt-2 text-center max-w-lg">
-                        {error?.data || "Bó tay rồi!."}
+                        {error?.data || "Server might be dead or I can't find her!"}
                     </p>
                 </div>
 
@@ -29,20 +29,20 @@ export default function ErrorPage({ error }: Props) {
 
                 {/* Description Section */}
                 <div className="mt-8 text-center relative z-10">
-                    <h3 className="text-2xl font-bold text-yellow-400">🎵 Oh no! Có lỗi đã xảy ra! 🎶</h3>
+                    <h3 className="text-2xl font-bold text-yellow-400">🎵 Oh no! An error occurred! 🎶</h3>
                     <p className="text-lg text-gray-900 mt-2">
                         {error ? (
                             error.status === 404 ? (
-                                "Trang bạn đang tìm kiếm có thể đã bị xóa, đã đổi tên hoặc tạm thời không khả dụng."
+                                "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
                             ) : error.status === 400 ? (
-                                "Lỗi yêu cầu. Vui lòng thử lại sau."
+                                "Bad request. Please try again later."
                             ) : error.status === 500 ? (
-                                "Có lỗi xảy ra từ phía máy chủ. Vui lòng thử lại sau."
+                                "A server error occurred. Please try again later."
                             ) : (
-                                "Một lỗi không xác định đã xảy ra. Vui lòng liên hệ với bộ phận hỗ trợ."
+                                "An unknown error has occurred. Please contact support."
                             )
                         ) : (
-                            "Không có lỗi nào xảy ra. Bạn chủ động tìm đến nó!"
+                            "No error occurred. You sought this page on purpose!"
                         )}
                     </p>
                 </div>
@@ -56,13 +56,13 @@ export default function ErrorPage({ error }: Props) {
                         })}`}
                     >
                         <ArrowRightCircle className="text-white text-xl" />
-                        Quay về trang chủ
+                        Back to Home
                     </Link>
                     <Link
                         to="/contact"
                         className="flex items-center gap-2 px-6 py-3 border border-black font-bold rounded-lg text-black hover:bg-white hover:text-black transition"
                     >
-                        Liên hệ hỗ trợ
+                        Contact Support
                     </Link>
                 </div>
             </div>

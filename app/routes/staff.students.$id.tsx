@@ -60,7 +60,6 @@ export default function StaffStudentDetailPage() {
         <Await resolve={promise}>
           {({ student }) => (
             <div className="bg-white shadow-2xl rounded-2xl p-6 space-y-8">
-
               <div className="">
                 <h1 className="text-2xl font-bold">Learner details</h1>
                 <div className="text-sm text-muted-foreground">View learner details information including basic personal information, classes, free times and surveys</div>

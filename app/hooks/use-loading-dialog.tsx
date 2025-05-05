@@ -14,7 +14,7 @@ type Props = {
     action?: () => void
 }
 
-export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ...", fetcher, successMessage = "Thành công!", action, preventEscape = false }: Props) {
+export default function useLoadingDialog({ loadingMessage = "Please Wait...", fetcher, successMessage = "Successfully!", action, preventEscape = false }: Props) {
     const [result, setResult] = useState<boolean | null>(null)
     const [message, setMessage] = useState("")
     const [isOpen, setIsOpen] = useState(false);
@@ -67,13 +67,13 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
                     </div>
                 ) : result ? (
                     <div className="text-center">
-                        <p className="font-bold text-xl text-green-600">THÀNH CÔNG</p>
+                        <p className="font-bold text-xl text-green-600">{successMessage}</p>
                         <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
                         {/* <p>{message}</p> */}
                     </div>
                 ) : (
                     <div className="text-center">
-                        <p className="font-bold text-xl text-red-600">THẤT BẠI</p>
+                        <p className="font-bold text-xl text-red-600">FAILURE</p>
                         <XCircle size={100} className="text-red-600 mx-auto mt-4" />
                         <p>{message}</p>
                     </div>

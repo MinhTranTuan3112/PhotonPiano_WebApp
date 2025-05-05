@@ -3,7 +3,7 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { addDays } from 'date-fns';
-import { Calendar, CalendarSync, CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { BarChart3, Calendar, CalendarClock, CalendarDays, CalendarSync, CheckCircle, Loader2, Users, XCircle } from 'lucide-react';
 import React, { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -116,35 +116,34 @@ const arrangeClassesSchema = z.object({
 
 type ArrangeClassSchema = z.infer<typeof arrangeClassesSchema>;
 const resolver = zodResolver(arrangeClassesSchema)
-
 const densityColor = [
     {
         min: 0,
         max: 0,
-        color: "#f2f5f0"
+        color: "#f7fbff" // Almost white/very light sky
     },
     {
         min: 1,
         max: 5,
-        color: "#c1e6cb"
+        color: "#d1e5f0" // Light sky blue
     },
     {
         min: 6,
         max: 10,
-        color: "#8dd9a1"
+        color: "#9ecae1" // Medium sky blue
     }, {
         min: 11,
         max: 15,
-        color: "#4bb868"
+        color: "#6baed6" // Sky blue/azure
     }, {
         min: 16,
         max: 20,
-        color: "#1f873b"
+        color: "#3182bd" // Deeper blue
     },
     {
         min: 21,
         max: 999999,
-        color: "#095e20"
+        color: "#08519c" // Dark blue/navy
     },
 ]
 const dayOfWeekVn = ["M", "T", "W", "Th", "F", "S", "Su"]
@@ -206,302 +205,331 @@ export async function action({ request }: ActionFunctionArgs) {
 
 
 
-export default function StaffAutoArrangeClass({ }: Props) {
+export default function StaffAutoArrangeClass({}: Props) {
     const { currentAccount } = useAuth()
-    const { promise, idToken, configPromise, slotsPromise } = useLoaderData<typeof loader>();
-
+    const { promise, idToken, configPromise, slotsPromise } = useLoaderData<typeof loader>()
+  
     const loadingMessage = "Processing... Please wait!"
-    const [searchParams, setSearchParams] = useSearchParams();
-    const [isOpenLoading, setIsOpenLoading] = useState(false);
-    const [result, setResult] = useState(false);
-
+    const [searchParams, setSearchParams] = useSearchParams()
+    const [isOpenLoading, setIsOpenLoading] = useState(false)
+    const [result, setResult] = useState(false)
+  
     const { progress, progressMessage } = useProgressTracking(currentAccount?.accountFirebaseId ?? "")
-    const fetcher = useFetcher<ActionResult>();
-
+    const fetcher = useFetcher<ActionResult>()
+  
     const {
-        handleSubmit,
-        formState: { errors },
-        control
+      handleSubmit,
+      formState: { errors },
+      control,
     } = useRemixForm<ArrangeClassSchema>({
-        mode: "onSubmit",
-        resolver,
-        fetcher,
-        defaultValues: {
-            idToken: idToken,
-        }
-    });
-
-    const { open: handleOpentModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Confirm The Action',
-        description: 'Do you want to proceed this auto-arrange process! This action can not be rollbacked!',
-        onConfirm: () => {
-            handleSubmit();
-        }
+      mode: "onSubmit",
+      resolver,
+      fetcher,
+      defaultValues: {
+        idToken: idToken,
+      },
     })
-
+  
+    const { open: handleOpentModal, dialog: confirmDialog } = useConfirmationDialog({
+      title: "Confirm The Action",
+      description: "Do you want to proceed with this auto-arrange process? This action cannot be rolled back!",
+      onConfirm: () => {
+        handleSubmit()
+      },
+    })
+  
     const handleDialogChange = (open: boolean) => {
-        setResult(false)
-        if (open) {
-            setIsOpenLoading(true)
-        } else {
-            if (result) {
-                setIsOpenLoading(false)
-            }
+      setResult(false)
+      if (open) {
+        setIsOpenLoading(true)
+      } else {
+        if (result) {
+          setIsOpenLoading(false)
         }
+      }
     }
-
+  
     useEffect(() => {
-        if (fetcher.data) {
-            setResult(true)
-        }
+      if (fetcher.data) {
+        setResult(true)
+      }
     }, [fetcher.data])
-
+  
     useEffect(() => {
-        if (fetcher.state === "submitting") {
-            setIsOpenLoading(true); // Open dialog on request start
-        }
+      if (fetcher.state === "submitting") {
+        setIsOpenLoading(true)
+      }
     }, [fetcher.state])
-
+  
     return (
-        <div>
-            <div className='px-8'>
-                <h3 className="text-lg font-bold">Auto-Arrange Classes</h3>
-                <p className="text-sm text-muted-foreground">
-                    Just a few simple steps to arrangle all classes automatically
-                </p>
-                <Suspense fallback={<LoadingSkeleton height={100} />}>
-                    <Await resolve={configPromise}>
-                        {(data) => (
-                            <div className='grid grid-cols-2 w-full mt-4'>
-                                <div className='flex gap-2'>
-                                    <span className='font-bold'>Minimum Class Size :</span>
-                                    <span className=''>{data.configs.find(c => c.configName === MIN_STUDENTS)?.configValue}</span>
-                                </div>
-                                <div className='flex gap-2'>
-                                    <span className='font-bold'>Maximum Class Size :</span>
-                                    <span className=''>{data.configs.find(c => c.configName === MAX_STUDENTS)?.configValue}</span>
-                                </div>
-                            </div>
-                        )}
-                    </Await>
-                </Suspense>
-                <Form onSubmit={handleOpentModal} method='POST'>
-                    <Suspense fallback={<LoadingSkeleton />}>
-                        <Await resolve={promise}>
-                            {(data) => (
-                                <div className='mt-4 space-y-6'>
-                                    <div className='text-lg font-semibold'>Total learners waiting for class: <span className='font-bold'>{data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0)}</span></div>
-
-                                    {/* Level Breakdown */}
-                                    <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4'>
-                                        {data.awaitingLevelCounts.map((breakdown, index) => breakdown.level && (
-                                            <div className='flex flex-col items-center p-4 border rounded-lg shadow-md bg-white' key={index}>
-                                                <div className='text-center font-bold'>{breakdown.level.name?.split('(')[0]}</div>
-                                                <div className='text-center text-lg text-gray-600'>{breakdown.count ?? 0}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Student Selection */}
-                                    {/* <div className='flex flex-wrap gap-4 items-center'>
-                                        <span className='font-bold'>Chọn số học viên:</span>
-                                        <Controller
-                                            control={control}
-                                            name='studentNumber'
-                                            defaultValue={data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0).toString()}
-                                            render={({ field: { onChange, onBlur, value, ref } }) => (
-                                                <Input
-                                                    className='w-full sm:w-32' disabled={!isDefineStudentCount}
-                                                    value={value}
-                                                    onChange={onChange} />
-
-                                            )}
-                                        />
-                                        {errors.studentNumber && <div className='text-red-500'>{errors.studentNumber.message}</div>}
-                                        <Checkbox checked={isDefineStudentCount} onCheckedChange={() => setIsDefineStudentCount(!isDefineStudentCount)} /> <span className='italic text-sm'>Xác định số học viên cụ thể</span>
-                                    </div> */}
-                                    <div className='text-lg font-semibold my-4'>Learner schedule heatmap</div>
-                                    <div className='grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 w-full'>
-                                        {densityColor.map((note, index) => (
-                                            <div className='flex gap-2 items-center' key={index}>
-                                                <div className={`rounded-sm w-4 h-4`} style={{ background: note.color }}></div>
-                                                {
-                                                    note.max > 100 ? (
-                                                        <div className='text-sm'>{note.min} +</div>
-                                                    ) : (
-                                                        <div className='text-sm'>{note.min} - {note.max}</div>
-                                                    )
-                                                }
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Suspense fallback={<LoadingSkeleton height={200} />}>
-                                        <Await resolve={slotsPromise}>
-                                            {(freeSlots) => (
-                                                <div className='grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2'>
-                                                    {data.awaitingLevelCounts.map((breakdown, index) => breakdown.level && (
-                                                        <div className='flex flex-col items-center py-4 px-2 border rounded-lg shadow-md bg-white' key={index}>
-                                                            <div className='font-bold text-center'>{breakdown.level.name.split("(")[0]}</div>
-                                                            <div className='grid grid-cols-8 gap-1 w-full'>
-                                                                <div></div>
-                                                                {
-                                                                    dayOfWeekVn.map(dow => (
-                                                                        <div className='text-sm' key={dow}>{dow}</div>
-                                                                    ))
-                                                                }
-                                                                {
-                                                                    SHIFT_TIME.map((s, index) => (
-                                                                        <>
-                                                                            <div className='text-xs'>
-                                                                                C{index + 1}
-                                                                            </div>
-                                                                            {
-                                                                                dayOfWeekVn.map((dow, dayIndex) => (
-                                                                                    <div className={`rounded-sm w-4 h-4`} style={{ background: getTileColor(freeSlots.freeSlots, dayIndex, index, breakdown.level?.id) }}></div>
-                                                                                ))
-                                                                            }
-                                                                        </>
-                                                                    ))
-                                                                }
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </Await>
-                                    </Suspense>
-                                    {/* Start Week Selection */}
-                                    <div className='flex flex-wrap gap-4 items-center'>
-                                        <span className='font-bold'>Choose start week:</span>
-                                        <div>
-                                            <Controller
-                                                control={control}
-                                                name='startWeek'
-                                                render={({ field: { onChange, onBlur, value, ref } }) => (
-                                                    <DatePickerInput className='w-full sm:w-64'
-                                                        value={value} onChange={onChange} />
-                                                )}
-                                            />
-                                            {errors.startWeek && <div className='text-red-500'>{errors.startWeek.message}</div>}
-                                        </div>
-
-                                    </div>
-
-                                    {/* Class Session Selection */}
-                                    {/*
-                                    <div className='space-y-2'>
-                                        <span className='font-bold'>Chọn buổi học:</span>
-                                        <div>
-                                            <Controller
-                                                control={control}
-                                                name='shifts'
-                                                render={({ field: { onChange, value } }) => {
-                                                    const handleCheckboxChange = (checked: boolean, shift: string) => {
-                                                        const newValue = checked
-                                                            ? [...value, shift] // Add new value
-                                                            : value.filter((val) => val !== shift); // Remove value
-
-                                                        console.log("Updated shifts:", newValue); // Debugging log
-                                                        onChange(newValue);
-                                                    };
-                                                    return (
-                                                        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'>
-
-                                                            {[...Array(8)].map((_, i) => (
-                                                                <div key={i} className='flex items-center gap-2'>
-                                                                    <Checkbox
-                                                                        value={i.toString()}
-                                                                        checked={value.includes(i.toString())}
-                                                                        onCheckedChange={(checked: boolean) => handleCheckboxChange(checked, i.toString())} />
-                                                                    <span className='italic text-sm'>Ca {i + 1}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )
-                                                }}
-                                            />
-                                            {errors.shifts && <div className='text-red-500 mt-2'>{errors.shifts.message}</div>}
-                                        </div>
-
-
-                                    </div>
-                                    */}
-                                    {/* Buttons */}
-                                    <div className='flex flex-wrap justify-center gap-4 mt-4'>
-                                        <Button type='submit' Icon={CalendarSync} iconPlacement='left' className='px-8'>Start Arranging</Button>
-                                        <Button type='button' variant={'outline'} Icon={Calendar} iconPlacement='left'>View Day-Offs</Button>
-                                    </div>
-                                </div>
-                            )}
-                        </Await>
-                    </Suspense>
-                </Form>
-                {confirmDialog}
-                <Dialog onOpenChange={handleDialogChange} open={isOpenLoading}>
-                    <DialogTitle />
-                    <DialogContent className='' preventClosing={!result}>
-                        {(result && fetcher.data?.success === true) ? (
-                            <div className="text-center">
-                                <p className="font-bold text-xl text-green-600">SCHEDULE COMPLETE</p>
-                                <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
-                                {(() => {
-                                    const classes = (fetcher.data?.data?.data as Class[]) ?? [];
-                                    return (
-                                        <div>
-                                            <div className='mt-4 font-bold'>{classes.length} class(es) created</div>
-                                            <div className='max-h-96 overflow-y-auto p-1'>
-                                                {
-                                                    classes.length > 0 && (
-                                                        <table className="min-w-full border border-gray-300 shadow-md rounded-lg">
-                                                            <thead className="bg-gray-600 text-white">
-                                                                <tr>
-                                                                    <th className="py-2 px-4 border">Name</th>
-                                                                    <th className="py-2 px-4 border">Learner number</th>
-                                                                    <th className="py-2 px-4 border">Schedule Desc</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {classes.map((c) => (
-                                                                    <tr key={c.id} className="border hover:bg-gray-100 transition">
-                                                                        <td className="py-2 px-4 border">{c.name}</td>
-                                                                        <td className="py-2 px-4 border text-center">{c.studentNumber}</td>
-                                                                        <td className="py-2 px-4 border">{c.scheduleDescription}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    )
-                                                }
-                                            </div>
-
-                                        </div>
-                                    )
-                                })()}
-                            </div>
-                        ) : (result && fetcher.data?.success === false && fetcher.data.error) ? (
-                            <div className="text-center">
-                                <p className="font-bold text-xl text-red-600">FAILURE</p>
-                                <XCircle size={100} className="text-red-600 mx-auto mt-4" />
-                                <p>{fetcher.data.error}</p>
-                            </div>
-                        ) : (
-                            <div className="text-center">
-                                <p className="font-bold text-xl">{loadingMessage}</p>
-                                <Loader2 size={100} className="animate-spin mx-auto mt-4" />
-                                <div className='my-4 text-center text-gray-400'>
-                                    {progressMessage}
-                                </div>
-                                <Progress value={progress} max={100}></Progress>
-                            </div>
-                        )}
-                    </DialogContent>
-                </Dialog>
+      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-blue-100">
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-sky-100">
+            <div className="flex items-center gap-3 mb-4">
+              <CalendarClock className="h-8 w-8 text-sky-600" />
+              <div>
+                <h3 className="text-2xl font-bold text-sky-800">Auto-Arrange Classes</h3>
+                <p className="text-sm text-sky-600">Just a few simple steps to arrange all classes automatically</p>
+              </div>
             </div>
+  
+            <Suspense fallback={<LoadingSkeleton height={100} />}>
+              <Await resolve={configPromise}>
+                {(data) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-sky-50 p-4 rounded-lg border border-sky-200 flex items-center">
+                      <div className="bg-sky-100 p-3 rounded-full mr-3">
+                        <Users className="h-5 w-5 text-sky-700" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-sky-500">Minimum Class Size</span>
+                        <p className="text-xl font-bold text-sky-800">
+                          {data.configs.find((c) => c.configName === MIN_STUDENTS)?.configValue}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-sky-50 p-4 rounded-lg border border-sky-200 flex items-center">
+                      <div className="bg-sky-100 p-3 rounded-full mr-3">
+                        <Users className="h-5 w-5 text-sky-700" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-sky-500">Maximum Class Size</span>
+                        <p className="text-xl font-bold text-sky-800">
+                          {data.configs.find((c) => c.configName === MAX_STUDENTS)?.configValue}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Await>
+            </Suspense>
+  
+            <Form onSubmit={handleOpentModal} method="POST">
+              <Suspense fallback={<LoadingSkeleton />}>
+                <Await resolve={promise}>
+                  {(data) => (
+                    <div className="mt-8 space-y-8">
+                      <div className="bg-sky-700 text-white p-4 rounded-lg shadow-md flex items-center justify-between">
+                        <div className="flex items-center">
+                          <BarChart3 className="h-6 w-6 mr-3" />
+                          <span className="text-lg font-medium">Total learners waiting for class</span>
+                        </div>
+                        <span className="text-2xl font-bold">
+                          {data.awaitingLevelCounts.reduce((sum, item) => sum + item.count, 0)}
+                        </span>
+                      </div>
+  
+                      {/* Level Breakdown */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-sky-800 mb-3">Level Breakdown</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                          {data.awaitingLevelCounts.map(
+                            (breakdown, index) =>
+                              breakdown.level && (
+                                <div
+                                  className="flex flex-col items-center p-4 border rounded-lg shadow-sm bg-gradient-to-b from-white to-sky-50 hover:shadow-md transition-all"
+                                  key={index}
+                                >
+                                  <div className="text-center font-bold text-sky-800">
+                                    {breakdown.level.name?.split("(")[0]}
+                                  </div>
+                                  <div className="text-center text-2xl font-bold text-sky-600 mt-2">
+                                    {breakdown.count ?? 0}
+                                  </div>
+                                </div>
+                              ),
+                          )}
+                        </div>
+                      </div>
+  
+                      {/* Learner schedule heatmap */}
+                      <div>
+                        <h4 className="text-lg font-semibold text-sky-800 mb-3">Learner Schedule Heatmap</h4>
+                        <div className="bg-white p-4 rounded-lg border border-sky-100 mb-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+                            {densityColor.map((note, index) => (
+                              <div className="flex items-center gap-2" key={index}>
+                                <div className="rounded-sm w-4 h-4" style={{ background: note.color }}></div>
+                                {note.max > 100 ? (
+                                  <div className="text-sm text-gray-600">{note.min}+</div>
+                                ) : (
+                                  <div className="text-sm text-gray-600">
+                                    {note.min} - {note.max}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+  
+                          <Suspense fallback={<LoadingSkeleton height={200} />}>
+                            <Await resolve={slotsPromise}>
+                              {(freeSlots) => (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                                  {data.awaitingLevelCounts.map(
+                                    (breakdown, index) =>
+                                      breakdown.level && (
+                                        <div
+                                          className="flex flex-col items-center py-4 px-2 border rounded-lg shadow-sm bg-white hover:shadow-md transition-all"
+                                          key={index}
+                                        >
+                                          <div className="font-bold text-center text-sky-800 mb-3">
+                                            {breakdown.level.name.split("(")[0]}
+                                          </div>
+                                          <div className="grid grid-cols-8 gap-1 w-full">
+                                            <div></div>
+                                            {dayOfWeekVn.map((dow, index) => (
+                                              <div className="text-sm font-medium text-sky-700" key={index}>
+                                                {dow}
+                                              </div>
+                                            ))}
+                                            {SHIFT_TIME.map((s, index) => (
+                                              <React.Fragment key={index}>
+                                                <div className="text-xs font-medium text-gray-500">C{index + 1}</div>
+                                                {dayOfWeekVn.map((dow, dayIndex) => (
+                                                  <div
+                                                    className="rounded-sm w-4 h-4"
+                                                    style={{
+                                                      background: getTileColor(
+                                                        freeSlots.freeSlots,
+                                                        dayIndex,
+                                                        index,
+                                                        breakdown.level?.id,
+                                                      ),
+                                                    }}
+                                                    key={dayIndex}
+                                                  ></div>
+                                                ))}
+                                              </React.Fragment>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ),
+                                  )}
+                                </div>
+                              )}
+                            </Await>
+                          </Suspense>
+                        </div>
+                      </div>
+  
+                      {/* Start Week Selection */}
+                      <div className="bg-white p-6 rounded-lg border border-sky-100 shadow-sm">
+                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                          <div className="flex items-center">
+                            <Calendar className="h-5 w-5 text-sky-600 mr-2" />
+                            <span className="font-bold text-sky-800">Choose start week:</span>
+                          </div>
+                          <div className="flex-grow">
+                            <Controller
+                              control={control}
+                              name="startWeek"
+                              render={({ field: { onChange, onBlur, value, ref } }) => (
+                                <DatePickerInput
+                                  className="w-full md:w-64 border-sky-200 focus:border-sky-500 focus:ring-sky-500"
+                                  value={value}
+                                  onChange={onChange}
+                                />
+                              )}
+                            />
+                            {errors.startWeek && (
+                              <div className="text-red-500 mt-1 text-sm">{errors.startWeek.message}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+  
+                      {/* Buttons */}
+                      <div className="flex flex-wrap justify-center gap-4 mt-8">
+                        <Button
+                          type="submit"
+                          className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
+                        >
+                          <CalendarDays className="mr-2 h-5 w-5" />
+                          Start Arranging
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="border-sky-300 text-sky-700 hover:bg-sky-50 px-8 py-2 rounded-lg"
+                        >
+                          <Calendar className="mr-2 h-5 w-5" />
+                          View Day-Offs
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </Await>
+              </Suspense>
+            </Form>
+  
+            {confirmDialog}
+  
+            <Dialog onOpenChange={handleDialogChange} open={isOpenLoading}>
+              <DialogTitle />
+              <DialogContent className="sm:max-w-md" preventClosing={!result}>
+                {result && fetcher.data?.success === true ? (
+                  <div className="text-center">
+                    <p className="font-bold text-xl text-green-600">SCHEDULE COMPLETE</p>
+                    <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
+                    {(() => {
+                      const classes = (fetcher.data?.data?.data as Class[]) ?? []
+                      return (
+                        <div>
+                          <div className="mt-4 font-bold text-sky-800">{classes.length} class(es) created</div>
+                          <div className="max-h-96 overflow-y-auto p-1 mt-4">
+                            {classes.length > 0 && (
+                              <table className="min-w-full border border-sky-200 shadow-md rounded-lg">
+                                <thead className="bg-sky-700 text-white">
+                                  <tr>
+                                    <th className="py-2 px-4 border border-sky-300">Name</th>
+                                    <th className="py-2 px-4 border border-sky-300">Learner number</th>
+                                    <th className="py-2 px-4 border border-sky-300">Schedule Desc</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {classes.map((c) => (
+                                    <tr key={c.id} className="border border-sky-100 hover:bg-sky-50 transition">
+                                      <td className="py-2 px-4 border border-sky-100">{c.name}</td>
+                                      <td className="py-2 px-4 border border-sky-100 text-center">{c.studentNumber}</td>
+                                      <td className="py-2 px-4 border border-sky-100">{c.scheduleDescription}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+                ) : result && fetcher.data?.success === false && fetcher.data.error ? (
+                  <div className="text-center">
+                    <p className="font-bold text-xl text-red-600">FAILURE</p>
+                    <XCircle size={100} className="text-red-600 mx-auto mt-4" />
+                    <p className="mt-4 text-gray-700">{fetcher.data.error}</p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <p className="font-bold text-xl text-sky-800">{loadingMessage}</p>
+                    <Loader2 size={100} className="animate-spin mx-auto mt-4 text-sky-600" />
+                    <div className="my-4 text-center text-sky-500">{progressMessage}</div>
+                    <Progress value={progress} max={100} className="h-2 bg-sky-100">
+                      <div className="h-full bg-sky-600 rounded-full"></div>
+                    </Progress>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+      </div>
     )
-}
-function LoadingSkeleton({ height = 500 }: { height?: number }) {
-    return <div className="flex justify-center items-center my-4">
-        <Skeleton className={`w-full h-[${height}px] rounded-md`} />
-    </div>
-}
+  }
+  
+  function LoadingSkeleton({ height = 500 }: { height?: number }) {
+    return (
+      <div className="flex justify-center items-center my-4">
+        <Skeleton className={`w-full h-[${height}px] rounded-md bg-sky-100`} />
+      </div>
+    )
+  }

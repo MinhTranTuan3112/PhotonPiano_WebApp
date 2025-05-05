@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
-import { CirclePlus, RotateCcw, Search } from "lucide-react";
+import { CirclePlus, FileQuestion, RotateCcw, Search } from "lucide-react";
 import { Suspense } from "react";
 import { columns } from "~/components/survey/survey-table";
 import { Button, buttonVariants } from "~/components/ui/button";
@@ -134,10 +134,13 @@ export default function StaffSurveysPage({ }: Props) {
 
     return (
         <article className="px-10">
-            <h3 className="text-lg font-bold">Manage piano surveys</h3>
-            <p className="text-sm text-muted-foreground">
-                Manage surveys of the center
-            </p>
+            <div className="flex items-center gap-3 mb-4">
+                <FileQuestion className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage piano surveys</h3>
+                    <p className="text-sm text-sky-600">Manage surveys of the center</p>
+                </div>
+            </div>
 
             <SearchForm />
 

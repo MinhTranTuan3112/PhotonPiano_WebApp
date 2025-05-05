@@ -1,7 +1,7 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, Upload, Lock } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, Upload, Lock, User } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -174,8 +174,11 @@ export default function AdminProfilePage({ }: Props) {
         <section className='px-10'>
             <div className="md:max-w-[60%]">
                 <div className="space-y-6">
-                    <div>
-                        <h3 className="text-lg font-bold">Personal Profile</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                        <User className="h-8 w-8 text-sky-600" />
+                        <div>
+                            <h3 className="text-2xl font-bold text-sky-800">Personal Profile Information</h3>
+                        </div>
                     </div>
                     <Separator />
                     <Suspense fallback={<LoadingSkeleton />}>
@@ -353,7 +356,7 @@ function ProfileForm() {
                 <ForgotPasswordDialog trigger={
                     <Button type='button' variant={'outline'} Icon={Lock} iconPlacement='left'>
                         Request reset password
-                    </Button>}/>
+                    </Button>} />
 
             </div>
 

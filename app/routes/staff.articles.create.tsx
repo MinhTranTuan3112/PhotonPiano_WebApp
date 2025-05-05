@@ -2,6 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { useFetcher } from '@remix-run/react';
+import { PenBox } from 'lucide-react';
 import { useEffect } from 'react';
 import { getValidatedFormData } from 'remix-hook-form';
 import { toast } from 'sonner';
@@ -71,7 +72,7 @@ export default function CreateArticlePage({ }: Props) {
         }
 
         return () => {
-            
+
         }
 
     }, [fetcher.data]);
@@ -79,11 +80,13 @@ export default function CreateArticlePage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h3 className="text-lg font-bold">Tạo bài viết mới</h3>
-            <p className="text-sm text-muted-foreground">
-                Tạo bài viết mới cho trang web
-            </p>
-
+            <div className="flex items-center gap-3 mb-4">
+                <PenBox className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Create new article</h3>
+                    <p className="text-sm text-sky-600">Create new article for the website</p>
+                </div>
+            </div>
             <Separator className='w-full my-3' />
 
             <ArticleForm fetcher={fetcher} isSubmitting={isSubmitting} />
