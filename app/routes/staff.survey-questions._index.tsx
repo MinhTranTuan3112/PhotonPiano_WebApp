@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useFetcher, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react';
-import { CirclePlus, RotateCcw, Search } from 'lucide-react';
+import { CirclePlus, FileQuestion, RotateCcw, Search } from 'lucide-react';
 import { Suspense, useEffect } from 'react'
 import { getValidatedFormData } from 'remix-hook-form';
 import { toast } from 'sonner';
@@ -241,10 +241,13 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
     return (
         <>
             <article className='px-10'>
-                <h3 className="text-lg font-bold">Survey questions list</h3>
-                <p className="text-sm text-muted-foreground">
-                    Manage survey questions of the center
-                </p>
+                <div className="flex items-center gap-3 mb-4">
+                    <FileQuestion className="h-8 w-8 text-sky-600" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-sky-800">Survey questions list</h3>
+                        <p className="text-sm text-sky-600">Manage survey questions of the center</p>
+                    </div>
+                </div>
                 <SearchForm />
                 <Suspense key={JSON.stringify(query)} fallback={<LoadingSkeleton />}>
                     <Await resolve={promise}>

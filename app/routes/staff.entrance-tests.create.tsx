@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Controller } from 'react-hook-form'
 import { SHIFT_TIME } from '~/lib/utils/constants'
-import { Clock, MapPin, UserCog } from 'lucide-react'
+import { Clock, MapPin, PlusCircle, UserCog } from 'lucide-react'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { requireAuth } from '~/lib/utils/auth'
 import { Account, Role } from '~/lib/types/account/account'
@@ -162,8 +162,13 @@ export default function CreateEntranceTestPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Create new test</h1>
-            <p className="text-muted-foreground">Basic information</p>
+            <div className="flex items-center gap-3 mb-4">
+                <PlusCircle className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Create New Entrance Test</h3>
+                    <p className="text-sm text-sky-600">Input basic information</p>
+                </div>
+            </div>
 
             <CreateEntranceTestForm idToken={idToken} />
 

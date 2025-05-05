@@ -1,7 +1,7 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, Upload, Lock } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, Upload, Lock, User } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -31,19 +31,19 @@ type Props = {}
 
 const accountInfoSchema = z
     .object({
-        avatarUrl: z.string().optional(), // Optional URL for existing avatar
+        avatarUrl: z.string().optional(),
         email: z
-            .string({ message: "Email không được để trống." })
-            .email({ message: "Email không hợp lệ." }),
+            .string({ message: "Email is required." })
+            .email({ message: "Invalid email format." }),
         fullName: z
-            .string({ message: "Họ và tên không được để trống." })
-            .min(1, { message: "Họ và tên không được để trống." }),
+            .string({ message: "Full name is required." })
+            .min(1, { message: "Full name is required." }),
         userName: z
-            .string({ message: "Tên người dùng không được để trống." })
-            .min(1, { message: "Tên người dùng không được để trống." }),
+            .string({ message: "Username is required." })
+            .min(1, { message: "Username is required." }),
         phone: z
-            .string({ message: "Số điện thoại không được để trống." })
-            .min(10, { message: "Số điện thoại không hợp lệ." }),
+            .string({ message: "Phone number is required." })
+            .min(10, { message: "Invalid phone number." }),
     });
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -167,15 +167,17 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function StaffProfilePage({ }: Props) {
-
     const { promise } = useLoaderData<typeof loader>();
 
     return (
         <section className='px-10'>
             <div className="md:max-w-[60%]">
                 <div className="space-y-6">
-                    <div>
-                        <h3 className="text-lg font-bold">Thông tin hồ sơ cá nhân</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                        <User className="h-8 w-8 text-sky-600" />
+                        <div>
+                            <h3 className="text-2xl font-bold text-sky-800">Personal Profile Information</h3>
+                        </div>
                     </div>
                     <Separator />
                     <Suspense fallback={<LoadingSkeleton />}>
@@ -194,13 +196,9 @@ export default function StaffProfilePage({ }: Props) {
 }
 
 function ProfileForm() {
-
     const accountValue = useAsyncValue();
-
     const account = accountValue as Account;
-
     const fetcher = useFetcher<typeof action>();
-
     const { refetchAccountInfo } = useAuth();
 
     const {
@@ -222,15 +220,15 @@ function ProfileForm() {
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmationDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận cập nhật thông tin',
-        description: 'Bạn có chắc chắn muốn cập nhật thông tin cá nhân của mình không?',
+        title: 'Confirm Profile Update',
+        description: 'Are you sure you want to update your personal profile information?',
         onConfirm: handleSubmit,
-        confirmText: 'Cập nhật',
+        confirmText: 'Update',
     });
 
     const { open: handleOpenImageDialog, isOpen, dialog: imagesDialog } = useImagesDialog({
-        title: 'Thêm ảnh',
-        description: 'Nhập ảnh từ url hoặc chọn ảnh từ thiết bị của bạn.',
+        title: 'Add Image',
+        description: 'Enter an image URL or upload an image from your device.',
         onConfirm: (imageUrls) => {
             console.log({ imageUrls });
             setValue('avatarUrl', imageUrls[0]);
@@ -240,9 +238,8 @@ function ProfileForm() {
     });
 
     useEffect(() => {
-
         if (fetcher.data?.success === true) {
-            toast.success('Lưu thông tin thành công!', {
+            toast.success('Profile updated successfully!', {
                 position: 'top-center',
                 duration: 1250
             });
@@ -251,18 +248,14 @@ function ProfileForm() {
         }
 
         if (fetcher.data?.success === false && fetcher.data.error) {
-            toastWarning(`Lưu thất bại! ${fetcher.data.error}`, {
+            toastWarning(`Update failed! ${fetcher.data.error}`, {
                 position: 'top-center',
                 duration: 1250
             });
             return;
         }
 
-
-        return () => {
-
-        }
-
+        return () => { }
     }, [fetcher.data]);
 
     return <>
@@ -279,82 +272,71 @@ function ProfileForm() {
             <Button type='button' className='max-w-40 w-full mx-auto'
                 Icon={Upload} iconPlacement='left' variant={'outline'}
                 onClick={handleOpenImageDialog}>
-                Upload ảnh
+                Upload Image
             </Button>
 
             {errors.avatarUrl && <p className='text-sm text-red-600'>{errors.avatarUrl.message}</p>}
 
             <div>
-
-                <Label htmlFor='fullName'>Họ và tên</Label>
+                <Label htmlFor='fullName'>Full Name</Label>
                 <Input
                     {...register('fullName')}
                     name='fullName'
                     id='fullName'
                     type='text'
-                    placeholder='Nhập họ và tên...' />
+                    placeholder='Enter your full name...' />
                 {errors.fullName && <p className='text-sm text-red-600'>{errors.fullName.message}</p>}
-
             </div>
 
             <div>
-                <Label htmlFor='userName'>Tên người dùng</Label>
+                <Label htmlFor='userName'>Username</Label>
                 <Input
                     {...register('userName')}
                     startContent={<SquareUserRound />}
                     name='userName'
                     id='userName'
                     type='text'
-                    placeholder='Nhập tên người dùng...' />
-                {/* <p className="text-sm text-muted-foreground mt-2">Đây là tên người dùng được hiển thị công khai của bạn.
-                    Bạn có thể dùng họ và tên hoặc biệt danh của mình.
-                </p> */}
+                    placeholder='Enter your username...' />
                 {errors.userName && <p className='text-sm text-red-600'>{errors.userName.message}</p>}
             </div>
 
-            <div className="">
+            <div>
                 <Label htmlFor='email'>Email</Label>
                 <Input
                     {...register('email')}
-                    startContent={<Mail />} name='email' type='text'
+                    startContent={<Mail />}
+                    name='email'
+                    type='text'
                     id='email'
-                    placeholder='Nhập email...'
+                    placeholder='Enter your email...'
                     readOnly />
-                {/* <p className="text-sm text-muted-foreground mt-2">
-                    <strong>Photon Piano</strong> sẽ sử dụng email này để liên lạc với bạn về vấn đề hỗ trợ đăng ký học ở trung tâm, lịch thi đầu vào
-                    lịch học trung tâm và các thông báo khác.
-                </p> */}
                 {errors.email && <p className='text-sm text-red-600'>{errors.email.message}</p>}
             </div>
 
-            <div className="">
-                <Label htmlFor='phone'>Số điện thoại</Label>
+            <div>
+                <Label htmlFor='phone'>Phone Number</Label>
                 <Input
                     {...register('phone')}
                     startContent={<Phone />}
                     name='phone' type='text'
                     id='phone'
-                    placeholder='Nhập số điện thoại..' />
-                {/* <p className="text-sm text-muted-foreground mt-2">
-                    Số điện thoại này sẽ được sử dụng để liên lạc với bạn trong trường hợp cần thiết.
-                </p> */}
+                    placeholder='Enter your phone number...' />
                 {errors.phone && <p className='text-sm text-red-600'>{errors.phone.message}</p>}
             </div>
 
-
-            <div className='flex gap-4  mt-4'>
-
+            <div className='flex gap-4 mt-4'>
                 <Button type="submit" variant={'default'}
                     isLoading={isSubmitting}
                     disabled={isSubmitting}
                     className='md:max-w-[30%]'>
-                    {isSubmitting ? 'Đang cập nhật' : 'Cập nhật thông tin'}
+                    {isSubmitting ? 'Updating...' : 'Update Profile'}
                 </Button>
+
                 <ForgotPasswordDialog trigger={
                     <Button type='button' variant={'outline'} Icon={Lock} iconPlacement='left'>
-                        Yêu cầu đặt lại mật khẩu
-                    </Button>}/>
-
+                        Request Password Reset
+                    </Button>
+                } />
             </div>
 
         </Form>
@@ -362,7 +344,6 @@ function ProfileForm() {
         {confirmDialog}
     </>
 }
-
 
 function LoadingSkeleton() {
     return <div className="flex flex-col space-y-3">

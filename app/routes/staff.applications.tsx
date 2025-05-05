@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from "@remix-run/react";
-import { RotateCcw } from "lucide-react";
+import { File, RotateCcw } from "lucide-react";
 import { Suspense } from "react";
 import { getValidatedFormData } from "remix-hook-form";
 import { z } from "zod";
@@ -149,11 +149,13 @@ export default function StaffApplicationsPage({ }: Props) {
     return (
         <article className="px-8">
 
-            <h1 className="text-xl font-extrabold">List of academic applications</h1>
-            <p className="text-muted-foreground">
-                Manage the list of applications and procedures of learners
-            </p>
-
+            <div className="flex items-center gap-3 mb-4">
+                <File className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">List of academic applications</h3>
+                    <p className="text-sm text-sky-600">Manage the list of applications and procedures of learners</p>
+                </div>
+            </div>
             <SearchForm />
 
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
