@@ -15,6 +15,7 @@ import { fetchUpdateLevelMinimumGpa } from "~/lib/services/level"
 import { Award, Save, AlertTriangle, Info } from "lucide-react"
 import { Badge } from "../ui/badge"
 import { Progress } from "../ui/progress"
+import { toastWarning } from "~/lib/utils/toast-utils"
 
 // Define the schema for a single level's GPA
 const levelGpaSchema = z.object({
@@ -171,7 +172,7 @@ export default function LevelGpaConfigForm({ fetcher, isSubmitting, levels, idTo
         }
 
         if (errorCount > 0) {
-            toast.warning(`Failed to update ${errorCount} level${errorCount > 1 ? "s" : ""}`)
+            toastWarning(`Failed to update ${errorCount} level${errorCount > 1 ? "s" : ""}`)
         }
 
         // Reset progress

@@ -67,3 +67,32 @@ export async function batchUpdateStudentScores({
     throw error;
   }
 }
+
+export async function rollBackScorePublishing({
+  classId,
+  idToken,
+}: {
+  classId: string;
+  idToken: string;
+}) {
+  if (!idToken) {
+    throw new Error("Authentication token is required");
+  }
+
+  const url = `/student-class/${classId}/rollback-score-publish`;
+  try {
+    const response = await axiosInstance.post(
+      url,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error rolling back published scores:", error);
+    throw error;
+  }
+}

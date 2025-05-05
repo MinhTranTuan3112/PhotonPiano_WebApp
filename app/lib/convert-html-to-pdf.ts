@@ -3,7 +3,6 @@ import chromium from "@sparticuz/chromium";
 import fs from "fs/promises";
 import path from "path";
 
-// Function to convert HTML to PDF - with environment detection
 export async function convertHtmlToPdf(
   html: string,
   outputPath?: string
@@ -11,14 +10,10 @@ export async function convertHtmlToPdf(
   console.log("Starting HTML to PDF conversion...");
 
   let browser;
-
-  // Check if we're in a local development environment
   const isLocalDev = process.env.NODE_ENV !== "production";
 
   if (isLocalDev) {
-    // For local development, use the installed Chrome/Chromium
     try {
-      // Try to use puppeteer-core with locally installed Chrome
       const puppeteerFull = await import("puppeteer");
 
       console.log("Using local Puppeteer installation for development");
@@ -46,12 +41,7 @@ export async function convertHtmlToPdf(
       });
     }
   } else {
-    // For production/serverless, use @sparticuz/chromium
-    console.log("Using @sparticuz/chromium for serverless environment");
-    console.log("PLEASE WORK");
-
     const executablePath = await chromium.executablePath();
-
     browser = await puppeteer.launch({
       args: [
         ...chromium.args,
@@ -69,19 +59,24 @@ export async function convertHtmlToPdf(
   }
 
   try {
-    // Create a new page
     const page = await browser.newPage();
 
-    // Set content to the HTML
     await page.setContent(html, {
       waitUntil: "networkidle0",
-      timeout: 30000, // 30 seconds timeout
+      timeout: 30000, 
     });
 
-    // Set viewport size to A4 for certificates
+    await (page as any).evaluate("document.fonts.ready")
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const bodyHeight = await (page as any).evaluate(() => {
+      const body = document.querySelector(".certificate-container");
+      return body ? body.scrollHeight : 794; 
+    });
+
     await page.setViewport({
-      width: 1240,
-      height: 1754, // Approximately A4 size at 96 DPI
+      width: 1123, 
+      height: Math.max(794, bodyHeight + 40),
       deviceScaleFactor: 1,
     });
 
@@ -89,13 +84,14 @@ export async function convertHtmlToPdf(
     if (outputPath) {
       await page.pdf({
         path: outputPath,
-        format: "A4",
+        width: "1123px",
+        height: `${Math.max(794, bodyHeight + 40)}px`, // Dynamic height
         printBackground: true,
         margin: {
-          top: "0.5cm",
-          right: "0.5cm",
-          bottom: "0.5cm",
-          left: "0.5cm",
+          top: "0cm",
+          right: "0cm",
+          bottom: "0cm",
+          left: "0cm",
         },
         timeout: 60000, // 60 seconds timeout for PDF generation
       });
@@ -104,13 +100,14 @@ export async function convertHtmlToPdf(
     } else {
       // Return buffer for serverless environments
       const pdfBuffer = await page.pdf({
-        format: "A4",
+        width: "1123px",
+        height: `${Math.max(794, bodyHeight + 40)}px`, // Dynamic height
         printBackground: true,
         margin: {
-          top: "0.5cm",
-          right: "0.5cm",
-          bottom: "0.5cm",
-          left: "0.5cm",
+          top: "0cm",
+          right: "0cm",
+          bottom: "0cm",
+          left: "0cm",
         },
         timeout: 60000,
       });
@@ -140,18 +137,19 @@ interface Certificate {
 // Example certificate data based on the provided type
 const sampleCertificate: Certificate = {
   studentClassId: "cert-123456",
-  className: "Piano Performance",
-  levelName: "Level 3",
+  className: "Class Level 4",
+  levelName: "Professional/Master Level",
   completionDate: "2025-04-27T10:00:00Z",
   certificateUrl: "https://example.com/certificates/cert-123456",
-  gpa: 3.8,
-  studentName: "Nguyen Van A",
-  instructorName: "Tran Thi B",
+  gpa: 7.0,
+  studentName: "Đỗ Hoàng",
+  instructorName: "Matthew Smith",
   skillsEarned: [
-    "Music Theory",
-    "Piano Technique",
-    "Performance Skills",
-    "Sight Reading",
+    "Play difficult and technically complex works such as Rachmaninoff, Liszt, Debussy...",
+    "Perform confidently on stage with a personal style.",
+    "Improvise and be creative in playing.",
+    "Collaborate with other instruments in an orchestra or band.",
+    "Compose and arrange music in your own style.",
   ],
 };
 
@@ -167,7 +165,7 @@ export function generateCertificateHtml(certificate: Certificate): string {
   );
 
   const skillsHtml = certificate.skillsEarned
-    .map((skill: string) => `<span class="skill-badge">${skill}</span>`)
+    .map((skill: string) => `<div class="skill-item">${skill}</div>`)
     .join("");
 
   return `
@@ -175,113 +173,300 @@ export function generateCertificateHtml(certificate: Certificate): string {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Certificate of Completion</title>
+  <title>Certificate of Completion - Photon Piano Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: 'Arial', sans-serif;
-      text-align: center;
-      padding: 40px;
-      color: #333;
+      font-family: 'Roboto', sans-serif;
+      color: #1e3a5f;
+      margin: 0;
+      padding: 0;
       background-color: #f9f9f9;
     }
-    .certificate {
-      border: 10px solid #0066cc;
-      padding: 25px;
-      position: relative;
+
+    /* Certificate Container - Flexible height */
+    .certificate-container {
+      width: 1123px; /* A4 landscape width */
+      min-height: 794px; /* A4 landscape minimum height */
       margin: 0 auto;
-      background-color: white;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      position: relative;
+      background: white;
+      overflow: visible; /* Changed from hidden to visible */
+      padding-bottom: 40px; /* Add padding to ensure content doesn't touch the border */
     }
-    .header {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #0066cc;
+
+    /* Gold Border Design */
+    .gold-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 20px solid #e6c460;
+      border-radius: 8px;
+      z-index: 1;
     }
-    .title {
-      font-size: 36px;
-      font-weight: bold;
-      margin: 20px 0;
+
+    /* Corner Accent */
+    .corner-accent {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 250px;
+      height: 250px;
+      background: #1e3a5f;
+      border-bottom-left-radius: 100%;
+      z-index: 2;
+      border-left: 2px solid #e6c460;
+      border-bottom: 2px solid #e6c460;
     }
-    .student-name {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 30px 0;
-      color: #333;
-    }
-    .course-name {
-      font-size: 22px;
-      margin: 15px 0;
-    }
-    .level-name {
-      font-size: 18px;
-      margin: 10px 0;
-      color: #555;
-    }
-    .completion-date {
-      font-size: 18px;
-      margin: 15px 0 30px 0;
-    }
-    .signature {
-      margin-top: 40px;
+
+    /* Certificate Content */
+    .certificate-content {
+      position: relative;
+      z-index: 10;
+      padding: 60px 80px 80px; /* Increased bottom padding */
+      min-height: 794px; /* Minimum height to match container */
       display: flex;
-      justify-content: space-around;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
-    .signature-line {
-      width: 200px;
-      border-top: 1px solid #333;
-      margin-top: 10px;
-    }
-    .gpa {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 20px 0;
-      color: #0066cc;
-    }
-    .skills {
-      margin: 20px 0;
-    }
-    .skills-title {
-      font-size: 18px;
+
+    /* Header Section */
+    .academy-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: #333;
       margin-bottom: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
-    .skill-badge {
+
+    .certificate-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .certificate-subtitle {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 40px;
+    }
+
+    /* Student Name Section */
+    .student-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      font-weight: 700;
+      font-style: italic;
+      color: #1e3a5f;
+      margin: 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e6c460;
       display: inline-block;
-      background-color: #e6f2ff;
-      color: #0066cc;
-      padding: 5px 10px;
-      margin: 5px;
-      border-radius: 15px;
+      min-width: 60%;
+    }
+
+    .certificate-text {
+      font-size: 18px;
+      line-height: 1.6;
+      text-align: center;
+      max-width: 80%;
+      margin: 0 auto 40px;
+    }
+
+    .highlight {
+      font-weight: 600;
+    }
+
+    /* GPA Section */
+    .gpa-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0;
+    }
+
+    .gpa-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #e6c460;
+      border: 4px solid #1e3a5f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #1e3a5f;
+      font-weight: 700;
+      font-size: 32px;
+    }
+
+    /* Skills Section */
+    .skills-container {
+      margin: 20px auto 40px; /* Increased bottom margin */
+      width: 80%;
+      text-align: center;
+    }
+
+    .skills-title {
+      font-weight: 600;
+      margin-bottom: 25px;
+      font-size: 18px;
+      color: #1e3a5f;
+      text-align: center;
+      border-bottom: 1px solid #e6c460;
+      display: inline-block;
+      padding: 0 20px 5px;
+    }
+
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px; /* Increased bottom margin */
+    }
+
+    .skill-item {
+      background-color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
       font-size: 14px;
+      color: #1e3a5f;
+      border: 1px solid #e6c460;
+      display: inline-block;
+      max-width: 100%;
+      text-align: center;
+      word-wrap: break-word; /* Ensure long words wrap */
+      overflow-wrap: break-word;
+    }
+
+    /* Footer Section */
+    .certificate-footer {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: auto;
+      padding: 0 40px;
+    }
+
+    .signature-container {
+      text-align: center;
+      width: 200px;
+    }
+
+    .signature-line {
+      border-top: 1px solid #ddd;
+      margin-top: 40px;
+      padding-top: 10px;
+    }
+
+    .signature-name {
+      font-weight: 600;
+      font-size: 18px;
+      color: #1e3a5f;
+    }
+
+    .signature-title {
+      font-style: italic;
+      color: #777;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    /* Print-specific styles */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      .certificate-container {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      
+      .skills-list {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="certificate">
-    <div class="header">CERTIFICATE OF COMPLETION</div>
-    <div class="title">This certifies that</div>
-    <div class="student-name">${certificate.studentName}</div>
-    <div class="title">has successfully completed</div>
-    <div class="course-name">${certificate.className}</div>
-    <div class="level-name">${certificate.levelName}</div>
-    <div class="completion-date">on ${formattedDate}</div>
-    <div class="gpa">GPA: ${certificate.gpa.toFixed(1)}</div>
+  <div class="certificate-container">
+    <!-- Gold Border -->
+    <div class="gold-border"></div>
     
-    <div class="skills">
-      <div class="skills-title">Skills Earned:</div>
-      <div class="skills-badges">
-        ${skillsHtml}
-      </div>
-    </div>
+    <!-- Corner Accent -->
+    <div class="corner-accent"></div>
     
-    <div class="signature">
-      <div>
-        <div class="signature-line"></div>
-        <div>${certificate.instructorName}</div>
-        <div>Instructor</div>
+    <!-- Certificate Content -->
+    <div class="certificate-content">
+      <!-- Header -->
+      <div class="academy-name">Photon Piano Academy</div>
+      <div class="certificate-title">Certificate of Completion</div>
+      <div class="certificate-subtitle">This certifies that</div>
+      
+      <!-- Student Name -->
+      <div class="student-name">${certificate.studentName}</div>
+      
+      <!-- Course Details -->
+      <p class="certificate-text">
+        Has successfully completed the <span class="highlight">${
+          certificate.className
+        }</span> course at Photon Piano Academy, demonstrating 
+        proficiency in piano performance at the <span class="highlight">${
+          certificate.levelName
+        }</span> level.
+      </p>
+      
+      <!-- GPA Display -->
+      <div class="gpa-container">
+        <div class="gpa-circle">
+          ${certificate.gpa.toFixed(1)}
+        </div>
       </div>
-      <div>
-        <div class="signature-line"></div>
-        <div>Director</div>
+      
+      <!-- Skills Section -->
+      <div class="skills-container">
+        <p class="skills-title">Competencies Achieved</p>
+        <div class="skills-list">
+          ${skillsHtml}
+        </div>
+      </div>
+      
+      <!-- Footer with Signature -->
+      <div class="certificate-footer">
+        <!-- Date -->
+        <div class="signature-container">
+          <div class="signature-line">
+            <div class="signature-name">${formattedDate}</div>
+            <div class="signature-title">Date of Completion</div>
+          </div>
+        </div>
+        
+        <!-- Signature -->
+        <div class="signature-container">
+          <div class="signature-line">
+            <div class="signature-name">${certificate.instructorName}</div>
+            <div class="signature-title">Course Instructor</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -334,21 +519,12 @@ export async function main(): Promise<void> {
     );
     console.log("2. Convert the HTML to PDF using this function");
     console.log("3. Return the PDF file as a download response");
-    console.log("\nExample implementation:");
-    console.log("- Create a route at /api/certificates/:id/pdf");
-    console.log("- Fetch the certificate HTML from your backend");
-    console.log("- Use puppeteer to convert the HTML to PDF");
-    console.log(
-      "- Return the PDF with proper Content-Type and Content-Disposition headers"
-    );
   } catch (error) {
     console.error("Failed to process certificate:", error);
   }
 }
 
 // For direct execution in Node.js environments
-// Fix the import.meta.main error by checking if this is the main module
-// This is a common pattern for ES modules in Node.js
 if (typeof process !== "undefined" && process.argv[1] === import.meta.url) {
   main();
 }
