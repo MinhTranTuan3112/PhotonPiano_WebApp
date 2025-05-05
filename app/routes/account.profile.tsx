@@ -588,7 +588,7 @@ function AcademicInfoSection() {
             })
         } catch (error) {
             console.error("Failed to update learning status:", error)
-            toast.error("Failed to update learning status", {
+            toastWarning("Failed to update learning status", {
                 position: "top-center",
                 duration: 1250,
             })

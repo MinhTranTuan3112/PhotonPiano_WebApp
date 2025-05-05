@@ -13,6 +13,7 @@ import type { ActionResult } from "~/lib/types/action-result"
 import type { ClassDetail, ClassScoreDetail } from "~/lib/types/class/class-detail"
 import type { loader } from "~/root"
 import { cn } from "~/lib/utils"
+import { toastWarning } from "~/lib/utils/toast-utils"
 
 // Function to determine criteria sort order based on name
 function getCriteriaSortOrder(criteriaName: string): number {
@@ -145,7 +146,7 @@ export function ClassScoreboard({
         { method: "POST", action: "/endpoint/student-class/publish-scores" },
       )
     } catch (error) {
-      toast.error("Unable to publish scores. Please try again later.")
+      toastWarning("Unable to publish scores. Please try again later.")
     }
   }
 
@@ -156,7 +157,7 @@ export function ClassScoreboard({
         { method: "POST", action: "/endpoint/student-class/rollback-publish-scores" },
       )
     } catch (error) {
-      toast.error("Unable to rollback publication. Please try again later.")
+      toastWarning("Unable to rollback publication. Please try again later.")
     }
   }
 

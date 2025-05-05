@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "@remix-run/react"
@@ -64,6 +62,7 @@ import type { Role } from "~/lib/types/account/account"
 import { fetchSystemConfigSlotCancel } from "~/lib/services/system-config"
 import { toast } from "sonner"
 import { format, isSameDay } from "date-fns"
+import { toastWarning } from "~/lib/utils/toast-utils"
 
 const shiftTimesMap: Record<number, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -465,7 +464,7 @@ const StatsCards = ({
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold text-blue-900">{totalStudents}</div>
-                    <p className="text-xs text-gray-500 mt-1">Total attendance</p>
+                    {/* <p className="text-xs text-gray-500 mt-1">Total attendance</p> */}
                 </CardContent>
             </Card>
 
@@ -533,12 +532,18 @@ export const TeacherSchedule = ({
     const [isLoading, setIsLoading] = useState(false)
     const [isFilterLoading, setIsFilterLoading] = useState(false)
     const [activeView, setActiveView] = useState("daily")
-    const [filters, setFilters] = useState({
-        shifts: [] as number[],
-        slotStatuses: [] as number[],
-        instructorFirebaseIds: [] as string[],
+    const [filters, setFilters] = useState<{
+        shifts: number[]
+        slotStatuses: number[]
+        instructorFirebaseIds: string[]
+        studentFirebaseId: string
+        classIds: string[]
+    }>({
+        shifts: [],
+        slotStatuses: [],
+        instructorFirebaseIds: [],
         studentFirebaseId: "",
-        classIds: classId ? [classId] : ([] as string[]),
+        classIds: [],
     })
 
     const [selectedSlotToCancel, setSelectedSlotToCancel] = useState<SlotDetail | null>(null)
@@ -547,13 +552,7 @@ export const TeacherSchedule = ({
     const [blankSlots, setBlankSlots] = useState<BlankSlotModel[]>([])
     const [selectedBlankSlot, setSelectedBlankSlot] = useState<BlankSlotModel | null>(null)
     const [cancelReasons, setCancelReasons] = useState<string[]>([])
-    const uniqueShifts = Array.from(new Set(slots.map((slot) => slot.shift)))
-    const uniqueSlotStatuses = Array.from(new Set(slots.map((slot) => slot.status)))
-    const uniqueInstructorIds = Array.from(new Set(slots.map((slot) => slot.class.instructorId)))
-    const uniqueClassIds = Array.from(new Set(slots.map((slot) => slot.class.id)))
     const [isOtherSelected, setIsOtherSelected] = useState<boolean>(false)
-    const instructorMap = new Map(slots.map((slot) => [slot.class.instructorId, slot.class.instructorName]))
-    const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]))
     const [isChangeTeacherDialogOpen, setIsChangeTeacherDialogOpen] = useState<boolean>(false)
     const [newTeacherId, setNewTeacherId] = useState<string>("")
     const [availableTeachers, setAvailableTeachers] = useState<Array<{ accountFirebaseId: string; fullName: string }>>([])
@@ -693,17 +692,6 @@ export const TeacherSchedule = ({
 
     const handleDateSelect = (date: Date) => {
         setSelectedDate(date)
-    }
-
-    const handleFilterChange = (name: string, value: any) => {
-        setFilters((prev) => ({
-            ...prev,
-            [name]: Array.isArray(value)
-                ? value
-                : prev[name as keyof typeof filters].includes(value)
-                    ? (prev[name as keyof typeof filters] as any[]).filter((item) => item !== value)
-                    : [...(prev[name as keyof typeof filters] as any[]), value],
-        }))
     }
 
     const resetFilters = () => {
@@ -900,153 +888,6 @@ export const TeacherSchedule = ({
                         </Select>
                     </div>
                 </div>
-
-                {(filters.shifts.length > 0 ||
-                    filters.slotStatuses.length > 0 ||
-                    filters.instructorFirebaseIds.length > 0 ||
-                    filters.classIds.length > 0) && (
-                        <div className="bg-blue-50 p-3 rounded-lg mt-4">
-                            <h3 className="font-medium text-blue-800 mb-2">Application filter: </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {filters.shifts.length > 0 && (
-                                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1">
-                                        {filters.shifts.length} Shift
-                                        <button
-                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                            onClick={async () => {
-                                                setIsFilterLoading(true)
-                                                setFilters((prev) => ({ ...prev, shifts: [] }))
-                                                try {
-                                                    const { startDate, endDate } = getWeekRange(year, weekNumber)
-                                                    const startTime = formatDateForAPI(startDate)
-                                                    const endTime = formatDateForAPI(endDate)
-
-                                                    const response = await fetchSlots({
-                                                        startTime,
-                                                        endTime,
-                                                        idToken,
-                                                        ...filters,
-                                                        shifts: [],
-                                                        studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
-                                                    })
-
-                                                    setSlots(response.data)
-                                                } catch (error) {
-                                                    console.error("Failed to update after filter removal:", error)
-                                                } finally {
-                                                    setIsFilterLoading(false)
-                                                }
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </Badge>
-                                )}
-                                {filters.slotStatuses.length > 0 && (
-                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 px-3 py-1">
-                                        {filters.slotStatuses.length} trạng thái
-                                        <button
-                                            className="ml-2 text-green-600 hover:text-green-800"
-                                            onClick={async () => {
-                                                setIsFilterLoading(true)
-                                                setFilters((prev) => ({ ...prev, slotStatuses: [] }))
-                                                try {
-                                                    const { startDate, endDate } = getWeekRange(year, weekNumber)
-                                                    const startTime = formatDateForAPI(startDate)
-                                                    const endTime = formatDateForAPI(endDate)
-
-                                                    const response = await fetchSlots({
-                                                        startTime,
-                                                        endTime,
-                                                        idToken,
-                                                        ...filters,
-                                                        slotStatuses: [],
-                                                        studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
-                                                    })
-
-                                                    setSlots(response.data)
-                                                } catch (error) {
-                                                    console.error("Failed to update after filter removal:", error)
-                                                } finally {
-                                                    setIsFilterLoading(false)
-                                                }
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </Badge>
-                                )}
-                                {filters.instructorFirebaseIds.length > 0 && (
-                                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 px-3 py-1">
-                                        {filters.instructorFirebaseIds.length} Teacher
-                                        <button
-                                            className="ml-2 text-blue-600 hover:text-blue-800"
-                                            onClick={async () => {
-                                                setIsFilterLoading(true)
-                                                setFilters((prev) => ({ ...prev, instructorFirebaseIds: [] }))
-                                                try {
-                                                    const { startDate, endDate } = getWeekRange(year, weekNumber)
-                                                    const startTime = formatDateForAPI(startDate)
-                                                    const endTime = formatDateForAPI(endDate)
-
-                                                    const response = await fetchSlots({
-                                                        startTime,
-                                                        endTime,
-                                                        idToken,
-                                                        ...filters,
-                                                        instructorFirebaseIds: [],
-                                                        studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
-                                                    })
-
-                                                    setSlots(response.data)
-                                                } catch (error) {
-                                                    console.error("Failed to update after filter removal:", error)
-                                                } finally {
-                                                    setIsFilterLoading(false)
-                                                }
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </Badge>
-                                )}
-                                {filters.classIds.length > 0 && (
-                                    <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 px-3 py-1">
-                                        {filters.classIds.length} Class
-                                        <button
-                                            className="ml-2 text-amber-600 hover:text-amber-800"
-                                            onClick={async () => {
-                                                setIsFilterLoading(true)
-                                                setFilters((prev) => ({ ...prev, classIds: [] }))
-                                                try {
-                                                    const { startDate, endDate } = getWeekRange(year, weekNumber)
-                                                    const startTime = formatDateForAPI(startDate)
-                                                    const endTime = formatDateForAPI(endDate)
-
-                                                    const response = await fetchSlots({
-                                                        startTime,
-                                                        endTime,
-                                                        idToken,
-                                                        ...filters,
-                                                        classIds: [],
-                                                        studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
-                                                    })
-
-                                                    setSlots(response.data)
-                                                } catch (error) {
-                                                    console.error("Failed to update after filter removal:", error)
-                                                } finally {
-                                                    setIsFilterLoading(false)
-                                                }
-                                            }}
-                                        >
-                                            ×
-                                        </button>
-                                    </Badge>
-                                )}
-                            </div>
-                        </div>
-                    )}
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -1103,18 +944,18 @@ export const TeacherSchedule = ({
                                     className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
                                 >
                                     <Calendar className="w-4 h-4 mr-2" />
-                                    Daily 
+                                    Daily
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="weekly"
                                     className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900"
                                 >
                                     <Layers className="w-4 h-4 mr-2" />
-                                    Weekly 
+                                    Weekly
                                 </TabsTrigger>
                                 <TabsTrigger value="list" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900">
                                     <ListFilter className="w-4 h-4 mr-2" />
-                                    List 
+                                    List
                                 </TabsTrigger>
                             </TabsList>
 
@@ -1283,125 +1124,6 @@ export const TeacherSchedule = ({
                                     )}
                                 </ul>
                             </div>
-
-                            {role === 1 &&
-                                selectedSlot.slotStudents &&
-                                selectedSlot.slotStudents
-                                    .filter(
-                                        (student: SlotStudentModel) =>
-                                            student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
-                                    )
-                                    .map((student, index) => (
-                                        <div
-                                            key={index}
-                                            className="bg-gradient-to-br from-blue-50 to-white border border-blue-200 rounded-xl p-5 shadow-sm"
-                                        >
-                                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-blue-700">
-                                                <ThumbsUp className="w-5 h-5" /> Your Feedback
-                                            </h3>
-
-                                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-blue-900 text-sm md:text-base">
-                                                {student.gestureComment && (
-                                                    <li className="flex items-center gap-2">
-                                                        <MoveRight className="text-blue-600 w-4 h-4" />
-                                                        <span>
-                                                            <strong>Posture:</strong> {student.gestureComment}
-                                                        </span>
-                                                    </li>
-                                                )}
-                                                {student.fingerNoteComment && (
-                                                    <li className="flex items-center gap-2">
-                                                        <HandMetal className="text-blue-600 w-4 h-4" />
-                                                        <span>
-                                                            <strong>Fingering:</strong> {student.fingerNoteComment}
-                                                        </span>
-                                                    </li>
-                                                )}
-                                                {student.pedalComment && (
-                                                    <li className="flex items-center gap-2">
-                                                        <Footprints className="text-blue-600 w-4 h-4" />
-                                                        <span>
-                                                            <strong>Pedal:</strong> {student.pedalComment}
-                                                        </span>
-                                                    </li>
-                                                )}
-                                                {(student.attendanceStatus === AttendanceStatus.Attended ||
-                                                    student.attendanceStatus === AttendanceStatus.Absent) && (
-                                                        <li className="flex items-center gap-2">
-                                                            <CheckCircle className="text-blue-600 w-4 h-4" />
-                                                            <span>
-                                                                <strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}
-                                                            </span>
-                                                        </li>
-                                                    )}
-                                            </ul>
-                                        </div>
-                                    ))}
-
-                            {/* --- Staff Controls --- */}
-                            {role === 4 && (
-                                <div className="mt-6 border-t border-slate-200 pt-5">
-                                    <div className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl p-5 shadow-sm">
-                                        <h3 className="text-lg font-semibold mb-3 text-blue-700 flex items-center gap-2">
-                                            <Settings className="w-5 h-5" />
-                                            Staff Actions
-                                        </h3>
-                                        <div className="flex flex-wrap justify-end gap-3">
-                                            {/* Slot Detail Button */}
-                                            <Button
-                                                onClick={() => navigate(`/staff/classes/slot/${selectedSlot.id}`)}
-                                                disabled={
-                                                    !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
-                                                }
-                                                className="flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-700 border border-blue-300 font-semibold px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Info className="w-4 h-4" />
-                                                Slot Detail
-                                            </Button>
-
-                                            {/* Change Teacher Button */}
-                                            <Button
-                                                onClick={async () => {
-                                                    try {
-                                                        setIsTeacherLoading(true)
-                                                        const response = await fetchAvailableTeachersForSlot(selectedSlot.id, idToken)
-                                                        setAvailableTeachers(response.data)
-                                                        setNewTeacherId("")
-                                                        setChangeTeacherReason("")
-                                                        setIsChangeTeacherDialogOpen(true)
-                                                    } catch (error) {
-                                                        console.error("Failed to fetch available teachers:", error)
-                                                    } finally {
-                                                        setIsTeacherLoading(false)
-                                                    }
-                                                }}
-                                                disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
-                                                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <RefreshCw className="w-4 h-4" />
-                                                Change Teacher
-                                            </Button>
-
-                                            {/* Cancel Slot Button */}
-                                            <Button
-                                                onClick={() => {
-                                                    setSelectedSlotToCancel(selectedSlot)
-                                                    setIsCancelDialogOpen(true)
-                                                }}
-                                                disabled={
-                                                    !isCurrentDatePastSlotDate(selectedSlot.date) ||
-                                                    selectedSlot.status === SlotStatus.Cancelled ||
-                                                    selectedSlot.status === SlotStatus.Ongoing
-                                                }
-                                                className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <Ban className="w-4 h-4" />
-                                                Cancel Slot
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     )}
                 </DialogContent>
@@ -1673,7 +1395,7 @@ export const TeacherSchedule = ({
                                         toast.success("Successful teacher change!")
                                     } catch (error) {
                                         console.error("Failed to assign teacher:", error)
-                                        toast.error("An error occurred while changing teacher.")
+                                        toastWarning("An error occurred while changing teacher.")
                                     } finally {
                                         setIsTeacherLoading(false)
                                     }
