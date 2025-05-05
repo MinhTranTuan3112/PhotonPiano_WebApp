@@ -26,11 +26,12 @@ import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import type { AuthResponse } from "~/lib/types/auth-response"
 import { getCurrentTimeInSeconds } from "~/lib/utils/datetime"
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "~/lib/utils/cookie"
-import { Role } from "~/lib/types/account/account"
+import { Gender, Role } from "~/lib/types/account/account"
 import { toastWarning } from "~/lib/utils/toast-utils"
 import { useTermsDialog } from "~/components/home/terms-and-conditions"
 import { Card, CardContent } from "~/components/ui/card"
 import { Progress } from "~/components/ui/progress"
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
 
 type Props = {}
 
@@ -62,6 +63,7 @@ const entranceSurveySchema = z
                 otherAnswer: z.string().optional(),
             }),
         ),
+        gender: z.number()
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Confirm password did not match",
@@ -223,6 +225,7 @@ function EntranceSurveyForm() {
         fetcher,
         defaultValues: {
             surveyAnswers: survey.pianoSurveyQuestions.map(({ questionId }) => ({ questionId: questionId, answers: [] })),
+            gender: Gender.Male
         },
     })
 
@@ -425,6 +428,28 @@ function EntranceSurveyForm() {
                                     </div>
                                 </div>
 
+                                <div className="space-y-2">
+                                    <Label>Gender</Label>
+                                    <Controller
+                                        control={control}
+                                        name="gender"
+                                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                                            <RadioGroup value={value.toString()} onValueChange={(value) => {
+                                                onChange(Number.parseInt(value))
+                                            }}>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value={Gender.Male.toString()} id="male" />
+                                                    <Label htmlFor="male">Male</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value={Gender.Female.toString()} id="female" />
+                                                    <Label htmlFor="female">Female</Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )}
+                                    />
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="password" className="font-medium text-sm">
@@ -518,10 +543,10 @@ function EntranceSurveyForm() {
                 {steps.map((step, index) => (
                     <div
                         className={`transition-all duration-500 ease-in-out ${stepCnt === index
-                                ? "opacity-100 translate-x-0"
-                                : stepCnt > index
-                                    ? "opacity-0 -translate-x-full hidden"
-                                    : "opacity-0 translate-x-full hidden"
+                            ? "opacity-100 translate-x-0"
+                            : stepCnt > index
+                                ? "opacity-0 -translate-x-full hidden"
+                                : "opacity-0 translate-x-full hidden"
                             }`}
                         key={index}
                     >

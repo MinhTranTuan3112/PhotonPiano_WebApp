@@ -175,7 +175,7 @@ export default function AccountProfilePage() {
                     </TabsList>
 
                     <TabsContent value="personal">
-                        <Card>
+                        <Card className='border-l-4 border-l-theme'>
                             <CardHeader>
                                 <CardTitle className="text-xl flex items-center">
                                     <User className="mr-2 h-5 w-5" /> Basic personal information
@@ -199,7 +199,7 @@ export default function AccountProfilePage() {
                     </TabsContent>
 
                     <TabsContent value="academic">
-                        <Card>
+                        <Card className='border-t-4 border-t-theme'>
                             <CardHeader>
                                 <CardTitle className="text-xl flex items-center">
                                     <BookOpen className="mr-2 h-5 w-5" /> Academic information
@@ -524,14 +524,14 @@ function ProfileForm() {
                             </Button>
                         }
                     />
-                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                    <Button type="submit" size="lg" disabled={isSubmitting} variant={'theme'}>
                         {isSubmitting ? (
                             <>
                                 <span className="animate-spin mr-2">⏳</span> Saving...
                             </>
                         ) : (
                             <>
-                                <Pencil className="mr-2 h-4 w-4" /> Save
+                                Save
                             </>
                         )}
                     </Button>

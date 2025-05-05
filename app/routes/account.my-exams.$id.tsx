@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs, redirect } from "@remix-run/node"
-import { Await, useAsyncValue, useLoaderData } from "@remix-run/react"
+import { Await, useAsyncValue, useLoaderData, useNavigate } from "@remix-run/react"
 import { CircleHelp, Music2, Award, User, Calendar, Clock, MapPin, Mail, Phone, Home, Piano } from "lucide-react"
 import { Suspense, useState } from "react"
 import { Button } from "~/components/ui/button"
@@ -118,10 +118,12 @@ function EntranceTestStudentContent({
     0,
   )
 
+  const navigate = useNavigate()
+
   return (
     <div className="space-y-8">
       {/* General Information Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-l-4 border-l-theme">
         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <Music2 className="h-5 w-5 text-black" />
@@ -177,7 +179,7 @@ function EntranceTestStudentContent({
       </div>
 
       {/* Teacher Information Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-l-4 border-l-theme">
         <div className="px-6 py-5 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <User className="h-5 w-5 text-black" />
@@ -238,7 +240,7 @@ function EntranceTestStudentContent({
                 </div>
 
                 <div className="md:col-span-2 mt-2">
-                  <Button type="button" className="bg-black hover:bg-gray-800 text-white">
+                  <Button type="button" className="bg-black hover:bg-gray-800 text-white" onClick={() => navigate(`../teachers/${entranceTestStudent.entranceTest.instructorId}`)}>
                     View Teacher Profile
                   </Button>
                 </div>
@@ -254,7 +256,7 @@ function EntranceTestStudentContent({
       </div>
 
       {/* Results Card */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 border-t-4 border-t-theme">
         <div className="px-6 py-5 border-b border-gray-100">
           <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
             <Award className="h-5 w-5 text-black" />

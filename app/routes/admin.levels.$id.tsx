@@ -139,7 +139,7 @@ function LevelDetailsContent() {
     const isSubmitting = fetcher.state === 'submitting';
 
     return <Tabs defaultValue="basic-info">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="mb-4">
             <TabsTrigger value="basic-info">Basic information</TabsTrigger>
             <TabsTrigger value="students">Learners</TabsTrigger>
             <TabsTrigger value="classes">Classes</TabsTrigger>

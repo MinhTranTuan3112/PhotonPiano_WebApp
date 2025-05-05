@@ -1,8 +1,11 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData, useSearchParams } from '@remix-run/react';
+import { BookOpenCheck } from 'lucide-react';
 import { Suspense } from 'react'
 import MyTestCard from '~/components/entrance-tests/my-test-card';
+import { TestCard } from '~/components/learner/learner-details/entrance-tests-section';
 import Paginator from '~/components/paginator';
+import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchEntranceTests } from '~/lib/services/entrance-tests';
 import { Role } from '~/lib/types/account/account';
@@ -84,9 +87,12 @@ export default function MyExams({ }: Props) {
 
   return (
     <div className='px-10'>
-      <div className='font-bold text-2xl'>My tests</div>
-      <div className=''>
-        Make sure to keep track of the schedule for important entrance exams so you don't miss them!
+      <div className="flex items-center gap-2 text-lg font-medium text-neutral-800">
+        <BookOpenCheck className="h-5 w-5 text-theme" />
+        <h3 className='font-bold'>Entrance Tests</h3>
+      </div>
+      <div className='text-sm text-muted-foreground'>
+        Make sure to keep track of the schedule for important entrance tests so you don't miss them!
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise}>
@@ -114,17 +120,26 @@ function StudentEntranceTests({
   const [searchParams, setSearchParams] = useSearchParams();
 
   return <div className="py-4">
-    {entranceTests.map(entranceTest => <MyTestCard entranceTest={entranceTest} key={entranceTest.id} />)}
+    {entranceTests.length > 0 ? <>
+      {entranceTests.map(entranceTest => <TestCard entranceTest={entranceTest} key={entranceTest.id} type='current'
+        role={Role.Student} />)}
 
-    <div className="my-4">
-      <Paginator page={page} totalPage={totalPage} onPageChanged={(newPage) => {
-        const newSearchParams = new URLSearchParams(searchParams);
+      <div className="my-4">
+        <Paginator page={page} totalPage={totalPage} onPageChanged={(newPage) => {
+          const newSearchParams = new URLSearchParams(searchParams);
 
-        newSearchParams.set('page', newPage.toString());
+          newSearchParams.set('page', newPage.toString());
 
-        setSearchParams(newSearchParams);
-      }} />
-    </div>
+          setSearchParams(newSearchParams);
+        }} />
+      </div>
+    </> :
+      <Card className="bg-neutral-50 border border-dashed">
+        <CardContent className="flex flex-col items-center justify-center p-10 text-neutral-500">
+          <BookOpenCheck className="h-12 w-12 mb-2 opacity-20" />
+          <p>No entrance tests yet.</p>
+        </CardContent>
+      </Card>}
   </div>
 }
 
