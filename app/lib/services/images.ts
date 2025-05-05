@@ -2,6 +2,16 @@ import axios from "axios";
 
 const PINATA_UPLOAD_BASE_URL = 'https://uploads.pinata.cloud/v3';
 
+
+const getPinataJwt = () => {
+    const jwt = process.env.VITE_PINATA_JWT || process.env.PINATA_JWT;
+    if (!jwt) {
+        console.error("Pinata JWT is missing");
+        throw new Error("Pinata JWT is not configured");
+    }
+    return jwt;
+};
+
 export async function uploadImageFile({
     file, name, groupId, size
 }: {
@@ -21,8 +31,9 @@ export async function uploadImageFile({
     const response = await axios.post(`${PINATA_UPLOAD_BASE_URL}/files`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${import.meta.env.VITE_PINATA_JWT}`,
+            'Authorization': `Bearer ${getPinataJwt()}`,
         },
+        timeout: 30000,
     });
 
     return response;
