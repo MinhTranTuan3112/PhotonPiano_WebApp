@@ -144,3 +144,44 @@ export async function fetchAccountDetail(id : string, idToken : string) {
     console.log(response.data)
     return response;
 }
+
+export async function fetchCreateStaff({
+    idToken, fullName, email, phone
+    
+}: {
+    idToken: string;
+    fullName : string,
+    email : string,
+    phone : string
+}) {
+    
+    const response = await axiosInstance.post('/accounts/staff', {
+        fullName, email, phone
+     }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
+export async function fetchCreateTeacher({
+    idToken, fullName, email, phone
+    
+}: {
+    idToken: string;
+    fullName : string,
+    email : string,
+    phone : string
+}) {
+    
+    const response = await axiosInstance.post('/accounts/teacher', {
+        fullName, email, phone
+     }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}

@@ -3,11 +3,12 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, CalendarSync, RotateCcw, Loader2, PlusCircle } from 'lucide-react';
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import LevelForm from '~/components/level/level-form';
+import AddAccountDialog from '~/components/staffs/accounts/add-account-dialog';
 import { staffColumns } from '~/components/staffs/table/staff-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { teacherColumns } from '~/components/staffs/table/teacher-columns';
@@ -27,6 +28,8 @@ import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
 type Props = {}
+
+
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -74,7 +77,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     return {
       promise,
-      query: { ...query, idToken: undefined }
+      idToken,
+      query: { ...query, idToken: undefined },
+      isViewingTeacher : (!searchParams.get('isTeacher') || searchParams.get('isTeacher') === 'true')
     }
 
   } catch (error) {
@@ -113,7 +118,7 @@ const statusOptions = [
   },
 ]
 
-function SearchForm() {
+function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
 
   const {
     handleSubmit,
@@ -188,7 +193,8 @@ function SearchForm() {
         variant={'theme'}
         isLoading={isSubmitting}
         disabled={isSubmitting}>Search</Button>
-      <Button type='submit' Icon={PlusCircle} iconPlacement='left'
+      <Button type='button' Icon={PlusCircle} iconPlacement='left'
+        onClick={() => setIsOpen(true)}
         variant={'outline'}
         isLoading={isSubmitting}
         disabled={isSubmitting}>Add New Account</Button>
@@ -199,12 +205,15 @@ function SearchForm() {
 export default function AdminManageAccountPage({ }: Props) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams();
-  const { promise, query } = useLoaderData<typeof loader>();
+  const { promise, query, idToken, isViewingTeacher } = useLoaderData<typeof loader>();
+  const [isOpenAddDialog, setIsOpenAddDialog] = useState(false)
+  const [isTeacher, setIsTeacher] = useState(isViewingTeacher)
 
   const handleTabChange = (tab: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set("isTeacher", tab === "teachers" ? "true" : "false");
     newParams.set("page", "1");
+    setIsTeacher(tab === "teachers")
     setSearchParams(newParams);
   };
 
@@ -215,13 +224,13 @@ export default function AdminManageAccountPage({ }: Props) {
         Mange Staff And Teacher Accounts
       </p>
 
-      <Tabs defaultValue={query.roles[0] === Role.Instructor ? "teachers" : "staffs"}>
+      <Tabs defaultValue={isTeacher ? "teachers" : "staffs"}>
         <TabsList className="w-full flex mt-4">
           <TabsTrigger value="teachers" className='w-full' onClick={() => handleTabChange("teachers")}>Teachers</TabsTrigger>
           <TabsTrigger value="staffs" className='w-full' onClick={() => handleTabChange("staffs")}>Staffs</TabsTrigger>
         </TabsList>
         <div className='flex flex-col lg:flex-row lg:place-content-between mt-4 gap-4'>
-          <SearchForm />
+          <SearchForm setIsOpen={setIsOpenAddDialog} />
         </div>
         <TabsContent value="teachers">
           <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
@@ -254,7 +263,8 @@ export default function AdminManageAccountPage({ }: Props) {
           </Suspense>
         </TabsContent>
       </Tabs>
-
+      <AddAccountDialog idToken={idToken} isOpen={isOpenAddDialog} setIsOpen={setIsOpenAddDialog} 
+        isTeacher={isTeacher} />
     </div>
   )
 }
@@ -268,7 +278,7 @@ function LoadingSkeleton() {
 export function ErrorBoundary() {
   const navigate = useNavigate()
   const error = useRouteError();
-
+  const [isOpenAddDialog, setIsOpenAddDialog] = useState(false)
   const { pathname, search } = useLocation();
 
   return (
@@ -278,7 +288,7 @@ export function ErrorBoundary() {
         Manage Center Accounts Information
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
-        <SearchForm />
+        <SearchForm setIsOpen={setIsOpenAddDialog} />
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">
         <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
