@@ -206,7 +206,7 @@ const AttendancePage = () => {
     }, [attendanceData])
 
 
-    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value) => {
+    const handleAttendanceChange = (studentId: string, field: keyof ExtendedSlotStudentModel, value: any) => {
         setAttendanceData((prev) =>
             prev.map((student) => {
                 if (student.studentFirebaseId === studentId) {
@@ -423,7 +423,7 @@ const AttendancePage = () => {
 
                 Object.entries(comments).forEach(([key, value]) => {
                     if (value !== undefined) {
-                        updatedAttendanceData[studentIndex][key as keyof ExtendedSlotStudentModel] = value;
+                        updatedAttendanceData[studentIndex][key as keyof ExtendedSlotStudentModel] = value as never;
                     }
                 });
             });
