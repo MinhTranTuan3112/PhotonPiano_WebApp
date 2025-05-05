@@ -21,7 +21,6 @@ import {
     Users,
     XCircle,
 } from "lucide-react"
-
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardFooter } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
@@ -196,12 +195,12 @@ const StudentCapacity = ({ current, max }: { current: number; max: number }) => 
                     <div
                         key={i}
                         className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 hover:scale-110 ${i < current
-                            ? current >= max
-                                ? "bg-gradient-to-br from-red-300 to-red-500 text-white shadow-sm shadow-red-200"
-                                : current >= max * 0.7
-                                    ? "bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-sm shadow-amber-200"
-                                    : "bg-gradient-to-br from-emerald-300 to-emerald-500 text-white shadow-sm shadow-emerald-200"
-                            : "bg-neutral-100 text-neutral-400 border border-neutral-200"
+                                ? current >= max
+                                    ? "bg-gradient-to-br from-red-300 to-red-500 text-white shadow-sm shadow-red-200"
+                                    : current >= max * 0.7
+                                        ? "bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-sm shadow-amber-200"
+                                        : "bg-gradient-to-br from-emerald-300 to-emerald-500 text-white shadow-sm shadow-emerald-200"
+                                : "bg-neutral-100 text-neutral-400 border border-neutral-200"
                             }`}
                     >
                         {i + 1}
@@ -231,7 +230,7 @@ export default function TeacherClassListPage() {
     const { classes } = useLoaderData<LoaderData>()
 
     const [searchQuery, setSearchQuery] = useState("")
-    const [selectedFilter, setSelectedFilter] = useState("Tất cả")
+    const [selectedFilter, setSelectedFilter] = useState("All")
     const [activeTab, setActiveTab] = useState("all")
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
     const [isLoaded, setIsLoaded] = useState(false)
@@ -250,7 +249,7 @@ export default function TeacherClassListPage() {
     const filteredClasses = classes.filter(
         (cls) =>
             cls.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            (selectedFilter === "Tất cả" || selectedFilter === cls.level.name),
+            (selectedFilter === "All" || selectedFilter === cls.level.name),
     )
 
     return (
@@ -262,10 +261,10 @@ export default function TeacherClassListPage() {
                 >
                     <div>
                         <h1 className="text-3xl font-medium text-neutral-900 flex items-center">
-                            Danh Sách Lớp
+                            Class List
                             <Sparkles className="ml-2 h-5 w-5 text-amber-500" />
                         </h1>
-                        <p className="text-neutral-500 mt-1">Quản lý lớp học của bạn</p>
+                        <p className="text-neutral-500 mt-1">Manage your classes</p>
                     </div>
 
                     <div className="mt-6 md:mt-0 flex flex-col sm:flex-row items-center gap-4">
@@ -293,8 +292,8 @@ export default function TeacherClassListPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56 animate-in fade-in-80 zoom-in-95">
-                                    <DropdownMenuItem onClick={() => setSelectedFilter("Tất cả")} className="hover:bg-blue-50">
-                                        Tất cả
+                                    <DropdownMenuItem onClick={() => setSelectedFilter("All")} className="hover:bg-blue-50">
+                                        All
                                     </DropdownMenuItem>
                                     {levelNames.map((level) => (
                                         <DropdownMenuItem key={level} onClick={() => setSelectedFilter(level)} className="hover:bg-blue-50">
@@ -614,12 +613,12 @@ export default function TeacherClassListPage() {
                                                 <div
                                                     key={i}
                                                     className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-medium -ml-1 first:ml-0 border border-white hover:scale-125 transition-transform duration-200 ${i < cls.studentNumber
-                                                        ? cls.studentNumber >= cls.capacity
-                                                            ? "bg-red-500 text-white"
-                                                            : cls.studentNumber >= cls.capacity * 0.7
-                                                                ? "bg-amber-500 text-white"
-                                                                : "bg-emerald-500 text-white"
-                                                        : "bg-neutral-200 text-neutral-400"
+                                                            ? cls.studentNumber >= cls.capacity
+                                                                ? "bg-red-500 text-white"
+                                                                : cls.studentNumber >= cls.capacity * 0.7
+                                                                    ? "bg-amber-500 text-white"
+                                                                    : "bg-emerald-500 text-white"
+                                                            : "bg-neutral-200 text-neutral-400"
                                                         }`}
                                                 >
                                                     {i < cls.studentNumber ? "" : ""}
@@ -635,8 +634,8 @@ export default function TeacherClassListPage() {
                                         <Badge
                                             variant="outline"
                                             className={`${cls.isScorePublished
-                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                                : "bg-amber-50 text-amber-700 border-amber-200"
+                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                    : "bg-amber-50 text-amber-700 border-amber-200"
                                                 } shadow-sm transition-all duration-200 hover:shadow-md`}
                                         >
                                             {cls.isScorePublished ? "Published" : "Pending"}
@@ -677,7 +676,7 @@ export default function TeacherClassListPage() {
                             className="mt-6 rounded-full border-neutral-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all duration-200"
                             onClick={() => {
                                 setSearchQuery("")
-                                setSelectedFilter("Tất cả")
+                                setSelectedFilter("All")
                             }}
                         >
                             Reset filters
@@ -688,4 +687,3 @@ export default function TeacherClassListPage() {
         </div>
     )
 }
-

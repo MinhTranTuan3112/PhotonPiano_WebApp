@@ -146,7 +146,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
         }
 
         if (fetcher.data?.success === false) {
-            toast.error(fetcher.data.error, {
+            toastWarning(fetcher.data.error, {
                 duration: 5000
             });
             return;

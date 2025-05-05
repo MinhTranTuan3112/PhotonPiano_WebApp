@@ -1,18 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { getValidatedFormData } from 'remix-hook-form';
+import { toast } from 'sonner';
 import LevelForm, { LevelFormData, levelSchema } from '~/components/level/level-form';
 import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
+import { Card, CardContent } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
+import { Separator } from '~/components/ui/separator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchALevel } from '~/lib/services/level';
+import { fetchALevel, fetchUpdateLevel } from '~/lib/services/level';
 import { LevelDetails, Role } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
 
@@ -75,11 +79,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<Partial<LevelFormData>>(request, zodResolver(levelSchema.partial()));
 
-        console.log({ data });
-
         if (errors) {
             return { success: false, errors, defaultValues };
         }
+
+        const response = await fetchUpdateLevel({
+            idToken,
+            ...data
+        });
 
         return Response.json({
             success: true
@@ -111,6 +118,9 @@ export default function LevelDetailsPage({ }: Props) {
 
     return (
         <section className='px-10'>
+            <h3 className="text-xl font-bold">Level details</h3>
+            <p className="text-sm text-muted-foreground">Details information of level</p>
+
             <Suspense fallback={<LoadingSkeleton />} key={id}>
                 <Await resolve={promise}>
                     {({ levelPromise }) => (
@@ -138,20 +148,47 @@ function LevelDetailsContent() {
 
     const isSubmitting = fetcher.state === 'submitting';
 
-    return <Tabs defaultValue="basic-info">
-        <TabsList className="mb-4">
-            <TabsTrigger value="basic-info">Basic information</TabsTrigger>
-            <TabsTrigger value="students">Learners</TabsTrigger>
-            <TabsTrigger value="classes">Classes</TabsTrigger>
-        </TabsList>
-        <TabsContent value="basic-info">
-            <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} />
-        </TabsContent>
-        <TabsContent value="students">
-            <DataTable data={level.accounts} columns={studentColumns} />
-        </TabsContent>
-        <TabsContent value='classes'>
-            <DataTable data={level.classes} columns={classColums} />
-        </TabsContent>
-    </Tabs>
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Level updated successfully');
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toastWarning('Failed to update level', {
+                description: fetcher.data?.error,
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [fetcher.data]);
+
+
+    return <Card className="p-3 border-t-4 my-4" style={{
+        borderTopColor: level.themeColor
+    }}>
+        <CardContent>
+            <Tabs defaultValue="basic-info">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="basic-info">Basic information</TabsTrigger>
+                    <TabsTrigger value="students">Learners</TabsTrigger>
+                    <TabsTrigger value="classes">Classes</TabsTrigger>
+                </TabsList>
+                <TabsContent value="basic-info">
+                    <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} />
+                </TabsContent>
+                <TabsContent value="students">
+                    <DataTable data={level.accounts} columns={studentColumns} />
+                </TabsContent>
+                <TabsContent value='classes'>
+                    <DataTable data={level.classes} columns={classColums} />
+                </TabsContent>
+            </Tabs>
+        </CardContent>
+    </Card>
 }

@@ -123,7 +123,7 @@ export default function ImportResultDialog({
             setCurrentStep("upload")
         } catch (error) {
             console.error("Error generating Excel file:", error)
-            toast.error("Failed to generate template file")
+            toastWarning("Failed to generate template file")
         } finally {
             setIsDownloadingFile(false)
         }
@@ -253,14 +253,14 @@ export default function ImportResultDialog({
                 setIsUploading(false)
             } catch (error) {
                 console.error("Error reading file:", error)
-                toast.error(error instanceof Error ? error.message : "Error reading file")
+                toastWarning(error instanceof Error ? error.message : "Error reading file")
                 setFile(undefined)
                 setIsUploading(false)
             }
         }
 
         reader.onerror = () => {
-            toast.error("Error reading file")
+            toastWarning("Error reading file")
             setFile(undefined)
             setIsUploading(false)
         }
@@ -368,10 +368,10 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "download"
-                                                ? "bg-primary text-primary-foreground"
-                                                : currentStep === "upload" || currentStep === "preview" || currentStep === "complete"
-                                                    ? "bg-green-500 text-white"
-                                                    : "bg-muted text-muted-foreground"
+                                            ? "bg-primary text-primary-foreground"
+                                            : currentStep === "upload" || currentStep === "preview" || currentStep === "complete"
+                                                ? "bg-green-500 text-white"
+                                                : "bg-muted text-muted-foreground"
                                             }`}
                                     >
                                         {currentStep === "download" ? "1" : <Check className="h-4 w-4" />}
@@ -382,10 +382,10 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "upload"
-                                                ? "bg-primary text-primary-foreground"
-                                                : currentStep === "preview" || currentStep === "complete"
-                                                    ? "bg-green-500 text-white"
-                                                    : "bg-muted text-muted-foreground"
+                                            ? "bg-primary text-primary-foreground"
+                                            : currentStep === "preview" || currentStep === "complete"
+                                                ? "bg-green-500 text-white"
+                                                : "bg-muted text-muted-foreground"
                                             }`}
                                     >
                                         {currentStep === "upload" ? (
@@ -402,10 +402,10 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "preview"
-                                                ? "bg-primary text-primary-foreground"
-                                                : currentStep === "complete"
-                                                    ? "bg-green-500 text-white"
-                                                    : "bg-muted text-muted-foreground"
+                                            ? "bg-primary text-primary-foreground"
+                                            : currentStep === "complete"
+                                                ? "bg-green-500 text-white"
+                                                : "bg-muted text-muted-foreground"
                                             }`}
                                     >
                                         {currentStep === "preview" ? "3" : currentStep === "complete" ? <Check className="h-4 w-4" /> : "3"}

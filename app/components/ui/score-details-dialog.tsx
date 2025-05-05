@@ -155,7 +155,7 @@ export function ScoreDetailsDialog({
                 onScoresUpdated(updatedStudents)
             }
         } catch (error) {
-            toast.error(`Error saving scores: ${error instanceof Error ? error.message : String(error)}`)
+            toastWarning(`Error saving scores: ${error instanceof Error ? error.message : String(error)}`)
         } finally {
             setIsSaving(false)
         }

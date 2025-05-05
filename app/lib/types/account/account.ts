@@ -68,7 +68,7 @@ export type Level = {
    slotPerWeek: number;
    totalSlots: number;
    pricePerSlot: number;
-   minimumScore: number;
+   minimumGPA: number;
    isGenreDivided: boolean;
    nextLevelId?: string;
    themeColor? : string;
@@ -88,7 +88,7 @@ export const sampleLevels: Level[] = [
         slotPerWeek: 1,
         totalSlots: 10,
         pricePerSlot: 100000,
-        minimumScore: 0,
+        minimumGPA: 0,
         isGenreDivided: false,
         nextLevelId: "2"
     },
@@ -100,7 +100,7 @@ export const sampleLevels: Level[] = [
         slotPerWeek: 1,
         totalSlots: 10,
         pricePerSlot: 100000,
-        minimumScore: 100,
+        minimumGPA: 100,
         isGenreDivided: false,
         nextLevelId: "3"
     },
@@ -112,7 +112,7 @@ export const sampleLevels: Level[] = [
         slotPerWeek: 1,
         totalSlots: 10,
         pricePerSlot: 100000,
-        minimumScore: 200,
+        minimumGPA: 200,
         isGenreDivided: false,
         nextLevelId: "4"
     },
@@ -124,7 +124,7 @@ export const sampleLevels: Level[] = [
         slotPerWeek: 1,
         totalSlots: 10,
         pricePerSlot: 100000,
-        minimumScore: 300,
+        minimumGPA: 300,
         isGenreDivided: false,
         nextLevelId: "5"
     },
@@ -136,7 +136,7 @@ export const sampleLevels: Level[] = [
         slotPerWeek: 1,
         totalSlots: 10,
         pricePerSlot: 100000,
-        minimumScore: 400,
+        minimumGPA: 400,
         isGenreDivided: false
     }
 ]

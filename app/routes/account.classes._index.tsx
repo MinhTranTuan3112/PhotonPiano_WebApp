@@ -96,10 +96,13 @@ export default function StudentClassList() {
         let result = classes
 
         if (searchTerm) {
+            const searchTermLower = searchTerm.toLowerCase();
             result = result.filter(
                 (item) =>
-                    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    item.instructorName.toLowerCase().includes(searchTerm.toLowerCase()),
+                    (item.name?.toLowerCase() || '').includes(searchTermLower) ||
+                    (item.instructorName?.toLowerCase() || '').includes(searchTermLower) ||
+                    (item.instructor?.userName?.toLowerCase() || '').includes(searchTermLower) ||
+                    (item.level?.name?.toLowerCase() || '').includes(searchTermLower)
             )
         }
 
@@ -454,7 +457,7 @@ export default function StudentClassList() {
                                             <div className="absolute top-0 right-0 p-2">
                                                 <Badge className={`${statusColorClass} text-white`}>{statusText}</Badge>
                                             </div>
-                                            <h3 className="text-white font-bold text-xl mb-1">Piano Class Level {levelNumber}</h3>
+                                            <h3 className="text-white font-bold text-xl mb-1">Piano Class {levelNumber}</h3>
                                             <div className="flex items-center text-purple-100">
                                                 <Music className="h-4 w-4 mr-2" />
                                                 <span className="text-sm">{classItem.level?.name || "Undefined"}</span>

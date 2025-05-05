@@ -16,11 +16,10 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { ChevronDown, Eye, GripVertical } from "lucide-react"
+import { ChevronDown, GripVertical } from "lucide-react"
 import { Card, CardContent } from "../ui/card"
 import { cn } from "~/lib/utils"
 import { Level } from "~/lib/types/account/account"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import { useNavigate } from "@remix-run/react"
 
 type SortableLevelProps = {
@@ -38,9 +37,15 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
 
     const navigate = useNavigate();
 
+    const color = level.themeColor || "#000000";
+
     return (
-        <div ref={setNodeRef} style={style} className={cn("relative mb-4", isDragging && "z-10")}>
-            <Card className={cn("border", isDragging ? "ring-2 ring-primary shadow-lg" : "")}>
+        <div ref={setNodeRef} style={style} className={cn("relative mb-4 cursor-pointer", isDragging && "z-10")}
+            onClick={() => navigate(`/admin/levels/${level.id}`)}>
+            <Card className={cn("border", isDragging ? "ring-2 ring-primary shadow-lg" : `border-l-4 hover:-translate-y-1 hover:shadow-sm`)}
+                style={{
+                    borderLeftColor: level.themeColor
+                }}>
                 <CardContent className="p-4 flex items-center gap-3">
                     <div
                         {...attributes}
@@ -54,7 +59,7 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
                         <p className="text-sm text-muted-foreground">{level.description}</p>
                     </div>
 
-                    <div className="">
+                    {/* <div className="">
                         <TooltipProvider>
                             <Tooltip delayDuration={300} >
                                 <TooltipTrigger onClick={() => navigate(`/admin/levels/${level.id}`)}><Eye className="hover:text-black/70"/></TooltipTrigger>
@@ -63,7 +68,7 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
-                    </div>
+                    </div> */}
 
                 </CardContent>
             </Card>

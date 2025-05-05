@@ -128,7 +128,6 @@ export default function StudentClassDetailPage() {
     const classDetails = data
     const studentClass = data.currentStudentClass
     const scoreDetails = data.scoreDetails
-
     // Calculate class progress
     const completedSlots = classDetails.slots.filter((slot) => slot.status === 2).length
     const totalSlots = classDetails.totalSlots
@@ -451,7 +450,7 @@ export default function StudentClassDetailPage() {
                     </TabsContent>
 
                     {/* Grades Tab */}
-                    <TabsContent value="grades">                  
+                    <TabsContent value="grades">
                         {/* Detailed Grades Section */}
                         <Card className="mb-8 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                             <CardHeader className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-5">
@@ -461,7 +460,17 @@ export default function StudentClassDetailPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-5">
-                                {scoreDetails ? (
+                                {!classDetails.isScorePublished ? (
+                                    <div className="text-center py-10">
+                                        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                                            <TrophyIcon className="h-8 w-8 text-slate-400" />
+                                        </div>
+                                        <p className="text-slate-600 text-lg">Scores Not Published Yet</p>
+                                        <p className="text-slate-500 text-sm mt-1">
+                                            The center has not published the scores for this class yet.
+                                        </p>
+                                    </div>
+                                ) : scoreDetails ? (
                                     <div className="space-y-6">
                                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                             <div>

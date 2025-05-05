@@ -56,7 +56,7 @@ export default function LevelsManagementPage({ }: Props) {
                 Manage levels in the center.
             </p>
 
-            <div className="my-3 md:max-w-[30%]">
+            <div className="my-3 md:max-w-[50%]">
                 <Suspense fallback={<Skeleton className="w-full h-full" />} key={'levels'}>
                     <Await resolve={promise}>
                         {({ levelsPromise }) => (
@@ -78,9 +78,9 @@ function LevelsContent() {
     const [levels, setLevels] = useState(initialLevels);
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận luu thứ tự level',
-        description: 'Bạn có chắc chắn muốn lưu thứ tự level này không?',
-        confirmText: 'Lưu',
+        title: 'Confirm action',
+        description: 'Save levels order?',
+        confirmText: 'Save',
         onConfirm: () => {
             console.log('Saving levels: ', levels);
         },
@@ -92,7 +92,7 @@ function LevelsContent() {
 
         <div className="my-5 flex justify-center">
             <Button type="button" onClick={handleOpenConfirmDialog}>
-                Lưu
+                Save
             </Button>
         </div>
 
