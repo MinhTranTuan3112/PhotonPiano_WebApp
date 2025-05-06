@@ -65,3 +65,23 @@ export async function fetchUpdateLevelMinimumGpa({
 
   return response;
 }
+
+export async function fetchUpdateLevelOrder({
+  idToken,
+  levelOrders,
+}: {
+  idToken: string;
+  levelOrders: {id : string, nextLevelId : string | null}[];
+}) {
+  const response = await axiosInstance.patch(
+    `/levels/orders`,
+    levelOrders,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
