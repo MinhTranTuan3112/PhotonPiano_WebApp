@@ -63,6 +63,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const currentServerDateTime = currentServerTime.data;
 
     
+        console.log("ID", slots.map((slot: SlotDetail) => slot.id));
+        
         return Response.json({
             slots,
             selectedDate: formattedDate,
@@ -82,7 +84,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTime: string): boolean => {
     const now = new Date(serverDateTime); // Use server time instead of local time
     const slot = new Date(slotDate);
-
+    
     // If slot is in the future, attendance is not allowed
     if (slot > now) {
         return true;
@@ -317,7 +319,7 @@ export default function TeacherAttendance_index() {
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
                                         disabled={isNotToday(slot.date, deadlineData.configValue, currentServerDateTime)}
-                                        onClick={() => navigate(`/teacher/attendance/${slot.id}`)}
+                                        onClick={() => window.location.href = `/teacher/attendance/${slot.id}`}
                                     >
                                         Attendance
                                     </Button>
