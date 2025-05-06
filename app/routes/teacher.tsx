@@ -1,6 +1,8 @@
-import { Outlet, useLocation } from "@remix-run/react";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { BookOpen, CircleUserRound } from "lucide-react";
 import React from "react";
+import NotificationBell from "~/components/notification/notification-bell";
 import { NavMain } from "~/components/sidebar/nav-main";
 import { NavUser } from "~/components/sidebar/nav-user";
 import TopNav from "~/components/sidebar/top-nav";
@@ -25,6 +27,15 @@ import {
     SidebarTrigger
 } from "~/components/ui/sidebar";
 import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
+import { requireAuth } from "~/lib/utils/auth";
+
+
+export async function loader({ request }: LoaderFunctionArgs) {
+
+    const { accountId } = await requireAuth(request);
+
+    return { accountId }
+}
 
 function getBreadcrumbPageName({ pathname }: {
     pathname: string,
@@ -129,8 +140,7 @@ function getBreadcrumbPageName({ pathname }: {
 export default function TeacherLayout() {
 
     const { pathname } = useLocation();
-
-    console.log({ pathname });
+    const {accountId} = useLoaderData<typeof loader>()
 
 
     return (
@@ -138,32 +148,37 @@ export default function TeacherLayout() {
             <TeacherSidebar />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                    <div className="flex items-center gap-2 px-4">
-                        <SidebarTrigger className="-ml-1 size-5" />
-                        <Separator orientation="vertical" className="mr-2 h-4" />
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                {
-                                    getBreadcrumbPageName({ pathname }).map((breadcumb, index) => (
-                                        <React.Fragment key={`${breadcumb.name}_${index}`}>
-                                            <BreadcrumbItem className="hidden md:block">
-                                                {
-                                                    !breadcumb.isCurrentPage ? (
-                                                        <BreadcrumbLink href={breadcumb.url} className={buttonVariants({ variant: "linkHover2" })}>
-                                                            {breadcumb.name}
-                                                        </BreadcrumbLink>
-                                                    ) : (
-                                                        <BreadcrumbPage>{breadcumb.name}</BreadcrumbPage>
-                                                    )
-                                                }
+                    <div className="flex place-content-between w-full">
+                        <div className="flex items-center gap-2 px-4">
+                            <SidebarTrigger className="-ml-1 size-5" />
+                            <Separator orientation="vertical" className="mr-2 h-4" />
+                            <Breadcrumb>
+                                <BreadcrumbList>
+                                    {
+                                        getBreadcrumbPageName({ pathname }).map((breadcumb, index) => (
+                                            <React.Fragment key={`${breadcumb.name}_${index}`}>
+                                                <BreadcrumbItem className="hidden md:block">
+                                                    {
+                                                        !breadcumb.isCurrentPage ? (
+                                                            <BreadcrumbLink href={breadcumb.url} className={buttonVariants({ variant: "linkHover2" })}>
+                                                                {breadcumb.name}
+                                                            </BreadcrumbLink>
+                                                        ) : (
+                                                            <BreadcrumbPage>{breadcumb.name}</BreadcrumbPage>
+                                                        )
+                                                    }
 
-                                            </BreadcrumbItem>
-                                            <BreadcrumbSeparator className="hidden md:block" />
-                                        </React.Fragment>
-                                    ))
-                                }
-                            </BreadcrumbList>
-                        </Breadcrumb>
+                                                </BreadcrumbItem>
+                                                <BreadcrumbSeparator className="hidden md:block" />
+                                            </React.Fragment>
+                                        ))
+                                    }
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        </div>
+                        <div className="mr-4">
+                            <NotificationBell accountFirebaseId={accountId} />
+                        </div>
                     </div>
                 </header>
                 <Separator orientation="horizontal" className="border-t border-muted/50" />

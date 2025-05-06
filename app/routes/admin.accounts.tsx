@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, Loader2, PlusCircle } from 'lucide-react';
+import { Search, CalendarSync, RotateCcw, Loader2, PlusCircle, Users } from 'lucide-react';
 import { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -237,11 +237,14 @@ export default function AdminManageAccountPage({ }: Props) {
 
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">System Accounts</h3>
-      <p className="text-sm text-muted-foreground">
-        Mange Admin, Staff And Teacher Accounts
-      </p>
-
+      <div className="flex items-center gap-3 mb-4">
+        <Users className="h-8 w-8 text-sky-600" />
+        <div>
+          <h3 className="text-2xl font-bold text-sky-800">Manage Accounts</h3>
+          <p className="text-sm text-sky-600">Manage Internal Accounts Including Teachers, Staffs And Administrators</p>
+        </div>
+      </div>
+      
       <Tabs defaultValue={viewingRole.toString()}>
         <TabsList className="w-full flex mt-4">
           <TabsTrigger value="2" className='w-full' onClick={() => handleTabChange(Role.Instructor)}>Teachers</TabsTrigger>

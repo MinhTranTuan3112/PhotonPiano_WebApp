@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { formEntryToNumber, formEntryToString } from '~/lib/utils/form'
 import { Button } from '~/components/ui/button'
-import { CheckIcon, Delete, Edit2Icon, PlusCircle, X, XIcon } from 'lucide-react'
+import { CheckIcon, Delete, DoorOpen, Edit2Icon, PlusCircle, X, XIcon } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { useRemixForm } from 'remix-hook-form'
 import { ActionResult } from '~/lib/types/action-result'
@@ -64,7 +64,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 totalCount: parseInt(headers['x-total-count'] || '0'),
 
             };
-            return { rooms , metadata};
+            return { rooms, metadata };
         });
 
         return {
@@ -109,8 +109,13 @@ export default function AdminRoom({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Manage Rooms</h1>
-            <p className='text-muted-foreground'>Manage rooms of the center</p>
+            <div className="flex items-center gap-3 mb-4">
+                <DoorOpen className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage Rooms</h3>
+                    <p className="text-sm text-sky-600">Manage rooms of the center</p>
+                </div>
+            </div>
             <div className='flex my-2 justify-end'>
                 <Button Icon={PlusCircle} iconPlacement='left'>Add new</Button>
             </div>
