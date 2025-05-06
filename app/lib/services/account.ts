@@ -185,3 +185,22 @@ export async function fetchCreateTeacher({
 
     return response;
 }
+export async function fetchRoleAdmin({
+    idToken, accountFirebaseId, role
+    
+}: {
+    idToken: string;
+    accountFirebaseId : string,
+    role : Role,
+}) {
+    
+    const response = await axiosInstance.put('/accounts/role', {
+        accountFirebaseId, role
+     }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}

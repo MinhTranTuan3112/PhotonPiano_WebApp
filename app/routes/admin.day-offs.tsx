@@ -11,7 +11,7 @@ import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
 import { fetchCreateDayOff, fetchDayOffs, fetchDeleteDayOff, fetchUpdateDayOff } from '~/lib/services/day-off'
 import { DayOff, dayOffSchema } from '~/lib/types/day-off/day-off'
 import { dayOffColumns, DayOffDialog } from '~/components/admin/table/day-off-column'
-import { PlusCircle } from 'lucide-react'
+import { CalendarDaysIcon, PlusCircle } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getValidatedFormData } from 'remix-hook-form'
@@ -209,14 +209,19 @@ export default function AdminDayOff({ }: Props) {
         return () => {
 
         }
-        
+
     }, [fetcher.data]);
 
     return (
         <>
             <article className='px-10'>
-                <h1 className="text-xl font-extrabold">Manage Day-Offs</h1>
-                <p className='text-muted-foreground text-sm'>Manage day-offs or holidays, also served in scheduling</p>
+                <div className="flex items-center gap-3 mb-4">
+                    <CalendarDaysIcon className="h-8 w-8 text-sky-600" />
+                    <div>
+                        <h3 className="text-2xl font-bold text-sky-800">Manage Day-Offs</h3>
+                        <p className="text-sm text-sky-600">Manage day-offs or holidays, also served in scheduling</p>
+                    </div>
+                </div>
                 <div className='my-2 flex justify-end w-full'>
                     <Button Icon={PlusCircle} iconPlacement='left' type='button'
                         onClick={() => setIsOpenDialog(true)}>Add new</Button>

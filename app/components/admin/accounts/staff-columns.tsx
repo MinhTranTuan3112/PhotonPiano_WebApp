@@ -3,15 +3,21 @@ import { Checkbox } from "~/components/ui/checkbox";
 import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
     Calendar,
-    CheckCircle
+    CheckCircle,
+    X,
+    ArrowUpCircle
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { Account, Level } from "~/lib/types/account/account";
+import { Account, Level, Role } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
 import { useState } from "react";
 import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
 import Image from "~/components/ui/image";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { ActionResult } from "~/lib/types/action-result";
+import { useFetcher, useSearchParams } from "@remix-run/react";
+import useLoadingDialog from "~/hooks/use-loading-dialog";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -43,7 +49,7 @@ export const staffColumns: ColumnDef<Account>[] = [
         accessorKey: 'Avatar',
         header: 'Ảnh',
         cell: ({ row }) => {
-            return <div><Image className="w-32 h-32" src={row.original.avatarUrl || "/images/noavatar.png"}/></div>
+            return <div><Image className="w-32 h-32" src={row.original.avatarUrl || "/images/noavatar.png"} /></div>
         }
     },
     {
@@ -78,7 +84,7 @@ export const staffColumns: ColumnDef<Account>[] = [
         accessorKey: "Action",
         header: "Action",
         cell: ({ row, table }) => {
-            return <ActionsDropdown table={table} accountId={row.original.accountFirebaseId} status={row.original.status}/>
+            return <ActionsDropdown table={table} accountId={row.original.accountFirebaseId} status={row.original.status} />
         }
     }
 ]
@@ -86,9 +92,37 @@ export const staffColumns: ColumnDef<Account>[] = [
 
 function ActionsDropdown({ table, accountId, status }: {
     table: Table<Account>,
-    accountId : string
+    accountId: string
     status: number
 }) {
+    const fetcher = useFetcher<ActionResult>();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const { loadingDialog: loadingEditDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setSearchParams([...searchParams])
+        }
+    })
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm Granting',
+        description: 'Do you want to grant this account admin access? This account will become an admin account',
+        onConfirm: () => {
+            handleGrant();
+        }
+    })
+
+    const handleGrant = () => {
+        fetcher.submit({
+            action: "GRANT",
+            accountFirebaseId: accountId,
+            role: Role.Administrator
+        }, {
+            action: "/endpoint/accounts",
+            method: "POST"
+        })
+    }
 
     return <>
         <DropdownMenu>
@@ -101,6 +135,9 @@ function ActionsDropdown({ table, accountId, status }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Action</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onClick={handleOpenModal}>
+                    <ArrowUpCircle /> Grant Admin Access
+                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                     {
                         status === 0 ? (
@@ -116,5 +153,7 @@ function ActionsDropdown({ table, accountId, status }: {
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+        {loadingEditDialog}
+        {confirmDialog}
     </>
 }
