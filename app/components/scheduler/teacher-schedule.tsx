@@ -357,7 +357,7 @@ const UpcomingClasses = ({ slots, onSlotClick }: { slots: SlotDetail[]; onSlotCl
             return a.shift - b.shift
         })
         .slice(0, 5) // Show only the next 5 classes
-
+    const navigate = useNavigate();
     return (
         <Card className="border-blue-100">
             <CardHeader className="pb-2">
@@ -1332,7 +1332,7 @@ export const TeacherSchedule = ({
                                 </option>
                                 {availableTeachers.map((teacher) => (
                                     <option key={teacher.accountFirebaseId} value={teacher.accountFirebaseId}>
-                                        {teacher.fullName}
+                                        {teacher?.fullName}
                                     </option>
                                 ))}
                             </select>
