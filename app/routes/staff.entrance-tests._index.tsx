@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react'
+import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react'
 import { CirclePlus, Music2, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 import SearchForm from '~/components/entrance-tests/search-form'
@@ -93,6 +93,8 @@ export default function StaffEntranceTestsPage({ }: Props) {
 
     const navigate = useNavigate();
 
+    const [searchParams, setSearchParams] = useSearchParams();
+
     return (
         <article className='px-10'>
             <div className="flex items-center gap-3 mb-4">
@@ -102,7 +104,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     <p className="text-sm text-sky-600">List of tests in the center.</p>
                 </div>
             </div>
-            <SearchForm />
+            <SearchForm searchParams={searchParams} role={Role.Staff}/>
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
                     {({ entranceTestsPromise, metadata }) => (
@@ -139,7 +141,7 @@ export function ErrorBoundary() {
         <article className="px-10 pb-4">
             <h1 className="text-xl font-extrabold">Manage tests</h1>
             <p className='text-muted-foreground'>List of tests in the center.</p>
-            <SearchForm />
+            {/* <SearchForm /> */}
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
                     'Có lỗi đã xảy ra.'} </h1>

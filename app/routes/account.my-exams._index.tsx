@@ -2,7 +2,9 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData, useSearchParams } from '@remix-run/react';
 import { BookOpenCheck } from 'lucide-react';
 import { Suspense } from 'react'
+import { NavigateOptions, URLSearchParamsInit } from 'react-router-dom';
 import MyTestCard from '~/components/entrance-tests/my-test-card';
+import SearchForm from '~/components/entrance-tests/search-form';
 import { TestCard } from '~/components/learner/learner-details/entrance-tests-section';
 import Paginator from '~/components/paginator';
 import { Card, CardContent } from '~/components/ui/card';
@@ -83,7 +85,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function MyExams({ }: Props) {
+
   const { promise, query } = useLoaderData<typeof loader>();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   return (
     <div className='px-10'>
@@ -94,11 +99,14 @@ export default function MyExams({ }: Props) {
       <div className='text-sm text-muted-foreground'>
         Make sure to keep track of the schedule for important entrance tests so you don't miss them!
       </div>
+      <SearchForm searchParams={searchParams} role={Role.Student}/>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise}>
           {({ entranceTestsPromise, metadata }) => (
             <Await resolve={entranceTestsPromise}>
-              <StudentEntranceTests page={query.page} totalPage={metadata.totalPages} />
+              <StudentEntranceTests page={query.page} totalPage={metadata.totalPages}
+                searchParams={searchParams}
+                setSearchParams={setSearchParams} />
             </Await>
           )}
         </Await>
@@ -108,16 +116,17 @@ export default function MyExams({ }: Props) {
 }
 
 function StudentEntranceTests({
-  page, totalPage
+  page, totalPage, searchParams, setSearchParams
 }: {
   page: number;
   totalPage: number;
+  searchParams: URLSearchParams;
+  setSearchParams: (nextInit?: URLSearchParamsInit | ((prev: URLSearchParams) => URLSearchParamsInit), navigateOpts?: NavigateOptions) => void;
 }) {
   const entranceTestsValue = useAsyncValue();
 
   const entranceTests = entranceTestsValue as EntranceTest[];
 
-  const [searchParams, setSearchParams] = useSearchParams();
 
   return <div className="py-4">
     {entranceTests.length > 0 ? <>
