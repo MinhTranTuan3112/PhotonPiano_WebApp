@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 
 import { Bell, Loader2 } from "lucide-react"

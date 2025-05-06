@@ -1,5 +1,3 @@
-"use client"
-
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { Await, useLoaderData } from "@remix-run/react"
 import { Suspense } from "react"

@@ -87,12 +87,12 @@ export default function ScoreTable({ data, className }: Props) {
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <span className="sr-only">Thao tác</span>
+                                                        <span className="sr-only">Actions</span>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/${entranceTestStudent.studentFirebaseId}`)}>
                                                         <User /> Xem thông tin
