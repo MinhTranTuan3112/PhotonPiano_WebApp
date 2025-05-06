@@ -8,10 +8,10 @@ import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import LevelForm from '~/components/level/level-form';
-import AddAccountDialog from '~/components/staffs/accounts/add-account-dialog';
-import { staffColumns } from '~/components/staffs/table/staff-columns';
+import AddAccountDialog from '~/components/admin/accounts/add-account-dialog';
+import { staffColumns } from '~/components/admin/accounts/staff-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
-import { teacherColumns } from '~/components/staffs/table/teacher-columns';
+import { teacherColumns } from '~/components/admin/accounts/teacher-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -26,6 +26,8 @@ import { requireAuth } from '~/lib/utils/auth';
 import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
+import { adminColumns } from '~/components/admin/accounts/admin-columns';
+import { role } from '~/lib/test-data';
 
 type Props = {}
 
@@ -42,13 +44,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     const { searchParams } = new URL(request.url);
-
+    const roles = [Number.parseInt(searchParams.get('roles') || '2')]
     const query = {
       page: Number.parseInt(searchParams.get('page') || '1'),
       pageSize: Number.parseInt(searchParams.get('size') || '10'),
       sortColumn: searchParams.get('column') || 'Id',
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
-      roles: (!searchParams.get('isTeacher') || searchParams.get('isTeacher') === 'true') ? [Role.Instructor] : [Role.Staff],
+      roles,
       levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
       accountStatus: getParsedParamsArray({ paramsValue: searchParams.get('status') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
@@ -79,7 +81,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       promise,
       idToken,
       query: { ...query, idToken: undefined },
-      isViewingTeacher : (!searchParams.get('isTeacher') || searchParams.get('isTeacher') === 'true')
+      roles
     }
 
   } catch (error) {
@@ -100,6 +102,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export const searchSchema = z.object({
   levels: z.array(z.string()).optional(),
   statuses: z.array(z.string()).optional(),
+  action : z.string(),
   q: z.string().optional()
 });
 
@@ -118,7 +121,7 @@ const statusOptions = [
   },
 ]
 
-function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
+function SearchForm({ setIsOpen, role }: { setIsOpen: (isOpen: boolean) => void, role: Role }) {
 
   const {
     handleSubmit,
@@ -127,7 +130,10 @@ function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
     control
   } = useRemixForm<SearchFormData>({
     mode: "onSubmit",
-    resolver
+    resolver,
+    defaultValues : {
+      action : "ADD"
+    }
   });
 
   const { data, isLoading: isLoadingLevels } = useQuery({
@@ -156,19 +162,24 @@ function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
     className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
-    {isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
-      name='levels'
-      control={control}
-      render={({ field: { onChange, onBlur, value, ref } }) => (
-        <MultiSelect
-          options={levelOptions}
-          value={value}
-          defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
-          placeholder='Pick a Level'
-          className='w-full'
-          onValueChange={onChange} />
-      )}
-    />}
+    {
+      role === Role.Instructor && (
+        isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
+          name='levels'
+          control={control}
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <MultiSelect
+              options={levelOptions}
+              value={value}
+              defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
+              placeholder='Pick a Level'
+              className='w-full'
+              onValueChange={onChange} />
+          )}
+        />
+      )
+    }
+
 
     <Controller
       name='statuses'
@@ -193,11 +204,16 @@ function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
         variant={'theme'}
         isLoading={isSubmitting}
         disabled={isSubmitting}>Search</Button>
-      <Button type='button' Icon={PlusCircle} iconPlacement='left'
-        onClick={() => setIsOpen(true)}
-        variant={'outline'}
-        isLoading={isSubmitting}
-        disabled={isSubmitting}>Add New Account</Button>
+      {
+        role !== Role.Administrator && (
+          <Button type='button' Icon={PlusCircle} iconPlacement='left'
+            onClick={() => setIsOpen(true)}
+            variant={'outline'}
+            isLoading={isSubmitting}
+            disabled={isSubmitting}>Add New Account</Button>
+        )
+      }
+
     </div>
   </Form>
 }
@@ -205,15 +221,17 @@ function SearchForm({setIsOpen} : {setIsOpen : (isOpen : boolean) => void}) {
 export default function AdminManageAccountPage({ }: Props) {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams();
-  const { promise, query, idToken, isViewingTeacher } = useLoaderData<typeof loader>();
+  const { promise, query, idToken, roles } = useLoaderData<typeof loader>();
   const [isOpenAddDialog, setIsOpenAddDialog] = useState(false)
-  const [isTeacher, setIsTeacher] = useState(isViewingTeacher)
+  const [viewingRole, setViewingRole] = useState(roles[0])
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = (role: Role) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.set("isTeacher", tab === "teachers" ? "true" : "false");
+    newParams.delete("roles"); // Remove existing roles
+    newParams.append("roles", role.toString());
     newParams.set("page", "1");
-    setIsTeacher(tab === "teachers")
+    //setIsTeacher(tab === "teachers")
+    setViewingRole(role)
     setSearchParams(newParams);
   };
 
@@ -221,18 +239,19 @@ export default function AdminManageAccountPage({ }: Props) {
     <div className='px-8'>
       <h3 className="text-lg font-medium">System Accounts</h3>
       <p className="text-sm text-muted-foreground">
-        Mange Staff And Teacher Accounts
+        Mange Admin, Staff And Teacher Accounts
       </p>
 
-      <Tabs defaultValue={isTeacher ? "teachers" : "staffs"}>
+      <Tabs defaultValue={viewingRole.toString()}>
         <TabsList className="w-full flex mt-4">
-          <TabsTrigger value="teachers" className='w-full' onClick={() => handleTabChange("teachers")}>Teachers</TabsTrigger>
-          <TabsTrigger value="staffs" className='w-full' onClick={() => handleTabChange("staffs")}>Staffs</TabsTrigger>
+          <TabsTrigger value="2" className='w-full' onClick={() => handleTabChange(Role.Instructor)}>Teachers</TabsTrigger>
+          <TabsTrigger value="4" className='w-full' onClick={() => handleTabChange(Role.Staff)}>Staffs</TabsTrigger>
+          <TabsTrigger value="3" className='w-full' onClick={() => handleTabChange(Role.Administrator)}>Admins</TabsTrigger>
         </TabsList>
         <div className='flex flex-col lg:flex-row lg:place-content-between mt-4 gap-4'>
-          <SearchForm setIsOpen={setIsOpenAddDialog} />
+          <SearchForm setIsOpen={setIsOpenAddDialog} role={viewingRole} />
         </div>
-        <TabsContent value="teachers">
+        <TabsContent value="2">
           <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
             <Await resolve={promise} >
               {({ accountsPromise, metadata }) => (
@@ -247,7 +266,7 @@ export default function AdminManageAccountPage({ }: Props) {
             </Await>
           </Suspense>
         </TabsContent>
-        <TabsContent value='staffs'>
+        <TabsContent value='4'>
           <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
             <Await resolve={promise} >
               {({ accountsPromise, metadata }) => (
@@ -262,9 +281,24 @@ export default function AdminManageAccountPage({ }: Props) {
             </Await>
           </Suspense>
         </TabsContent>
+        <TabsContent value='3'>
+          <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
+            <Await resolve={promise} >
+              {({ accountsPromise, metadata }) => (
+                <Await resolve={accountsPromise}>
+                  <GenericDataTable
+                    columns={adminColumns}
+                    emptyText='No accounts.'
+                    metadata={metadata}
+                  />
+                </Await>
+              )}
+            </Await>
+          </Suspense>
+        </TabsContent>
       </Tabs>
-      <AddAccountDialog idToken={idToken} isOpen={isOpenAddDialog} setIsOpen={setIsOpenAddDialog} 
-        isTeacher={isTeacher} />
+      <AddAccountDialog idToken={idToken} isOpen={isOpenAddDialog} setIsOpen={setIsOpenAddDialog}
+        isTeacher={viewingRole === Role.Instructor} />
     </div>
   )
 }
@@ -288,7 +322,7 @@ export function ErrorBoundary() {
         Manage Center Accounts Information
       </p>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
-        <SearchForm setIsOpen={setIsOpenAddDialog} />
+        <SearchForm setIsOpen={setIsOpenAddDialog} role={Role.Instructor} />
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">
         <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :

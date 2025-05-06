@@ -1,8 +1,9 @@
 import { ActionFunctionArgs } from "@remix-run/node"
-import { fetchCreateStaff, fetchCreateTeacher } from "~/lib/services/account";
+import { fetchCreateStaff, fetchCreateTeacher, fetchRoleAdmin } from "~/lib/services/account";
 import { publishStudentClassScore } from "~/lib/services/class"
+import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error"
-import { formEntryToString } from "~/lib/utils/form"
+import { formEntryToNumber, formEntryToString } from "~/lib/utils/form"
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
@@ -15,37 +16,66 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const formData = await request.formData()
-        const email = formEntryToString(formData.get("email"))
-        const phone = formEntryToString(formData.get("phone"))
-        const fullName = formEntryToString(formData.get("fullName"))
-        const isTeacher = formEntryToString(formData.get("isTeacher")) === "true"
-        const idToken = formEntryToString(formData.get("idToken"))
+        const action = formEntryToString(formData.get("action"))
 
-        // Validate inputs
-        if (!idToken) {
-            return {
-                success: false,
-                error: 'Unauthorized.',
-                status: 401
+        if (action == "ADD") {
+            const email = formEntryToString(formData.get("email"))
+            const phone = formEntryToString(formData.get("phone"))
+            const fullName = formEntryToString(formData.get("fullName"))
+            const isTeacher = formEntryToString(formData.get("isTeacher")) === "true"
+            const idToken = formEntryToString(formData.get("idToken"))
+
+            // Validate inputs
+            if (!idToken) {
+                return {
+                    success: false,
+                    error: 'Unauthorized.',
+                    status: 401
+                }
             }
-        }
 
-        if (!email || !phone || !fullName || (isTeacher == undefined)) {
+            if (!email || !phone || !fullName || (isTeacher == undefined)) {
+                return {
+                    success: false,
+                    error: 'Invalid data.',
+                    status: 400
+                }
+            }
+            if (isTeacher) {
+                await fetchCreateTeacher({ idToken, fullName, email, phone })
+            } else {
+                await fetchCreateStaff({ idToken, fullName, email, phone })
+            }
+
+            // Return success response
+            return {
+                success: true
+            }
+        } else if (action === "GRANT") {
+            const { idToken } = await requireAuth(request)
+
+            const accountFirebaseId = formEntryToString(formData.get("accountFirebaseId"))
+            const role = formEntryToNumber(formData.get("role"))
+
+            if (!accountFirebaseId || !role) {
+                return {
+                    success: false,
+                    error: 'Invalid data.',
+                    status: 400
+                }
+            }
+
+            await fetchRoleAdmin({ idToken, accountFirebaseId, role })
+            // Return success response
+            return {
+                success: true
+            }
+        } else {
             return {
                 success: false,
-                error: 'Invalid data.',
+                error: "INVALID ACTION",
                 status: 400
             }
-        }
-        if (isTeacher){
-            await fetchCreateTeacher({idToken,fullName,email,phone})
-        } else {
-            await fetchCreateStaff({idToken,fullName,email,phone})
-        }
-
-        // Return success response
-        return {
-            success: true
         }
     } catch (err) {
         const error = getErrorDetailsInfo(err)
