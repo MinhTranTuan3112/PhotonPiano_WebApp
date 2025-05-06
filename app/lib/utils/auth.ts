@@ -82,6 +82,7 @@ export async function requireAuth(request: Request) {
 }
 
 export async function getAuth(request: Request) {
+
   const cookies = request.headers.get("Cookie") || "";
 
   const idToken = await idTokenCookie.parse(cookies) as string;
@@ -89,6 +90,21 @@ export async function getAuth(request: Request) {
   const idTokenExpiry = parseInt(await expirationCookie.parse(cookies) || "0");
   const role = await roleCookie.parse(cookies) as number;
   const accountId = await accountIdCookie.parse(cookies) as string;
+
+  if ((!idToken || isExpired(idTokenExpiry)) && !!refreshToken) {
+    console.log("ID token missing or expired, attempting to refresh");
+
+    const newTokens = await refreshIdToken(refreshToken);
+    if (newTokens) {
+      return {
+        idToken: newTokens.idToken,
+        role,
+        idTokenExpiry,
+        accountId: newTokens.accountId,
+        headers: newTokens.headers
+      };
+    } else return { idToken, refreshToken, idTokenExpiry, role, accountId };
+  }
 
   return { idToken, refreshToken, idTokenExpiry, role, accountId };
 }

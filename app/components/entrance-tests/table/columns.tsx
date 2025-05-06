@@ -13,6 +13,7 @@ import { loader } from "~/root";
 import { Role } from "~/lib/types/account/account";
 import { action } from "~/routes/delete-entrance-test";
 import { useEffect } from "react";
+import { toastWarning } from "~/lib/utils/toast-utils";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -171,7 +172,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(authData.role === Role.Staff ? `../entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
+                    onClick={() => navigate(authData?.role === Role.Staff ? `../entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
                     <Eye /> View
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
