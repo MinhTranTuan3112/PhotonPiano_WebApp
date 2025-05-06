@@ -5,7 +5,6 @@ import { getWeekRange } from "~/lib/utils/datetime"
 import {
     fetchAssignTeacherToSlot,
     fetchAttendanceStatus,
-    fetchAvailableTeachersForSlot,
     fetchBlankSlots,
     fetchCancelSlot,
     fetchPublicNewSlot,
@@ -14,33 +13,22 @@ import {
 } from "~/lib/services/scheduler"
 import { motion } from "framer-motion"
 import {
-    Ban,
     BookOpen,
     Calendar,
     CalendarClock,
     Check,
     CheckCircle,
-    ChevronLeft,
     Clock,
     Filter,
-    Footprints,
-    HandMetal,
-    Info,
     ListFilter,
     Layers,
-    MoveRight,
     Music,
-    RefreshCw,
-    Settings,
     StickyNote,
-    ThumbsUp,
     User,
     Users,
     X,
 } from "lucide-react"
 import {
-    AttendanceStatus,
-    AttendanceStatusText,
     type BlankSlotModel,
     Shift,
     type SlotDetail,
@@ -141,7 +129,12 @@ const DailySchedule = ({
     return (
         <Card className="border-blue-100">
             <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-semibold text-blue-900">Daily Schedule</CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl font-semibold text-blue-900">Daily Schedule</CardTitle>
+                    <div className="text-sm font-medium px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full">
+                        {format(date, "EEEE, MMMM d, yyyy")}
+                    </div>
+                </div>
             </CardHeader>
             <CardContent>
                 {slots.length === 0 ? (
@@ -161,15 +154,9 @@ const DailySchedule = ({
                                 .map((timeSlot) => (
                                     <div key={timeSlot.shift} className="relative">
                                         {/* Time indicator */}
-                                        <div className="absolute -left-[41px] flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs">
+                                        <div className="absolute -left-[43px] flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs">
                                             <Clock className="w-3 h-3" />
                                         </div>
-
-                                        {/* Time label */}
-                                        <div className="absolute -left-[150px] top-0 w-[100px] text-right text-sm font-medium text-blue-700">
-                                            {timeSlot.time}
-                                        </div>
-
                                         {/* Slot cards */}
                                         <div className="space-y-3">
                                             {timeSlot.slots.map((slot) => (
@@ -525,7 +512,7 @@ export const TeacherSchedule = ({
     const [weekNumber, setWeekNumber] = useState(initialWeekNumber)
     const [startDate, setStartDate] = useState(new Date(initialStartDate))
     const [endDate, setEndDate] = useState(new Date(initialEndDate))
-    const [selectedDate, setSelectedDate] = useState(new Date(initialStartDate))
+    const [selectedDate, setSelectedDate] = useState(new Date())
     const [selectedSlot, setSelectedSlot] = useState<SlotDetail | null>(null)
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
     const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false)
@@ -662,7 +649,10 @@ export const TeacherSchedule = ({
             setSlots(updatedSlots)
             setStartDate(startDate)
             setEndDate(endDate)
-            setSelectedDate(startDate)
+            // Use current date or find the closest date in the week
+            const today = new Date()
+            const isCurrentDateInWeek = today >= startDate && today <= endDate
+            setSelectedDate(isCurrentDateInWeek ? today : startDate)
         } catch (error) {
             console.error("Failed to fetch slots for week:", error)
         }
@@ -959,7 +949,10 @@ export const TeacherSchedule = ({
                                 </TabsTrigger>
                             </TabsList>
 
-                            <div className="text-sm text-blue-700 font-medium">{format(selectedDate, "EEEE, MMMM d, yyyy")}</div>
+                            <div className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium flex items-center">
+                                <Calendar className="w-4 h-4 mr-2" />
+                                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                            </div>
                         </div>
 
                         <TabsContent value="daily" className="mt-0">

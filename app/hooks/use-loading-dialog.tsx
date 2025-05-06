@@ -10,15 +10,14 @@ type Props = {
     loadingMessage?: string,
     successMessage?: string
     fetcher: FetcherWithComponents<ActionResult>,
-    preventEscape? : boolean,
+    preventEscape?: boolean,
     action?: () => void
 }
 
-export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ...", fetcher, successMessage = "Thành công!", action, preventEscape = false }: Props) {
+export default function useLoadingDialog({ loadingMessage = "Please wait...", fetcher, successMessage = "Success!", action, preventEscape = false }: Props) {
     const [result, setResult] = useState<boolean | null>(null)
     const [message, setMessage] = useState("")
     const [isOpen, setIsOpen] = useState(false);
-
 
     useEffect(() => {
         if (fetcher.state === "submitting") {
@@ -29,7 +28,6 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
     }, [fetcher.state, fetcher.data])
 
     useEffect(() => {
-
         if (fetcher.data?.success === true) {
             setResult(true)
             setMessage(successMessage)
@@ -42,9 +40,7 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
             return;
         }
 
-        return () => {
-
-        }
+        return () => { }
     }, [fetcher.data]);
 
     const onOpenChange = (open: boolean) => {
@@ -67,20 +63,19 @@ export default function useLoadingDialog({ loadingMessage = "Vui lòng chờ..."
                     </div>
                 ) : result ? (
                     <div className="text-center">
-                        <p className="font-bold text-xl text-green-600">THÀNH CÔNG</p>
+                        <p className="font-bold text-xl text-green-600">SUCCESS</p>
                         <CheckCircle size={100} className="text-green-600 mx-auto mt-4" />
                         {/* <p>{message}</p> */}
                     </div>
                 ) : (
                     <div className="text-center">
-                        <p className="font-bold text-xl text-red-600">THẤT BẠI</p>
+                        <p className="font-bold text-xl text-red-600">FAILURE</p>
                         <XCircle size={100} className="text-red-600 mx-auto mt-4" />
                         <p>{message}</p>
                     </div>
                 )}
             </DialogContent>
         </Dialog>
-
 
     return (
         { loadingDialog }
