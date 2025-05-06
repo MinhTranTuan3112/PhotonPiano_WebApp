@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { useAuth } from "~/lib/contexts/auth-context"
 import { Skeleton } from "../ui/skeleton"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
-import { useFetcher } from "@remix-run/react"
+import { redirect, useFetcher, useNavigate } from "@remix-run/react"
 import { action } from "~/routes/sign-out"
 
 export function NavUser({

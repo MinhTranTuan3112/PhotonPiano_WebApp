@@ -12,10 +12,11 @@ import { DataTable } from '~/components/ui/data-table';
 import { Separator } from '~/components/ui/separator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchALevel, fetchUpdateLevel } from '~/lib/services/level';
+import { fetchALevel, fetchDeleteLevel, fetchUpdateLevel } from '~/lib/services/level';
 import { LevelDetails, Role } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
+import { formEntryToString } from '~/lib/utils/form';
 import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
@@ -45,7 +46,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
         return {
             promise,
-            id
+            id,
+            idToken
         }
 
     } catch (error) {
@@ -82,7 +84,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
         if (errors) {
             return { success: false, errors, defaultValues };
         }
-
         const response = await fetchUpdateLevel({
             idToken,
             ...data
@@ -114,7 +115,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 export default function LevelDetailsPage({ }: Props) {
 
-    const { promise, id } = useLoaderData<typeof loader>();
+    const { promise, id, idToken } = useLoaderData<typeof loader>();
 
     return (
         <section className='px-10'>
@@ -125,7 +126,7 @@ export default function LevelDetailsPage({ }: Props) {
                 <Await resolve={promise}>
                     {({ levelPromise }) => (
                         <Await resolve={levelPromise}>
-                            <LevelDetailsContent />
+                            <LevelDetailsContent idToken={idToken} />
                         </Await>
                     )}
                 </Await>
@@ -140,7 +141,7 @@ function LoadingSkeleton() {
     </div>
 }
 
-function LevelDetailsContent() {
+function LevelDetailsContent({ idToken }: { idToken: string }) {
 
     const level = useAsyncValue() as LevelDetails;
 
@@ -180,7 +181,7 @@ function LevelDetailsContent() {
                     <TabsTrigger value="classes">Classes</TabsTrigger>
                 </TabsList>
                 <TabsContent value="basic-info">
-                    <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} />
+                    <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} idToken={idToken} />
                 </TabsContent>
                 <TabsContent value="students">
                     <DataTable data={level.accounts} columns={studentColumns} />
