@@ -245,7 +245,7 @@ function EntranceSurveyForm() {
     const surveyAnswers = watch("surveyAnswers")
 
     const questionSteps = survey.pianoSurveyQuestions
-        .sort((ps) => ps.orderIndex)
+        .sort((a, b) => a.orderIndex - b.orderIndex)
         .map(({ question, isRequired, orderIndex, questionId }) => {
             return {
                 questionId,
@@ -523,6 +523,23 @@ function EntranceSurveyForm() {
 
     const progressPercentage = Math.round((stepCnt / (steps.length - 1)) * 100)
 
+    const isNextDisabled =
+        stepCnt < questionSteps.length
+            ? (() => {
+                const step = questionSteps[stepCnt];
+                if (!step.isRequired) {
+                    return false;
+                }
+
+                const answer = watch('surveyAnswers')?.find(
+                    (a) => a.questionId === step.questionId
+                );
+
+                return !answer || !answer.answers || answer.answers.length === 0;
+            })()
+            : false;
+
+
     return (
         <>
             <div className="mb-8">
@@ -572,6 +589,7 @@ function EntranceSurveyForm() {
                             type="button"
                             onClick={() => setStepCnt((prev) => Math.min(prev + 1, steps.length - 1))}
                             className="flex items-center gap-2"
+                            disabled={isSubmitting || isNextDisabled}
                         >
                             Next <ArrowRight className="h-4 w-4" />
                         </Button>
@@ -579,7 +597,7 @@ function EntranceSurveyForm() {
                         <Button
                             type="button"
                             onClick={handleOpenConfirmDialog}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isNextDisabled}
                             className="flex items-center gap-2"
                         >
                             {isSubmitting ? (

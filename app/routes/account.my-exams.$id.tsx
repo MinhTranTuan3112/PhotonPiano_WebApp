@@ -2,6 +2,9 @@ import { type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, useAsyncValue, useLoaderData, useNavigate } from "@remix-run/react"
 import { CircleHelp, Music2, Award, User, Calendar, Clock, MapPin, Mail, Phone, Home, Piano } from "lucide-react"
 import { Suspense, useState } from "react"
+import { TestStatusBadge } from "~/components/entrance-tests/table/columns"
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar"
+import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import Image from "~/components/ui/image"
 import { Skeleton } from "~/components/ui/skeleton"
@@ -87,7 +90,7 @@ export default function ExamDetail({ }: Props) {
         </h1>
 
         <div className="relative">
-          
+
 
           <Suspense fallback={<LoadingSkeleton />} key={id}>
             <Await resolve={promise}>
@@ -129,11 +132,12 @@ function EntranceTestStudentContent({
             <Music2 className="h-5 w-5 text-black" />
             General Information
           </h2>
-          <div
+          {/* <div
             className={`${getStatusStyle(entranceTestStudent.entranceTest.status)} rounded-full px-4 py-1.5 text-white text-sm`}
           >
             {ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}
-          </div>
+          </div> */}
+          <TestStatusBadge status={entranceTestStudent.entranceTest.testStatus}/>
         </div>
 
         <div className="p-6 bg-white bg-opacity-80 backdrop-blur-sm relative">
@@ -190,13 +194,22 @@ function EntranceTestStudentContent({
         <div className="p-6">
           {entranceTestStudent.entranceTest.instructor ? (
             <div className="flex flex-col md:flex-row gap-6 items-center">
-              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 flex-shrink-0">
-                <Image
-                  src={entranceTestStudent.entranceTest.instructor?.avatarUrl ?? "/images/noavatar.png"}
-                  className="w-full h-full object-cover"
-                  alt="Teacher"
+              <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                <AvatarImage
+                  src={entranceTestStudent.entranceTest.instructor.avatarUrl ? entranceTestStudent.entranceTest.instructor.avatarUrl  : "/images/noavatar.png"}
+                  alt={entranceTestStudent.entranceTest.instructor.fullName || entranceTestStudent.entranceTest.instructor.email}
+                  className="object-cover"
                 />
-              </div>
+                <AvatarFallback className="text-2xl">
+                  {entranceTestStudent.entranceTest.instructor.fullName
+                    ? entranceTestStudent.entranceTest.instructor.fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                    : "PP"}
+                </AvatarFallback>
+              </Avatar>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
                 <div className="flex items-start space-x-3">
@@ -213,9 +226,9 @@ function EntranceTestStudentContent({
                   <Phone className="h-5 w-5 text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Phone</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {entranceTestStudent.entranceTest.instructor.phone}
-                    </p>
+                    <div className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.phone || <NoInformation/>}
+                    </div>
                   </div>
                 </div>
 
@@ -233,17 +246,17 @@ function EntranceTestStudentContent({
                   <Home className="h-5 w-5 text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Address</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {entranceTestStudent.entranceTest.instructor.address}
-                    </p>
+                    <div className="text-base font-semibold text-gray-900">
+                      {entranceTestStudent.entranceTest.instructor.address || <NoInformation/>}
+                    </div>
                   </div>
                 </div>
 
-                <div className="md:col-span-2 mt-2">
+                {/* <div className="md:col-span-2 mt-2">
                   <Button type="button" className="bg-black hover:bg-gray-800 text-white" onClick={() => navigate(`../teachers/${entranceTestStudent.entranceTest.instructorId}`)}>
                     View Teacher Profile
                   </Button>
-                </div>
+                </div> */}
               </div>
             </div>
           ) : (
@@ -479,4 +492,11 @@ function LoadingSkeleton() {
       </div>
     </div>
   )
+}
+
+
+function NoInformation() {
+  return <Badge variant={'outline'} className='text-muted-foreground italic'>
+      No information
+  </Badge>
 }
