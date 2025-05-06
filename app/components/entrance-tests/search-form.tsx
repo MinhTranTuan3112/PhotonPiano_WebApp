@@ -1,4 +1,4 @@
-import { Form, Link, useLoaderData, useLocation, useSearchParams } from '@remix-run/react'
+import { Form, Link, useLoaderData, useLocation } from '@remix-run/react'
 import { Input } from '../ui/input'
 import { FilterX, Search } from 'lucide-react'
 import { Button, buttonVariants } from '../ui/button'
@@ -14,8 +14,12 @@ import GenericMultiSelect from '../ui/generic-multiselect'
 import { fetchRooms } from '~/lib/services/rooms'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
 import { Room } from '~/lib/types/room/room'
+import { Role } from '~/lib/types/account/account'
 
-type Props = {}
+type Props = {
+    searchParams: URLSearchParams;
+    role: Role;
+}
 
 export const entranceTestsSearchSchema = z.object({
     q: z.string().optional(),
@@ -27,7 +31,10 @@ export type EntranceTestsSearchFormData = z.infer<typeof entranceTestsSearchSche
 
 export const resolver = zodResolver(entranceTestsSearchSchema);
 
-export default function SearchForm({ }: Props) {
+export default function SearchForm({
+    searchParams,
+    role
+}: Props) {
 
     const { query } = useLoaderData<typeof loader>();
 
@@ -41,14 +48,11 @@ export default function SearchForm({ }: Props) {
         resolver
     });
 
-    const [searchParams, _] = useSearchParams();
-
     const { pathname } = useLocation();
 
     return (
         <Form method='GET'
             onSubmit={handleSubmit}
-            action='/staff/entrance-tests'
             className='my-3 flex flex-col gap-3'>
 
             <div className="w-full">
@@ -73,52 +77,54 @@ export default function SearchForm({ }: Props) {
                         />
                     )}
                 />
-                <Controller
-                    name='roomIds'
-                    control={control}
-                    render={({ field: { value = [], onChange } }) => (
-                        // <RoomsMultiSelect
-                        //     idToken={query.idToken}
-                        //     value={value}
-                        //     onValueChange={onChange}
-                        //     placeholder='Chọn phòng'
-                        //     className='w-full max-w-[40%]'
-                        //     defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)} />
-                        <GenericMultiSelect<Room>
-                            defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)}
-                            queryKey='rooms'
-                            fetcher={async (query) => {
-                                const response = await fetchRooms({ ...query });
+                {role !== Role.Student && (
+                    <Controller
+                        name='roomIds'
+                        control={control}
+                        render={({ field: { value = [], onChange } }) => (
+                            // <RoomsMultiSelect
+                            //     idToken={query.idToken}
+                            //     value={value}
+                            //     onValueChange={onChange}
+                            //     placeholder='Chọn phòng'
+                            //     className='w-full max-w-[40%]'
+                            //     defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)} />
+                            <GenericMultiSelect<Room>
+                                defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)}
+                                queryKey='rooms'
+                                fetcher={async (query) => {
+                                    const response = await fetchRooms({ ...query });
 
-                                const headers = response.headers;
+                                    const headers = response.headers;
 
-                                const metadata: PaginationMetaData = {
-                                    page: parseInt(headers['x-page'] || '1'),
-                                    pageSize: parseInt(headers['x-page-size'] || '10'),
-                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                    totalCount: parseInt(headers['x-total-count'] || '0'),
-                                };
+                                    const metadata: PaginationMetaData = {
+                                        page: parseInt(headers['x-page'] || '1'),
+                                        pageSize: parseInt(headers['x-page-size'] || '10'),
+                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                        totalCount: parseInt(headers['x-total-count'] || '0'),
+                                    };
 
-                                return {
-                                    data: response.data,
-                                    metadata
-                                }
-                            }}
-                            mapItem={(item) => {
-                                return {
-                                    label: item?.name,
-                                    value: item?.id
-                                }
-                            }}
-                            idToken={query.idToken}
-                            value={value}
-                            onValueChange={onChange}
-                            placeholder='Select room'
-                            emptyText='No rooms found.'
-                            errorText='Errors loading rooms.'
-                        />
-                    )}
-                />
+                                    return {
+                                        data: response.data,
+                                        metadata
+                                    }
+                                }}
+                                mapItem={(item) => {
+                                    return {
+                                        label: item?.name,
+                                        value: item?.id
+                                    }
+                                }}
+                                idToken={query.idToken}
+                                value={value}
+                                onValueChange={onChange}
+                                placeholder='Select room'
+                                emptyText='No rooms found.'
+                                errorText='Errors loading rooms.'
+                            />
+                        )}
+                    />
+                )}
             </div>
 
             <div className="w-full flex flex-row gap-3">

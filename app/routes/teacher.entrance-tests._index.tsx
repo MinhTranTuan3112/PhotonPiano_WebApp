@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError } from '@remix-run/react'
+import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react'
 import { Music2, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 import SearchForm from '~/components/entrance-tests/search-form'
@@ -91,6 +91,8 @@ export default function TeacherEntranceTestsPage({ }: Props) {
 
     const { promise, query } = useLoaderData<typeof loader>();
 
+    const [searchParams, setSearchParams] = useSearchParams();
+
     return (
         <article className='px-10'>
             <div className="flex items-center gap-3 mb-4">
@@ -100,7 +102,7 @@ export default function TeacherEntranceTestsPage({ }: Props) {
                     <p className="text-sm text-sky-600">List of tests in the center.</p>
                 </div>
             </div>
-            <SearchForm />
+            <SearchForm searchParams={searchParams} role={Role.Instructor} />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
                     {({ entranceTestsPromise, metadata }) => (
@@ -130,9 +132,13 @@ export function ErrorBoundary() {
 
     return (
         <article className="px-10 pb-4">
-            <h1 className="text-xl font-extrabold">Danh sách thi đầu vào</h1>
-            <p className='text-muted-foreground'>Danh sách đợt thi đầu vào dành cho học viên trước khi vào học ở trung tâm.</p>
-            <SearchForm />
+            <div className="flex items-center gap-3 mb-4">
+                <Music2 className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage tests</h3>
+                    <p className="text-sm text-sky-600">List of tests in the center.</p>
+                </div>
+            </div>
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
                     'Có lỗi đã xảy ra.'} </h1>
