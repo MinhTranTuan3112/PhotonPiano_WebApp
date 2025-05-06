@@ -40,6 +40,6 @@ export const ATTENDANCE_DEADLINE = "Deadline cho điểm danh 2025"
 
 export const REASON_CANCEL_SLOT = "Lý do hủy tiết"
 
-export const MAX_ABSENCE_RATE = "Tỉ lệ điểm danh tối đa để qua"
+export const MAX_ABSENCE_RATE = "Tỷ lệ vắng mặt tối đa"
 
 export const REFUND_REASON = "Lý do hoàn tiền"

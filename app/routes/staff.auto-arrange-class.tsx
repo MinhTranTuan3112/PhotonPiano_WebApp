@@ -466,7 +466,7 @@ export default function StaffAutoArrangeClass({}: Props) {
   
             <Dialog onOpenChange={handleDialogChange} open={isOpenLoading}>
               <DialogTitle />
-              <DialogContent className="sm:max-w-md" preventClosing={!result}>
+              <DialogContent className="min-w-[1000px]" preventClosing={!result}>
                 {result && fetcher.data?.success === true ? (
                   <div className="text-center">
                     <p className="font-bold text-xl text-green-600">SCHEDULE COMPLETE</p>

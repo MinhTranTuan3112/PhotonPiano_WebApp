@@ -37,15 +37,21 @@ export async function action({ request }: ActionFunctionArgs) {
         const response = await publishStudentClassScore({ classId, idToken })
 
         // Return success response
-        return {
+        return Response.json({
             success: true
-        }
+        }, {
+            status: 200
+        })
     } catch (err) {
+
         const error = getErrorDetailsInfo(err)
-        return {
+
+        return Response.json({
             success: false,
             error: error.message,
             status: error.status
-        }
+        }, {
+            status: 400
+        })
     }
 }

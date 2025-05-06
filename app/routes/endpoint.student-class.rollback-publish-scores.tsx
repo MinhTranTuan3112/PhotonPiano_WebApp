@@ -32,16 +32,20 @@ export async function action({ request }: ActionFunctionArgs) {
             }
         }
         const response = await rollBackScorePublishing({ classId, idToken });
-        return {
+        return Response.json({
             success: true
-        }
+        }, {
+            status: 200
+        })
     }
     catch (error) {
         const errorDetails = getErrorDetailsInfo(error);
-        return {
+        return Response.json({
             success: false,
             error: errorDetails.message,
             status: errorDetails.status
-        }
+        }, {
+            status: 400
+        })
     }
 }

@@ -1096,7 +1096,7 @@ export const TeacherSchedule = ({
                                     <li className="flex items-center gap-2">
                                         <User size={18} className="text-blue-600" />
                                         <span>
-                                            <strong>Teacher:</strong> {selectedSlot.teacher.fullName}
+                                            <strong>Teacher:</strong> {selectedSlot.teacher?.fullName ?? selectedSlot.teacher?.userName}
                                         </span>
                                     </li>
                                     <li className="flex items-center gap-2">
