@@ -8,12 +8,11 @@ import {
   useRouteError,
 } from "@remix-run/react";
 import type { ErrorResponse, LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-
 import "./tailwind.css";
 import '@fontsource/montserrat';
 import { Toaster } from "./components/ui/sonner";
 import ErrorPage from "./components/error-page";
-import { getAuth, requireAuth } from "./lib/utils/auth";
+import { getAuth } from "./lib/utils/auth";
 import { fetchGoogleOAuthCallback } from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
@@ -50,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const code = searchParams.get('code') as string;
 
     if (!code) {
-      const authData = await requireAuth(request);
+      const authData = await getAuth(request);
 
       const idToken = authData.idToken;
 
