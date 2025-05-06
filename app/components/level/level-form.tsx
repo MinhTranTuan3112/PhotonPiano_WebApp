@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FetcherWithComponents, Form } from '@remix-run/react'
+import { FetcherWithComponents, Form, useNavigate } from '@remix-run/react'
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
-import { LevelDetails } from '~/lib/types/account/account'
+import { Level, LevelDetails } from '~/lib/types/account/account'
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -12,11 +12,17 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { HexColorPicker } from "react-colorful";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import GenericCombobox from '../ui/generic-combobox';
+import { requireAuth } from '~/lib/utils/auth';
+import { fetchLevels } from '~/lib/services/level';
+import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 
 type Props = {
     isEditing?: boolean;
     fetcher: FetcherWithComponents<any>;
     isSubmitting: boolean;
+    idToken: string
 } & LevelDetails;
 
 export const levelSchema = z.object({
@@ -33,8 +39,7 @@ export const levelSchema = z.object({
 
 export type LevelFormData = z.infer<typeof levelSchema>;
 
-export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...defaultData }: Props) {
-
+export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id, idToken, ...defaultData }: Props) {
     const {
         handleSubmit,
         formState: { errors },
@@ -63,6 +68,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
 
     const [newSkill, setNewSkill] = useState('');
     const [selectedColor, setSelectedColor] = useState<string>(getFormValue('themeColor') || '#000000');
+    const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false)
 
     return (
         <>
@@ -152,14 +158,102 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, ...
 
                 </div>
 
-                <div className="">
-                    <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog}>
+                <div className="flex gap-4">
+                    <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog} variant={'theme'}>
                         {isEditing ? 'Save' : 'Create'}
+                    </Button>
+                    <Button type='button' onClick={() => setIsOpenDeleteDialog(true)} variant={'destructive'}>
+                        Delete
                     </Button>
                 </div>
 
             </Form>
+            <DeleteDialog id={id} isOpenDialog={isOpenDeleteDialog} setIsOpen={setIsOpenDeleteDialog} idToken={idToken} />
             {confirmDialog}
         </>
     )
+}
+
+
+function DeleteDialog({ id, isOpenDialog, setIsOpen, idToken }:
+    { id: string, isOpenDialog: boolean, setIsOpen: (isOpen: boolean) => void, idToken: string }) {
+
+    const [selectedLevel, setSelectedLevel] = useState<string | undefined>(undefined)
+
+    const navigate = useNavigate()
+
+    const handleDelete = async () => {
+        await fetch(`/endpoint/levels`, {
+            method: "DELETE",
+            body: new URLSearchParams({
+                fallBackLevelId : selectedLevel ?? "",
+                id : id
+            }),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        });
+        navigate(`/admin/levels`)
+    }
+
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm action',
+        description: 'Are you sure want to delete this level? This action can not be rollbacked',
+        confirmText: 'Delete',
+        onConfirm: handleDelete
+    });
+
+    return (
+        <Dialog open={isOpenDialog} onOpenChange={setIsOpen}>
+            <DialogContent className='w-[36rem]'>
+                <DialogTitle>
+                    Delete the Level
+                </DialogTitle>
+                <div>
+                    <div className='font-semibold italic mb-4'>Please specify a fallback level, any account or classes that have this level will be changed to the fallback level!</div>
+                    <GenericCombobox<Level>
+                        className='mt-2 w-64'
+                        idToken={idToken}
+                        queryKey='rooms'
+                        fetcher={async (query) => {
+                            const response = await fetchLevels();
+
+                            const headers = response.headers;
+
+                            const metadata: PaginationMetaData = {
+                                page: parseInt(headers['x-page'] || '1'),
+                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                            };
+
+                            let data = response.data as Level[]
+                            data = data.filter(l => l.id !== id)
+
+                            return {
+                                data: data,
+                                metadata
+                            };
+                        }}
+                        mapItem={(item) => ({
+                            label: item?.name,
+                            value: item?.id
+                        })}
+                        placeholder='Pick a level'
+                        emptyText='There is no level available'
+                        errorText='Error loading level list.'
+                        value={selectedLevel}
+                        onChange={setSelectedLevel}
+                        maxItemsDisplay={10}
+                    />
+                </div>
+                <div className='mt-8 flex gap-2 justify-end'>
+                    <Button variant={'destructive'} onClick={handleOpenConfirmDialog}>Confirm</Button>
+                    <Button variant={'outline'} onClick={() => setIsOpen(false)}>Cancel</Button>
+                </div>
+            </DialogContent>
+            {confirmDialog}
+        </Dialog>
+    )
+
 }
