@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, Loader2 } from 'lucide-react';
+import { Search, CalendarSync, RotateCcw, Loader2, Users } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -194,10 +194,13 @@ export default function StaffTeachersPage({ }: Props) {
 
   return (
     <div className='px-8'>
-      <h3 className="text-lg font-medium">Teacher List</h3>
-      <p className="text-sm text-muted-foreground">
-        Manage Center Teacher Information
-      </p>
+      <div className="flex items-center gap-3 mb-4">
+        <Users className="h-8 w-8 text-sky-600" />
+        <div>
+          <h3 className="text-2xl font-bold text-sky-800">Teachers Information</h3>
+          <p className="text-sm text-sky-600">Manage center teachers information</p>
+        </div>
+      </div>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
       </div>
@@ -232,10 +235,13 @@ export function ErrorBoundary() {
 
   return (
     <article className="px-8">
-      <h3 className="text-lg font-medium">Teacher List</h3>
-      <p className="text-sm text-muted-foreground">
-        Manage Center Teacher Information
-      </p>
+      <div className="flex items-center gap-3 mb-4">
+        <Users className="h-8 w-8 text-sky-600" />
+        <div>
+          <h3 className="text-2xl font-bold text-sky-800">Teachers Information</h3>
+          <p className="text-sm text-sky-600">Manage center teachers information</p>
+        </div>
+      </div>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
       </div>

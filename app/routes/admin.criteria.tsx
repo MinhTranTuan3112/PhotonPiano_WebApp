@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { formEntryToNumber, formEntryToString } from '~/lib/utils/form'
 import { Button } from '~/components/ui/button'
-import { CheckIcon, Delete, Edit2Icon, PlusCircle, X, XIcon } from 'lucide-react'
+import { CheckIcon, Delete, Edit2Icon, PenBox, PlusCircle, X, XIcon } from 'lucide-react'
 import { Input } from '~/components/ui/input'
 import { useRemixForm } from 'remix-hook-form'
 import { ActionResult } from '~/lib/types/action-result'
@@ -288,9 +288,13 @@ export default function AdminCriteria({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Manage Criteria</h1>
-            <p className='text-muted-foreground'>Manage Criteria to evaluate learners for each entrance test and each class</p>
-
+            <div className="flex items-center gap-3 mb-4">
+                <PenBox className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage Criteria</h3>
+                    <p className="text-sm text-sky-600">Manage Criteria to evaluate learners for each entrance test and each class</p>
+                </div>
+            </div>
             <Suspense fallback={<LoadingSkeleton />}>
                 <Await resolve={promise}>
                     {({ criteria }) => {
@@ -337,7 +341,7 @@ export default function AdminCriteria({ }: Props) {
                                     <TabsContent value="entrance-tests" >
                                         <table className="w-full text-left">
                                             <thead>
-                                                <tr className="bg-gray-100">
+                                                <tr className="bg-sky-100">
                                                     <th className="font-bold text-left p-3  w-1/6">Name</th>
                                                     <th className="font-bold text-center p-3">Description</th>
                                                     <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
@@ -437,7 +441,7 @@ export default function AdminCriteria({ }: Props) {
                                                     </td>
                                                     <td>
                                                         <div className='flex justify-center'>
-                                                            <Button type='submit' name='action' value="ADD"><PlusCircle /></Button>
+                                                            <Button type='submit' name='action' variant={'theme'} value="ADD"><PlusCircle /></Button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -452,7 +456,7 @@ export default function AdminCriteria({ }: Props) {
                                     <TabsContent value="classes">
                                         <table className="w-full text-left">
                                             <thead>
-                                                <tr className="bg-gray-100">
+                                                <tr className="bg-sky-100">
                                                     <th className="font-bold text-left p-3 w-1/6">Name</th>
                                                     <th className="font-bold text-center p-3">Description</th>
                                                     <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
@@ -552,7 +556,7 @@ export default function AdminCriteria({ }: Props) {
                                                     </td>
                                                     <td>
                                                         <div className='flex justify-center'>
-                                                            <Button type='submit' name='action' value="ADD"><PlusCircle /></Button>
+                                                            <Button type='submit' name='action' value="ADD" variant={'theme'} ><PlusCircle /></Button>
                                                         </div>
                                                     </td>
                                                 </tr>

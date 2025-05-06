@@ -28,6 +28,7 @@ import { Room } from '~/lib/types/room/room';
 import { SlotDetail, TeacherModel } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
 import { ATTENDANCE_STATUS, CLASS_STATUS, LEVEL, SHIFT_TIME, SLOT_STATUS } from '~/lib/utils/constants';
+import { getErrorDetailsInfo } from '~/lib/utils/error';
 
 type Props = {}
 
@@ -41,13 +42,15 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     if (!params.id) {
         return redirect('/staff/classes')
     }
-
+        
     const slotPromise = fetchSlotById(params.id, idToken).then((response) => {
         const slot: SlotDetail = response.data;
         return {
             slot,
         }
     });
+
+
 
     return {
         slotPromise, idToken
@@ -210,16 +213,19 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
         }
     })
 
-    const handleDelete = () => {
-        deleteFetcher.submit({
-            action: "DELETE",
-            slotId: slot.id,
-            idToken: idToken
-        }, {
-            action: "/endpoint/slots",
-            method: "DELETE",
-
-        })
+    const handleDelete = async () => {
+        await fetch("/endpoint/slots", {
+            method: "POST",
+            body: new URLSearchParams({
+                action: "DELETE",
+                slotId: slot.id,
+                idToken: idToken
+            }),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        });
+        navigate(`/staff/classes/${slot.classId}?tab=timeTable`)
     }
 
     return (

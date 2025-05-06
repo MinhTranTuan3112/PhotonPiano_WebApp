@@ -97,7 +97,7 @@ export async function action({ request }: ActionFunctionArgs) {
         if (!studentId || !oldClassId || !newClassId) {
             return {
                 success: false,
-                error: 'Dữ liệu đã bị gửi thiếu.',
+                error: 'Invalid Data.',
                 status: 400
             }
         }
@@ -147,8 +147,8 @@ export default function AccountClassChanging() {
     })
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-        title: 'Xác nhận đổi lớp',
-        description: 'Bạn có chắc chắn muốn đổi qua lớp này không?',
+        title: 'Confirm Changing New Class',
+        description: 'Are you sure want to change to this class?',
         onConfirm: () => {
             handleSubmit();
         }
@@ -174,9 +174,9 @@ export default function AccountClassChanging() {
             <div className="py-4 max-w-5xl mx-auto">
                 {/* Page Header */}
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold text-gray-800">Chuyển đổi lớp</h1>
+                    <h1 className="text-3xl font-bold text-gray-800">Changing Class</h1>
                     <p className="text-gray-600 mt-2">
-                        Hãy chọn 1 lớp với khung giờ thuận tiện cho bạn nhất!
+                        Change to a class that best suit your time!
                     </p>
                 </div>
 
@@ -190,7 +190,7 @@ export default function AccountClassChanging() {
                                         {(classesData) => {
                                             if (!data.currentAccount.currentClass) {
                                                 return (
-                                                    <div className='text-center'>Bạn không có lớp để đổi</div>
+                                                    <div className='text-center'>You have no classes to change to</div>
                                                 )
                                             }
                                             const classStartDate = data.currentAccount.currentClass.startTime
@@ -203,7 +203,7 @@ export default function AccountClassChanging() {
                                                     {
                                                         closeDay && closeDay < new Date("9000-01-01") && (
                                                             <div className='my-2 italic text-center'>
-                                                                Hạn đổi lớp : Trước ngày {closeDay.toISOString().split('T')[0]}
+                                                                Deadline : Before {closeDay.toISOString().split('T')[0]}
                                                             </div>
                                                         )
                                                     }
@@ -228,7 +228,7 @@ export default function AccountClassChanging() {
                                                     <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
                                                         <TriangleAlert size={100} />
                                                         <div>
-                                                            Đã quá hạn đổi lớp. Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc.
+                                                            Class changing overdued, please contact support if you have further question.
                                                         </div>
                                                     </div>
                                                 </div>
@@ -253,12 +253,12 @@ export default function AccountClassChanging() {
         return (
             <div className="bg-white shadow-lg rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105">
                 <h2 className="text-lg font-semibold text-gray-800">{classItem.name}</h2>
-                <p className="text-gray-600 mt-1">Lịch học: {classItem.scheduleDescription}</p>
-                <p className="text-gray-600 mt-1">Ngày bắt đầu: {classItem.startTime}</p>
-                <p className="text-gray-600 mt-1">Giảng viên: {classItem.instructor?.fullName || classItem.instructor?.userName || "Chưa có"}</p>
+                <p className="text-gray-600 mt-1">Schedule: {classItem.scheduleDescription}</p>
+                <p className="text-gray-600 mt-1">Start Date: {classItem.startTime}</p>
+                <p className="text-gray-600 mt-1">Teacher: {classItem.instructor?.fullName || classItem.instructor?.userName || "N/A"}</p>
                 <Button className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
                     type="submit">
-                    Chọn lớp này
+                    Pick This Class
                 </Button>
             </div>
         );

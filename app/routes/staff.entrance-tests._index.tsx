@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError } from '@remix-run/react'
-import { CirclePlus, RotateCcw } from 'lucide-react'
+import { CirclePlus, Music2, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
 import SearchForm from '~/components/entrance-tests/search-form'
 import { columns } from '~/components/entrance-tests/table/columns'
@@ -95,8 +95,13 @@ export default function StaffEntranceTestsPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-xl font-extrabold">Manage tests</h1>
-            <p className='text-muted-foreground'>List of tests in the center.</p>
+            <div className="flex items-center gap-3 mb-4">
+                <Music2 className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage tests</h3>
+                    <p className="text-sm text-sky-600">List of tests in the center.</p>
+                </div>
+            </div>
             <SearchForm />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>

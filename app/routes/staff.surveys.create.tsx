@@ -10,6 +10,7 @@ import SurveyForm, { SurveyFormData, surveyResolver } from '~/components/survey/
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { toastWarning } from '~/lib/utils/toast-utils';
+import { FilePlus, PlusCircle } from 'lucide-react';
 
 type Props = {}
 
@@ -71,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
             minAge: data.hasAgeConstraint === true ? data.minAge : undefined,
             maxAge: data.hasAgeConstraint === true ? data.maxAge : undefined,
             idToken
-        } 
+        }
 
         const response = await fetchCreateSurvey({ ...createRequest });
 
@@ -120,11 +121,13 @@ export default function CreateSurveyPage({ }: Props) {
 
     return (
         <article className='px-10'>
-            <h1 className="text-lg font-bold">Tạo khảo sát mới</h1>
-            <p className="text-sm text-muted-foreground">
-                Tạo khảo sát mới cho trung tâm
-            </p>
-
+            <div className="flex items-center gap-3 mb-4">
+                <FilePlus className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Create New Survey</h3>
+                    <p className="text-sm text-sky-600">Create new survey with a set of questons</p>
+                </div>
+            </div>
             <Separator className='w-full my-2' />
 
             <SurveyForm idToken={idToken} fetcher={fetcher} />

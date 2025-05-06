@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { Music2, PlusCircle, Search, Shuffle, SortDescIcon } from 'lucide-react';
+import { Music2, PlusCircle, Search, Shuffle, SortDescIcon, Users } from 'lucide-react';
 import React, { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -151,10 +151,13 @@ export default function StaffClassesPage({ }: Props) {
   return (
     <div>
       <div className='px-8'>
-        <h3 className="text-lg font-medium">Manage Classes</h3>
-        <p className="text-sm text-muted-foreground">
-          Manage classes, student list, Schedule, etc.
-        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <Users className="h-8 w-8 text-sky-600" />
+          <div>
+            <h3 className="text-2xl font-bold text-sky-800">Manage Classes</h3>
+            <p className="text-sm text-sky-600">Manage Classes Information like Schedule, Learner List and Transcript</p>
+          </div>
+        </div>
         <div className='flex flex-col mt-8 gap-4'>
           <SearchForm levelPromise={levelPromise} />
           <div className='flex gap-4 justify-center mt-2'>
