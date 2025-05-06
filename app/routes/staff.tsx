@@ -1,4 +1,5 @@
-import { Outlet, redirect, useLocation, useRouteLoaderData } from "@remix-run/react";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { Outlet, redirect, useLoaderData, useLocation, useRouteLoaderData } from "@remix-run/react";
 import React from "react";
 import NotificationBell from "~/components/notification/notification-bell";
 import { StaffSidebar } from "~/components/sidebar/staff-sidebar";
@@ -19,8 +20,14 @@ import {
 } from "~/components/ui/sidebar";
 import { useAuth } from "~/lib/contexts/auth-context";
 import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
-import { loader } from "~/root";
+import { requireAuth } from "~/lib/utils/auth";
 
+export async function loader({ request }: LoaderFunctionArgs) {
+
+  const { accountId } = await requireAuth(request);
+  
+  return {accountId}
+}
 function getBreadcrumbPageName({ pathname }: {
     pathname: string,
 }): BreadcumbNavItem[] {
@@ -215,11 +222,7 @@ function getBreadcrumbPageName({ pathname }: {
 export default function StaffLayout() {
 
     const { pathname } = useLocation();
-    const authData = useRouteLoaderData<typeof loader>("root");
-
-    if (!authData.currentAccountFirebaseId) {
-        return redirect("/sign-in")
-    }
+    const {accountId} = useLoaderData<typeof loader>()
 
     return (
         <SidebarProvider>
@@ -255,7 +258,7 @@ export default function StaffLayout() {
                             </Breadcrumb>
                         </div>
                         <div className="mr-4">
-                            <NotificationBell accountFirebaseId={authData.currentAccountFirebaseId} />
+                            <NotificationBell accountFirebaseId={accountId} />
                         </div>
                     </div>
                 </header>

@@ -1,5 +1,6 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, useAsyncValue, useLoaderData } from "@remix-run/react";
+import { Music } from "lucide-react";
 import { Suspense, useState } from "react";
 import { DraggableLevels } from "~/components/level/draggable-levels"
 import { Button } from "~/components/ui/button";
@@ -51,10 +52,13 @@ export default function LevelsManagementPage({ }: Props) {
 
     return (
         <article className="px-10">
-            <h1 className="text-xl font-extrabold">Manage levels</h1>
-            <p className='text-muted-foreground'>
-                Manage levels in the center.
-            </p>
+            <div className="flex items-center gap-3 mb-4">
+                <Music className="h-8 w-8 text-sky-600" />
+                <div>
+                    <h3 className="text-2xl font-bold text-sky-800">Manage Levels</h3>
+                    <p className="text-sm text-sky-600">Each Level Presents A Node In The Learning Path</p>
+                </div>
+            </div>
 
             <div className="my-3 md:max-w-[50%]">
                 <Suspense fallback={<Skeleton className="w-full h-full" />} key={'levels'}>
