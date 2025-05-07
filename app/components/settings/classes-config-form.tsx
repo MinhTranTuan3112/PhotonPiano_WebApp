@@ -11,7 +11,7 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 
 export const classSettingsSchema = z.object({
     maximumClassSize: z.coerce.number().min(1, { message: 'Số lượng học viên tối đa phải lớn hơn 0' }),
-    minimumClassSize: z.coerce.number().min(1, { message: 'Số lượng học viên tối thiểu phải lớn hơn 0' }),
+    minimumClassSize: z.coerce.number().min(0, { message: 'Số lượng học viên tối thiểu không âm' }),
     deadlineChangingClass: z.coerce.number().min(0, { message: 'Giá trị không âm' }),
     allowSkippingLevel: z.boolean().default(false),
 });
