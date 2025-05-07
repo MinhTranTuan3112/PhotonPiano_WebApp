@@ -82,8 +82,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTime: string): boolean => {
-    const now = new Date(serverDateTime); // Use server time instead of local time
+    const now = new Date(serverDateTime); 
     const slot = new Date(slotDate);
+    
+    console.log("Current time:" , now);
+    console.log("Slot time:", slot);
     
     // If slot is in the future, attendance is not allowed
     if (slot > now) {
@@ -113,6 +116,12 @@ const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTi
     slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
 
     // If past the attendance deadline
+    
+    
+    console.log("-------------------------------------------------------")
+    console.log("Slot with deadline:", slotWithDeadline);
+    console.log("Current time:", now);
+    console.log("result: ", now > slotWithDeadline);
     return now > slotWithDeadline;
 };
 
