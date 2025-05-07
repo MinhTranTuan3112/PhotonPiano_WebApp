@@ -633,7 +633,7 @@ export default function TeacherClassDetailsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
-                            Room {slot?.roomId ? slot.roomId.slice(-4) : "N/A"}
+                            {slot?.room?.name || "N/A"}
                           </Badge>
                           {getStatusBadge(slot?.status || 0)}
                         </div>
@@ -789,7 +789,7 @@ export default function TeacherClassDetailsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                Room {slot?.roomId ? slot.roomId.slice(-4) : "N/A"}
+                                {slot?.room?.name || "N/A"}
                               </Badge>
                               {getStatusBadge(slot?.status || 0)}
                             </div>
@@ -824,7 +824,7 @@ export default function TeacherClassDetailsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                Room {slot?.roomId ? slot.roomId.slice(-4) : "N/A"}
+                                {slot?.room?.name || "N/A"}
                               </Badge>
                               {getStatusBadge(slot?.status || 0)}
                             </div>
