@@ -13,7 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Form, useFetcher, useLoaderData, useNavigate } from '@remix-run/react';
+import { Form, useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from '@remix-run/react';
 import { UpdateEntranceTestResultsFormData, updateEntranceTestResultsSchema } from '~/lib/types/entrance-test/entrance-test-result';
 import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -525,6 +525,14 @@ function LevelSection({
     control: Control<UpdateEntranceTestResultsFormData>;
 }) {
 
+    const authData = useRouteLoaderData<{
+        role: number;
+        currentAccountFirebaseId: string;
+        idToken: string;
+    } | null>("root");
+
+    const role = authData?.role ? authData.role as number : Role.Staff;
+
     const { data, isLoading, isError } = useQuery({
         queryKey: ['levels'],
         queryFn: async () => {
@@ -543,7 +551,7 @@ function LevelSection({
     return <div className="flex flex-row gap-4">
 
         <div className="w-full flex flex-col gap-3 items-center">
-            {isEdit ? <Controller
+            {isEdit && role === Role.Staff ? <Controller
                 control={control}
                 name='levelId'
                 render={({ field: { value, onChange } }) => (
@@ -573,7 +581,7 @@ function LevelSection({
             }
         </div>
 
-        {initialLevel && <Button type='button' size={'icon'} variant={'outline'} className=''
+        {initialLevel && role === Role.Staff && <Button type='button' size={'icon'} variant={'outline'} className=''
             onClick={() => setIsEdit(!isEdit)}>
             {!isEdit ? <PencilLine /> : <X className='text-red-600' />}
         </Button>}
