@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             levels: [currentAccount.levelId ?? "0"],
             statuses: [0],
             isPublic: true,
-            idToken : idToken
+            idToken: idToken
         };
         const classPromise = fetchClasses({ ...query }).then((response) => {
             const classes: Class[] = response.data;
@@ -195,9 +195,11 @@ export default function AccountClassChanging() {
                                             }
                                             const classStartDate = data.currentAccount.currentClass.startTime
                                             const deadlineDay = Number.parseInt(deadline.configValue)
-                                            const closeDay = classStartDate ? addDays(new Date(classStartDate), -deadlineDay) : null;
+                                            const closeDay = classStartDate ? new Date(classStartDate) : null;
+                                            if (closeDay) {
+                                                closeDay.setDate(closeDay.getDate() - deadlineDay);
+                                            }
                                             const today = new Date()
-                                            console.log(closeDay)
                                             return (!closeDay || today < closeDay) ? (
                                                 <div>
                                                     {
