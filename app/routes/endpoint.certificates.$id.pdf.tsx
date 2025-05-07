@@ -37,11 +37,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         }
 
         const pdfBuffer = await convertHtmlToPdf(certificateHtml)
+        const certificateData = response.data
+        const courseName = certificateData?.className
+            ? certificateData.className.replace(/[^a-zA-Z0-9-_]/g, "-").toLowerCase()
+            : "certificate"
+
         return new Response(pdfBuffer, {
             status: 200,
             headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="certificate-${certificateId}.pdf"`,
+                "Content-Disposition": `attachment; filename="certificate-${courseName}.pdf"`,
             },
         })
     } catch (error) {

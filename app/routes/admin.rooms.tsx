@@ -1,46 +1,36 @@
-import { Await, Form, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
-import { Suspense, useEffect, useState } from 'react'
+import { Await, Form, useLoaderData } from '@remix-run/react'
+import { Suspense } from 'react'
 import { Skeleton } from '~/components/ui/skeleton'
-import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node'
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Role } from '~/lib/types/account/account'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { requireAuth } from '~/lib/utils/auth'
-import { fetchAllMinimalCriterias, fetchCreateCriteria, fetchCriterias, fetchDeleteCriteria, fetchUpdateCriteria } from '~/lib/services/criteria'
-import { Criteria, CriteriaFor } from '~/lib/types/criteria/criteria'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { formEntryToNumber, formEntryToString } from '~/lib/utils/form'
 import { Button } from '~/components/ui/button'
-import { CheckIcon, Delete, DoorOpen, Edit2Icon, PlusCircle, X, XIcon } from 'lucide-react'
-import { Input } from '~/components/ui/input'
-import { useRemixForm } from 'remix-hook-form'
-import { ActionResult } from '~/lib/types/action-result'
-import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
-import useLoadingDialog from '~/hooks/use-loading-dialog'
-import { fetchRooms } from '~/lib/services/rooms'
+import { DoorOpen, PlusCircle } from 'lucide-react'
+import { fetchCreateRoom, fetchRooms, fetchUpdateRoom } from '~/lib/services/rooms'
 import { Room } from '~/lib/types/room/room'
 import GenericDataTable from '~/components/ui/generic-data-table'
 import { roomColumns } from '~/components/admin/table/room-column'
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { getValidatedFormData } from 'remix-hook-form'
+import { useRoomDialog } from '~/components/admin/room/room-dialog'
+import { Input } from '~/components/ui/input'
+
 type Props = {}
 
-const addCriteriaSchema = z
-    .object({
-        description: z.string().optional(), // Optional URL for existing avatar
-        name: z
-            .string({ message: "Tên không được để trống." }),
-        weight: z.coerce.number({ message: "Trọng số không được để trống" })
-            .min(1, { message: "Tối thiểu 1." })
-            .max(100, { message: "Tối đa 100." }),
-        action: z.string(),
-        idToken: z.string(),
-        criteriaFor: z.coerce.number(),
-    });
+export const roomSchema = z.object({
+    roomAction: z.string(),
+    id: z.string().optional(),
+    name: z.string().min(1, { message: 'Name is required' }),
+    capacity: z.coerce.number({ message: 'Invalid value' }).min(1, { message: 'Capacity must >= 1' }),
+    status: z.coerce.number()
+});
 
-type AddCriteriaSchema = z.infer<typeof addCriteriaSchema>;
+export type RoomFormData = z.infer<typeof roomSchema>;
 
-const resolver = zodResolver(addCriteriaSchema);
+export const roomResolver = zodResolver(roomSchema);
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -52,7 +42,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
             return redirect('/');
         }
 
-        const promise = fetchRooms({ idToken }).then((response) => {
+        const { searchParams } = new URL(request.url);
+
+        const query = {
+            page: Number.parseInt(searchParams.get('page') || '1'),
+            pageSize: Number.parseInt(searchParams.get('size') || '10'),
+            sortColumn: searchParams.get('column') || 'Id',
+            orderByDesc: searchParams.get('desc') === 'true' ? true : false,
+            keyword: searchParams.get('q') || '',
+            idToken
+        };
+
+        const promise = fetchRooms({ ...query }).then((response) => {
             const rooms = response.data as Room[];
 
             const headers = response.headers;
@@ -62,15 +63,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
                 pageSize: parseInt(headers['x-page-size'] || '10'),
                 totalPages: parseInt(headers['x-total-pages'] || '1'),
                 totalCount: parseInt(headers['x-total-count'] || '0'),
-
             };
+
             return { rooms, metadata };
         });
 
         return {
             promise,
-            role,
-            idToken
+            query,
         }
 
     } catch (error) {
@@ -92,20 +92,72 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
 
-    } catch (err) {
-        var error = getErrorDetailsInfo(err)
-        return {
-            success: false,
-            error: error.message,
-            status: error.status
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Administrator) {
+            return redirect('/');
         }
+
+        const { errors, data, receivedValues: defaultValues } =
+            await getValidatedFormData<RoomFormData>(request, roomResolver);
+
+        if (errors) {
+            return { success: false, errors, defaultValues };
+        }
+
+        switch (data.roomAction.toLowerCase()) {
+            case 'create':
+
+                await fetchCreateRoom({ idToken, ...data });
+
+                break;
+            case 'update':
+                await fetchUpdateRoom({ idToken, ...data });
+
+                break;
+
+            default:
+                return Response.json({
+                    success: false,
+                    error: 'Invalid action'
+                }, {
+                    status: 400
+                });
+        }
+
+        return Response.json({
+            success: true
+        }, {
+            status: 200
+        })
+
+    } catch (error) {
+        console.error(error);
+
+        if (isRedirectError(error)) {
+            throw error;
+        }
+
+        const { message, status } = getErrorDetailsInfo(error);
+
+        return Response.json({
+            success: false,
+            error: message,
+        }, {
+            status
+        });
     }
 
 }
 
 export default function AdminRoom({ }: Props) {
 
-    const { promise, idToken } = useLoaderData<typeof loader>();
+    const { promise, query } = useLoaderData<typeof loader>();
+
+    const { open: handleOpenRoomDialog, roomDialog } = useRoomDialog({
+        isEdit: false,
+    });
 
     return (
         <article className='px-10'>
@@ -116,16 +168,27 @@ export default function AdminRoom({ }: Props) {
                     <p className="text-sm text-sky-600">Manage rooms of the center</p>
                 </div>
             </div>
+            <Form method='GET' className='flex flex-row gap-4 items-center'>
+                <Input
+                    type='text'
+                    name='q'
+                    placeholder='Search by room name...'
+                    className='w-full'
+                    defaultValue={query.keyword}
+                />
+                <Button type='submit'>Search</Button>
+            </Form>
             <div className='flex my-2 justify-end'>
-                <Button Icon={PlusCircle} iconPlacement='left'>Add new</Button>
+                <Button Icon={PlusCircle} iconPlacement='left' onClick={handleOpenRoomDialog}>Add new</Button>
             </div>
-            <Suspense fallback={<LoadingSkeleton />}>
+            <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
                     {(data) => (
                         <GenericDataTable columns={roomColumns} resolvedData={data.rooms} metadata={data.metadata} />
                     )}
                 </Await>
             </Suspense >
+            {roomDialog}
             {/* {loadingAddDialog}
             {confirmAddDialog}
             {confirmDeleteDialog}
