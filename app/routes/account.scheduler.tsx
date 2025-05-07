@@ -54,7 +54,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function StaffScheduler({} : Props) {
     const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount } = useLoaderData<typeof loader>()
-
     return (
         <Scheduler 
             currentAccount={currentAccount}

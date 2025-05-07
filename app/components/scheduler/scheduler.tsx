@@ -24,6 +24,7 @@ import {
     Clock,
     Filter,
     Footprints, HandMetal,
+    ImageIcon,
     Info,
     MoveRight,
     Music, RefreshCw, Settings,
@@ -57,6 +58,7 @@ import { fetchSystemConfigSlotCancel } from "~/lib/services/system-config";
 import { CompactSlotView } from "~/components/scheduler/CompactSlotView";
 import { toast } from "sonner";
 import { toastWarning } from "~/lib/utils/toast-utils"
+import Image from "../ui/image"
 
 const shiftTimesMap: Record<Shift, string> = {
     [Shift.Shift1_7h_8h30]: "7:00 - 8:30",
@@ -230,9 +232,8 @@ export const Scheduler = ({
                 ...filters,
                 studentFirebaseId: role === 1 ? currentAccount.accountFirebaseId?.toLowerCase() : "",
             });
-
             let updatedSlots: SlotDetail[] = response.data;
-
+            console.log(response);
             if (role === 1 && currentAccount.accountFirebaseId) {
                 if (!currentAccount.accountFirebaseId.trim()) {
                     console.warn("Empty accountFirebaseId for student role");
@@ -738,7 +739,7 @@ export const Scheduler = ({
                                     selectedSlot.slotStudents
                                         .filter(
                                             (student: SlotStudentModel) =>
-                                                student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase()
+                                                student.studentFirebaseId.toLowerCase() === currentAccount.accountFirebaseId?.toLowerCase(),
                                         )
                                         .map((student, index) => (
                                             <div
@@ -753,31 +754,79 @@ export const Scheduler = ({
                                                     {student.gestureComment && (
                                                         <li className="flex items-center gap-2">
                                                             <MoveRight className="text-indigo-600 w-4 h-4" />
-                                                            <span><strong>Posture:</strong> {student.gestureComment}</span>
+                                                            <span>
+                                                                <strong>Posture:</strong> {student.gestureComment}
+                                                            </span>
                                                         </li>
                                                     )}
                                                     {student.fingerNoteComment && (
                                                         <li className="flex items-center gap-2">
                                                             <HandMetal className="text-indigo-600 w-4 h-4" />
-                                                            <span><strong>Fingering:</strong> {student.fingerNoteComment}</span>
+                                                            <span>
+                                                                <strong>Fingering:</strong> {student.fingerNoteComment}
+                                                            </span>
                                                         </li>
                                                     )}
                                                     {student.pedalComment && (
                                                         <li className="flex items-center gap-2">
                                                             <Footprints className="text-indigo-600 w-4 h-4" />
-                                                            <span><strong>Pedal:</strong> {student.pedalComment}</span>
+                                                            <span>
+                                                                <strong>Pedal:</strong> {student.pedalComment}
+                                                            </span>
                                                         </li>
                                                     )}
                                                     {(student.attendanceStatus === 1 || student.attendanceStatus === 2) && (
                                                         <li className="flex items-center gap-2">
                                                             <CheckCircle className="text-indigo-600 w-4 h-4" />
-                                                            <span><strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}</span>
+                                                            <span>
+                                                                <strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}
+                                                            </span>
+                                                        </li>
+                                                    )}
+                                                    {student.gestureUrl && (
+                                                        <li className="col-span-1 sm:col-span-2 mt-2">
+                                                            <div className="flex flex-col gap-2">
+                                                                <span className="font-semibold text-indigo-700 flex items-center gap-1">
+                                                                    <HandMetal className="text-indigo-600 w-4 h-4" />
+                                                                    Feedback Images:
+                                                                </span>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+                                                                    {(() => {
+                                                                        try {
+                                                                            const imageUrls = JSON.parse(student.gestureUrl)
+
+                                                                            return imageUrls.map((url: string, index: number) => (
+                                                                                <div
+                                                                                    key={index}
+                                                                                    className="border border-indigo-200 rounded-lg overflow-hidden"
+                                                                                >
+                                                                                    <Image
+                                                                                        src={url || "/images/img.png"}
+                                                                                        alt={`Posture feedback ${index + 1}`}
+                                                                                        className="w-full object-contain h-48"
+                                                                                    />
+                                                                                </div>
+                                                                            ))
+                                                                        } catch (error) {
+                                                                            console.error("Error parsing gesture URLs:", error)
+                                                                            return (
+                                                                                <div className="border border-indigo-200 rounded-lg overflow-hidden">
+                                                                                    <Image
+                                                                                        src={student.gestureUrl || "/images/img.png"}
+                                                                                        alt="Posture feedback"
+                                                                                        className="w-full object-contain h-48"
+                                                                                    />
+                                                                                </div>
+                                                                            )
+                                                                        }
+                                                                    })()}
+                                                                </div>
+                                                            </div>
                                                         </li>
                                                     )}
                                                 </ul>
                                             </div>
                                         ))}
-
 
                                 {/* --- Staff Controls --- */}
                                 {role === 4 && (
