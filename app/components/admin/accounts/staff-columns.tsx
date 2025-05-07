@@ -124,6 +124,30 @@ function ActionsDropdown({ table, accountId, status }: {
         })
     }
 
+    const { loadingDialog: loadingToggleDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setSearchParams([...searchParams])
+        }
+    })
+
+    const { open: handleOpenToggleDialog, dialog: confirmToggleDialog } = useConfirmationDialog({
+        title: 'Confirm Toggle Account Status',
+        description: 'Do you want to change this account status?',
+        onConfirm: () => {
+            handleToggle();
+        }
+    })
+    const handleToggle = () => {
+        fetcher.submit({
+            action: "TOGGLE",
+            firebaseUid: accountId,
+        }, {
+            action: "/endpoint/accounts",
+            method: "POST"
+        })
+    }
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -138,7 +162,7 @@ function ActionsDropdown({ table, accountId, status }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={handleOpenModal}>
                     <ArrowUpCircle /> Grant Admin Access
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer"  onClick={handleOpenToggleDialog}>
                     {
                         status === 0 ? (
                             <div className="text-red-600 flex gap-2">
@@ -155,5 +179,7 @@ function ActionsDropdown({ table, accountId, status }: {
         </DropdownMenu>
         {loadingEditDialog}
         {confirmDialog}
+        {loadingToggleDialog}
+        {confirmToggleDialog}
     </>
 }

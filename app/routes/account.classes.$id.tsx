@@ -1,12 +1,14 @@
 import { json, type LoaderFunction, redirect } from "@remix-run/node"
-import { Link, useLoaderData } from "@remix-run/react"
+import { Link, useLoaderData, useNavigate } from "@remix-run/react"
 import {
     ArrowLeftIcon,
     BellIcon,
     BookOpenIcon,
     CalendarIcon,
     CheckCircleIcon,
+    DoorOpen,
     MusicIcon,
+    ShuffleIcon,
     TrophyIcon,
     UserIcon,
 } from "lucide-react"
@@ -16,6 +18,7 @@ import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Progress } from "~/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs"
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import { fetchClassDetail, fetchStudentScoreDetails } from "~/lib/services/class"
 import { Role } from "~/lib/types/account/account"
 import type { ClassDetails } from "~/lib/types/class/class"
@@ -141,6 +144,31 @@ export default function StudentClassDetailPage() {
         .filter((slot) => slot.status === 0 || slot.status === 1)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0]
 
+
+    const navigate = useNavigate()
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm Leaving The Class',
+        description: 'Are you sure want to leave this class? You will be placed in a new class',
+        onConfirm: () => {
+            handleDelete();
+        }
+    })
+
+    const handleDelete = async () => {
+        await fetch("/endpoint/delete-student-class", {
+            method: "DELETE",
+            body: new URLSearchParams({
+                studentId : studentClass.studentFirebaseId,
+                classId: studentClass.classId
+            }),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        });
+        navigate(`/account/classes`)
+    }
+
     return (
         <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
             <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -161,12 +189,29 @@ export default function StudentClassDetailPage() {
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <Link to={`/account/schedule?classId=${classDetails.id}`}>
+                        <Link to={`/account/scheduler?classId=${classDetails.id}`}>
                             <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
                                 <CalendarIcon className="h-4 w-4" />
                                 Schedule
                             </Button>
                         </Link>
+                        {
+                            classDetails.status === 0 && (
+                                <>
+                                    <Link to={`/account/class/changing`}>
+                                        <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+                                            <ShuffleIcon className="h-4 w-4" />
+                                            Change Class
+                                        </Button>
+                                    </Link>
+                                    <Button variant="destructive" className="gap-2 border-slate-200 shadow-sm" onClick={handleOpenModal}>
+                                        <DoorOpen className="h-4 w-4" />
+                                        Leave Class
+                                    </Button>
+                                </>
+                            )
+                        }
+
                         {/* <Link to="/account/class/changing">
               <Button className="gap-2" variant="outline">
                 <RefreshCcw className="h-4 w-4" />
@@ -586,6 +631,7 @@ export default function StudentClassDetailPage() {
                     </TabsContent>
                 </Tabs>
             </div>
+            {confirmDialog}
         </main>
     )
 }

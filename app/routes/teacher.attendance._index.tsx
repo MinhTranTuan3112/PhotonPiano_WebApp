@@ -353,8 +353,8 @@ export default function TeacherAttendance_index() {
                                         <span className="font-medium">{getShiftTime(slot.shift)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Number of Students:</span>
-                                        <span className="font-medium">{slot.numberOfStudents} students</span>
+                                        <span className="text-gray-500">Number of Learner:</span>
+                                        <span className="font-medium">{slot.numberOfStudents} learner</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Slot No/Total:</span>
