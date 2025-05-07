@@ -324,7 +324,7 @@ export default function AdminSettingsPage({ }: Props) {
                                                     configs.find((c) => c.configName === ENTRANCE_SURVEY)?.configValue || undefined
                                                 }
                                                 instrumentFrequencyInResponse={Number.parseInt(
-                                                    configs.find((c) => c.configName === INSTRUMENT_FREQUENCY_IN_RESPONSE)?.configValue || "0",
+                                                    configs.find((c) => c.configName === INSTRUMENT_FREQUENCY_IN_RESPONSE)?.configValue || "1",
                                                 )}
                                             />
                                         </TabsContent>

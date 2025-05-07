@@ -18,7 +18,7 @@ type Props = {
 
 }
 
-export default function Combobox({ items, onChange, className, placeholder = 'Chọn', emptyText = 'Không tìm thấy.', value: controlledValue,
+export default function Combobox({ items, onChange, className, placeholder = 'Select', emptyText = 'Not found.', value: controlledValue,
 }: Props) {
 
     const [open, setOpen] = React.useState(false);

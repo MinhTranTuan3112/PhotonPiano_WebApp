@@ -344,7 +344,7 @@ export const MultiSelect = React.forwardRef<
                                                 onSelect={handleClear}
                                                 className="flex-1 justify-center cursor-pointer"
                                             >
-                                                Xóa hết
+                                                Clear all
                                             </CommandItem>
                                             <Separator
                                                 orientation="vertical"
@@ -356,7 +356,7 @@ export const MultiSelect = React.forwardRef<
                                         onSelect={() => setIsPopoverOpen(false)}
                                         className="flex-1 justify-center cursor-pointer max-w-full"
                                     >
-                                        Đóng
+                                        Close
                                     </CommandItem>
                                 </div>
                             </CommandGroup>

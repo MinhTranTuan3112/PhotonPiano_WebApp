@@ -4,7 +4,7 @@ import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Checkbox } from "~/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu"
-import { Transaction } from "~/lib/types/transaction/transaction"
+import { Transaction, TransactionType } from "~/lib/types/transaction/transaction"
 import { formatPrice } from "~/lib/utils/price"
 import { Banknote, CircleCheck } from 'lucide-react';
 import VnPayLogo from '../../../lib/assets/images/vnpay.webp'
@@ -59,7 +59,7 @@ export function PaymentStatusBadge({ status }: { status: number }) {
         case 3:
             badge = <Badge variant="outline" className="bg-red-400 flex flex-row gap-1 items-center">
                 <CircleX />
-                Cancel
+                Cancelled
             </Badge>;
             break;
 
@@ -151,14 +151,14 @@ export const columns: ColumnDef<Transaction>[] = [
         header: () => <div className="text-right">Amount</div>,
         cell: ({ row }) => {
             const amount = row.original.amount;
-            return <div className="text-right font-medium">{formatPrice(amount)} đ</div>
+            return <div className={`text-right font-bold ${amount <= 0 ? 'text-red-500' : 'text-green-500'}`}>{formatPrice(amount)} đ</div>
         }
     },
     {
         accessorKey: 'Created Date',
         header: () => <div className="">Created Date</div>,
         cell: ({ row }) => {
-            return <div className="">{formatRFC3339ToDisplayableDate(row.original.createdAt)}</div>
+            return <div className="">{formatRFC3339ToDisplayableDate(row.original.createdAt, false)}</div>
         }
     },
     {
