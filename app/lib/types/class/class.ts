@@ -1,4 +1,5 @@
 import { Account, Level, Role } from "../account/account";
+import { Room } from "../room/room";
 import { StudentClass } from "./student-class";
 
 export type Class = {
@@ -72,4 +73,5 @@ export type ClassSlot = {
   shift: number;
   date: string;
   status: number;
+  room : Room;
 };
