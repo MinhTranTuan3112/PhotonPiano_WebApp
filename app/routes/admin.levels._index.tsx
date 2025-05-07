@@ -1,15 +1,18 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node"
-import { Await, useAsyncValue, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
+import { Await, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
 import { Music } from "lucide-react";
 import { Suspense, useState } from "react";
 import { DraggableLevels } from "~/components/level/draggable-levels"
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
-import { fetchLevels } from "~/lib/services/level";
+import useLoadingDialog from "~/hooks/use-loading-dialog";
+import { fetchLevels, fetchUpdateLevelOrder } from "~/lib/services/level";
 import { Level, Role } from "~/lib/types/account/account"
+import { ActionResult } from "~/lib/types/action-result";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
+import { formEntryToString } from "~/lib/utils/form";
 
 type Props = {}
 
@@ -43,6 +46,54 @@ export async function loader({ request }: LoaderFunctionArgs) {
         const { message, status } = getErrorDetailsInfo(error);
 
         throw new Response(message, { status });
+    }
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+    try {
+        const { idToken } = await requireAuth(request)
+        if (request.method !== "POST") {
+            return {
+                success: false,
+                error: 'Method not allowed.',
+                status: 405
+            };
+        }
+        const formData = await request.formData();
+        const levelOrderJson = (formData.get("levelOrders"));
+
+
+
+        if (!levelOrderJson) {
+            return {
+                success: false,
+                error: 'Invalid data.',
+                status: 400
+            }
+        }
+        const levelOrders = JSON.parse(levelOrderJson.toString()) as {
+            id: string
+            nextLevelId?: string,
+        }[];
+        // console.log(levelOrders)
+
+        await fetchUpdateLevelOrder({ idToken, levelOrders });
+
+        return Response.json({
+            success: true
+        }, {
+            status: 200
+        })
+    }
+    catch (error) {
+        const errorDetails = getErrorDetailsInfo(error);
+        return Response.json({
+            success: false,
+            error: errorDetails.message,
+            status: errorDetails.status
+        }, {
+            status: 400
+        })
     }
 }
 
@@ -81,14 +132,39 @@ function LevelsContent() {
 
     const [levels, setLevels] = useState(initialLevels);
 
+    const fetcher = useFetcher<ActionResult>();
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Confirm action',
         description: 'Save levels order?',
         confirmText: 'Save',
         onConfirm: () => {
             console.log('Saving levels: ', levels);
+            compileLevel()
         },
     })
+
+    const { loadingDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setSearchParams([...searchParams])
+        }
+    })
+
+    const compileLevel = () => {
+        const levelOrders = levels.map((lvl, index) => ({
+            id: lvl.id,
+            nextLevelId: index < levels.length - 1 ? levels[index + 1].id : null
+        }));
+
+        fetcher.submit({
+            levelOrders: JSON.stringify(levelOrders),
+        }, {
+            method: 'POST'
+        })
+    }
 
     return <>
         <DraggableLevels levels={levels}
@@ -101,5 +177,6 @@ function LevelsContent() {
         </div>
 
         {confirmDialog}
+        {loadingDialog}
     </>
 }
