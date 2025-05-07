@@ -52,7 +52,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             return redirect('/');
         }
 
-        const promise = fetchRooms({ idToken, pageSize: 100 }).then((response) => {
+        const promise = fetchRooms({ idToken }).then((response) => {
             const rooms = response.data as Room[];
 
             const headers = response.headers;
