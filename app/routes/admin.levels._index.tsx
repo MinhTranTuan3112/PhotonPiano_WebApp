@@ -1,9 +1,9 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node"
-import { Await, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
-import { Music } from "lucide-react";
+import { Await, Link, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
+import { CirclePlus, Music } from "lucide-react";
 import { Suspense, useState } from "react";
 import { DraggableLevels } from "~/components/level/draggable-levels"
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import useLoadingDialog from "~/hooks/use-loading-dialog";
@@ -110,6 +110,14 @@ export default function LevelsManagementPage({ }: Props) {
                     <p className="text-sm text-sky-600">Each Level Presents A Node In The Learning Path</p>
                 </div>
             </div>
+
+
+            <div className="my-3 flex justify-end">
+                <Link to={'/admin/levels/create'} className={`${buttonVariants({ variant: 'theme' })} flex flex-row gap-1 items-center`}>
+                    <CirclePlus /> Create new level
+                </Link>
+            </div>
+
 
             <div className="my-3 md:max-w-[50%]">
                 <Suspense fallback={<Skeleton className="w-full h-full" />} key={'levels'}>
