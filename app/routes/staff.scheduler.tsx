@@ -13,6 +13,7 @@ import { requireAuth } from "~/lib/utils/auth"
 import { fetchCurrentAccountInfo } from "~/lib/services/auth"
 import { Scheduler } from "~/components/scheduler/scheduler"
 import { redirect, useLoaderData } from "@remix-run/react"
+import { StaffSchedule } from "~/components/scheduler/staff-schedule"
 
 type Props = {}
 
@@ -33,7 +34,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const year = Number.parseInt(searchParams.get("year") || currentYear.toString())
     const weekNumber = Number.parseInt(searchParams.get("week") || currentWeekNumber.toString())
     const classId = searchParams.get("classId")
-    const className =searchParams.get("className")
+    const className = searchParams.get("className")
     const { startDate, endDate } = getWeekRange(year, weekNumber)
 
     const startTime = formatDateForAPI(startDate)
@@ -53,11 +54,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount, classId, className }
 }
 
-export default function StaffScheduler({} : Props) {
+export default function StaffScheduler({ }: Props) {
     const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount, classId, className } = useLoaderData<typeof loader>()
 
     return (
-        <Scheduler 
+        // <Scheduler 
+        //     currentAccount={currentAccount}
+        //     idToken={idToken}
+        //     initialEndDate={endDate}
+        //     initialStartDate={startDate}
+        //     initialSlots={slots}
+        //     initialYear={year}
+        //     initialWeekNumber={weekNumber}
+        //     classId={classId || undefined}
+        //     className={className || undefined}
+        //     role={role}/>
+        <StaffSchedule
             currentAccount={currentAccount}
             idToken={idToken}
             initialEndDate={endDate}
@@ -67,6 +79,7 @@ export default function StaffScheduler({} : Props) {
             initialWeekNumber={weekNumber}
             classId={classId || undefined}
             className={className || undefined}
-            role={role}/>
+            role={role}
+        />
     )
 }
