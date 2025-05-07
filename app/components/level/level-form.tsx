@@ -23,7 +23,7 @@ type Props = {
     fetcher: FetcherWithComponents<any>;
     isSubmitting: boolean;
     idToken: string
-} & LevelDetails;
+} & Partial<LevelDetails>;
 
 export const levelSchema = z.object({
     id: z.string().optional(),
@@ -33,7 +33,10 @@ export const levelSchema = z.object({
     slotPerWeek: z.coerce.number().min(1, { message: 'Total slots per week must > 0' }),
     totalSlots: z.coerce.number().min(1, { message: 'Total slots must > 0' }),
     pricePerSlot: z.coerce.number().min(1, { message: 'Price per slot must > 0' }),
+    minimumTheoreticalScore: z.coerce.number().min(0, { message: 'Minimum theoretical score must >= 0' }),
+    minimumPracticalScore: z.coerce.number().min(0, { message: 'Minimum practical score must >= 0' }),
     themeColor: z.string().optional(),
+    nextLevelId: z.string().optional(),
     isGenreDivided: z.boolean().optional(),
 });
 
@@ -53,7 +56,8 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
         fetcher,
         resolver: zodResolver(levelSchema),
         defaultValues: {
-            ...defaultData
+            ...defaultData,
+            id
         },
     });
 
@@ -61,8 +65,8 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Confirm action',
-        description: 'Save the level data?',
-        confirmText: 'Save',
+        description: `Are you sure want to ${isEditing ? 'update' : 'create'} this level?` ,
+        confirmText: isEditing ? 'Save' : 'Create',
         onConfirm: handleSubmit
     });
 
@@ -87,7 +91,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                 {errors.description && <p className='text-red-500 text-sm'>{errors.description.message}</p>}
 
                 <div className="font-bold text-base">Earned skills</div>
-                {skillsEarned.length > 0 && skillsEarned.map((skill, index) => (
+                {skillsEarned?.length > 0 && skillsEarned.map((skill, index) => (
                     <div key={index} className="flex flex-row gap-3 items-center">
                         <Label className='font-bold'>{index + 1}. </Label>
                         <Input placeholder='Enter skills earned...'
@@ -113,7 +117,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                     </Button>
                 </div>
 
-                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
                     <Label className='font-bold w-64' htmlFor='slotPerWeek'>Slots per week</Label>
                     <Input {...register('slotPerWeek')} id='slotPerWeek'
                         type='number'
@@ -121,7 +125,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                 </div>
                 {errors.slotPerWeek && <p className='text-red-500 text-sm'>{errors.slotPerWeek.message}</p>}
 
-                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
                     <Label className='font-bold w-64' htmlFor='totalSlots'>Total slots</Label>
                     <Input {...register('totalSlots')} id='totalSlots'
                         type='number'
@@ -129,7 +133,24 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                 </div>
                 {errors.totalSlots && <p className='text-red-500 text-sm'>{errors.totalSlots.message}</p>}
 
-                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] xl:max-w-[20%]">
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
+                    <Label className='font-bold w-64' htmlFor='minimumTheoreticalScore'>Minimum theoretical score</Label>
+                    <Input {...register('minimumTheoreticalScore')} id='minimumTheoreticalScore'
+                        type='number'
+                        placeholder='Enter minimum theoretical score...' />
+                </div>
+
+                {errors.minimumTheoreticalScore && <p className='text-red-500 text-sm'>{errors.minimumTheoreticalScore.message}</p>}
+
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
+                    <Label className='font-bold w-64' htmlFor='minimumPracticalScore'>Minimum practical score</Label>
+                    <Input {...register('minimumPracticalScore')} id='minimumPracticalScore'
+                        type='number'
+                        placeholder='Enter minimum practical score...' />
+                </div>
+                {errors.minimumPracticalScore && <p className='text-red-500 text-sm'>{errors.minimumPracticalScore.message}</p>}
+
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
                     <Label className='font-bold w-64' htmlFor='pricePerSlot'>Slot price</Label>
                     <Input {...register('pricePerSlot')} id='pricePerSlot'
                         type='number'
@@ -158,17 +179,64 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
 
                 </div>
 
+                <div className="flex flex-row gap-2 items-center">
+                    <Label>Next level:</Label>
+                    <Controller
+                        control={control}
+                        name='nextLevelId'
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <GenericCombobox<Level>
+                                className='mt-2 w-64'
+                                idToken={idToken}
+                                queryKey='rooms'
+                                fetcher={async (query) => {
+                                    const response = await fetchLevels();
+
+                                    const headers = response.headers;
+
+                                    const metadata: PaginationMetaData = {
+                                        page: parseInt(headers['x-page'] || '1'),
+                                        pageSize: parseInt(headers['x-page-size'] || '10'),
+                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                        totalCount: parseInt(headers['x-total-count'] || '0'),
+                                    };
+
+                                    let data = response.data as Level[]
+                                    
+                                    data = data.filter(l => l.id !== watch('id'))
+
+                                    return {
+                                        data: data,
+                                        metadata
+                                    };
+                                }}
+                                mapItem={(item) => ({
+                                    label: item?.name,
+                                    value: item?.id
+                                })}
+                                placeholder='Pick a level'
+                                emptyText='There is no level available'
+                                errorText='Error loading level list.'
+                                value={value}
+                                onChange={onChange}
+                                maxItemsDisplay={10}
+                            />
+                        )}
+                    />
+
+                </div>
+
                 <div className="flex gap-4">
-                    <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog} variant={'theme'}>
+                    <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog} variant={'theme'} className='w-full max-w-[50%]'>
                         {isEditing ? 'Save' : 'Create'}
                     </Button>
-                    <Button type='button' onClick={() => setIsOpenDeleteDialog(true)} variant={'destructive'}>
+                    {isEditing && <Button type='button' onClick={() => setIsOpenDeleteDialog(true)} variant={'destructive'}>
                         Delete
-                    </Button>
+                    </Button>}
                 </div>
 
             </Form>
-            <DeleteDialog id={id} isOpenDialog={isOpenDeleteDialog} setIsOpen={setIsOpenDeleteDialog} idToken={idToken} />
+            {id && <DeleteDialog id={id} isOpenDialog={isOpenDeleteDialog} setIsOpen={setIsOpenDeleteDialog} idToken={idToken} />}
             {confirmDialog}
         </>
     )
@@ -186,8 +254,8 @@ function DeleteDialog({ id, isOpenDialog, setIsOpen, idToken }:
         await fetch(`/endpoint/levels`, {
             method: "DELETE",
             body: new URLSearchParams({
-                fallBackLevelId : selectedLevel ?? "",
-                id : id
+                fallBackLevelId: selectedLevel ?? "",
+                id: id
             }),
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"

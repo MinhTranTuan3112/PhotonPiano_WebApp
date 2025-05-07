@@ -9,14 +9,12 @@ import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
 import { Card, CardContent } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
-import { Separator } from '~/components/ui/separator';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import { fetchALevel, fetchDeleteLevel, fetchUpdateLevel } from '~/lib/services/level';
+import { fetchALevel, fetchUpdateLevel } from '~/lib/services/level';
 import { LevelDetails, Role } from '~/lib/types/account/account';
 import { requireAuth } from '~/lib/utils/auth';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
-import { formEntryToString } from '~/lib/utils/form';
 import { toastWarning } from '~/lib/utils/toast-utils';
 
 type Props = {}
@@ -144,6 +142,9 @@ function LoadingSkeleton() {
 function LevelDetailsContent({ idToken }: { idToken: string }) {
 
     const level = useAsyncValue() as LevelDetails;
+
+    console.log({ level });
+
 
     const fetcher = useFetcher<typeof action>();
 
