@@ -56,7 +56,7 @@ export default function CertificateDetailPage() {
                 <Link to="/account/certificates">
                     <Button variant="ghost" className="mb-4">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Quay lại
+                        Back
                     </Button>
                 </Link>
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">{error}</div>
@@ -70,11 +70,11 @@ export default function CertificateDetailPage() {
                 <Link to="/account/certificates">
                     <Button variant="ghost" className="mb-4">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Quay lại
+                        Back
                     </Button>
                 </Link>
                 <div className="text-center py-12">
-                    <h3 className="text-lg font-medium">Không tìm thấy chứng chỉ</h3>
+                    <h3 className="text-lg font-medium">No Certificate Found</h3>
                 </div>
             </div>
         )
@@ -85,12 +85,12 @@ export default function CertificateDetailPage() {
             <Link to="/account/certificates">
                 <Button variant="ghost" className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Quay lại
+                    Back
                 </Button>
             </Link>
 
             <div className="max-w-3xl mx-auto">
-                <h1 className="text-2xl font-bold tracking-tight mb-6">Chi tiết chứng chỉ</h1>
+                <h1 className="text-2xl font-bold tracking-tight mb-6">Certificate Details</h1>
 
                 <Card className="overflow-hidden">
                     <CardHeader className="pb-2">
@@ -113,21 +113,21 @@ export default function CertificateDetailPage() {
                                 <div className="flex items-center">
                                     <User className="mr-3 h-5 w-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Học viên</p>
+                                        <p className="text-sm text-muted-foreground">Learner</p>
                                         <p className="font-medium">{certificate.studentName || "N/A"}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center">
                                     <GraduationCap className="mr-3 h-5 w-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Giảng viên</p>
+                                        <p className="text-sm text-muted-foreground">Teacher</p>
                                         <p className="font-medium">{certificate.instructorName || "N/A"}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center">
                                     <Calendar className="mr-3 h-5 w-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">Ngày hoàn thành</p>
+                                        <p className="text-sm text-muted-foreground">Completion Date</p>
                                         <p className="font-medium">{formatDate(certificate.completionDate)}</p>
                                     </div>
                                 </div>
@@ -145,7 +145,7 @@ export default function CertificateDetailPage() {
                             <div>
                                 <h3 className="text-lg font-medium mb-2 flex items-center">
                                     <Book className="mr-2 h-5 w-5" />
-                                    Kỹ năng đạt được
+                                    Learned Skills
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
                                     {certificate.skillsEarned.map((skill: any, index: any) => (
@@ -167,8 +167,8 @@ export default function CertificateDetailPage() {
                             ) : (
                                 <div className="text-center p-8">
                                     <Award className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                                    <h3 className="text-xl font-semibold mb-2">Xem trước chứng chỉ</h3>
-                                    <p className="text-muted-foreground">Nhấn nút bên dưới để xem và tải xuống chứng chỉ của bạn</p>
+                                    <h3 className="text-xl font-semibold mb-2">Certificate Preview</h3>
+                                    <p className="text-muted-foreground">Press the button below to view and download your certificate</p>
                                 </div>
                             )}
                         </div>
@@ -177,7 +177,7 @@ export default function CertificateDetailPage() {
                     <CardFooter className="flex flex-col gap-2">
                         <Button className="w-full" onClick={() => window.open(certificate.certificateUrl, "_blank")}>
                             <Download className="mr-2 h-4 w-4" />
-                            Xem và tải xuống chứng chỉ
+                            View and download certificate
                         </Button>
                     </CardFooter>
                 </Card>

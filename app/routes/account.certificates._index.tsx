@@ -332,7 +332,7 @@ export default function CertificateListPage() {
                                                             disabled={!certificate.certificateUrl}
                                                         >
                                                             <FileText className="mr-2 h-4 w-4" />
-                                                            View HTML Certificate
+                                                            View Certificate
                                                         </Button>
                                                         <Button
                                                             className="w-full"
