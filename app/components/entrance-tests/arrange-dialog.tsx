@@ -146,7 +146,7 @@ function AutoArrangementForm({
             render={({ field: { onChange, onBlur, value, ref } }) => (
                 <MultiSelect
                     options={SHIFT_TIME.map((shift, index) => {
-                        return { label: `Ca ${index + 1}: ${shift}`, value: index.toString() }
+                        return { label: `Shift ${index + 1}: ${shift}`, value: index.toString() }
                     })}
                     value={value}
                     onValueChange={onChange}

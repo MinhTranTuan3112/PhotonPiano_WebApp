@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { QUESTION_TYPES } from "~/lib/utils/constants";
 
 
 type Props = {
@@ -114,7 +115,7 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
                                     <AccordionItem key={question.questionId} value={question.questionId}>
                                         <AccordionTrigger className="hover:no-underline">
                                             <div className="flex items-center gap-3 text-left">
-                                                <Badge variant="outline" className="h-6 w-6 rounded-full p-0 text-center">
+                                                <Badge variant="outline" className="h-6 w-6 rounded-full text-center">
                                                     {index + 1}
                                                 </Badge>
                                                 <span className="font-medium">{question.question.questionContent}</span>
@@ -123,14 +124,13 @@ export default function SurveyDetailsContent({ surveyDetails }: Props) {
                                                         Required
                                                     </Badge>
                                                 )}
+                                                <div className="">
+                                                    <Badge variant={'outline'}>{QUESTION_TYPES[question.question.type]}</Badge>
+                                                </div>
                                             </div>
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <div className="pl-9 pt-2">
-                                                <div className="mb-2 text-sm font-medium">
-                                                    Question Type: <span className="font-normal">{question.question.type}</span>
-                                                </div>
-
                                                 {question.question.options && question.question.options.length > 0 && (
                                                     <div className="space-y-2">
                                                         <div className="text-sm font-medium">Options:</div>
