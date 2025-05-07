@@ -50,14 +50,14 @@ const ActionDialog = ({ account }: Props) => {
                             transition={{ duration: 0.2, ease: "easeOut" }}
                             className="absolute left-full ml-4 px-4 py-3 text-white text-lg font-semibold rounded-xl shadow-lg w-96 bg-gradient-to-r from-blue-500 to-blue-700"
                         >
-                            Hãy hoàn tất thiết lập hồ sơ học tập của bạn!
+                            Please complete your learning profile setup!
                             <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-700 transform rotate-45"></div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 <button onClick={() => setIsOpen(true)}>
-                    <img src="/images/grand_piano_1.png" className="w-28 h-28  animate-bounce" />
+                    <img src="/images/grand_piano_1.png" className="w-28 h-28 animate-bounce" />
                 </button>
             </div>
 
@@ -75,17 +75,17 @@ const ActionDialog = ({ account }: Props) => {
                             exit={{ opacity: 0, scale: 0.8 }}
                             className="relative"
                         >
-                            <p className="text-xl font-bold text-center">🎶 Hãy hoàn chỉnh hồ sơ nào! 🎵</p>
+                            <p className="text-xl font-bold text-center">🎶 Let's complete your profile! 🎵</p>
                             <p className="italic text-sm text-center">
-                                Hãy hoàn tất các thiết lập dưới đây để bạn có thể bắt đầu một cách thuận lợi nhất nhé!
+                                Please complete the following setup steps so you can get started smoothly!
                             </p>
 
                             {/* Step Animations */}
                             <div className="my-2 flex flex-col gap-8">
                                 {[
-                                    { step: 1, text: "Hoàn chỉnh hồ sơ cá nhân.", link: "/account/profile" },
-                                    { step: 2, text: "Cho chúng tôi biết bạn có thể học vào những giờ nào.", link: "/account/free-slots" },
-                                    { step: 3, text: "Theo dõi ngày thi đầu vào của bạn.", link: "/account/my-exams" }
+                                    { step: 1, text: "Complete your personal profile.", link: "/account/profile" },
+                                    { step: 2, text: "Tell us your available study times.", link: "/account/free-slots" },
+                                    { step: 3, text: "Track your entrance exam date.", link: "/account/my-exams" }
                                 ].map((item, index) => (
                                     <motion.div
                                         key={item.step}
@@ -95,7 +95,7 @@ const ActionDialog = ({ account }: Props) => {
                                         transition={{ delay: 0.2 * (index + 1), duration: 0.4, ease: "easeOut" }}
                                     >
                                         {
-                                            (index !== 3 || (index == 3 && account.studentStatus === 1)) && (
+                                            (index !== 3 || (index === 3 && account.studentStatus === 1)) && (
                                                 <>
                                                     <div className="mb-1 flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm bg-black text-white">
                                                         {item.step}
@@ -109,7 +109,6 @@ const ActionDialog = ({ account }: Props) => {
                                                 </>
                                             )
                                         }
-
                                     </motion.div>
                                 ))}
                             </div>
@@ -120,13 +119,14 @@ const ActionDialog = ({ account }: Props) => {
                                 whileTap={{ scale: 0.9 }}
                                 className="mt-4 text-center"
                             >
-                                <Button onClick={() => setIsOpen(false)}>Đóng 🎵</Button>
+                                <Button onClick={() => setIsOpen(false)}>Close 🎵</Button>
                             </motion.div>
                         </motion.div>
                     </DialogContent>
                 </Dialog>
             )}
         </div>
+
     );
 };
 
