@@ -1,5 +1,6 @@
 import { ActionFunctionArgs } from "@remix-run/node";
 import { fetchDeleteStudentClass } from "~/lib/services/class";
+import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToString } from "~/lib/utils/form";
 
@@ -13,12 +14,13 @@ export async function action({ request }: ActionFunctionArgs) {
             };
         }
 
+        const { idToken } = await requireAuth(request)
+
         const formData = await request.formData();
         const studentId = formEntryToString(formData.get("studentId"));
         const classId = formEntryToString(formData.get("classId"));
-        const token = formEntryToString(formData.get("idToken"))
 
-        if (!token) {
+        if (!idToken) {
             return {
                 success: false,
                 error: 'Unauthorized.',
@@ -37,7 +39,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const response = await fetchDeleteStudentClass({
             classId: classId,
             studentId: studentId,
-            idToken: token
+            idToken: idToken
         });
 
         return {

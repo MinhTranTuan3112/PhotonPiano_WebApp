@@ -5,6 +5,16 @@ export type Room = {
     status : number // 0 = inactive, 1 = active
 };
 
+export enum RoomStatus
+{
+    Opened,
+    Closed
+}
+
+export type CreateRoomRequest = Pick<Room, 'name' | 'capacity'>;
+
+export type UpdateRoomRequest = Partial<Room>;
+
 export const sampleRooms : Room[] = [
     {
         id: "1",

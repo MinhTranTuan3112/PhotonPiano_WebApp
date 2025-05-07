@@ -151,7 +151,7 @@ export const columns: ColumnDef<Transaction>[] = [
         header: () => <div className="text-right">Amount</div>,
         cell: ({ row }) => {
             const amount = row.original.amount;
-            return <div className={`text-right font-bold ${amount <= 0 ? 'text-red-500' : 'text-green-500'}`}>{formatPrice(amount)} đ</div>
+            return <div className={`text-right font-bold ${amount <= 0 ? 'text-red-500' : 'text-green-500'}`}>{amount >= 0 ? `+${formatPrice(amount)}` : formatPrice(amount)} đ</div>
         }
     },
     {

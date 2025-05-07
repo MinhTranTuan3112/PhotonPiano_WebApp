@@ -1,5 +1,6 @@
 import { ActionFunctionArgs } from "@remix-run/node"
 import { fetchCreateStaff, fetchCreateTeacher, fetchRoleAdmin } from "~/lib/services/account";
+import { fetchToggleAccountStatus } from "~/lib/services/auth";
 import { publishStudentClassScore } from "~/lib/services/class"
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error"
@@ -66,6 +67,24 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchRoleAdmin({ idToken, accountFirebaseId, role })
+            // Return success response
+            return {
+                success: true
+            }
+        } else if (action === "TOGGLE") {
+            const { idToken } = await requireAuth(request)
+
+            const id = formEntryToString(formData.get("firebaseUid"))
+
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Invalid data.',
+                    status: 400
+                }
+            }
+
+            await fetchToggleAccountStatus({ idToken, firebaseUid : id })
             // Return success response
             return {
                 success: true
