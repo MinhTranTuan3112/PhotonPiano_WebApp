@@ -189,27 +189,29 @@ export function ScoreDetailsDialog({
                 <DialogContent className="w-[95vw] max-w-[1800px] max-h-[95vh] overflow-y-auto">
                     <DialogHeader className="flex flex-row items-center justify-between">
                         <DialogTitle className="text-xl">Class Score Details - {classData.className}</DialogTitle>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant={editMode ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setEditMode(!editMode)}
-                                disabled={isSaving || (classData && classData.isScorePublished)}
-                            >
-                                {editMode ? (
-                                    <>
-                                        <Check className="h-4 w-4 mr-2" />
-                                        Exit Edit Mode
-                                    </>
-                                ) : (
-                                    <>
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Edit Scores
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                        {classData && classData.isScorePublished && !editMode && (
+                        {!(classData && (classData.isScorePublished)) && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant={editMode ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setEditMode(!editMode)}
+                                    disabled={isSaving}
+                                >
+                                    {editMode ? (
+                                        <>
+                                            <Check className="h-4 w-4 mr-2" />
+                                            Exit Edit Mode
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Edit className="h-4 w-4 mr-2" />
+                                            Edit Scores
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        )}
+                        {classData && (classData.isScorePublished) && (
                             <div className="text-xs text-muted-foreground mt-2">
                                 Scores cannot be edited after they have been published.
                             </div>
