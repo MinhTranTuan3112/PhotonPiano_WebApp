@@ -2,7 +2,8 @@ import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
-    Calendar
+    Calendar,
+    CheckCircle
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -12,9 +13,12 @@ import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
 import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/arrange-dialog";
 import { toast } from "sonner";
-import { useRouteLoaderData } from "@remix-run/react";
+import { useFetcher, useRouteLoaderData, useSearchParams } from "@remix-run/react";
 import { loader } from "~/root";
 import { toastWarning } from "~/lib/utils/toast-utils";
+import useLoadingDialog from "~/hooks/use-loading-dialog";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { ActionResult } from "~/lib/types/action-result";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -149,6 +153,33 @@ function ActionsDropdown({ table, row }: {
         idToken: authData?.idToken || ''
     });
 
+    const fetcher = useFetcher<ActionResult>();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const { loadingDialog: loadingToggleDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setSearchParams([...searchParams])
+        }
+    })
+
+    const { open: handleOpenToggleDialog, dialog: confirmToggleDialog } = useConfirmationDialog({
+        title: 'Confirm Toggle Account Status',
+        description: 'Do you want to change this account status?',
+        onConfirm: () => {
+            handleToggle();
+        }
+    })
+    const handleToggle = () => {
+        fetcher.submit({
+            action: "TOGGLE",
+            firebaseUid: row.original.accountFirebaseId,
+        }, {
+            action: "/endpoint/accounts",
+            method: "POST"
+        })
+    }
+
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -184,13 +215,25 @@ function ActionsDropdown({ table, row }: {
                     }}>
                     <Calendar /> Arrange entrance tests
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <BanIcon /> Disable
+                <DropdownMenuItem className="text-red-600 cursor-pointer"  onClick={handleOpenToggleDialog}>
+                    {
+                        row.original.status === 0 ? (
+                            <div className="text-red-600 flex gap-2">
+                                <BanIcon /> Disable
+                            </div>
+                        ) : (
+                            <div className="text-green-600  flex gap-2">
+                                <CheckCircle /> Enable
+                            </div>
+                        )
+                    }
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
         <ArrangeDialog {...arrangeDialogProps} setIsOpen={(openState) => {
             setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
         }} />
+        {loadingToggleDialog}
+        {confirmToggleDialog}
     </>
 }

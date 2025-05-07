@@ -30,7 +30,7 @@ export function useConfirmationDialog({ title = 'Confirm', description, onConfir
     cancelButtonClassname,
     confirmButtonClassname,
 }: Props) {
-
+    console.log(title)
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     const open = useCallback(() => setIsOpen(true), []);

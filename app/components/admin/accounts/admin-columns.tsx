@@ -115,12 +115,36 @@ function ActionsDropdown({ table, accountId, status }: {
 
     const handleUngrant = () => {
         fetcher.submit({
-            action : "GRANT",
-            accountFirebaseId : accountId,
-            role : Role.Staff
+            action: "GRANT",
+            accountFirebaseId: accountId,
+            role: Role.Staff
         }, {
-            action : "/endpoint/accounts",
-            method : "POST"
+            action: "/endpoint/accounts",
+            method: "POST"
+        })
+    }
+
+    const { loadingDialog: loadingToggleDialog } = useLoadingDialog({
+        fetcher,
+        action: () => {
+            setSearchParams([...searchParams])
+        }
+    })
+
+    const { open: handleOpenToggleDialog, dialog: confirmToggleDialog } = useConfirmationDialog({
+        title: 'Confirm Toggle Account Status',
+        description: 'Do you want to change this account status?',
+        onConfirm: () => {
+            handleToggle();
+        }
+    })
+    const handleToggle = () => {
+        fetcher.submit({
+            action: "TOGGLE",
+            firebaseUid: accountId,
+        }, {
+            action: "/endpoint/accounts",
+            method: "POST"
         })
     }
 
@@ -138,7 +162,7 @@ function ActionsDropdown({ table, accountId, status }: {
                 <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleOpenModal}>
                     <X /> Ungrant Admin Role
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer"  onClick={handleOpenToggleDialog}>
                     {
                         status === 0 ? (
                             <div className="text-red-600 flex gap-2">
@@ -155,5 +179,7 @@ function ActionsDropdown({ table, accountId, status }: {
         </DropdownMenu >
         {loadingEditDialog}
         {confirmDialog}
+        {loadingToggleDialog}
+        {confirmToggleDialog}
     </>
 }

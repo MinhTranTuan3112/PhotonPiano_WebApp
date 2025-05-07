@@ -630,7 +630,7 @@ export default function TuitionPage() {
                 <div className="flex justify-between items-center mb-4">
                     <Button
                         onClick={() => setIsFilterModalOpen(true)}
-                        className="bg-black text-white hover:bg-gray-800 transition-colors"
+                        variant={'theme'}
                     >
                         <Filter className="mr-2 h-4 w-4" /> Filter
                     </Button>
@@ -686,7 +686,7 @@ export default function TuitionPage() {
                                     <Button
                                         onClick={() => handlePayNowClick(tuition)}
                                         disabled={role === 4}
-                                        className={`${role === 4 ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"} text-white transition-colors`}
+                                       variant="theme"
                                     >
                                         Pay Now
                                     </Button>
@@ -727,30 +727,32 @@ export default function TuitionPage() {
                             Time: {formatDate(selectedFee?.startDate)} to {formatDate(selectedFee?.endDate)}
                         </p>
                         <p className="mb-4 text-sm font-medium">Class: {selectedFee?.studentClass.className}</p>
-                        <p className="mb-4 text-sm font-medium">Fee: {selectedFee?.fee}</p>
+                        <p className="mb-4 text-sm font-medium">Fee: {selectedFee?.fee.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</p>
                         <Button
                             type="button"
                             onClick={handlePrintInvoice}
-                            className="w-full bg-gray-200 text-black hover:bg-gray-300 transition-colors py-2 px-4 rounded mt-2"
+                            className="w-full bg-green-100 text-green-800 hover:bg-green-200  transition-colors py-2 px-4 rounded mt-2"
                         >
                             Print Invoice
                         </Button>
 
+
                         <Button
                             type="button"
-                            className="w-full bg-black text-white hover:bg-gray-800 transition-colors py-2 px-4 rounded"
+                            className="w-full bg-blue-700 text-white hover:bg-blue-800 transition-colors py-2 px-4 rounded"
                             onClick={handleOpenConfirmDialog}
                             isLoading={isSubmitting}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Processing" : "Confirm Payment"}
                         </Button>
+
                     </Form>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
-                <DialogContent className="bg-white text-black">
+                <DialogContent className="bg-white text-black p-6 rounded-xl shadow-lg">
                     <DialogHeader>
                         <DialogTitle className="text-2xl flex flex-row gap-1 items-center">
                             <Filter /> Filter

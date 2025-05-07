@@ -1,22 +1,23 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { Checkbox } from "~/components/ui/checkbox";
-import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Calendar } from 'lucide-react'
-import { ENTRANCE_TEST_STATUSES, ROOM_STATUS, SHIFT_TIME } from "~/lib/utils/constants";
+import { MoreHorizontal, Trash2, Pencil } from 'lucide-react'
+import { ROOM_STATUS } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
-import { toast } from "sonner";
-import { useNavigate } from "@remix-run/react";
-import { DayOff } from "~/lib/types/day-off/day-off";
 import { Room } from "~/lib/types/room/room";
+import { useRoomDialog } from "../room/room-dialog";
+import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
+import { useFetcher } from "@remix-run/react";
+import { action } from "~/routes/delete-room";
+import { useEffect } from "react";
+import { toastWarning } from "~/lib/utils/toast-utils";
+import { toast } from "sonner";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
         case 0: return "text-green-500 font-semibold";
         case 1: return "text-gray-400 font-semibold";
-        default: return "text-black font-semibold"; 
+        default: return "text-black font-semibold";
     }
 };
 
@@ -75,7 +76,7 @@ export const roomColumns: ColumnDef<Room>[] = [
         accessorKey: 'Status',
         header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
-            return <div><StatusBadge status={row.original.status}/></div>
+            return <div><StatusBadge status={row.original.status} /></div>
         }
     },
     {
@@ -90,17 +91,51 @@ export const roomColumns: ColumnDef<Room>[] = [
 
 function ActionsDropdown({ row }: { row: Row<Room> }) {
 
-    // const { dialog: confirmDialog, open: handleOpenDialog } = useConfirmationDialog({
-    //     title: 'Xác nhận xóa đợt thi?',
-    //     description: 'Dữ liệu đợt thi sau khi xóa sẽ không thể hồi phục lại.',
-    //     onConfirm: () => {
-    //         // handle delete
-    //         toast.success('Xóa thành công!');
-    //     },
-    //     confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
-    // });
+    const fetcher = useFetcher<typeof action>();
 
-    const navigate = useNavigate();
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { dialog: confirmDialog, open: handleOpenDialog } = useConfirmationDialog({
+        title: 'Confirm action',
+        description: 'Delete this room',
+        onConfirm: () => {
+            fetcher.submit({
+                id: row.original.id,
+            }, {
+                method: 'POST',
+                action: '/delete-room'
+            })
+        },
+        confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
+        confirmText: 'Delete',
+    });
+
+    const { open: handleOpenRoomDialog, roomDialog } = useRoomDialog({
+        isEdit: true,
+        ...row.original,
+    });
+
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success('Delete room successfully!');
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            if (fetcher.data.error) {
+                toastWarning(fetcher.data.error, {
+                    duration: 5000
+                });
+            }
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [fetcher.data]);
 
     return <>
         <DropdownMenu>
@@ -113,12 +148,14 @@ function ActionsDropdown({ row }: { row: Row<Room> }) {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer"><Pencil /> Sửa</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer">
-                    <Trash2 /> Xóa
+                <DropdownMenuItem className="cursor-pointer" onClick={handleOpenRoomDialog}><Pencil /> Edit</DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
+                    disabled={isSubmitting}>
+                    <Trash2 /> Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
-        {/* {confirmDialog} */}
+        {confirmDialog}
+        {roomDialog}
     </>
 }
