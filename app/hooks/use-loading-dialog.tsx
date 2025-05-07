@@ -10,7 +10,7 @@ type Props = {
     loadingMessage?: string,
     successMessage?: string
     fetcher: FetcherWithComponents<ActionResult>,
-    preventEscape? : boolean,
+    preventEscape?: boolean,
     action?: () => void
 }
 
@@ -18,7 +18,6 @@ export default function useLoadingDialog({ loadingMessage = "Please Wait...", fe
     const [result, setResult] = useState<boolean | null>(null)
     const [message, setMessage] = useState("")
     const [isOpen, setIsOpen] = useState(false);
-
 
     useEffect(() => {
         if (fetcher.state === "submitting") {
@@ -29,7 +28,6 @@ export default function useLoadingDialog({ loadingMessage = "Please Wait...", fe
     }, [fetcher.state, fetcher.data])
 
     useEffect(() => {
-
         if (fetcher.data?.success === true) {
             setResult(true)
             setMessage(successMessage)
@@ -42,9 +40,7 @@ export default function useLoadingDialog({ loadingMessage = "Please Wait...", fe
             return;
         }
 
-        return () => {
-
-        }
+        return () => { }
     }, [fetcher.data]);
 
     const onOpenChange = (open: boolean) => {
@@ -80,7 +76,6 @@ export default function useLoadingDialog({ loadingMessage = "Please Wait...", fe
                 )}
             </DialogContent>
         </Dialog>
-
 
     return (
         { loadingDialog }
