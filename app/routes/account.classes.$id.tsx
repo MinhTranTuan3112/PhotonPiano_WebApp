@@ -231,8 +231,8 @@ export default function StudentClassDetailPage() {
                             <div className="flex-grow">
                                 <h3 className="font-medium text-lg text-slate-800">Next Class</h3>
                                 <p className="text-slate-600">
-                                    {formatDate(nextClass.date)} - {getShiftName(nextClass.shift)} - Room{" "}
-                                    {nextClass.roomId.replace("room-", "")}
+                                    {formatDate(nextClass.date)} - {getShiftName(nextClass.shift)} - {" "}
+                                    {nextClass.room?.name || ""}
                                 </p>
                             </div>
                             <Link to={`/account/scheduler?classId=${classDetails.id}`}>
