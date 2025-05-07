@@ -18,7 +18,7 @@ import { PaymentStatusBadge } from "~/components/transactions/transaction-table/
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 import { Role } from "~/lib/types/account/account"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
-import { toast } from "sonner"
+
 import { toastWarning } from "~/lib/utils/toast-utils"
 
 export function formatDate(dateString: string | undefined) {
@@ -36,7 +36,7 @@ export function formatDate(dateString: string | undefined) {
 function calculateTotalDebt(tuition: Tuition[]): number {
     return tuition
         .filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
-        .reduce((sum, fee) => sum + fee.amount, 0);
+        .reduce((sum, fee) => sum + fee.amount + fee.fee, 0);
 }
 
 
