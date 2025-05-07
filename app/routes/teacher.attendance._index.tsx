@@ -81,12 +81,50 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 };
 
-const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTime: string): boolean => {
-    const now = new Date(serverDateTime); // Use server time instead of local time
+const shiftTimeMap = {
+    [Shift.Shift1_7h_8h30]: { start: "07:00", end: "08:30" },
+    [Shift.Shift2_8h45_10h15]: { start: "08:45", end: "10:15" },
+    [Shift.Shift3_10h45_12h]: { start: "10:45", end: "12:00" },
+    [Shift.Shift4_12h30_14h00]: { start: "12:30", end: "14:00" },
+    [Shift.Shift5_14h15_15h45]: { start: "14:15", end: "15:45" },
+    [Shift.Shift6_16h00_17h30]: { start: "16:00", end: "17:30" },
+    [Shift.Shift7_18h_19h30]: { start: "18:00", end: "19:30" },
+    [Shift.Shift8_19h45_21h15]: { start: "19:45", end: "21:15" },
+};
+
+// Function to parse time string (e.g., "07:00") into hours and minutes
+const parseTime = (time: string): { hours: number; minutes: number } => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return { hours, minutes };
+};
+
+const isNotToday = (slotDate: string, shift: Shift, deadlineValue: string | null, serverDateTime: string): boolean => {
+    const now = new Date(serverDateTime);
+
+    // Parse the slot date
     const slot = new Date(slotDate);
-    
+    if (isNaN(slot.getTime())) {
+        console.warn("Invalid slot date:", slotDate);
+        return true; // Prevent invalid dates from proceeding
+    }
+
+    // Get the shift's start time
+    const shiftTime = shiftTimeMap[shift];
+    if (!shiftTime) {
+        console.warn("Unknown shift:", shift);
+        return true; // Prevent unknown shifts from proceeding
+    }
+
+    // Combine slot date with shift start time
+    const { hours, minutes } = parseTime(shiftTime.start);
+    const slotStartTime = new Date(slot);
+    slotStartTime.setHours(hours, minutes, 0, 0);
+
+    console.log("Current time:", now);
+    console.log("Slot start time:", slotStartTime);
+
     // If slot is in the future, attendance is not allowed
-    if (slot > now) {
+    if (slotStartTime > now) {
         return true;
     }
 
@@ -109,8 +147,14 @@ const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTi
         }
     }
 
-    const slotWithDeadline = new Date(slot);
+    // Apply deadline (e.g., 2 hours after slot start time)
+    const slotWithDeadline = new Date(slotStartTime);
     slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
+
+    console.log("-------------------------------------------------------");
+    console.log("Slot with deadline:", slotWithDeadline);
+    console.log("Current time:", now);
+    console.log("Result:", now > slotWithDeadline);
 
     // If past the attendance deadline
     return now > slotWithDeadline;
@@ -318,7 +362,7 @@ export default function TeacherAttendance_index() {
                                     </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={isNotToday(slot.date, deadlineData.configValue, currentServerDateTime)}
+                                        disabled={isNotToday(slot.date, slot.shift, deadlineData.configValue, currentServerDateTime)}
                                         onClick={() => window.location.href = `/teacher/attendance/${slot.id}`}
                                     >
                                         Attendance
