@@ -41,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 }
             }
 
-            if (!roomId || !classId || !date || !shift) {
+            if (!roomId || !classId || !date || shift == undefined || shift < 0) {
                 return {
                     success: false,
                     error: 'Data is missing!',
@@ -73,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (!id) {
                 return {
                     success: false,
-                    error: 'Không xác định buổi học.',
+                    error: 'Slot not found.',
                     status: 400
                 }
             }
@@ -106,7 +106,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (!id) {
                 return {
                     success: false,
-                    error: 'Không xác định buổi học.',
+                    error: 'Slot not found.',
                     status: 400
                 }
             }
