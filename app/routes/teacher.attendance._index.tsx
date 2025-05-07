@@ -123,7 +123,7 @@ const isNotToday = (slotDate: string, deadlineValue: string | null, serverDateTi
     console.log("Current time:", now);
     console.log("result: ", now > slotWithDeadline);
     return now > slotWithDeadline;
-};
+}; 
 
 export default function TeacherAttendance_index() {
     const { slots, selectedDate, deadlineData, currentServerDateTime} = useLoaderData<typeof loader>();
