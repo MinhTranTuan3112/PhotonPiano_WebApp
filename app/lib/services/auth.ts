@@ -72,3 +72,16 @@ export async function fetchCurrentAccountInfo({ idToken }: { idToken: string }) 
 
     return response;
 }
+
+export async function fetchToggleAccountStatus({ idToken, firebaseUid }: { idToken: string, firebaseUid : string }) {
+
+    const response = await axiosInstance.post('/auth/toggle-account-status', {
+        firebaseUid
+    },{
+        headers: {
+            Authorization: `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}
