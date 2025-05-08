@@ -14,7 +14,7 @@ import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccountDetail } from '~/lib/services/account';
 import { fetchCurrentAccountInfo } from '~/lib/services/auth';
 import { fetchChangeAClass, fetchClasses } from '~/lib/services/class';
-import { fetchSystemConfigByName } from '~/lib/services/system-config';
+import { fetchSystemConfigByName, fetchSystemConfigServerTime } from '~/lib/services/system-config';
 import { Account, AccountDetail, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { Class } from '~/lib/types/class/class';
@@ -71,10 +71,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         return res.data as SystemConfig;
     });
 
+    const serverTimeRes = await fetchSystemConfigServerTime({ idToken });
+    const currentServerDateTime = serverTimeRes.data;
+
     return {
         promise,
         idToken,
         deadlinePromise,
+        currentServerDateTime
     };
 }
 
@@ -124,7 +128,7 @@ export async function action({ request }: ActionFunctionArgs) {
 };
 
 export default function AccountClassChanging() {
-    const { promise, deadlinePromise, idToken } = useLoaderData<typeof loader>();
+    const { promise, deadlinePromise, idToken, currentServerDateTime } = useLoaderData<typeof loader>();
     // const [selectedClass, setSelectedClass] = useState<string | null>()
     const navigate = useNavigate();
     const fetcher = useFetcher<ActionResult>()
@@ -199,7 +203,8 @@ export default function AccountClassChanging() {
                                             if (closeDay) {
                                                 closeDay.setDate(closeDay.getDate() - deadlineDay);
                                             }
-                                            const today = new Date()
+                                            const today = new Date(currentServerDateTime)
+                                            console.log(today)
                                             return (!closeDay || today < closeDay) ? (
                                                 <div>
                                                     {
