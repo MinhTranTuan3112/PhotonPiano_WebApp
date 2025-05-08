@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { AccountDetail } from '~/lib/types/account/account';
 import { Class } from '~/lib/types/class/class';
 import { CLASS_STATUS } from '~/lib/utils/constants';
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 
 type Props = {
     student: AccountDetail;
@@ -91,7 +92,7 @@ export function ClassCard({
             <div className="flex items-center text-sm text-gray-700">
                 <Calendar className="mr-2 h-4 w-4 text-theme" />
                 <span className="font-medium">Start Date:</span>
-                <span className="ml-2">{classObj.startTime || "TBD"}</span>
+                <span className="ml-2">{classObj.startTime ? formatRFC3339ToDisplayableDate(classObj.startTime, false, false) : 'No information'}</span>
             </div>
 
             <div className="flex items-center text-sm text-gray-700">

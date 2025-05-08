@@ -1,15 +1,20 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ActionFunctionArgs } from "@remix-run/node";
-import { getValidatedFormData } from "remix-hook-form";
-import { z } from "zod";
-import { addSlotSchema, AddSlotSchema } from "~/components/staffs/classes/add-slot-dialog";
+import { ActionFunctionArgs, redirect } from "@remix-run/node";
 import { fetchCreateSlot, fetchDeleteSlot, fetchUpdateSlot } from "~/lib/services/scheduler";
+import { Role } from "~/lib/types/account/account";
+import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString } from "~/lib/utils/form";
 
 
 export async function action({ request }: ActionFunctionArgs) {
     try {
+
+        const { idToken, role } = await requireAuth(request);
+
+        if (role !== Role.Staff) {
+            return redirect('/');
+        }
+
         const formData = await request.formData();
         const action = formEntryToString(formData.get("action"));
         // const { data, errors, receivedValues: defaultValues } =
@@ -31,15 +36,7 @@ export async function action({ request }: ActionFunctionArgs) {
             const roomId = formEntryToString(formData.get("room"));
             const shift = formEntryToNumber(formData.get("shift"));
             const classId = formEntryToString(formData.get("classId"));
-            const token = formEntryToString(formData.get("idToken"));
 
-            if (!token) {
-                return {
-                    success: false,
-                    error: 'Unauthorized.',
-                    status: 401
-                }
-            }
 
             if (!roomId || !classId || !date || shift == undefined || shift < 0) {
                 return {
@@ -53,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 classId: classId,
                 date: date,
                 shift: shift,
-                idToken: token
+                idToken
             }
             await fetchCreateSlot(body);
 
@@ -67,7 +64,6 @@ export async function action({ request }: ActionFunctionArgs) {
             const id = formEntryToString(formData.get("slotId"));
             const teacherId = formEntryToString(formData.get("teacherId"));
             const reason = formEntryToString(formData.get("reason"));
-            const token = formEntryToString(formData.get("idToken"));
 
             console.log(teacherId)
             if (!id) {
@@ -77,22 +73,15 @@ export async function action({ request }: ActionFunctionArgs) {
                     status: 400
                 }
             }
-            if (!token) {
-                return {
-                    success: false,
-                    error: 'Unauthorized.',
-                    status: 401
-                }
-            }
 
             const body = {
                 id: id,
                 roomId: roomId,
                 date: date,
                 shift: shift,
-                reason : reason,
-                teacherId : teacherId,
-                idToken: token
+                reason: reason,
+                teacherId: teacherId,
+                idToken
             }
             await fetchUpdateSlot(body);
 
@@ -101,7 +90,6 @@ export async function action({ request }: ActionFunctionArgs) {
             }
         } else if (action === "DELETE") {
             const id = formEntryToString(formData.get("slotId"));
-            const token = formEntryToString(formData.get("idToken"));
 
             if (!id) {
                 return {
@@ -110,15 +98,8 @@ export async function action({ request }: ActionFunctionArgs) {
                     status: 400
                 }
             }
-            if (!token) {
-                return {
-                    success: false,
-                    error: 'Unauthorized.',
-                    status: 401
-                }
-            }
 
-            await fetchDeleteSlot({id,idToken : token});
+            await fetchDeleteSlot({ id, idToken });
 
             return {
                 success: true

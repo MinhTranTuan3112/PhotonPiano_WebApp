@@ -3,24 +3,29 @@ import { Room } from "../room/room";
 import { StudentClass } from "./student-class";
 
 export type Class = {
-    id : string,
-    name : string,
-    totalSlots : number,
-    requiredSlots : number,
-    capacity : number,
-    instructor? : Account,
-    instructorId? : string,
-    instructorName? : string,
-    scheduleDescription? : string,
-    studentNumber : number,
-    level : Level,
-    levelId: string,
-    status : number,
-    isPublic : boolean,
-    minimumStudents : number,
-    startTime? : string,
-    isScorePublished: boolean;
+  id: string,
+  name: string,
+  totalSlots: number,
+  requiredSlots: number,
+  capacity: number,
+  instructor?: Account,
+  instructorId?: string,
+  instructorName?: string,
+  scheduleDescription?: string,
+  studentNumber: number,
+  level: Level,
+  levelId: string,
+  status: number,
+  isPublic: boolean,
+  minimumStudents: number,
+  startTime?: string,
+  isScorePublished: boolean;
 }
+
+export type ClassResponse = {
+  endTime?: string;
+} & Class;
+
 const teacher = {
   accountFirebaseId: "abc",
   userName: "Thanh Hung",
@@ -73,5 +78,5 @@ export type ClassSlot = {
   shift: number;
   date: string;
   status: number;
-  room : Room;
+  room: Room;
 };

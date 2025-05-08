@@ -20,7 +20,7 @@ export default function ErrorPage({ error }: Props) {
                     <h1 className="text-8xl font-extrabold font-serif">{error?.status || "Oops!"}</h1>
                     <h2 className="text-5xl font-bold mt-2 font-mono">{error?.statusText || "Error"}</h2>
                     <p className="text-xl font-medium text-gray-800 mt-2 text-center max-w-lg">
-                        {error?.data || "Server might be dead or I can't find her!"}
+                        {error?.data || "Network error!"}
                     </p>
                 </div>
 

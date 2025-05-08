@@ -1,18 +1,17 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
-import { ArrowLeftCircle, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, XIcon } from 'lucide-react';
-import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
-import React, { ReactNode, Suspense, useState } from 'react'
+import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { ArrowLeftCircle, BookOpen, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, Users, XIcon } from 'lucide-react';
+import { ReactNode, Suspense, useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '~/components/ui/alert-dialog';
 import { Badge } from '~/components/ui/badge';
-import { Button, buttonVariants } from '~/components/ui/button';
+import { Button } from '~/components/ui/button';
 import { DatePickerInput } from '~/components/ui/date-picker-input';
 import GenericCombobox from '~/components/ui/generic-combobox';
-import { Input } from '~/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Textarea } from '~/components/ui/textarea';
@@ -25,36 +24,24 @@ import { Account, Level, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { Room } from '~/lib/types/room/room';
-import { SlotDetail, TeacherModel } from '~/lib/types/Scheduler/slot';
+import { SlotDetail, SlotStatus, TeacherModel } from '~/lib/types/Scheduler/slot';
 import { requireAuth } from '~/lib/utils/auth';
-import { ATTENDANCE_STATUS, CLASS_STATUS, LEVEL, SHIFT_TIME, SLOT_STATUS } from '~/lib/utils/constants';
-import { getErrorDetailsInfo } from '~/lib/utils/error';
+import { ATTENDANCE_STATUS, SHIFT_TIME, SLOT_STATUS } from '~/lib/utils/constants';
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import { toastWarning } from '~/lib/utils/toast-utils';
 
-type Props = {}
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-
     const { idToken, role } = await requireAuth(request);
+    if (role !== 4) return redirect('/');
+    if (!params.id) return redirect('/staff/classes');
 
-    if (role !== 4) {
-        return redirect('/');
-    }
-    if (!params.id) {
-        return redirect('/staff/classes')
-    }
-        
     const slotPromise = fetchSlotById(params.id, idToken).then((response) => {
         const slot: SlotDetail = response.data;
-        return {
-            slot,
-        }
+        return { slot };
     });
 
-
-
-    return {
-        slotPromise, idToken
-    }
+    return { slotPromise, idToken };
 }
 
 export const addSlotSchema = z.object({
@@ -68,113 +55,105 @@ export const addSlotSchema = z.object({
     idToken: z.string(),
 });
 
-
 export type AddSlotSchema = z.infer<typeof addSlotSchema>;
-const resolver = zodResolver(addSlotSchema)
+const resolver = zodResolver(addSlotSchema);
 
-
-// const getLevelStyle = (level: number) => {
-//     switch (level) {
-//         case 0: return "text-[#92D808] bg-[#e2e8d5] font-semibold";
-//         case 1: return "text-[#FBDE00] bg-[#faf5d2] font-semibold";
-//         case 2: return "text-[#FBA000] bg-[#f5d193] font-semibold";
-//         case 3: return "text-[#fc4e03] bg-[#fcb292] font-semibold";
-//         case 4: return "text-[#ff0000] bg-[#faa7a7] font-semibold";
-//         default: return "text-black font-semibold";
-//     }
-// };
-
-const getStatusStyle = (status: number) => {
-    switch (status) {
-        case 0: return "text-gray-500 bg-gray-200 font-semibold";
-        case 1: return "text-green-500 bg-green-200 font-semibold";
-        case 2: return "text-blue-400 bg-blue-200 font-semibold";
-        case 3: return "text-red-400 bg-red-200 font-semibold";
-        default: return "text-black font-semibold";
-    }
-};
-const getAttendanceStyle = (attendance: number) => {
-    switch (attendance) {
-        case 0: return "text-gray-500";
-        case 1: return "text-green-500";
-        case 2: return "text-red-500";
-        default: return "text-black";
-    }
-};
-function LevelBadge({ level }: {
-    level: Level
-}) {
+function LevelBadge({ level }: { level: Level }) {
     return (
-        <div className='relative bg-white  w-full my-1 rounded-lg'>
+        <div className="relative bg-white rounded-lg p-2 my-1">
             <div
-                className="uppercase w-full text-center p-2 rounded-lg font-semibold"
+                className="uppercase w-full text-center p-2 rounded-lg font-semibold transition-all duration-300 hover:scale-102"
                 style={{
-                    backgroundColor: `${level.themeColor}33`, // 20% opacity
-                    color: level.themeColor
+                    backgroundColor: `${level.themeColor}15`,
+                    color: level.themeColor,
+                    border: `1px solid ${level.themeColor}30`
                 }}
             >
                 {level.name}
             </div>
         </div>
-
-    )
-}
-function StatusBadge({ status }: {
-    status: number
-}) {
-    return <div className={`${getStatusStyle(status)} uppercase w-full text-center my-1 p-2 rounded-lg`}>{SLOT_STATUS[status]}</div>
-}
-function AttendanceDisplay({ attendance }: {
-    attendance: number
-}) {
-    return <Badge className={`${getAttendanceStyle(attendance)} font-bold text-center`} variant={'outline'}>
-        {ATTENDANCE_STATUS[attendance]}
-    </Badge>
+    );
 }
 
+function StatusBadge({ status }: { status: number }) {
+    const getStatusStyle = (status: number) => {
+        const styles = {
+            0: "bg-neutral-100 text-neutral-600",
+            1: "bg-emerald-100 text-emerald-600",
+            2: "bg-blue-100 text-blue-600",
+            3: "bg-red-100 text-red-600"
+        };
+        return styles[status as keyof typeof styles] || "bg-neutral-100 text-neutral-600";
+    };
+
+    return (
+        <div className={`${getStatusStyle(status)} uppercase text-center my-1 p-2 rounded-lg font-semibold transition-all duration-300 hover:opacity-90`}>
+            {SLOT_STATUS[status]}
+        </div>
+    );
+}
+
+function AttendanceDisplay({ attendance }: { attendance: number }) {
+    const getAttendanceStyle = (attendance: number) => {
+        const styles = {
+            0: "border-neutral-200 text-neutral-600",
+            1: "border-emerald-200 text-emerald-600",
+            2: "border-red-200 text-red-600"
+        };
+        return styles[attendance as keyof typeof styles] || "border-neutral-200 text-neutral-600";
+    };
+
+    return (
+        <Badge
+            className={`${getAttendanceStyle(attendance)} font-semibold text-center px-4 py-1`}
+            variant="outline"
+        >
+            {ATTENDANCE_STATUS[attendance]}
+        </Badge>
+    );
+}
 
 export default function StaffClassSlotDetail() {
     const { slotPromise, idToken } = useLoaderData<typeof loader>();
 
     return (
-        <div className='p-4'>
-
-            <div className="p-6 bg-white shadow-lg rounded-lg">
-                <Suspense fallback={<Skeleton className="text-center h-96 w-full">Loading slot details...</Skeleton>}>
-                    <Await resolve={slotPromise}>
-                        {(data) => (
-                            <SlotDetailComponent slot={data.slot} idToken={idToken} />
-                        )}
-                    </Await>
-
-                </Suspense>
+        <div className="min-h-screen bg-neutral-50 py-8">
+            <div className="container mx-auto px-4">
+                <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                    <Suspense
+                        fallback={
+                            <div className="p-8">
+                                <Skeleton className="h-96 w-full rounded-xl" />
+                            </div>
+                        }
+                    >
+                        <Await resolve={slotPromise}>
+                            {(data) => <SlotDetailComponent slot={data.slot} idToken={idToken} />}
+                        </Await>
+                    </Suspense>
+                </div>
             </div>
         </div>
-
     );
 }
 
-
-function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: string }) {
-    const navigate = useNavigate()
+function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: string }) {
+    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const editFetcher = useFetcher<ActionResult>();
     const deleteFetcher = useFetcher<ActionResult>();
-    const [isEdit, setIsEditing] = useState(false)
-    const [isOpenConfirmEdit, setIsOpenConfirmEdit] = useState(false)
+    const [isEdit, setIsEditing] = useState(false);
+    const [isOpenConfirmEdit, setIsOpenConfirmEdit] = useState(false);
 
     const { loadingDialog: loadingEditDialog } = useLoadingDialog({
         fetcher: editFetcher,
-        action: () => {
-            setSearchParams([...searchParams])
-        }
-    })
+        action: () => setSearchParams([...searchParams])
+    });
+
     const { loadingDialog: loadingDeleteDialog } = useLoadingDialog({
         fetcher: deleteFetcher,
-        action: () => {
-            navigate(`/staff/classes/${slot.classId}?tab=timeTable`)
-        }
-    })
+        action: () => navigate(`/staff/classes/${slot.classId}?tab=timeTable`)
+    });
 
     const {
         handleSubmit,
@@ -184,7 +163,11 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
     } = useRemixForm<AddSlotSchema>({
         mode: "onSubmit",
         resolver,
-        submitConfig: { action: '/endpoint/slots', method: 'POST', navigate: false },
+        submitConfig: {
+            action: '/endpoint/slots',
+            method: 'POST',
+            navigate: false
+        },
         fetcher: editFetcher,
         defaultValues: {
             action: "EDIT",
@@ -193,315 +176,490 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail, idToken: str
         }
     });
 
-    // const { open: handleOpenEditModal, dialog: confirmEditDialog } = useConfirmationDialog({
-    //     title: 'Xác nhận sửa buổi học',
-    //     description: 'Bạn có chắc chắn muốn sửa buổi học này không?',
-    //     onConfirm: () => {
-    //         handleSubmit();
-    //     }
-    // })
-
-    const handleEdit = () => {
-        handleSubmit();
-    }
-
-    const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
-        title: 'Confirm Deleting',
-        description: 'Do you want to delete this slot?',
-        onConfirm: () => {
-            handleDelete();
-        }
-    })
-
-    const handleDelete = async () => {
-        await fetch("/endpoint/slots", {
-            method: "POST",
-            body: new URLSearchParams({
-                action: "DELETE",
-                slotId: slot.id,
-                idToken: idToken
-            }),
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
-        });
-        navigate(`/staff/classes/${slot.classId}?tab=timeTable`)
-    }
+    const handleEdit = () => handleSubmit();
 
     return (
-        <div>
-
+        <div className="p-8 border-t-4 border-t-theme">
             <Form onSubmit={() => setIsOpenConfirmEdit(true)}>
-                <div className='flex flex-col sm:flex-row place-content-between gap-2 mb-8'>
-                    <Button type='button' variant={'outline'} onClick={() => navigate(-1)}><ArrowLeftCircle className='mr-4' /> Back</Button>
-                    <div className='flex gap-2'>
-                        {
-                            isEdit ? (
-                                <>
-                                    <Button type='submit' className='bg-green-500 hover:bg-green-300'><CheckIcon className='mr-4' /> Save Changes</Button>
-                                    <Button type='button' className='bg-red-400 hover:bg-red-200' onClick={() => setIsEditing(false)}><XIcon className='mr-4' /> Cancel</Button>
-                                </>
-                            ) : (
-                                <Button type='button' variant={'theme'} onClick={() => setIsEditing(true)}><Edit2Icon className='mr-4' /> Edit Slot</Button>
-                            )
-                        }
-                        <Button type='button' variant={'destructive'} onClick={handleOpenDeleteModal}><Trash className='mr-4' /> Delete Slot</Button>
+                <div className="flex flex-col sm:flex-row justify-between gap-4 mb-8">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate(-1)}
+                        className="hover:bg-neutral-50"
+                    >
+                        <ArrowLeftCircle className="mr-2 h-4 w-4" /> Back
+                    </Button>
+
+                    <div className="flex gap-2">
+                        {isEdit ? (
+                            <>
+                                <Button
+                                    type="submit"
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                                >
+                                    <CheckIcon className="mr-2 h-4 w-4" /> Save Changes
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsEditing(false)}
+                                    className="border-red-200 text-red-500 hover:bg-red-50"
+                                >
+                                    <XIcon className="mr-2 h-4 w-4" /> Cancel
+                                </Button>
+                            </>
+                        ) : (
+                            <Button
+                                type="button"
+                                className="bg-theme hover:bg-theme text-white"
+                                onClick={() => setIsEditing(true)}
+                            >
+                                <Edit2Icon className="mr-2 h-4 w-4" /> Edit Slot
+                            </Button>
+                        )}
+                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} />
                     </div>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Slot Detail</h2>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <DetailItem label="Date" labelIcon={<CalendarDays />} value={
-                        isEdit ? (
-                            <>
-                                <Controller
-                                    control={control}
-                                    name='date'
-                                    defaultValue={new Date(slot.date)}
-                                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                                        <DatePickerInput value={value} onChange={onChange}
-                                            ref={ref}
-                                            onBlur={onBlur}
-                                            placeholder='Date'
-                                            className='mt-2 w-64' />
-                                    )}
-                                />
-                                {errors.date && <div className='text-red-500'>{errors.date.message}</div>}
-                            </>
-                        ) : (
-                            <p className="text-lg font-medium text-gray-800">{slot.date}</p>
-                        )
-                    } />
-                    <DetailItem label="Shift" labelIcon={<Clock />} value={
-                        isEdit ? (
-                            <>
-                                <Controller
-                                    control={control}
-                                    name='shift'
-                                    defaultValue={slot.shift.toString()}
-                                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                                        <Select onValueChange={onChange} value={value}>
-                                            <SelectTrigger className="w-64 mt-2">
-                                                <SelectValue placeholder="Pick a shift" />
-                                            </SelectTrigger>
-                                            <SelectGroup>
-                                                <SelectContent>
-                                                    {
-                                                        SHIFT_TIME.map((shift, index) => (
-                                                            <SelectItem value={index.toString()} key={index}>Shift {index + 1} ({shift})</SelectItem>
-                                                        ))
-                                                    }
-                                                </SelectContent>
-                                            </SelectGroup>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.shift && <div className='text-red-500'>{errors.shift.message}</div>}
-                            </>
+                <div className="space-y-8">
+                    <div>
+                        <h2 className="text-2xl font-bold text-neutral-800 mb-6 flex items-center">
+                            <Music className="mr-2 h-6 w-6 text-theme" />
+                            Slot Details
+                        </h2>
 
-                        ) : (
-                            <p className="text-lg font-medium text-gray-800">{`Shift ${slot.shift + 1} (${SHIFT_TIME[slot.shift]})`}</p>
-                        )
-                    } />
-                    <DetailItem label="Room" labelIcon={<DoorClosed />} value={
-                        isEdit ? (
-                            <>
-                                <Controller
-                                    control={control}
-                                    name='room'
-                                    defaultValue={slot.roomId ?? undefined}
-                                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                                        <GenericCombobox<Room>
-                                            className='mt-2 w-64'
-                                            idToken={idToken}
-                                            queryKey='rooms'
-                                            fetcher={async (query) => {
-                                                const response = await fetchRooms(query);
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <DetailItem
+                                label="Date"
+                                labelIcon={<CalendarDays className="h-5 w-5 text-theme" />}
+                                value={
+                                    isEdit ? (
+                                        <div className="mt-2">
+                                            <Controller
+                                                control={control}
+                                                name="date"
+                                                defaultValue={new Date(slot.date)}
+                                                render={({ field }) => (
+                                                    <DatePickerInput
+                                                        {...field}
+                                                        placeholder="Select date"
+                                                        className="w-full"
+                                                    />
+                                                )}
+                                            />
+                                            {errors.date && (
+                                                <p className="mt-1 text-sm text-red-500">
+                                                    {errors.date.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-lg font-medium text-neutral-800">
+                                            {formatRFC3339ToDisplayableDate(slot.date, false, false)}
+                                        </p>
+                                    )
+                                }
+                            />
 
-                                                const headers = response.headers;
+                            <DetailItem
+                                label="Shift"
+                                labelIcon={<Clock className="h-5 w-5 text-theme" />}
+                                value={
+                                    isEdit ? (
+                                        <div className="mt-2">
+                                            <Controller
+                                                control={control}
+                                                name="shift"
+                                                defaultValue={slot.shift.toString()}
+                                                render={({ field }) => (
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                    >
+                                                        <SelectTrigger className="w-full">
+                                                            <SelectValue placeholder="Select shift" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectGroup>
+                                                                {SHIFT_TIME.map((shift, index) => (
+                                                                    <SelectItem
+                                                                        key={index}
+                                                                        value={index.toString()}
+                                                                    >
+                                                                        Shift {index + 1} ({shift})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectGroup>
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.shift && (
+                                                <p className="mt-1 text-sm text-red-500">
+                                                    {errors.shift.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-lg font-medium text-neutral-800">
+                                            Shift {slot.shift + 1} ({SHIFT_TIME[slot.shift]})
+                                        </p>
+                                    )
+                                }
+                            />
 
-                                                const metadata: PaginationMetaData = {
-                                                    page: parseInt(headers['x-page'] || '1'),
-                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
-                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
-                                                };
+                            <DetailItem
+                                label="Room"
+                                labelIcon={<DoorClosed className="h-5 w-5 text-theme" />}
+                                value={
+                                    isEdit ? (
+                                        <div className="mt-2">
+                                            <Controller
+                                                control={control}
+                                                name="room"
+                                                defaultValue={slot.roomId ?? undefined}
+                                                render={({ field }) => (
+                                                    <GenericCombobox<Room>
+                                                        className="w-full"
+                                                        idToken={idToken}
+                                                        queryKey="rooms"
+                                                        fetcher={async (query) => {
+                                                            const response = await fetchRooms(query);
+                                                            const headers = response.headers;
+                                                            const metadata: PaginationMetaData = {
+                                                                page: parseInt(headers['x-page'] || '1'),
+                                                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                            };
+                                                            return {
+                                                                data: response.data as Room[],
+                                                                metadata
+                                                            };
+                                                        }}
+                                                        mapItem={(item) => ({
+                                                            label: item?.name,
+                                                            value: item?.id
+                                                        })}
+                                                        prechosenItem={slot.room}
+                                                        placeholder="Select room"
+                                                        emptyText="No rooms available"
+                                                        errorText="Error loading rooms"
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        maxItemsDisplay={10}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.room && (
+                                                <p className="mt-1 text-sm text-red-500">
+                                                    {errors.room.message}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-lg font-medium text-neutral-800">
+                                            {slot.room?.name || 'Unassigned'}
+                                        </p>
+                                    )
+                                }
+                            />
 
-                                                const data = response.data as Room[]
+                            <DetailItem
+                                label="Status"
+                                labelIcon={<Music className="h-5 w-5 text-theme" />}
+                                value={<StatusBadge status={slot.status} />}
+                            />
+                        </div>
+                    </div>
 
-                                                return {
-                                                    data: data,
-                                                    metadata
-                                                };
-                                            }}
-                                            mapItem={(item) => ({
-                                                label: item?.name,
-                                                value: item?.id
-                                            })}
-                                            prechosenItem={slot.room}
-                                            placeholder='Pick a room'
-                                            emptyText='There is no room available'
-                                            errorText='Error loading room list.'
-                                            value={value}
-                                            onChange={onChange}
-                                            maxItemsDisplay={10}
-                                        />
-                                    )}
-                                />
-                                {errors.room && <div className='text-red-500'>{errors.room.message}</div>}
-                            </>
-                        ) : (
-                            <p className="text-lg font-medium text-gray-800">{slot.room?.name || 'Unassigned'}</p>
+                    <div>
+                        <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
+                            <BookOpen className="mr-2 h-5 w-5 text-theme" />
+                            Class Information
+                        </h3>
 
-                        )
-                    } />
-                    <DetailItem label="Status" labelIcon={<Music />} value={<StatusBadge status={slot.status} />} />
-                </div>
-                <AlertDialog open={isOpenConfirmEdit} onOpenChange={setIsOpenConfirmEdit}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Update Slot</AlertDialogTitle>
-                            <AlertDialogDescription>Please specify reason for this change</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <Textarea {...register("reason")} />
-                        <AlertDialogFooter>
-                            <AlertDialogCancel className={
-                                buttonVariants({ variant: 'outline' })
-                            }>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleEdit} className={
-                                buttonVariants({ variant: 'theme' })
-                            }>Confirm</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <DetailItem
+                                label="Class Name"
+                                value={
+                                    <p className="text-lg font-medium text-neutral-800">
+                                        {slot.class?.name || 'Unassigned'}
+                                    </p>
+                                }
+                            />
 
-                <h3 className="text-xl font-semibold text-gray-700 mb-3">Class Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    <DetailItem label="Class Name" value={<p className="text-lg font-medium text-gray-800">{slot.class?.name || 'Unassigned'}</p>} />
-
-                    <DetailItem label="Teacher Name" value={
-
-                        isEdit ? (
-                            <div>
-                                <Controller
-                                    control={control}
-                                    name='teacherId'
-                                    defaultValue={slot.teacherId}
-                                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                                        <GenericCombobox<TeacherModel>
-                                            className=''
-                                            idToken={idToken}
-                                            queryKey='teachers'
-                                            fetcher={async (query) => {
-                                                const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
-
-                                                const headers = response.headers;
-
-                                                const metadata: PaginationMetaData = {
-                                                    page: parseInt(headers['x-page'] || '1'),
-                                                    pageSize: parseInt(headers['x-page-size'] || '10'),
-                                                    totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                                    totalCount: parseInt(headers['x-total-count'] || '0'),
-                                                };
-                                                const data = response.data as TeacherModel[]
-                                                return {
-                                                    data: data,
-                                                    metadata
-                                                };
-                                            }}
-                                            mapItem={(item) => ({
-                                                label: item?.fullName || item?.userName,
-                                                value: item?.accountFirebaseId
-                                            })}
-                                            prechosenItem={slot.teacher}
-                                            placeholder='Pick a teacher'
-                                            emptyText='There are no teacher available.'
-                                            errorText='Error loading teacher list'
-                                            value={value}
-                                            onChange={onChange}
-                                            maxItemsDisplay={10}
-                                        />
-                                    )}
-                                />
-
-                            </div>
-                        ) : (
-                            slot.teacherId ? (
-                                <span>
-                                    <Link className="text-lg text-blue-400 underline font-bold" to={`/staff/teachers/${slot.class.instructorId}`}>
-                                        {slot.teacher?.fullName || slot.teacher?.userName}
-                                    </Link>
-                                    {
-                                        slot.teacherId !== slot.class.instructorId && (
-                                            <span>(Replacement)</span>
+                            <DetailItem
+                                label="Teacher"
+                                value={
+                                    isEdit ? (
+                                        <div className="mt-2">
+                                            <Controller
+                                                control={control}
+                                                name="teacherId"
+                                                defaultValue={slot.teacherId}
+                                                render={({ field }) => (
+                                                    <GenericCombobox<TeacherModel>
+                                                        className="w-full"
+                                                        idToken={idToken}
+                                                        queryKey="teachers"
+                                                        fetcher={async (query) => {
+                                                            const response = await fetchAccounts({
+                                                                ...query,
+                                                                roles: [Role.Instructor]
+                                                            });
+                                                            const headers = response.headers;
+                                                            const metadata: PaginationMetaData = {
+                                                                page: parseInt(headers['x-page'] || '1'),
+                                                                pageSize: parseInt(headers['x-page-size'] || '10'),
+                                                                totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                                                totalCount: parseInt(headers['x-total-count'] || '0'),
+                                                            };
+                                                            return {
+                                                                data: response.data as TeacherModel[],
+                                                                metadata
+                                                            };
+                                                        }}
+                                                        mapItem={(item) => ({
+                                                            label: item?.fullName || item?.userName,
+                                                            value: item?.accountFirebaseId
+                                                        })}
+                                                        prechosenItem={slot.teacher}
+                                                        placeholder="Select teacher"
+                                                        emptyText="No teachers available"
+                                                        errorText="Error loading teachers"
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        maxItemsDisplay={10}
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    ) : (
+                                        slot.teacherId ? (
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    to={`/staff/teachers/${slot.class.instructorId}`}
+                                                    className="text-lg text-theme hover:text-theme font-medium"
+                                                >
+                                                    {slot.teacher?.fullName || slot.teacher?.userName}
+                                                </Link>
+                                                {slot.teacherId !== slot.class.instructorId && (
+                                                    <Badge variant="outline">Replacement</Badge>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-lg font-medium text-neutral-800">
+                                                Unassigned
+                                            </p>
                                         )
-                                    }
-                                </span>
+                                    )
+                                }
+                            />
 
-                            ) : (
-                                <p className="text-lg font-medium text-gray-800">(Unassigned)</p>
-                            )
-                        )
-                    }
+                            <DetailItem
+                                label="Number of learners"
+                                value={
+                                    <p className="text-lg font-medium text-neutral-800">
+                                        {slot.numberOfStudents} learners
+                                    </p>
+                                }
+                            />
 
-                    />
-                    <DetailItem label="Sĩ số" value={<p className="text-lg font-medium text-gray-800">{slot.numberOfStudents.toString()}</p>} />
-                    <DetailItem label="Level" value={<LevelBadge level={slot.class.level} />} />
+                            <DetailItem
+                                label="Level"
+                                value={<LevelBadge level={slot.class.level} />}
+                            />
+                        </div>
+                    </div>
+
+                    {slot.slotStudents && (
+                        <div>
+                            <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
+                                <Users className="mr-2 h-5 w-5 text-theme" />
+                                Attendance
+                            </h3>
+
+                            <div className="overflow-hidden rounded-xl border border-neutral-200 border-t-4 border-t-theme">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-neutral-50 border-b border-neutral-200">
+                                            <th className="px-6 py-4 text-left text-sm font-medium text-neutral-500">
+                                                No.
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-medium text-neutral-500">
+                                                Learner
+                                            </th>
+                                            <th className="px-6 py-4 text-left text-sm font-medium text-neutral-500">
+                                                Email
+                                            </th>
+                                            <th className="px-6 py-4 text-center text-sm font-medium text-neutral-500">
+                                                Status
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {slot.slotStudents.map((student, index) => (
+                                            <tr
+                                                key={student.studentFirebaseId}
+                                                className="border-b border-neutral-200 hover:bg-neutral-50 transition-colors"
+                                            >
+                                                <td className="px-6 py-4 text-sm text-neutral-600">
+                                                    {index + 1}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        {student.studentAccount.avatarUrl && (
+                                                            <img
+                                                                src={student.studentAccount.avatarUrl}
+                                                                alt=""
+                                                                className="h-8 w-8 rounded-full object-cover"
+                                                            />
+                                                        )}
+                                                        <div>
+                                                            <p className="text-sm font-medium text-neutral-900">
+                                                                {student.studentAccount.fullName ||
+                                                                    student.studentAccount.userName ||
+                                                                    'Unnamed Student'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-neutral-600">
+                                                    {student.studentAccount.email}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-center">
+                                                        <AttendanceDisplay
+                                                            attendance={student.attendanceStatus}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Form>
-            {slot.slotStudents && (
-                <div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-3">Slot Attendance</h3>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white border rounded-lg">
-                            <thead>
-                                <tr className="bg-gray-100 border-b">
-                                    <th className="text-left p-3">No.</th>
-                                    <th className="text-left p-3">Learner</th>
-                                    <th className="text-left p-3">Email</th>
-                                    <th className="text-center p-3">Attendance</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {slot.slotStudents.map((student, index) => (
-                                    <tr key={student.studentFirebaseId} className="border-b">
-                                        <td className='p-3'>{index + 1}</td>
-                                        <td className="p-3 flex items-center gap-2">
-                                            {student.studentAccount.avatarUrl && (
-                                                <img src={student.studentAccount.avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full" />
-                                            )}
-                                            {student.studentAccount.userName || student.studentAccount.fullName || 'Undefined'}
-                                        </td>
-                                        <td className="p-3">{student.studentAccount.email}</td>
-                                        <td className="p-3 flex justify-center">
-                                            <AttendanceDisplay attendance={student.attendanceStatus} />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-            {loadingDeleteDialog}
+
+            <AlertDialog
+                open={isOpenConfirmEdit}
+                onOpenChange={setIsOpenConfirmEdit}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Update Slot</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Please provide a reason for this change
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Textarea
+                        {...register("reason")}
+                        placeholder="Enter reason for change..."
+                        className="min-h-[100px]"
+                    />
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleEdit}
+                            className="bg-theme hover:bg-theme"
+                        >
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             {loadingEditDialog}
-            {confirmDeleteDialog}
+            {loadingDeleteDialog}
         </div>
     );
-
-
 }
 
-function DetailItem({ label, value, labelIcon }: { label: string; value: ReactNode, labelIcon?: ReactNode }) {
+function DeleteSlotSection({
+    slotId,
+    slotStatus
+}: {
+    slotId: string;
+    slotStatus: SlotStatus;
+}) {
+
+    const fetcher = useFetcher<ActionResult>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm Deletion',
+        description: 'Are you sure you want to delete this slot?',
+        confirmText: 'Delete',
+        confirmButtonClassname: 'bg-red-500 hover:bg-red-600',
+        onConfirm: () => {
+            const formData = new FormData();
+            formData.append("action", "DELETE");
+            formData.append("slotId", slotId);
+
+            fetcher.submit(formData, {
+                method: "POST",
+                action: "/endpoint/slots"
+            })
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success("Slot deleted successfully");
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toastWarning(fetcher.data.error, {
+                position: 'top-center',
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [fetcher.data]);
 
 
+    return <>
+        <Button
+            type="button"
+            variant="destructive"
+            onClick={handleOpenModal}
+            isLoading={isSubmitting}
+            disabled={isSubmitting || slotStatus !== SlotStatus.NotStarted}
+        >
+            <Trash className="mr-2 h-4 w-4" /> Delete Slot
+        </Button>
+        {confirmDialog}
+    </>
+}
+
+function DetailItem({
+    label,
+    value,
+    labelIcon
+}: {
+    label: string;
+    value: ReactNode;
+    labelIcon?: ReactNode
+}) {
     return (
-        <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg border-neutral-200 shadow-md hover:shadow-lg transition-all duration-300 p-6">
-            <div className='flex gap-2 items-center'>
+        <div className="bg-white rounded-xl border border-neutral-200 p-6 transition-all duration-300 hover:border-theme-200 hover:shadow-md">
+            <div className="flex items-center gap-2 mb-2 ">
                 {labelIcon}
-                <p className="text-lg font-bold">{label}</p>
+                <h4 className="text-neutral-900 font-bold">{label}</h4>
             </div>
-            {value}
+            <div className="mt-2">{value}</div>
         </div>
     );
 }
