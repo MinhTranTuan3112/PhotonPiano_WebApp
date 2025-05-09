@@ -12,7 +12,7 @@ interface CustomProgressProps
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   CustomProgressProps
->(({ className, value, indicatorColor = "bg-blue-500", ...props }, ref) => (
+>(({ className, value, indicatorColor = "bg-theme", ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(

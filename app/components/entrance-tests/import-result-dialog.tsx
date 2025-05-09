@@ -1,7 +1,7 @@
 import { CriteriaFor, type MinimalCriteria } from "~/lib/types/criteria/criteria"
-import { Dialog, DialogContent, DialogFooter } from "../ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Button } from "../ui/button"
-import { AlertCircle, ArrowRight, Check, Download, FileSpreadsheet, Upload, X } from "lucide-react"
+import { AlertCircle, AlertCircleIcon, ArrowRight, Check, Download, FileSpreadsheet, InfoIcon, Upload, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import type { EntranceTestStudentWithResults } from "~/lib/types/entrance-test/entrance-test-student"
 import ExcelJS from "exceljs"
@@ -360,7 +360,12 @@ export default function ImportResultDialog({
                     }
                 }}
             >
-                <DialogContent className="max-w-4xl p-0 gap-0">
+                <DialogContent className="max-w-4xl p-0">
+                    <DialogHeader className="pl-4 pt-4">
+                        <DialogTitle className="flex flex-row gap-1 items-center"><FileSpreadsheet className="text-theme size-5" />Import entrance test results using Excel file</DialogTitle>
+                        <DialogDescription>Follow the steps below to complete the import process.
+                        </DialogDescription>
+                    </DialogHeader>
                     {/* Progress indicator */}
                     <div className="border-b">
                         <div className="p-6">
@@ -368,7 +373,7 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "download"
-                                            ? "bg-primary text-primary-foreground"
+                                            ? "bg-theme text-primary-foreground"
                                             : currentStep === "upload" || currentStep === "preview" || currentStep === "complete"
                                                 ? "bg-green-500 text-white"
                                                 : "bg-muted text-muted-foreground"
@@ -382,7 +387,7 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "upload"
-                                            ? "bg-primary text-primary-foreground"
+                                            ? "bg-theme text-primary-foreground"
                                             : currentStep === "preview" || currentStep === "complete"
                                                 ? "bg-green-500 text-white"
                                                 : "bg-muted text-muted-foreground"
@@ -402,7 +407,7 @@ export default function ImportResultDialog({
                                 <div className="flex space-x-2 items-center">
                                     <span
                                         className={`flex h-8 w-8 items-center justify-center rounded-full ${currentStep === "preview"
-                                            ? "bg-primary text-primary-foreground"
+                                            ? "bg-theme text-primary-foreground"
                                             : currentStep === "complete"
                                                 ? "bg-green-500 text-white"
                                                 : "bg-muted text-muted-foreground"
@@ -445,7 +450,8 @@ export default function ImportResultDialog({
                                         </ul>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button className="w-full" onClick={handleDownload} disabled={isDownloadingFile}>
+                                        <Button className="w-full" onClick={handleDownload} disabled={isDownloadingFile}
+                                            variant={'theme'}>
                                             {isDownloadingFile ? (
                                                 <>Generating Template...</>
                                             ) : (
@@ -469,8 +475,8 @@ export default function ImportResultDialog({
                                     </Button>
                                 </div>
 
-                                <Alert>
-                                    <AlertCircle className="h-4 w-4" />
+                                <Alert variant={'warning'}>
+                                    <AlertCircleIcon className="h-4 w-4" />
                                     <AlertTitle>Important</AlertTitle>
                                     <AlertDescription>
                                         All scores must be numbers between 0 and 10. Non-numeric values or scores outside this range will be
@@ -520,7 +526,8 @@ export default function ImportResultDialog({
                                         </div>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button className="w-full" onClick={handleFileUpload} disabled={!file || isUploading}>
+                                        <Button className="w-full" onClick={handleFileUpload} disabled={!file || isUploading}
+                                            variant={'theme'}>
                                             {isUploading ? (
                                                 <>Validating Data...</>
                                             ) : (
@@ -562,13 +569,13 @@ export default function ImportResultDialog({
                                 <div className="flex items-center justify-between">
                                     <div className="flex space-x-2">
                                         <Badge variant="outline" className="px-3 py-1">
-                                            Total: {totalStudents} students
+                                            Total: {totalStudents} learners
                                         </Badge>
                                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-3 py-1">
-                                            Passing: {passingStudents} students
+                                            Passing: {passingStudents} learners
                                         </Badge>
                                         <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-3 py-1">
-                                            Failing: {failingStudents} students
+                                            Failing: {failingStudents} learners
                                         </Badge>
                                     </div>
 
@@ -606,7 +613,7 @@ export default function ImportResultDialog({
                                                         }
                                                         className="text-center py-8 text-muted-foreground"
                                                     >
-                                                        No students found in this category
+                                                        No learners found in this category
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
@@ -681,19 +688,20 @@ export default function ImportResultDialog({
                                 )}
 
                                 {currentStep === "download" && (
-                                    <Button onClick={handleDownload} disabled={isDownloadingFile}>
+                                    <Button onClick={handleDownload} disabled={isDownloadingFile} variant={'theme'}
+                                        Icon={Download} iconPlacement="left">
                                         {isDownloadingFile ? "Downloading..." : "Download Template"}
                                     </Button>
                                 )}
 
                                 {currentStep === "upload" && (
-                                    <Button onClick={handleFileUpload} disabled={!file || isUploading}>
+                                    <Button onClick={handleFileUpload} disabled={!file || isUploading} variant={'theme'}>
                                         {isUploading ? "Validating..." : "Upload and Continue"}
                                     </Button>
                                 )}
 
                                 {currentStep === "preview" && (
-                                    <Button onClick={handleOpenConfirmDialog} disabled={isSubmitting}>
+                                    <Button onClick={handleOpenConfirmDialog} disabled={isSubmitting} variant={'theme'}>
                                         {isSubmitting ? "Importing..." : "Import Scores"}
                                     </Button>
                                 )}

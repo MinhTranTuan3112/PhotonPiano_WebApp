@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
-import { CirclePlus, Delete, Edit2Icon, Import, Pencil, Trash, XIcon } from 'lucide-react'
+import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
+import { Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Pencil, Trash, User, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -247,19 +247,11 @@ export function EntranceTestDetailsContent({
 
     const entranceTest = useAsyncValue() as EntranceTestDetail;
 
-    const { handleOpen: handleOpenImportDialog, importResultDialog } = useImportResultDialog({
-        criterias: criterias,
-        entranceTestStudents: entranceTest.entranceTestStudents,
-        role
-    });
-
-    const [searchParams, setSearchParams] = useSearchParams();
-
     return <>
         <div className="flex flex-row justify-between items-center w-full">
             <div className="">
-                <h1 className="text-xl font-bold">Test details information</h1>
-                <p className='text-sm text-muted-foreground mb-4'>
+                <h1 className="text-xl font-bold text-theme">Test details information</h1>
+                <p className='text-sm mb-4 text-theme/60'>
                     Manage information about the time, exam room and score table, list of learners.
                 </p>
             </div>
@@ -267,16 +259,10 @@ export function EntranceTestDetailsContent({
                 <StatusBadge status={entranceTest.testStatus} />
             </div>
         </div>
-        <Tabs value={tab} className="">
-            <TabsList className="grid w-full grid-cols-2 my-4">
-                <TabsTrigger value="general" onClick={() => setSearchParams({
-                    ...Object.fromEntries(searchParams.entries()),
-                    tab: "general",
-                })}>Basic information</TabsTrigger>
-                <TabsTrigger value="students" onClick={() => setSearchParams({
-                    ...Object.fromEntries(searchParams.entries()),
-                    tab: "students",
-                })}>Learners</TabsTrigger>
+        <Tabs defaultValue='general' className="">
+            <TabsList className="grid w-full grid-cols-2 my-4 p-0 h-auto bg-background gap-1">
+                <TabsTrigger value="general" className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>Basic information</TabsTrigger>
+                <TabsTrigger value="students" className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>Learners</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
                 <Card className='border-t-4 border-t-theme'>
@@ -363,8 +349,8 @@ export function EntranceTestForm({
                         )
                     }
                 </div>}
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-100 p-3 rounded-lg">
+                <div className="grid grid-cols-2 gap-7">
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
                         <span className="text-gray-700 font-bold">Name: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
@@ -378,8 +364,8 @@ export function EntranceTestForm({
                         }
                         {errors.name && <span className='text-red-500'>{errors.name.message}</span>}
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Shift: <span className='text-red-600'>*</span></span>
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
+                        <span className="text-gray-700 font-bold flex flex-row items-center gap-1"><Clock className='text-theme size-4' /> Shift: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -402,7 +388,7 @@ export function EntranceTestForm({
                                                 <SelectGroup>
                                                     {
                                                         SHIFT_TIME.map((item, index) => (
-                                                            <SelectItem key={index} value={index.toString()}>Ca {index + 1} ({item})</SelectItem>
+                                                            <SelectItem key={index} value={index.toString()}>Shift {index + 1} ({item})</SelectItem>
                                                         ))
                                                     }
                                                 </SelectGroup>
@@ -411,13 +397,13 @@ export function EntranceTestForm({
                                     )}
                                 />
                             ) : (
-                                <p className="text-gray-900">{`Ca ${defaultData.shift + 1}: ${SHIFT_TIME[defaultData.shift]}`}</p>
+                                <p className="text-gray-900">{`Shift ${defaultData.shift + 1}: ${SHIFT_TIME[defaultData.shift]}`}</p>
                             )
                         }
                         {errors.shift && <span className='text-red-500'>{errors.shift.message}</span>}
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Test date: <span className='text-red-600'>*</span></span>
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
+                        <span className="text-gray-700 font-bold flex flex-row gap-1 items-center"><Calendar className='text-theme size-4' /> Test date: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -447,8 +433,8 @@ export function EntranceTestForm({
                         }
                         {errors.date && <span className='text-red-500'>{errors.date.message}</span>}
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Room: <span className='text-red-600'>*</span></span>
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
+                        <span className="text-gray-700 font-bold flex flex-row gap-1 items-center"><MapPin className='text-theme size-4' /> Room: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -499,8 +485,8 @@ export function EntranceTestForm({
                         }
                         {errors.roomId && <span className='text-red-500'>{errors.roomId.message}</span>}
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <span className="text-gray-700 font-bold">Teacher: <span className='text-red-600'>*</span></span>
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
+                        <span className="text-gray-700 font-bold flex flex-row gap-1 items-center"><User className='text-theme size-4' /> Teacher: <span className='text-red-600'>*</span></span>
                         {
                             isEdit ? (
                                 <Controller
@@ -523,8 +509,13 @@ export function EntranceTestForm({
                                                     totalPages: parseInt(headers['x-total-pages'] || '1'),
                                                     totalCount: parseInt(headers['x-total-count'] || '0'),
                                                 };
+
+                                                const data = await response.data as Account[];
+
+                                                const filteredData = data.filter((item) => item.accountFirebaseId !== defaultData.instructorId);
+
                                                 return {
-                                                    data: response.data,
+                                                    data: filteredData,
                                                     metadata
                                                 };
                                             }}
@@ -547,6 +538,8 @@ export function EntranceTestForm({
                                             onChange={(value) => {
                                                 onChange(value);
                                             }}
+                                            prechosenItem={defaultData.instructor}
+                                            hasPrechosenItemDisplay={false}
                                         />
                                     )}
                                 />
@@ -556,13 +549,13 @@ export function EntranceTestForm({
                         }
                         {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
                         <span className="text-gray-700 font-bold">Status: </span>
                         <div className="">
                             <StatusBadge status={defaultData.testStatus} />
                         </div>
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg col-start-2">
+                    <div className="bg-gray-100 p-3 rounded-lg col-start-2 border-l-4 border-l-theme">
                         <span className="text-gray-700 font-bold">Number of learners: </span>
                         <p className="text-gray-900">{defaultData.entranceTestStudents.length}</p>
                     </div>
@@ -650,7 +643,7 @@ function StudentsSection({
             <CardContent>
                 <div className="my-8">
                     {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
-                        <Button type='button' variant={'outline'}
+                        <Button type='button' variant={'theme'}
                             Icon={CirclePlus} iconPlacement='left'
                             disabled={isSubmitting} isLoading={isSubmitting}>
                             Add learner
@@ -658,7 +651,7 @@ function StudentsSection({
                     </div>}
 
                     <div className="flex justify-end">
-                        <Button type='button' variant={'outline'} onClick={handleOpenImportDialog}
+                        <Button type='button' variant={'theme'} onClick={handleOpenImportDialog}
                             Icon={Import} iconPlacement='left'>Import with Excel file</Button>
                     </div>
                     <ResultTable data={entranceTest.entranceTestStudents} />
