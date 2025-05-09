@@ -1,10 +1,11 @@
 import { useNavigate } from '@remix-run/react';
 import { Calendar, Clock, GraduationCap, Piano, Users } from 'lucide-react';
 import React from 'react'
+import NoInformation from '~/components/common/no-information';
 import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardHeader } from '~/components/ui/card';
 import { AccountDetail } from '~/lib/types/account/account';
-import { Class } from '~/lib/types/class/class';
+import { Class, ClassResponse } from '~/lib/types/class/class';
 import { CLASS_STATUS } from '~/lib/utils/constants';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 
@@ -67,10 +68,9 @@ const getCardStyle = (type: 'current' | 'past') => {
 export function ClassCard({
     classObj, type = 'current'
 }: {
-    classObj: Class;
+    classObj: ClassResponse;
     type?: 'current' | 'past';
 }) {
-
     const navigate = useNavigate();
 
     return <Card className={`overflow-hidden cursor-pointer ${getCardStyle(type)}`} onClick={() => navigate(`/staff/classes/${classObj.id}`)}>
@@ -92,7 +92,13 @@ export function ClassCard({
             <div className="flex items-center text-sm text-gray-700">
                 <Calendar className="mr-2 h-4 w-4 text-theme" />
                 <span className="font-medium">Start Date:</span>
-                <span className="ml-2">{classObj.startTime ? formatRFC3339ToDisplayableDate(classObj.startTime, false, false) : 'No information'}</span>
+                <span className="ml-2">{classObj.startTime ? formatRFC3339ToDisplayableDate(classObj.startTime, false, false) : <NoInformation />}</span>
+            </div>
+
+            <div className="flex items-center text-sm text-gray-700">
+                <Calendar className="mr-2 h-4 w-4 text-theme" />
+                <span className="font-medium">End Date:</span>
+                <span className="ml-2">{classObj.endTime ? formatRFC3339ToDisplayableDate(classObj.endTime, false, false) : <NoInformation />}</span>
             </div>
 
             <div className="flex items-center text-sm text-gray-700">
