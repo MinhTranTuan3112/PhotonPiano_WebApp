@@ -706,13 +706,6 @@ export default function StaffClassDetailPage({ }: Props) {
 
   const publishFetcher = useFetcher<ActionResult>();
 
-  const { open: handleOpenPublishModal, dialog: confirmPublishDialog } = useConfirmationDialog({
-    title: 'Confirm Publish The Class',
-    description: 'Do you want to publish this class. After this, the class will no longer in draft state, all learners and teacher of this class will be annouced? This action can not go back!',
-    onConfirm: () => {
-      handlePublish();
-    }
-  })
   const { loadingDialog } = useLoadingDialog({
     fetcher: publishFetcher,
     action: () => {
@@ -730,6 +723,15 @@ export default function StaffClassDetailPage({ }: Props) {
       method: "PATCH"
     })
   }
+
+  const { open: handleOpenPublishModal, dialog: confirmPublishDialog } = useConfirmationDialog({
+    title: 'Confirm Publish The Class',
+    description: 'Do you want to publish this class. After this, the class will no longer in draft state, all learners and teacher of this class will be annouced? This action can not go back!',
+    onConfirm: handlePublish,
+    confirmText: 'Publish',
+    confirmButtonClassname: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500',
+  });
+
   return (
     <div className='px-8'>
       <div className="flex items-center gap-3 mb-4">
@@ -744,21 +746,25 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
-
-
                 {
                   !data.classDetail.isPublic && (
                     <Alert variant="warning">
                       <AlertTriangle className="h-10 w-10 pr-4" />
-                      <AlertTitle>The class is not published yet. </AlertTitle>
-                      <AlertDescription>
-                        Once setup is complete, click the publish button so learners receive updates.
-                      </AlertDescription>
+                      <div className="flex flex-row justify-between items-center">
+                        <div className="">
+                          <AlertTitle>The class is not published yet. </AlertTitle>
+                          <AlertDescription>
+                            Once setup is complete, click the publish button so learners receive updates.
+                          </AlertDescription>
+                        </div>
+                        <Button type='button' onClick={handleOpenPublishModal} className='uppercase' variant={'warning'}>
+                          Publish Class
+                        </Button>
+                      </div>
                     </Alert>
                   )
                 }
-
-
+                
                 <Tabs defaultValue={tab}>
                   <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 p-0 h-auto bg-background gap-1">
                     <TabsTrigger value="general" onClick={() => setSearchParams({

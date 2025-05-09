@@ -19,6 +19,7 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         theme: "bg-theme text-theme-foreground hover:bg-theme/90",
+        warning: "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500",
         expandIcon:
           "group relative text-primary-foreground bg-primary hover:bg-primary/90",
         expandIconTheme:
