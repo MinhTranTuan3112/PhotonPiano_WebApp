@@ -416,8 +416,15 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                                                 totalPages: parseInt(headers['x-total-pages'] || '1'),
                                                                 totalCount: parseInt(headers['x-total-count'] || '0'),
                                                             };
+
+                                                            const data = await response.data as TeacherModel[];
+
+                                                            const teachers = data.filter((teacher) => {
+                                                                return teacher.accountFirebaseId !== slot.teacherId;
+                                                            });
+
                                                             return {
-                                                                data: response.data as TeacherModel[],
+                                                                data: teachers,
                                                                 metadata
                                                             };
                                                         }}
@@ -426,12 +433,13 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                                             value: item?.accountFirebaseId
                                                         })}
                                                         prechosenItem={slot.teacher}
-                                                        placeholder="Select teacher"
+                                                        placeholder="Select new teacher"
                                                         emptyText="No teachers available"
                                                         errorText="Error loading teachers"
                                                         value={field.value}
                                                         onChange={field.onChange}
                                                         maxItemsDisplay={10}
+                                                        hasPrechosenItemDisplay={false}
                                                     />
                                                 )}
                                             />

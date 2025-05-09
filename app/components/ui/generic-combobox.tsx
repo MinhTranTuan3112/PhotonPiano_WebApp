@@ -22,7 +22,8 @@ type Props<T> = {
     errorText?: string;
     emptyText?: string;
     className?: string;
-    prechosenItem?: T
+    prechosenItem?: T;
+    hasPrechosenItemDisplay?: boolean;
 }
 
 export default function GenericCombobox<T>({
@@ -36,7 +37,8 @@ export default function GenericCombobox<T>({
     emptyText = 'Không có kết quả.',
     className,
     prechosenItem,
-    onItemChange
+    onItemChange,
+    hasPrechosenItemDisplay = true
 }: Props<T>) {
 
     const [isPreloading, setIsPreloading] = useState(true);
@@ -84,7 +86,7 @@ export default function GenericCombobox<T>({
         return <div>{errorText}</div>;
     }
 
-    const fetchedData: T[] = [
+    let fetchedData: T[] = [
         ...initialItems,
         ...(data?.pages
             .flatMap(item => item.data)
@@ -105,6 +107,7 @@ export default function GenericCombobox<T>({
                     {(value && value != '')
                         ? items.find((item) => item.value === value)?.label
                         : placeholder}
+
                     {isLoading ? <Loader2 className='animate-spin' /> : <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
                 </Button>
             </PopoverTrigger>
@@ -128,7 +131,16 @@ export default function GenericCombobox<T>({
                         )}
                         {items.length > 0 ? (
                             <CommandGroup>
-                                {items.map((item) => (
+                                {hasPrechosenItemDisplay ? items.map((item) => (
+                                    <CommandItem key={item.value} onSelect={() => {
+                                        setValue(item.value);
+                                        onChange?.(item.value);
+                                        onItemChange?.(fetchedData.find(i => mapItem(i).value === item.value) as T);
+                                        setOpen(false);
+                                    }}>
+                                        {item.label}
+                                    </CommandItem>
+                                )) : items.filter(i => i.value !== controlledValue).map((item) => (
                                     <CommandItem key={item.value} onSelect={() => {
                                         setValue(item.value);
                                         onChange?.(item.value);
