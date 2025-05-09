@@ -251,7 +251,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   return (
     <Card className='border-t-4 border-t-theme'>
       <CardHeader>
-        <CardTitle>General Inforamtion</CardTitle>
+        <CardTitle>General Information</CardTitle>
         <CardDescription>
           Basic information of the class
         </CardDescription>
@@ -660,29 +660,31 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           </div>
         </Form>
 
-        <SlotStatusAnnotation />
-
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
-          {
-            classInfo.slots.map((s, index) => (
-              <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
-                <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
-                  <div className='flex gap-2 justify-center'>
-                    <Music2 /> Slot {index + 1}
+        {classInfo.slots.length > 0 ? <>
+          <SlotStatusAnnotation />
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
+            {
+              classInfo.slots.map((s, index) => (
+                <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
+                  <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
+                    <div className='flex gap-2 justify-center'>
+                      <Music2 /> Slot {index + 1}
+                    </div>
                   </div>
-                </div>
-                <div className='px-2 py-4 rounded-b-lg shadow-md'>
-                  <div className='flex flex-col gap-2'>
-                    <div><span className='font-bold'>Shift : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
-                    <div><span className='font-bold'>Date : </span><span className='ml-2'>{s.date}</span></div>
+                  <div className='px-2 py-4 rounded-b-lg shadow-md'>
+                    <div className='flex flex-col gap-2'>
+                      <div><span className='font-bold'>Shift : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
+                      <div><span className='font-bold'>Date : </span><span className='ml-2'>{s.date}</span></div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
+                </div>))
+            }
+          </div>
+          <SlotStatusAnnotation />
+        </> : <p className='text-center'>No slots.</p>}
 
-        <SlotStatusAnnotation />
+
+
 
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
@@ -758,29 +760,29 @@ export default function StaffClassDetailPage({ }: Props) {
 
 
                 <Tabs defaultValue={tab}>
-                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4">
+                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 p-0 h-auto bg-background gap-1">
                     <TabsTrigger value="general" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "general",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       General Information
                     </TabsTrigger>
                     <TabsTrigger value="students" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "students",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Learner List
                     </TabsTrigger>
                     <TabsTrigger value="scores" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "scores",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Learner Transript
                     </TabsTrigger>
                     <TabsTrigger value="timeTable" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "timeTable",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Class Schedule
                     </TabsTrigger>
                   </TabsList>
