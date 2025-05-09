@@ -1,7 +1,7 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
 import { EntranceTest, EntranceTestStatus } from "~/lib/types/entrance-test/entrance-test";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Loader2, Eye } from 'lucide-react'
+import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Loader2, Eye, CheckCircle, XCircle } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
@@ -95,6 +95,13 @@ export const columns: ColumnDef<EntranceTest>[] = [
         header: "Teacher",
         cell: ({ row }) => {
             return <div>{row.original.instructorName || '(None)'}</div>
+        }
+    },
+    {
+        accessorKey: 'Is score announced',
+        header: 'Is score announced',
+        cell: ({ row }) => {
+            return <div className="flex justify-center">{row.original.isAnnouncedScore ? <CheckCircle className="text-green-500"/> : <XCircle className="text-red-500"/>}</div>
         }
     },
     {

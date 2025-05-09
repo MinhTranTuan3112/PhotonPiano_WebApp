@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Pencil, Trash, User, XIcon } from 'lucide-react'
+import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Pencil, Trash, User, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -37,6 +37,9 @@ import { useStudentListDialog } from '~/hooks/use-student-list-dialog'
 import { action as addStudentsToTestAction } from '~/routes/add-students-to-test';
 import { getEntranceTestName } from './staff.entrance-tests.create'
 import { toastWarning } from '~/lib/utils/toast-utils'
+import { ActionResult } from '~/lib/types/action-result'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
+import { Badge } from '~/components/ui/badge'
 
 type Props = {}
 
@@ -255,8 +258,11 @@ export function EntranceTestDetailsContent({
                     Manage information about the time, exam room and score table, list of learners.
                 </p>
             </div>
-            <div className="w-[20%]">
+            <div className="flex flex-row gap-3">
                 <StatusBadge status={entranceTest.testStatus} />
+                <div className={`uppercase text-center my-1 p-2 rounded-lg ${entranceTest.isAnnouncedScore ? 'text-green-500 bg-green-200 font-semibold' : 'text-gray-500 bg-gray-200 font-semibold'}`}>
+                    {entranceTest.isAnnouncedScore ? 'Score published' : 'Score not published'}
+                </div>
             </div>
         </div>
         <Tabs defaultValue='general' className="">
@@ -280,6 +286,7 @@ export function EntranceTestDetailsContent({
                     idToken={idToken} />
             </TabsContent>
         </Tabs>
+        {role === Role.Staff && <DeleteEntranceTestSection entranceTest={entranceTest} />}
     </>
 }
 
@@ -666,7 +673,7 @@ function StudentsSection({
                     )
                 }
                 <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
-                    status={entranceTest.status} />
+                    status={entranceTest.testStatus} />
             </CardFooter>}
 
         </Card>
@@ -681,17 +688,6 @@ function LoadingSkeleton() {
     </div>
 }
 
-
-function ComboboxSkeleton() {
-    return <div className="flex flex-col gap-2 justify-center items-center my-4">
-        <Skeleton className="w-full h-[100px] rounded-md" />
-        <Skeleton className="w-full h-[100px] rounded-md" />
-        <Skeleton className="w-full h-[100px] rounded-md" />
-        <Skeleton className="w-full h-[100px] rounded-md" />
-        <Skeleton className="w-full h-[100px] rounded-md" />
-    </div>
-}
-
 function PublishScoreSection({
     isAnnouncedScore,
     id,
@@ -702,13 +698,15 @@ function PublishScoreSection({
     status: EntranceTestStatus;
 }) {
 
-    const fetcher = useFetcher<typeof action>();
+    const fetcher = useFetcher<ActionResult>();
 
     const isSubmitting = fetcher.state === 'submitting';
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
         description: `Are you sure you want to ${isAnnouncedScore ? "cancel" : "publish"} test results?`,
+        confirmText: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
+        confirmButtonClassname: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500',
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', id);
@@ -729,7 +727,8 @@ function PublishScoreSection({
 
         if (fetcher.data?.success === false && fetcher.data.error) {
             toastWarning(fetcher.data.error, {
-                position: 'top-center'
+                position: 'top-center',
+                duration: 5000
             });
             return;
         }
@@ -741,24 +740,92 @@ function PublishScoreSection({
     }, [fetcher.data]);
 
 
-    return <>
-        <Button className={`font-bold px-12 ${isAnnouncedScore ? "bg-red-700" : "bg-gray-700"} `}
-            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}>
+    return <div className='flex flex-col gap-3 w-full'>
+        {status !== EntranceTestStatus.Ended && <Alert variant="warning" className='my-5 w-full'>
+            <AlertTriangle className="h-10 w-10 pr-5" />
+            <AlertTitle>
+                This test has not ended yet.
+            </AlertTitle>
+            <AlertDescription>
+                Test results can be published after the test is finished.
+            </AlertDescription>
+        </Alert>}
+        <Button className={`font-bold uppercase max-w-[60%] mx-auto`}
+            type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}
+            disabled={status !== EntranceTestStatus.Ended || isSubmitting}
+            variant={isAnnouncedScore ? 'destructive' : 'warning'}
+        >
             {
                 isAnnouncedScore === true ? (
                     <>
                         <Delete className='mr-4'
                         />
-                        Cancel publishing score
+                        Cancel publishing results
                     </>
                 ) : (
                     <>
-                        <Pencil className='mr-4' />
-                        Publish score
+                        Publish results
                     </>
                 )
             }
         </Button>
         {confirmDialog}
-    </>
+    </div>
+}
+
+function DeleteEntranceTestSection({
+    entranceTest
+}: {
+    entranceTest: EntranceTestDetail;
+}) {
+
+    const fetcher = useFetcher<ActionResult>();
+
+    const isSubmitting = fetcher.state === 'submitting';
+
+    const { open: handleOpenDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm delete entrance test',
+        description: 'Are you sure you want to delete this entrance test?',
+        confirmText: 'Delete',
+        confirmButtonClassname: 'bg-red-600 hover:bg-red-700',
+        onConfirm: () => {
+            const formData = new FormData();
+            formData.append('entranceTestId', entranceTest.id);
+            fetcher.submit(formData, {
+                method: "POST",
+                action: "/delete-entrance-test",
+            });
+        }
+    });
+
+    useEffect(() => {
+
+        if (fetcher.data?.success === true) {
+            toast.success("Test deleted successfully!");
+            return;
+        }
+
+        if (fetcher.data?.success === false) {
+            toastWarning(fetcher.data.error, {
+                duration: 5000
+            });
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [fetcher.data]);
+
+
+    return <div className="my-4 flex justify-center">
+        <Button type='button' variant={'destructive'} className='uppercase font-bold'
+            onClick={handleOpenDialog}
+            isLoading={isSubmitting}
+            disabled={isSubmitting || entranceTest.testStatus !== EntranceTestStatus.NotStarted}>
+            Delete this test
+        </Button>
+        {confirmDialog}
+    </div>
 }

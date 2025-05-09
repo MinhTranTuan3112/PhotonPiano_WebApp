@@ -55,7 +55,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export default function StaffStudentDetailPage() {
   const { promise, id } = useLoaderData<typeof loader>();
   return (
-    <div className="container mx-auto px-4 py-6 animate-fade-in">
+    <div className="container mx-auto px-4 pb-6 pt-2 animate-fade-in">
       <Suspense fallback={<LoadingSkeleton />} key={id}>
         <Await resolve={promise}>
           {({ student }) => (
