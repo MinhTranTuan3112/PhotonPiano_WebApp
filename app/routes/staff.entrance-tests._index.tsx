@@ -110,7 +110,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     {({ entranceTestsPromise, metadata }) => (
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
-                                <Button variant={'outline'} Icon={CirclePlus} iconPlacement='left'
+                                <Button variant={'theme'} Icon={CirclePlus} iconPlacement='left'
                                     onClick={() => navigate('../entrance-tests/create')}>
                                     Create new test
                                 </Button>
@@ -144,7 +144,7 @@ export function ErrorBoundary() {
             {/* <SearchForm /> */}
             <div className="flex flex-col gap-5 justify-center items-center">
                 <h1 className='text-3xl font-bold'>{isRouteErrorResponse(error) && error.statusText ? error.statusText :
-                    'Có lỗi đã xảy ra.'} </h1>
+                    'Error.'} </h1>
                 <Link className={`${buttonVariants({ variant: "theme" })} font-bold uppercase 
                         flex flex-row gap-1`}
                     to={pathname ? `${pathname}${search}` : '/'}

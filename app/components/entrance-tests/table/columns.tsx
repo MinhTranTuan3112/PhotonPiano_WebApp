@@ -1,6 +1,6 @@
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { EntranceTest } from "~/lib/types/entrance-test/entrance-test";
+import { EntranceTest, EntranceTestStatus } from "~/lib/types/entrance-test/entrance-test";
 import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Loader2, Eye } from 'lucide-react'
 import { ENTRANCE_TEST_STATUSES, SHIFT_TIME } from "~/lib/utils/constants";
 import { Badge } from "~/components/ui/badge";
@@ -176,7 +176,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                     <Eye /> View
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
-                    disabled={isSubmitting}>
+                    disabled={isSubmitting || row.original.testStatus !== EntranceTestStatus.NotStarted}>
                     {!isSubmitting ? <Trash2 /> : <Loader2 className="animate-spin" />} Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -12,6 +12,7 @@ import AddStudentClassDialog from '~/components/staffs/classes/add-student-class
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
@@ -250,7 +251,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   return (
     <Card className='border-t-4 border-t-theme'>
       <CardHeader>
-        <CardTitle>General Inforamtion</CardTitle>
+        <CardTitle>General Information</CardTitle>
         <CardDescription>
           Basic information of the class
         </CardDescription>
@@ -621,13 +622,13 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       <CardContent>
         {
           classInfo.requiredSlots - classInfo.totalSlots > 0 && (
-            <div className='bg-orange-200 rounded-lg p-2 flex gap-2 items-center mb-4'>
-              <TriangleAlert size={100} />
-              <div>
-                This class hasn't met the minimum total slots required<br></br>
+            <Alert variant="warning" className='my-5'>
+              <AlertTriangle className="h-10 w-10 pr-4" />
+              <AlertTitle>This class hasn't met the minimum total slots required. </AlertTitle>
+              <AlertDescription>
                 You need to add {classInfo.requiredSlots - classInfo.totalSlots} more slots
-              </div>
-            </div>
+              </AlertDescription>
+            </Alert>
           )
         }
 
@@ -659,29 +660,31 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           </div>
         </Form>
 
-        <SlotStatusAnnotation />
-
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
-          {
-            classInfo.slots.map((s, index) => (
-              <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
-                <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
-                  <div className='flex gap-2 justify-center'>
-                    <Music2 /> Slot {index + 1}
+        {classInfo.slots.length > 0 ? <>
+          <SlotStatusAnnotation />
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
+            {
+              classInfo.slots.map((s, index) => (
+                <div className='hover:scale-105 transition-all flex flex-col' onClick={() => navigate(`/staff/classes/slot/${s.id}`)} key={index}>
+                  <div className={`py-2 rounded-t-lg font-bold ${getSlotCover(s.status)}`}>
+                    <div className='flex gap-2 justify-center'>
+                      <Music2 /> Slot {index + 1}
+                    </div>
                   </div>
-                </div>
-                <div className='px-2 py-4 rounded-b-lg shadow-md'>
-                  <div className='flex flex-col gap-2'>
-                    <div><span className='font-bold'>Shift : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
-                    <div><span className='font-bold'>Date : </span><span className='ml-2'>{s.date}</span></div>
+                  <div className='px-2 py-4 rounded-b-lg shadow-md'>
+                    <div className='flex flex-col gap-2'>
+                      <div><span className='font-bold'>Shift : </span><span className='ml-2'>{s.shift + 1} ({SHIFT_TIME[s.shift]})</span></div>
+                      <div><span className='font-bold'>Date : </span><span className='ml-2'>{s.date}</span></div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          }
-        </div>
+                </div>))
+            }
+          </div>
+          <SlotStatusAnnotation />
+        </> : <p className='text-center'>No slots.</p>}
 
-        <SlotStatusAnnotation />
+
+
 
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
@@ -741,45 +744,45 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
+
+
                 {
                   !data.classDetail.isPublic && (
-                    <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2 items-center'>
-                      <div className='flex gap-2 items-center'>
-                        <TriangleAlert size={64} />
-                        <div>
-                          The class is not published yet. Once setup is complete, click the publish button so learners receive updates.
-                        </div>
-                      </div>
-                      <Button onClick={handleOpenPublishModal}>PUBLISH CLASS</Button>
-                    </div>
+                    <Alert variant="warning">
+                      <AlertTriangle className="h-10 w-10 pr-4" />
+                      <AlertTitle>The class is not published yet. </AlertTitle>
+                      <AlertDescription>
+                        Once setup is complete, click the publish button so learners receive updates.
+                      </AlertDescription>
+                    </Alert>
                   )
                 }
 
 
                 <Tabs defaultValue={tab}>
-                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4">
+                  <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 p-0 h-auto bg-background gap-1">
                     <TabsTrigger value="general" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "general",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       General Information
                     </TabsTrigger>
                     <TabsTrigger value="students" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "students",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Learner List
                     </TabsTrigger>
                     <TabsTrigger value="scores" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "scores",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Learner Transript
                     </TabsTrigger>
                     <TabsTrigger value="timeTable" onClick={() => setSearchParams({
                       ...Object.fromEntries(searchParams.entries()),
                       tab: "timeTable",
-                    })}>
+                    })} className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                       Class Schedule
                     </TabsTrigger>
                   </TabsList>
