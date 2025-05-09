@@ -5,8 +5,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { CLASS_STATUS, STUDENT_STATUS } from "~/lib/utils/constants";
-import { Class } from "~/lib/types/class/class";
+import { Class, ClassResponse } from "~/lib/types/class/class";
 import { Level } from "~/lib/types/account/account";
+import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -42,7 +43,7 @@ function StatusBadge({ status }: {
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{CLASS_STATUS[status]}</Badge>
 }
-export const classColums: ColumnDef<Class>[] = [
+export const classColums: ColumnDef<ClassResponse>[] = [
     // {
     //     id: "select",
     //     header: ({ table }) => (
@@ -91,6 +92,20 @@ export const classColums: ColumnDef<Class>[] = [
         }
     },
     {
+        accessorKey: 'Start Time',
+        header: () => <div className="flex flex-row gap-1 items-center"><CalendarClock /> Start Time</div>,
+        cell: ({ row }) => {
+            return <div>{row.original.startTime ? formatRFC3339ToDisplayableDate(row.original.startTime, false, false) : '(No information)'}</div>
+        }
+    },
+    {
+        accessorKey: 'End Time',
+        header: () => <div className="flex flex-row gap-1 items-center"><Clock /> End Time</div>,
+        cell: ({ row }) => {
+            return <div>{row.original.endTime ? formatRFC3339ToDisplayableDate(row.original.endTime, false, false) : '(No information)'}</div>
+        }
+    },
+    {
         accessorKey: 'Instructor',
         header: () => <div className="flex flex-row gap-1 items-center"><User /> Instructor</div>,
         cell: ({ row }) => {
@@ -98,8 +113,8 @@ export const classColums: ColumnDef<Class>[] = [
         }
     },
     {
-        accessorKey: 'Student Number',
-        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Student Number</div>,
+        accessorKey: 'Learner Number',
+        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Learner Number</div>,
         cell: ({ row }) => {
             return <div>{row.original.studentNumber} / {row.original.capacity}</div>
         }

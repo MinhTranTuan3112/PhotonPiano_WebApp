@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
-import { ActionFunctionArgs, data, LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { Bell, BellRing, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Sheet, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
-import React, { ReactNode, Suspense, useState } from 'react'
+import { CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
@@ -13,18 +13,17 @@ import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-sche
 import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Button } from '~/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
 import GenericCombobox from '~/components/ui/generic-combobox';
 import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
 import { SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
-import { fetchClassDetail, fetchClassScoreboard, fetchDeleteStudentClass } from '~/lib/services/class';
+import { fetchClassDetail, fetchClassScoreboard } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
 import { fetchSystemConfigByName } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
@@ -34,9 +33,7 @@ import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { ALLOW_SKIPPING_LEVEL } from '~/lib/utils/config-name';
-import { CLASS_STATUS, LEVEL, SHIFT_TIME } from '~/lib/utils/constants';
-import { formEntryToString } from '~/lib/utils/form';
-import { getParsedParamsArray } from '~/lib/utils/url';
+import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
 
 type Props = {}
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -251,7 +248,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
   }
 
   return (
-    <Card>
+    <Card className='border-t-4 border-t-theme'>
       <CardHeader>
         <CardTitle>General Inforamtion</CardTitle>
         <CardDescription>
@@ -482,7 +479,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
 
 
   return (
-    <Card>
+    <Card className='border-t-4 border-t-theme'>
       <CardHeader>
         <CardTitle>Learner List</CardTitle>
         <CardDescription>
@@ -614,7 +611,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   }
 
   return (
-    <Card>
+    <Card className='border-t-4 border-t-theme'>
       <CardHeader>
         <CardTitle>Schedule</CardTitle>
         <CardDescription>
@@ -624,7 +621,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       <CardContent>
         {
           classInfo.requiredSlots - classInfo.totalSlots > 0 && (
-            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
+            <div className='bg-orange-200 rounded-lg p-2 flex gap-2 items-center mb-4'>
               <TriangleAlert size={100} />
               <div>
                 This class hasn't met the minimum total slots required<br></br>
@@ -662,6 +659,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
           </div>
         </Form>
 
+        <SlotStatusAnnotation />
+
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 gap-x-4 gap-y-8 cursor-pointer'>
           {
             classInfo.slots.map((s, index) => (
@@ -681,6 +680,9 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             ))
           }
         </div>
+
+        <SlotStatusAnnotation />
+
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
@@ -741,7 +743,7 @@ export default function StaffClassDetailPage({ }: Props) {
               <div className='w-full mt-8'>
                 {
                   !data.classDetail.isPublic && (
-                    <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2  items-center'>
+                    <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2 items-center'>
                       <div className='flex gap-2 items-center'>
                         <TriangleAlert size={64} />
                         <div>
@@ -812,5 +814,28 @@ export default function StaffClassDetailPage({ }: Props) {
 function LoadingSkeleton() {
   return <div className="flex justify-center items-center my-4">
     <Skeleton className="w-full h-[500px] rounded-md" />
+  </div>
+}
+
+function SlotStatusAnnotation() {
+  return <div className="flex justify-end my-5">
+    <div className="flex items-center gap-4 text-sm text-neutral-600">
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-3 w-3 rounded-full bg-gray-500"></span>
+        <span>Not Started</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-3 w-3 rounded-full bg-yellow-500"></span>
+        <span>On Going</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-3 w-3 rounded-full bg-green-500"></span>
+        <span>Finished</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="inline-block h-3 w-3 rounded-full bg-red-500"></span>
+        <span>Cancelled</span>
+      </div>
+    </div>
   </div>
 }

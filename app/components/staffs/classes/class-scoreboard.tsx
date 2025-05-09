@@ -201,7 +201,7 @@ export function ClassScoreboard({
   }
 
   return (
-    <Card className="shadow-md border-0">
+    <Card className="shadow-md border-0 border-t-4 border-t-theme">
       <CardHeader className="bg-slate-50 rounded-t-lg border-b">
         <div className="flex items-center justify-between">
           <div>

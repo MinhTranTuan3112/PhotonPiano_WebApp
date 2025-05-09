@@ -1,27 +1,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { data, LoaderFunctionArgs, redirect } from '@remix-run/node';
+import {  LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { Music2, PlusCircle, Search, Shuffle, SortDescIcon, Users } from 'lucide-react';
-import React, { Suspense, useState } from 'react'
+import { PlusCircle, Search, Shuffle, Users } from 'lucide-react';
+import { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import AddClassDialog from '~/components/staffs/classes/add-class-dialog';
 import { classColums } from '~/components/staffs/table/class-columns';
-import { studentColumns } from '~/components/staffs/table/student-columns';
 import { Button } from '~/components/ui/button';
-import { DataTable } from '~/components/ui/data-table';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { MultiSelect } from '~/components/ui/multi-select';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchClasses } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
 import { Level } from '~/lib/types/account/account';
-import { Class } from '~/lib/types/class/class';
+import { Class, ClassResponse } from '~/lib/types/class/class';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
-import { CLASS_STATUS, LEVEL } from '~/lib/utils/constants';
+import { CLASS_STATUS } from '~/lib/utils/constants';
 import { getParsedParamsArray } from '~/lib/utils/url';
 
 type Props = {}
@@ -48,8 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const promise = fetchClasses({ ...query }).then((response) => {
 
-    const classes: Class[] = response.data;
-    console.log(classes);
+    const classes: ClassResponse[] = response.data;
     const headers = response.headers;
 
     const metadata: PaginationMetaData = {
