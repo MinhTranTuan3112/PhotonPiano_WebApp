@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -12,6 +12,7 @@ import AddStudentClassDialog from '~/components/staffs/classes/add-student-class
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { DataTable } from '~/components/ui/data-table';
@@ -621,13 +622,13 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
       <CardContent>
         {
           classInfo.requiredSlots - classInfo.totalSlots > 0 && (
-            <div className='bg-orange-200 rounded-lg p-2 flex gap-2 items-center mb-4'>
-              <TriangleAlert size={100} />
-              <div>
-                This class hasn't met the minimum total slots required<br></br>
+            <Alert variant="warning" className='my-5'>
+              <AlertTriangle className="h-10 w-10 pr-4" />
+              <AlertTitle>This class hasn't met the minimum total slots required. </AlertTitle>
+              <AlertDescription>
                 You need to add {classInfo.requiredSlots - classInfo.totalSlots} more slots
-              </div>
-            </div>
+              </AlertDescription>
+            </Alert>
           )
         }
 
@@ -741,17 +742,17 @@ export default function StaffClassDetailPage({ }: Props) {
           {
             (data) => (
               <div className='w-full mt-8'>
+
+
                 {
                   !data.classDetail.isPublic && (
-                    <div className='flex place-content-between gap-2 bg-gray-100 rounded-lg p-2 items-center'>
-                      <div className='flex gap-2 items-center'>
-                        <TriangleAlert size={64} />
-                        <div>
-                          The class is not published yet. Once setup is complete, click the publish button so learners receive updates.
-                        </div>
-                      </div>
-                      <Button onClick={handleOpenPublishModal}>PUBLISH CLASS</Button>
-                    </div>
+                    <Alert variant="warning">
+                      <AlertTriangle className="h-10 w-10 pr-4" />
+                      <AlertTitle>The class is not published yet. </AlertTitle>
+                      <AlertDescription>
+                        Once setup is complete, click the publish button so learners receive updates.
+                      </AlertDescription>
+                    </Alert>
                   )
                 }
 

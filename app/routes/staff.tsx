@@ -110,15 +110,28 @@ function getBreadcrumbPageName({ pathname }: {
                 })
             }
             break;
-        case pathname === '/staff/classes':
+        case pathname.startsWith('/staff/classes'):
+            const classParam = pathname.replace('/staff/classes', "");
+
             otherNavItems = [
                 {
                     name: "Classes",
-                    url: pathname,
-                    isCurrentPage: true
+                    url: '/staff/classes',
+                    isCurrentPage: classParam.length === 0
                 }
             ]
+    
+
+            if (classParam.length > 1) {
+                otherNavItems.push({
+                    name: "Class details",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
             break;
+
+            
         case pathname === '/staff/applications':
             otherNavItems = [
                 {
