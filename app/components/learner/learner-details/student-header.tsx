@@ -1,11 +1,12 @@
-import { BookOpen, Calendar, GraduationCap, Mail, MapPin, Phone, SquareUserRound, User } from 'lucide-react';
-import { LevelBadge, StatusBadge } from '~/components/staffs/table/student-columns';
+import { Calendar, Mail, MapPin, Phone, SquareUserRound, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Badge } from '~/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
+import { Card, CardContent } from '~/components/ui/card';
 import { Label } from '~/components/ui/label';
 import { AccountDetail, Gender } from '~/lib/types/account/account';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import AcademicSection from './academic-section';
+import NoInformation from '~/components/common/no-information';
 
 type Props = {
     student: AccountDetail;
@@ -57,7 +58,7 @@ export default function StudentHeader({ student }: Props) {
                                         Username
                                     </Label>
                                     <div>{student.userName || <NoInformation />}</div>
-                                    
+
                                 </div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -67,7 +68,7 @@ export default function StudentHeader({ student }: Props) {
                                         Email
                                     </Label>
                                     <p>{student.email}</p>
-                                    
+
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="font-bold flex flex-row gap-1 items-center">
@@ -75,7 +76,7 @@ export default function StudentHeader({ student }: Props) {
                                         Phone
                                     </Label>
                                     <div>{student.phone || <NoInformation />}</div>
-                                    
+
                                 </div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -101,7 +102,7 @@ export default function StudentHeader({ student }: Props) {
                                     Address
                                 </Label>
                                 <div>{student.address || <NoInformation />}</div>
-                                
+
                             </div>
                             <div className="space-y-2">
                                 <Label className="font-bold">
@@ -114,62 +115,8 @@ export default function StudentHeader({ student }: Props) {
                     </CardContent></Card>
             </section>
 
-
-            <section className="space-y-4">
-                <div className="flex items-center gap-2 text-lg font-bold text-neutral-800">
-                    <BookOpen className="size-5 text-theme" />
-                    <h3 className='font-bold'>Academic information</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-8">
-                    <Card className="bg-muted/40 border-l-4 border-l-theme">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center">
-                                <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between">
-                                <span className="text-lg font-bold">Current</span>
-                                <LevelBadge level={student.level} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-muted/40 border-l-4 border-l-theme">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center">
-                                <BookOpen className="mr-2 h-4 w-4" /> Academic status
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between">
-                                <span className="text-lg font-bold">Status</span>
-                                <StatusBadge status={student.studentStatus || 0} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card className='border-l-4 border-l-theme'>
-                    <CardHeader>
-                        <CardTitle className="text-lg">Continue learning</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-1">
-                            <Badge variant={'outline'} className={`uppercase ${student.wantToContinue ? 'text-green-500' : 'text-red-500'}`}>
-                                {student.wantToContinue ? 'Registered' : 'Not registered'}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
-            </section>
+            <AcademicSection student={student} />
 
         </div>
     )
-}
-
-function NoInformation() {
-    return <Badge variant={'outline'} className='text-muted-foreground italic'>
-        No information
-    </Badge>
 }

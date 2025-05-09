@@ -362,7 +362,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
     return <>
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
-            <DialogContent className='min-w-[1000px]'>
+            <DialogContent className='min-w-[1000px] border-t-4 border-t-theme'>
                 <DialogHeader>
                     <DialogTitle className='flex flex-row justify-between mr-4'>
                         <div className="flex flex-row gap-2 items-center"> <Piano className='size-5' /> Piano entrance test details results</div>
