@@ -21,7 +21,7 @@ export function PianoLevelTimeline({ levels, currentLevelId, className }: Props)
 
             <div className="relative overflow-x-auto pb-4">
                 <div className="relative min-w-max">
-                    <div className="flex pt-4">
+                    <div className="flex flex-row gap-4 pt-4">
                         {levels.map((level, index) => {
                             const isCompleted = index < currentLevelIndex
                             const isCurrent = index === currentLevelIndex
@@ -40,6 +40,7 @@ export function PianoLevelTimeline({ levels, currentLevelId, className }: Props)
                                                         ? "bg-background border-theme ring-2 ring-theme/20 animate-pulse"
                                                         : "bg-background border-muted"
                                             )}
+
                                         >
                                             {isCompleted ? (
                                                 <Check className="h-5 w-5 animate" />
@@ -60,20 +61,27 @@ export function PianoLevelTimeline({ levels, currentLevelId, className }: Props)
 
                                     <div
                                         className={cn(
-                                            "mt-4 p-4 rounded-lg transition-all w-[140px] h-[100px] flex items-center justify-center",
+                                            "mt-4 p-4 rounded-lg transition-all w-full h-[100px] flex items-center justify-center",
                                             isCompleted
-                                                ? "bg-theme/5 border border-theme/10 text-theme"
+                                                ? "border border-theme/10 text-theme"
                                                 : isCurrent
-                                                    ? "bg-background border-2 border-theme shadow-md animate-pulse"
+                                                    ? "bg-background border-2 shadow-md animate-pulse"
                                                     : "bg-background border border-border"
                                         )}
+                                        style={{
+                                            borderTopWidth: '5px',
+                                            borderTopColor: level.themeColor
+                                        }}
                                     >
-                                        <div className="flex flex-col items-center text-center gap-2">
+                                        <div className="flex flex-col items-center text-center gap-4">
                                             <h4
                                                 className={cn(
                                                     "font-medium text-sm",
-                                                    isCompleted ? "text-theme" : isCurrent ? "text-theme" : "text-muted-foreground"
                                                 )}
+                                                style={{
+                                                    color: level.themeColor,
+                                                    fontWeight: isCompleted ? 'bold' : 'normal',
+                                                }}
                                             >
                                                 {level.name}
                                             </h4>

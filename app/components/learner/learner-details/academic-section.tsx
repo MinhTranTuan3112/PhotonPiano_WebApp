@@ -22,7 +22,9 @@ export default function AcademicSection({
             const response = await fetchLevels();
 
             return await response.data;
-        }
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
     });
 
     const levels = data ? data as Level[] : [];
@@ -75,8 +77,8 @@ export default function AcademicSection({
             </CardContent>
         </Card>
 
-        {!!student.levelId && (isLoading ? <Skeleton className='w-full h-full' /> :
-            <PianoLevelTimeline levels={levels} currentLevelId={student.levelId} />)}
+        {isLoading ? <Skeleton className='w-full h-full' /> :
+            <PianoLevelTimeline levels={levels} currentLevelId={student.levelId} />}
 
     </section>
 }
