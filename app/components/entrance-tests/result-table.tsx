@@ -362,10 +362,10 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
 
     return <>
         <Dialog open={isOpen} onOpenChange={setIsOpen} >
-            <DialogContent className='min-w-[1000px] border-t-4 border-t-theme'>
+            <DialogContent className='min-w-[1000px]'>
                 <DialogHeader>
                     <DialogTitle className='flex flex-row justify-between mr-4'>
-                        <div className="flex flex-row gap-2 items-center"> <Piano className='size-5' /> Piano entrance test details results</div>
+                        <div className="flex flex-row gap-2 items-center"> <Piano className='size-5 text-theme' /> Piano entrance test details results</div>
                         <div className="">
                             <Badge variant={'outline'} className={`uppercase ${entranceTestStudent.isScoreAnnounced ? 'text-green-600' : 'text-gray-500'}`}>
                                 {entranceTestStudent.isScoreAnnounced === true ? 'Published' : 'Not Published'}
@@ -388,122 +388,121 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                             </div>
                             {errors.instructorComment && <div className="text-red-600">{errors.instructorComment.message}</div>}
                         </div>
-                        <Table>
-                            <TableCaption>
-                                Score details
-                                {entranceTestStudent.updatedAt &&
-                                    <div className='font-bold'>
-                                        &#40;Last update: {formatRFC3339ToDisplayableDate(entranceTestStudent.updatedAt, false)}&#41;
-                                    </div>}
-                            </TableCaption>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Criteria</TableHead>
-                                    <TableHead>Score</TableHead>
-                                    <TableHead>Weight</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isFetchingCriterias ? <TableRow>
-                                    <TableCell colSpan={2}>
-                                        <Loader2 className='h-full w-full animate-spin' />
-                                    </TableCell>
-                                </TableRow> : getValues().scores.map((result, index) => (
-                                    <TableRow key={result.id} className='w-full'>
+                        <div className="overflow-hidden rounded-xl border border-neutral-200 border-t-4 border-t-theme">
+                            <Table>
+                                <TableCaption>
+                                    Score details
+                                    {entranceTestStudent.updatedAt &&
+                                        <div className='font-bold'>
+                                            &#40;Last update: {formatRFC3339ToDisplayableDate(entranceTestStudent.updatedAt, false)}&#41;
+                                        </div>}
+                                </TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Criteria</TableHead>
+                                        <TableHead>Score</TableHead>
+                                        <TableHead>Weight</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isFetchingCriterias ? <TableRow>
+                                        <TableCell colSpan={2}>
+                                            <Loader2 className='h-full w-full animate-spin' />
+                                        </TableCell>
+                                    </TableRow> : getValues().scores.map((result, index) => (
+                                        <TableRow key={result.id} className='w-full'>
+                                            <TableCell className='flex flex-row gap-2 items-center'>
+                                                <p className="">{result.criteriaName}</p>
+                                                {result.criteriaDescription && <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side='right'>
+                                                            <p className='max-w-prose'>{result.criteriaDescription}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>}
+                                            </TableCell>
+                                            <TableCell className='font-bold'>
+                                                {role === Role.Instructor ? <Input
+                                                    defaultValue={result.score}
+                                                    type='number'
+                                                    step={'any'}
+                                                    onChange={(e) => {
+                                                        const newScore = Number.parseFloat(e.target.value);
+                                                        setValue(`scores.${index}.score`, newScore);
+                                                    }}
+                                                    readOnly={role !== Role.Instructor} /> :
+                                                    result.score ? formatScore(result.score) : '(None)'}
+                                            </TableCell>
+                                            <TableCell className=''>{result.weight}%</TableCell>
+                                        </TableRow>
+                                    ))}
+                                    <TableRow>
+                                        <TableCell className='font-bold'>Practical score:</TableCell>
+                                        <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
+                                        <TableCell>
+                                            {isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${practicePercentage}%`}
+                                        </TableCell>
+                                    </TableRow>
+                                    <TableRow>
                                         <TableCell className='flex flex-row gap-2 items-center'>
-                                            <p className="">{result.criteriaName}</p>
-                                            {result.criteriaDescription && <TooltipProvider>
+                                            <span className="font-bold">Theoretical score</span>
+                                            <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <CircleHelp className='cursor-pointer size-4 text-gray-400' />
                                                     </TooltipTrigger>
                                                     <TooltipContent side='right'>
-                                                        <p className='max-w-prose'>{result.criteriaDescription}</p>
+                                                        <p className='max-w-prose'>
+                                                            Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
+                                                            <br />
+                                                            Treble clef &#40;right hand&#41; usually for the melody.
+                                                            <br />
+                                                            Bass clef &#40;left hand&#41; usually for chords or bass notes.
+                                                            <br />
+                                                            Pianists must read and process two staves simultaneously, often with multiple voices in each.
+                                                        </p>
                                                     </TooltipContent>
                                                 </Tooltip>
-                                            </TooltipProvider>}
-
+                                            </TooltipProvider>
                                         </TableCell>
                                         <TableCell className='font-bold'>
-                                            {role === Role.Instructor ? <Input
-                                                defaultValue={result.score}
-                                                type='number'
-                                                step={'any'}
-                                                onChange={(e) => {
-                                                    const newScore = Number.parseFloat(e.target.value);
-                                                    setValue(`scores.${index}.score`, newScore);
-                                                }}
-                                                readOnly={role !== Role.Instructor} /> :
-                                                result.score ? formatScore(result.score) : '(None)'}
-
+                                            {role === Role.Staff ? <>
+                                                <Input {...register('theoraticalScore')}
+                                                    type='number'
+                                                    id='theoraticalScore'
+                                                    placeholder='Enter theoretical score...'
+                                                    readOnly={role !== Role.Staff}
+                                                    step={'any'}
+                                                    className='' />
+                                                {errors.theoraticalScore && <div className="text-red-600 text-sm">{errors.theoraticalScore.message}</div>}
+                                            </> : <div>
+                                                {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
+                                            </div>}
                                         </TableCell>
-                                        <TableCell className=''>{result.weight}%</TableCell>
+                                        <TableCell>{isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${theoryPercentage}%`}</TableCell>
                                     </TableRow>
-                                ))}
-                                <TableRow>
-                                    <TableCell className='font-bold'>Practical score:</TableCell>
-                                    <TableCell className='font-bold'>{formatScore(practicalScore)}</TableCell>
-                                    <TableCell>
-                                        {isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${practicePercentage}%`}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className='flex flex-row gap-2 items-center'>
-                                        <span className="font-bold">Theoretical score</span>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <CircleHelp className='cursor-pointer size-4 text-gray-400' />
-                                                </TooltipTrigger>
-                                                <TooltipContent side='right'>
-                                                    <p className='max-w-prose'>
-                                                        Multi-staff Reading: Piano sheet music uses the Grand Staff, which includes:
-                                                        <br />
-                                                        Treble clef &#40;right hand&#41; usually for the melody.
-                                                        <br />
-                                                        Bass clef &#40;left hand&#41; usually for chords or bass notes.
-                                                        <br />
-                                                        Pianists must read and process two staves simultaneously, often with multiple voices in each.
-
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </TableCell>
-                                    <TableCell className='font-bold'>
-                                        {role === Role.Staff ? <>
-                                            <Input {...register('theoraticalScore')}
-                                                type='number'
-                                                id='theoraticalScore'
-                                                placeholder='Enter theoretical score...'
-                                                readOnly={role !== Role.Staff}
-                                                step={'any'}
-                                                className='' />
-                                            {errors.theoraticalScore && <div className="text-red-600 text-sm">{errors.theoraticalScore.message}</div>}
-                                        </> : <div>
-                                            {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
-                                        </div>}
-                                    </TableCell>
-                                    <TableCell>{isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${theoryPercentage}%`}</TableCell>
-                                </TableRow>
-
-                                <TableRow>
-                                    <TableCell className='font-bold text-red-600'>Final band score:</TableCell>
-                                    <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : '(None)'}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className='font-bold'>Level to be arranged:</TableCell>
-                                    <TableCell colSpan={2}>
-                                        <LevelSection initialLevel={entranceTestStudent.level} control={control}
-                                            levelAdjustedAt={entranceTestStudent.levelAdjustedAt} />
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                                    <TableRow>
+                                        <TableCell className='font-bold text-red-600'>Final band score:</TableCell>
+                                        <TableCell colSpan={1} className='font-bold text-red-600'>{entranceTestStudent.bandScore ? formatScore(entranceTestStudent.bandScore) : '(None)'}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell className='font-bold'>Level to be arranged:</TableCell>
+                                        <TableCell colSpan={2}>
+                                            <LevelSection initialLevel={entranceTestStudent.level} control={control}
+                                                levelAdjustedAt={entranceTestStudent.levelAdjustedAt} />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </div>
                         {errors.scores && <div className="text-red-600">{errors.scores.message}</div>}
-                        <DialogFooter>
+                        <DialogFooter className='my-3'>
                             <Button type="button" isLoading={isSubmitting}
-                                disabled={isSubmitting} onClick={handleOpenModal}>
+                                disabled={isSubmitting} onClick={handleOpenModal}
+                                variant={'theme'} className='w-full font-bold uppercase max-w-[50%] mx-auto'>
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
                         </DialogFooter>

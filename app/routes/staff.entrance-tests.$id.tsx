@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Pencil, Trash, User, XIcon } from 'lucide-react'
+import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Trash, User, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -649,17 +649,18 @@ function StudentsSection({
             </CardHeader>
             <CardContent>
                 <div className="my-8">
-                    {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
-                        <Button type='button' variant={'theme'}
-                            Icon={CirclePlus} iconPlacement='left'
-                            disabled={isSubmitting} isLoading={isSubmitting}>
-                            Add learner
-                        </Button>
-                    </div>}
-
-                    <div className="flex justify-end">
-                        <Button type='button' variant={'theme'} onClick={handleOpenImportDialog}
-                            Icon={Import} iconPlacement='left'>Import with Excel file</Button>
+                    <div className="flex flex-row justify-between items-center">
+                        {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
+                            <Button type='button' variant={'theme'}
+                                Icon={CirclePlus} iconPlacement='left'
+                                disabled={isSubmitting} isLoading={isSubmitting}>
+                                Add learner
+                            </Button>
+                        </div>}
+                        <div className="flex justify-end">
+                            <Button type='button' variant={'theme'} onClick={handleOpenImportDialog}
+                                Icon={Import} iconPlacement='left'>Import results with Excel file</Button>
+                        </div>
                     </div>
                     <ResultTable data={entranceTest.entranceTestStudents} />
                 </div>
@@ -673,7 +674,8 @@ function StudentsSection({
                     )
                 }
                 <PublishScoreSection isAnnouncedScore={entranceTest.isAnnouncedScore} id={entranceTest.id}
-                    status={entranceTest.testStatus} />
+                    status={entranceTest.testStatus}
+                    entranceTest={entranceTest} />
             </CardFooter>}
 
         </Card>
@@ -691,11 +693,13 @@ function LoadingSkeleton() {
 function PublishScoreSection({
     isAnnouncedScore,
     id,
-    status
+    status,
+    entranceTest
 }: {
     isAnnouncedScore: boolean
     id: string,
     status: EntranceTestStatus;
+    entranceTest: EntranceTestDetail;
 }) {
 
     const fetcher = useFetcher<ActionResult>();
@@ -739,20 +743,35 @@ function PublishScoreSection({
 
     }, [fetcher.data]);
 
+    const isResultsPublishable = entranceTest.entranceTestStudents.length > 0 && entranceTest.entranceTestStudents.every((student) => !!student.theoraticalScore && student.entranceTestResults.length > 0);
 
     return <div className='flex flex-col gap-3 w-full'>
-        {status !== EntranceTestStatus.Ended && <Alert variant="warning" className='my-5 w-full'>
+
+        {status !== EntranceTestStatus.Ended &&
+            <Alert variant="warning" className='my-5 w-full'>
+                <AlertTriangle className="h-10 w-10 pr-5" />
+                <AlertTitle>
+                    This test has not ended yet.
+                </AlertTitle>
+                <AlertDescription>
+                    Test results can be published after the test is finished.
+                </AlertDescription>
+            </Alert>
+        }
+
+        {!isResultsPublishable && <Alert variant="warning" className='my-5 w-full'>
             <AlertTriangle className="h-10 w-10 pr-5" />
             <AlertTitle>
-                This test has not ended yet.
+                All learners results are not available yet.
             </AlertTitle>
             <AlertDescription>
-                Test results can be published after the test is finished.
+                Test results can only be published when all learners have completed the test and results are available.
             </AlertDescription>
         </Alert>}
+
         <Button className={`font-bold uppercase max-w-[60%] mx-auto`}
             type='button' onClick={handleOpenConfirmDialog} isLoading={isSubmitting}
-            disabled={status !== EntranceTestStatus.Ended || isSubmitting}
+            disabled={status !== EntranceTestStatus.Ended || isSubmitting || !isResultsPublishable}
             variant={isAnnouncedScore ? 'destructive' : 'warning'}
         >
             {

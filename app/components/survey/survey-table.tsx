@@ -3,7 +3,7 @@ import { Survey } from "~/lib/types/survey/survey";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { CheckCircle, Eye, MoreHorizontal, Trash2, XCircle } from "lucide-react";
 import { useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { action } from "~/routes/staff.surveys._index";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
@@ -46,7 +46,9 @@ export const columns: ColumnDef<Survey>[] = [
         accessorKey: 'Is entrance survey',
         header: 'Is entrance survey',
         cell: ({ row }) => {
-            return <div className="">{row.original.isEntranceSurvey ? 'Có' : 'Không'}</div>
+            return <div className="flex justify-center">
+                {row.original.isEntranceSurvey ? <CheckCircle className="text-green-500" /> : <XCircle className="text-red-500" />}
+            </div>
         }
     },
     {
