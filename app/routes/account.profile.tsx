@@ -9,7 +9,7 @@ import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import React, { Suspense, useEffect } from 'react'
 import { Skeleton } from '~/components/ui/skeleton'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Account, Gender, Role } from '~/lib/types/account/account'
+import { Account, Gender, Level, Role } from '~/lib/types/account/account'
 import { toast } from 'sonner'
 import { Label } from '~/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -30,6 +30,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { toastWarning } from '~/lib/utils/toast-utils'
 import { Textarea } from '~/components/ui/textarea'
+import { useQuery } from '@tanstack/react-query'
+import { fetchLevels } from '~/lib/services/level'
+import { PianoLevelTimeline } from '~/components/learner/learner-details/piano-level-timeline'
 type Props = {}
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
@@ -158,18 +161,18 @@ export default function AccountProfilePage() {
 
     return (
         <section className="container mx-auto py-8 px-4">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 <div className="flex items-center mb-6">
                     <GraduationCap className="h-8 w-8 mr-3 text-primary" />
                     <h1 className="text-3xl font-bold">Profile</h1>
                 </div>
 
                 <Tabs defaultValue="personal" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-8">
-                        <TabsTrigger value="personal" className="text-base">
+                    <TabsList className="grid w-full grid-cols-2 mb-8 p-0 h-auto bg-background gap-1">
+                        <TabsTrigger value="personal" className="text-base py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                             <User className="mr-2 h-4 w-4" /> Basic personal information
                         </TabsTrigger>
-                        <TabsTrigger value="academic" className="text-base">
+                        <TabsTrigger value="academic" className="text-base py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                             <BookOpen className="mr-2 h-4 w-4" /> Academic information
                         </TabsTrigger>
                     </TabsList>
@@ -595,6 +598,19 @@ function AcademicInfoSection() {
         }
     }
 
+    const { data, isLoading: isLoadingLevels, isError } = useQuery({
+        queryKey: ['levels'],
+        queryFn: async () => {
+            const response = await fetchLevels();
+
+            return await response.data;
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
+    });
+
+    const levels = data ? data as Level[] : [];
+
     return (
         <div className="space-y-8">
             <div className="grid md:grid-cols-2 gap-8">
@@ -645,16 +661,21 @@ function AcademicInfoSection() {
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground ml-2">{account.wantToContinue ? "Yes" : "No"}</span>
+                            <span className="text-sm ml-2 font-bold">{account.wantToContinue ? "Yes" : "No"}</span>
                             <Switch
                                 id="continueLearning"
                                 checked={account.wantToContinue || false}
                                 onCheckedChange={(checked) => handleUpdateLearningStatus(checked)}
+                                className='data-[state=checked]:bg-theme'
                             />
                         </div>
                     </div>
                 </CardContent>
             </Card>
+            
+             {isLoadingLevels ? <Skeleton className='w-full h-full' /> :
+                        <PianoLevelTimeline levels={levels} currentLevelId={account.levelId} />}
+
         </div>
     )
 }

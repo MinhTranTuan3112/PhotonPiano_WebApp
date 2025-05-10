@@ -490,13 +490,15 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
       <CardContent>
         {
           (minimum - classInfo.studentNumber > 0) && (
-            <div className='bg-gray-100 rounded-lg p-2 flex gap-2 items-center mb-4'>
-              <TriangleAlert size={100} />
-              <div>
-                This class hadn't meet the minimum class size.<br></br>
-                You need to add {minimum - classInfo.studentNumber} more learners
-              </div>
-            </div>
+            <Alert variant="warning" className='my-5 w-full'>
+              <AlertTriangle className="h-10 w-10 pr-5" />
+              <AlertTitle>
+                This class hadn't meet the minimum class size.
+              </AlertTitle>
+              <AlertDescription>
+                You need to add {minimum - classInfo.studentNumber} more learners.
+              </AlertDescription>
+            </Alert>
           )
         }
         <div className='flex flex-col lg:flex-row gap-2'>
@@ -764,7 +766,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </Alert>
                   )
                 }
-                
+
                 <Tabs defaultValue={tab}>
                   <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 p-0 h-auto bg-background gap-1">
                     <TabsTrigger value="general" onClick={() => setSearchParams({
