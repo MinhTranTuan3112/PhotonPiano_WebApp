@@ -23,7 +23,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
                     ref={ref}
                     {...props}
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-theme"
                     onClick={() => setIsVisible(!isVisible)}>
                     {isVisible ? <EyeOff /> : <Eye />}
                 </div>

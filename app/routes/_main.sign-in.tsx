@@ -7,7 +7,7 @@ import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod'
 import { useRemixForm, getValidatedFormData } from "remix-hook-form";
-import { Mail, ArrowRight } from 'lucide-react'
+import { Mail, ArrowRight, Music, BookOpen, Headphones, MusicIcon, Users } from 'lucide-react'
 import { PasswordInput } from '~/components/ui/password-input'
 import { toast } from 'sonner'
 import { fetchSignIn } from '~/lib/services/auth'
@@ -111,8 +111,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     });
 }
 
-export default function SignInPage({ }: Props) {
-
+export default function SignInPage() {
     const {
         handleSubmit: submitSignInForm,
         formState: { errors, isSubmitting },
@@ -123,123 +122,194 @@ export default function SignInPage({ }: Props) {
     });
 
     const { baseUrl } = useLoaderData<typeof loader>();
-
     const actionData = useActionData<typeof action>();
 
     useEffect(() => {
-
         if (actionData?.success === false && actionData?.error) {
             toastWarning(actionData?.error, {
                 position: 'top-center',
                 duration: 5000
             });
-            return;
         }
-
-        return () => {
-
-        }
-
     }, [actionData]);
 
-    // const googleSignInUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${baseUrl}&response_type=code&scope=openid%20email`;
-
     return (
-        <div className="relative overflow-hidden" style={{
-            // backgroundImage: `url(${pianoBackgroundImg})`,
-            // backgroundSize: 'cover',
-        }}>
-            <div className="container py-24 max-md:px-10 lg:py-10 lg:px-44">
-
-                <div className="md:pe-8 md:w-1/2 xl:pe-0 xl:w-5/12">
-                    <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl uppercase">
-                        Sign In
-                    </h1>
-                    <p className="mt-3 text-xl text-black/80">
-                        Join <strong>PhotonPiano</strong> now to immerse yourself in the gentle piano melodies
-                    </p>
-
-                    <Form onSubmit={submitSignInForm} method='POST' className='mt-8' action='/sign-in'>
-                        <div className="mb-4">
-                            <Label htmlFor="email" className="sr-only">
-                                Email
-                            </Label>
-                            <Input {...register("email")} type="email" name='email' id="email" placeholder="Enter email..."
-                                endContent={<Mail />} />
-                            {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
+        <div className="min-h-screen bg-gradient-to-br from-theme/5 to-theme/10">
+            <div className="container mx-auto min-h-screen md:grid md:grid-cols-2 md:gap-8 items-center py-12 px-4 max-md:flex max-md:flex-col">
+                {/* Left side - Form */}
+                <div className="w-full max-w-md mx-auto space-y-8">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-theme">
+                            <Music className="h-8 w-8" />
+                            <h1 className="text-4xl font-bold tracking-tight">
+                                Welcome Back
+                            </h1>
                         </div>
-                        <div className="">
-                            <Label htmlFor="password" className="sr-only">
-                                Password
-                            </Label>
-                            <PasswordInput  {...register("password")} name='password' id="password" placeholder="Enter password..." />
-                            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
+                        <p className="text-lg text-muted-foreground">
+                            Continue your musical journey with PhotonPiano
+                        </p>
+                    </div>
+
+                    <Form onSubmit={submitSignInForm} method="POST" className="space-y-6">
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="email">Email</Label>
+                                <Input 
+                                    {...register("email")} 
+                                    type="email" 
+                                    id="email"
+                                    className="mt-1.5"
+                                    placeholder="Enter your email"
+                                    endContent={<Mail className="text-theme" />}
+                                />
+                                {errors.email && (
+                                    <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="password">Password</Label>
+                                <PasswordInput
+                                    {...register("password")}
+                                    id="password"
+                                    className="mt-1.5"
+                                    placeholder="Enter your password"
+                                />
+                                {errors.password && (
+                                    <p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+                                )}
+                            </div>
                         </div>
 
-
-                        <div className="my-4 flex justify-center">
-                            <Button className='uppercase w-full max-w-52' type='submit' variant={'expandIconTheme'}
-                                Icon={ArrowRight}
-                                iconPlacement='right'
-                                disabled={isSubmitting}
-                                isLoading={isSubmitting}>
-                                {isSubmitting ? 'Signing in...' : 'Sign in'}
-                            </Button>
-                        </div>
+                        <Button 
+                            type="submit"
+                            variant={'theme'}
+                            className="w-full uppercase"
+                            disabled={isSubmitting}
+                            isLoading={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                "Signing in..."
+                            ) : (
+                                <>
+                                    Sign In
+                                </>
+                            )}
+                        </Button>
                     </Form>
 
-                    <ForgotPasswordDialog />
-
-                    <Separator asChild className="my-6 bg-transparent">
-                        <div className="py-3 flex items-center text-xs text-black uppercase before:flex-[1_1_0%] before:border-t before:border-black before:me-6 after:flex-[1_1_0%] after:border-t after:border-black after:ms-6 dark:before:border-white dark:after:border-white">
-                            OR
+                    <div className="space-y-4">
+                        <div className="text-center">
+                            <ForgotPasswordDialog />
                         </div>
-                    </Separator>
 
-                    <div className="mt-8 grid">
+                        <Separator className="my-4" />
 
-                        <Link className={`${buttonVariants({ variant: "gooeyLeft" })} uppercase`} to={'/'}>
-                            <svg
-                                className="w-4 h-auto mr-2"
-                                width={46}
-                                height={47}
-                                viewBox="0 0 46 47"
-                                fill="none"
+                        <div className="space-y-4">
+                            <Button 
+                                variant="outline" 
+                                className="w-full border-theme/20 hover:bg-theme/5"
+                                onClick={() => window.location.href = baseUrl}
+                                disabled={isSubmitting}
                             >
-                                <path
-                                    d="M46 24.0287C46 22.09 45.8533 20.68 45.5013 19.2112H23.4694V27.9356H36.4069C36.1429 30.1094 34.7347 33.37 31.5957 35.5731L31.5663 35.8669L38.5191 41.2719L38.9885 41.3306C43.4477 37.2181 46 31.1669 46 24.0287Z"
-                                    fill="#4285F4"
+                                <img
+                                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                                    alt="Google"
+                                    className="w-5 h-5 mr-2"
                                 />
-                                <path
-                                    d="M23.4694 47C29.8061 47 35.1161 44.9144 39.0179 41.3012L31.625 35.5437C29.6301 36.9244 26.9898 37.8937 23.4987 37.8937C17.2793 37.8937 12.0281 33.7812 10.1505 28.1412L9.88649 28.1706L2.61097 33.7812L2.52296 34.0456C6.36608 41.7125 14.287 47 23.4694 47Z"
-                                    fill="#34A853"
-                                />
-                                <path
-                                    d="M10.1212 28.1413C9.62245 26.6725 9.32908 25.1156 9.32908 23.5C9.32908 21.8844 9.62245 20.3275 10.0918 18.8588V18.5356L2.75765 12.8369L2.52296 12.9544C0.909439 16.1269 0 19.7106 0 23.5C0 27.2894 0.909439 30.8731 2.49362 34.0456L10.1212 28.1413Z"
-                                    fill="#FBBC05"
-                                />
-                                <path
-                                    d="M23.4694 9.07688C27.8699 9.07688 30.8622 10.9863 32.5344 12.5725L39.1645 6.11C35.0867 2.32063 29.8061 0 23.4694 0C14.287 0 6.36607 5.2875 2.49362 12.9544L10.0918 18.8588C11.9987 13.1894 17.25 9.07688 23.4694 9.07688Z"
-                                    fill="#EB4335"
-                                />
-                            </svg>
-                            Sign In with Google
-                        </Link>
+                                Continue with Google
+                            </Button>
+
+                            <div className="text-center text-sm">
+                                <span className="text-muted-foreground">
+                                    Don't have an account?{" "}
+                                </span>
+                                <Link 
+                                    to="/entrance-survey"
+                                    className="text-theme hover:text-theme/90 font-medium"
+                                    aria-disabled={isSubmitting}
+                                >
+                                    Register now
+                                </Link>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
+                {/* Right side - Enhanced Content */}
+                <div className="relative h-full min-h-[600px] rounded-2xl overflow-hidden md:block">
+                    <div className="absolute inset-0 bg-gradient-to-br from-theme to-theme/80">
+                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm">
+                            {/* Piano keys decoration */}
+                            <div className="absolute bottom-0 left-0 right-0 flex">
+                                {Array.from({ length: 14 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`h-32 flex-1 border-r border-white/20 ${
+                                            i % 2 === 0 ? "bg-white/10" : "bg-transparent"
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="relative p-8 text-white h-full flex flex-col justify-between">
+                            <div className="space-y-6">
+                                <h2 className="text-3xl font-bold">
+                                    Start Your Piano Journey
+                                </h2>
+                                <p className="text-white/90 text-lg">
+                                    Join our community of passionate musicians and begin your musical adventure today.
+                                </p>
+                                
+                                {/* Features */}
+                                <div className="grid gap-4 mt-8">
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                        <MusicIcon className="h-8 w-8 text-white/90" />
+                                        <div>
+                                            <h3 className="font-semibold">Professional Instruction</h3>
+                                            <p className="text-white/80 text-sm">Learn from experienced piano teachers</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                        <Headphones className="h-8 w-8 text-white/90" />
+                                        <div>
+                                            <h3 className="font-semibold">Personalized Learning</h3>
+                                            <p className="text-white/80 text-sm">Tailored lessons for your skill level</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                        <Users className="h-8 w-8 text-white/90" />
+                                        <div>
+                                            <h3 className="font-semibold">Supportive Community</h3>
+                                            <p className="text-white/80 text-sm">Connect with fellow piano enthusiasts</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div className="mt-4 text-center">
-                        Do not have an account?
-                        <Link className={`${buttonVariants({ variant: "linkHover2" })} uppercase`} to={'/entrance-survey'}>Register now</Link>
+                            {/* Testimonial */}
+                            <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm mt-8">
+                                <p className="italic text-white/90">
+                                    "PhotonPiano has transformed my musical journey. The structured learning approach and supportive community made all the difference."
+                                </p>
+                                <div className="mt-4 flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
+                                        <BookOpen className="h-4 w-4" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">Tran Thanh Hung</p>
+                                        <p className="text-sm text-white/80">Piano Learner</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
                 </div>
             </div>
-            <img
-                className="hidden md:block md:absolute md:top-0 md:start-1/2 md:end-0 h-full"
-                src={pianoBackgroundImg}
-                alt="image description"
-            />
         </div>
-    )
+    );
 }
