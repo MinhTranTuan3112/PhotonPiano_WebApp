@@ -2,10 +2,9 @@ import { Piano } from "lucide-react"
 import {
     SidebarMenu,
     SidebarMenuButton,
-    SidebarMenuItem,
-    useSidebar
+    SidebarMenuItem
 } from "../ui/sidebar"
-import { useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 
 type Props = {
 
@@ -13,7 +12,6 @@ type Props = {
 
 export default function TopNav({ }: Props) {
 
-    const { isMobile } = useSidebar()
 
     const navigate = useNavigate();
 
@@ -23,15 +21,13 @@ export default function TopNav({ }: Props) {
                 <SidebarMenuButton size="lg"
                     onClick={() => navigate('/')}
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                        <Piano className="size-4" />
-                    </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold text-base">
-                            Photon Piano
-                        </span>
-                        {/* <span className="truncate text-xs">{activeTeam.plan}</span> */}
-                    </div>
+                    <Link className="flex justify-center items-center space-x-3" to={'/'}>
+                        <div className="relative">
+                            <Piano className="size-5 text-indigo-600 animate-pulse" />
+                            <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
+                        </div>
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                    </Link>
                 </SidebarMenuButton>
                 {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
