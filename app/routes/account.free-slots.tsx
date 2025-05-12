@@ -154,7 +154,7 @@ export default function AccountFreeSlots() {
                                                     <div
                                                         key={key}
                                                         className={`h-12 rounded-lg cursor-pointer text-center flex items-center justify-center transition-all 
-                    ${isSelected ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+                    ${isSelected ? "bg-theme text-white" : "bg-gray-200 hover:bg-gray-300"}`}
                                                         onClick={() => toggleSlot(colIndex, rowIndex)}
                                                     >
                                                         {isSelected ? "✔" : ""}
@@ -172,7 +172,8 @@ export default function AccountFreeSlots() {
             </div>
 
             <div className="mt-6 text-center">
-                <Button onClick={handleOpenModal} className="w-64 py-2 text-white font-bold rounded-lg">Save</Button>
+                <Button onClick={handleOpenModal} className="w-64 py-2 text-white font-bold rounded-lg uppercase"
+                    variant={'theme'}>Save</Button>
             </div>
             {loadingDialog}
             {confirmDialog}

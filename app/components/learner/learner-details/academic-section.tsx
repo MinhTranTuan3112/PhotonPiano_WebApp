@@ -7,6 +7,8 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { fetchLevels } from '~/lib/services/level';
 import { AccountDetail, Level } from '~/lib/types/account/account';
 import { PianoLevelTimeline } from './piano-level-timeline';
+import { Separator } from '~/components/ui/separator';
+import NoInformation from '~/components/common/no-information';
 
 type Props = {}
 
@@ -38,13 +40,18 @@ export default function AcademicSection({
             <Card className="bg-muted/40 border-l-4 border-l-theme">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center">
-                        <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
+                        <GraduationCap className="mr-2 text-theme" /> Piano Level
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className='flex flex-col gap-3 my-3'>
                     <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">Current</span>
+                        <span className="text-base font-bold">Current</span>
                         <LevelBadge level={student.level} />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                        <span className="text-base font-bold">Self-evaluated</span>
+                        {student.selfEvaluatedLevelId ? <LevelBadge level={student.selfEvaluatedLevel} /> : <NoInformation />}
                     </div>
                 </CardContent>
             </Card>
@@ -52,7 +59,7 @@ export default function AcademicSection({
             <Card className="bg-muted/40 border-l-4 border-l-theme">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center">
-                        <BookOpen className="mr-2 h-4 w-4" /> Academic status
+                        <BookOpen className="mr-2 text-theme" /> Academic status
                     </CardTitle>
                 </CardHeader>
                 <CardContent>

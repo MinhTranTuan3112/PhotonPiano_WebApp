@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from "@remix-run/react"
-import { ArrowLeft, ArrowRight, CheckCircle2, Piano } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, Piano } from "lucide-react"
 import type React from "react"
 import { Suspense, useState } from "react"
 import { Controller } from "react-hook-form"
@@ -26,12 +26,15 @@ import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import type { AuthResponse } from "~/lib/types/auth-response"
 import { getCurrentTimeInSeconds } from "~/lib/utils/datetime"
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "~/lib/utils/cookie"
-import { Gender, Role } from "~/lib/types/account/account"
+import { Gender, Level, Role } from "~/lib/types/account/account"
 import { toastWarning } from "~/lib/utils/toast-utils"
 import { useTermsDialog } from "~/components/home/terms-and-conditions"
 import { Card, CardContent } from "~/components/ui/card"
 import { Progress } from "~/components/ui/progress"
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group"
+import RadioGroupCards from "~/components/ui/radio-group-card"
+import { useQuery } from "@tanstack/react-query"
+import { fetchLevels } from "~/lib/services/level"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
 type Props = {}
 
@@ -63,7 +66,8 @@ const entranceSurveySchema = z
                 otherAnswer: z.string().optional(),
             }),
         ),
-        gender: z.number()
+        gender: z.coerce.number(),
+        selfEvaluatedLevelId: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Confirm password did not match",
@@ -101,6 +105,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+
     try {
         const { idToken } = await getAuth(request)
 
@@ -137,16 +142,7 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await roleCookie.serialize(role))
             headers.append("Set-Cookie", await accountIdCookie.serialize(localId))
 
-            switch (role) {
-                case Role.Instructor:
-                    return redirect("/teacher/scheduler", { headers })
-                case Role.Staff:
-                    return redirect("/staff/scheduler", { headers })
-                case Role.Administrator:
-                    return redirect("/admin/settings", { headers })
-                default:
-                    return redirect("/?enroll-now=true", { headers })
-            }
+            return redirect("/?enroll-now=true", { headers });
         }
     } catch (error) {
         console.error({ error })
@@ -163,7 +159,7 @@ export async function action({ request }: ActionFunctionArgs) {
                 error: message,
             },
             {
-                status,
+                status: 400
             },
         )
     }
@@ -174,7 +170,7 @@ export default function EntranceSurveyPage({ }: Props) {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-4">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 <header className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">
                         <Piano className="h-10 w-10 text-primary mr-2" />
@@ -232,7 +228,11 @@ function EntranceSurveyForm() {
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: "Complete Registration",
         description: "Are you ready to join Photon Piano Center?",
-        onConfirm: handleSubmit,
+        onConfirm: () => {
+            console.log({ errors });
+
+            handleSubmit();
+        },
         confirmText: "Join Now",
     })
 
@@ -388,7 +388,7 @@ function EntranceSurveyForm() {
                         <div className="bg-white p-6 rounded-lg shadow-sm space-y-5">
                             <div className="grid gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="fullName" className="font-medium text-sm">
+                                    <Label htmlFor="fullName" className="font-bold text-sm">
                                         Full Name <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
@@ -402,7 +402,7 @@ function EntranceSurveyForm() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="email" className="font-medium text-sm">
+                                        <Label htmlFor="email" className="font-bold text-sm">
                                             Email <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
@@ -415,7 +415,7 @@ function EntranceSurveyForm() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="phone" className="font-medium text-sm">
+                                        <Label htmlFor="phone" className="font-bold text-sm">
                                             Phone <span className="text-red-500">*</span>
                                         </Label>
                                         <Input
@@ -429,30 +429,59 @@ function EntranceSurveyForm() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Gender</Label>
+                                    <Label className="font-bold">Gender <span className="text-red-500">*</span></Label>
                                     <Controller
                                         control={control}
                                         name="gender"
                                         render={({ field: { onChange, onBlur, value, ref } }) => (
-                                            <RadioGroup value={value.toString()} onValueChange={(value) => {
-                                                onChange(Number.parseInt(value))
-                                            }}>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value={Gender.Male.toString()} id="male" />
-                                                    <Label htmlFor="male">Male</Label>
-                                                </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value={Gender.Female.toString()} id="female" />
-                                                    <Label htmlFor="female">Female</Label>
-                                                </div>
-                                            </RadioGroup>
+                                            <RadioGroupCards
+                                                value={value.toString()}
+                                                onValueChange={onChange}
+                                                orientation="horizontal"
+                                                options={[{
+                                                    label: 'Male',
+                                                    value: Gender.Male.toString(),
+                                                }, {
+                                                    label: 'Female',
+                                                    value: Gender.Female.toString(),
+                                                }]}
+                                            />
+                                        )}
+                                    />
+                                </div>
+
+                                <div className="space-y-4 flex flex-col gap-2">
+                                    <Label className="font-bold flex flex-row gap-2 items-center">
+                                        How do you evaluate your piano skills?
+                                        <TooltipProvider >
+                                            <Tooltip >
+                                                <TooltipTrigger asChild>
+                                                    <CircleHelp className="cursor-pointer size-4 text-gray-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent className="font-normal">
+                                                    If you self evaluate your piano skills higher than the first level,
+                                                    <br />
+                                                    you will have to
+                                                    participate in an piano entrance evaluation test to determine your piano level.
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </Label>
+                                    <Controller
+                                        control={control}
+                                        name="selfEvaluatedLevelId"
+                                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                                            <LevelRadioGroup
+                                                value={value}
+                                                onChange={onChange}
+                                            />
                                         )}
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="password" className="font-medium text-sm">
+                                        <Label htmlFor="password" className="font-bold text-sm">
                                             Password <span className="text-red-500">*</span>
                                         </Label>
                                         <PasswordInput
@@ -465,7 +494,7 @@ function EntranceSurveyForm() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="confirmPassword" className="font-medium text-sm">
+                                        <Label htmlFor="confirmPassword" className="font-bold text-sm">
                                             Confirm Password <span className="text-red-500">*</span>
                                         </Label>
                                         <PasswordInput
@@ -486,14 +515,16 @@ function EntranceSurveyForm() {
                                     name="isTermsAgreed"
                                     control={control}
                                     render={({ field: { onChange, onBlur, value, ref } }) => (
-                                        <Checkbox id="terms" checked={value} onCheckedChange={onChange} className="mt-1" />
+                                        <Checkbox id="terms" checked={value} onCheckedChange={onChange} className="mt-1"
+                                            variant={'theme'}
+                                        />
                                     )}
                                 />
                                 <div>
                                     <Label htmlFor="terms" className="text-sm font-medium">
                                         I agree to the{" "}
                                         <Button
-                                            className="font-medium p-0 h-auto text-primary"
+                                            className="font-bold p-0 h-auto text-primary"
                                             type="button"
                                             variant={"link"}
                                             onClick={openTermsDialog}
@@ -590,6 +621,7 @@ function EntranceSurveyForm() {
                             onClick={() => setStepCnt((prev) => Math.min(prev + 1, steps.length - 1))}
                             className="flex items-center gap-2"
                             disabled={isSubmitting || isNextDisabled}
+                            variant={'theme'}
                         >
                             Next <ArrowRight className="h-4 w-4" />
                         </Button>
@@ -599,6 +631,8 @@ function EntranceSurveyForm() {
                             onClick={handleOpenConfirmDialog}
                             disabled={isSubmitting || isNextDisabled}
                             className="flex items-center gap-2"
+                            variant={'theme'}
+                            isLoading={isSubmitting}
                         >
                             {isSubmitting ? (
                                 "Processing..."
@@ -638,4 +672,48 @@ function LoadingSkeleton() {
             </div>
         </div>
     )
+}
+
+
+function LevelRadioGroup({
+    value,
+    onChange
+}: {
+    value: string | undefined;
+    onChange: (value: string) => void;
+}) {
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['levels'],
+        queryFn: async () => {
+            const response = await fetchLevels();
+
+            return await response.data;
+        },
+        enabled: true,
+        refetchOnWindowFocus: false
+    });
+
+    const levels = data ? data as Level[] : [];
+
+    if (isLoading) {
+        return <Skeleton className="h-full w-full" />
+    }
+
+    return <RadioGroupCards
+        options={levels.map((level) => {
+            return {
+                label: <div style={{
+                    color: level.themeColor || 'black',
+                }}>
+                    {level.name}
+                </div>,
+                value: level.id,
+                description: level.description
+            }
+        })}
+        value={value}
+        onValueChange={onChange}
+        orientation="vertical"
+    />
 }

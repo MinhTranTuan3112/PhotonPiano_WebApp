@@ -161,7 +161,8 @@ export function TermsDialog({ open, setOpen, onAccept }: Props) {
                 </div>
 
                 <div className="mt-2 flex items-center space-x-2">
-                    <Checkbox id="terms" checked={accepted} onCheckedChange={(checked) => setAccepted(checked === true)} />
+                    <Checkbox id="terms" checked={accepted} onCheckedChange={(checked) => setAccepted(checked === true)}
+                        variant={'theme'} />
                     <label
                         htmlFor="terms"
                         className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -171,7 +172,8 @@ export function TermsDialog({ open, setOpen, onAccept }: Props) {
                 </div>
 
                 <DialogFooter className="flex flex-col space-y-4 sm:space-y-0">
-                    <Button onClick={handleAccept} disabled={!accepted} className="w-full sm:w-auto">
+                    <Button onClick={handleAccept} disabled={!accepted} className="w-full sm:w-auto"
+                        type="button" variant={'theme'}>
                         Accept Terms & Conditions
                     </Button>
                 </DialogFooter>

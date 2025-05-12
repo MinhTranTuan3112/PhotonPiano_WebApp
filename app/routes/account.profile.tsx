@@ -9,7 +9,7 @@ import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
 import React, { Suspense, useEffect } from 'react'
 import { Skeleton } from '~/components/ui/skeleton'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { Account, Gender, Level, Role } from '~/lib/types/account/account'
+import { Account, AccountDetail, Gender, Level, Role } from '~/lib/types/account/account'
 import { toast } from 'sonner'
 import { Label } from '~/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -33,29 +33,12 @@ import { Textarea } from '~/components/ui/textarea'
 import { useQuery } from '@tanstack/react-query'
 import { fetchLevels } from '~/lib/services/level'
 import { PianoLevelTimeline } from '~/components/learner/learner-details/piano-level-timeline'
-type Props = {}
+import NoInformation from '~/components/common/no-information'
+import { Separator } from '~/components/ui/separator'
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
 
 const resolver = zodResolver(accountInfoSchema);
-
-// async function getSampleProfileInfo() {
-
-//     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-//     return {
-//         userName: 'abc',
-//         email: 'abc@gmail.com',
-//         fullName: 'Nguyễn Văn A',
-//         address: '123 abc',
-//         phone: '0123456789',
-//         shortDescription: '...',
-//         level: Level.Beginner,
-//         role: Role.Student,
-//         studentStatus: StudentStatus.AttemptingEntranceTest,
-//         gender: Gender.Male
-//     } as Account;
-// }
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
@@ -157,7 +140,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 
 export default function AccountProfilePage() {
-    const { promise } = useLoaderData<typeof loader>()
+
+    const { promise } = useLoaderData<typeof loader>();
 
     return (
         <section className="container mx-auto py-8 px-4">
@@ -237,7 +221,7 @@ function ProfileForm() {
     const fetcher = useFetcher<typeof action>();
 
     const accountValue = useAsyncValue();
-    const account = accountValue as Account
+    const account = accountValue as Account;
 
     const isSubmitting = fetcher.state === "submitting";
 
@@ -572,8 +556,9 @@ function LoadingSkeleton() {
 }
 
 function AcademicInfoSection() {
+
     const accountValue = useAsyncValue()
-    const account = accountValue as Account
+    const account = accountValue as AccountDetail;
     const [isLoading, setIsLoading] = React.useState(false)
     const [continueLearning, setContinueLearning] = React.useState(account.wantToContinue || false)
     const fetcher = useFetcher()
@@ -617,13 +602,18 @@ function AcademicInfoSection() {
                 <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
-                            <GraduationCap className="mr-2 h-4 w-4" /> Piano Level
+                            <GraduationCap className="mr-2 text-theme" /> Piano Level
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='flex flex-col gap-3 my-3'>
                         <div className="flex items-center justify-between">
-                            <span className="text-lg font-medium">Current</span>
+                            <span className="text-base font-bold">Current</span>
                             <LevelBadge level={account.level} />
+                        </div>
+                        <Separator/>
+                        <div className="flex items-center justify-between">
+                            <span className="text-base font-bold">Self-evaluated</span>
+                            {account.selfEvaluatedLevelId ? <LevelBadge level={account.selfEvaluatedLevel} /> : <NoInformation />}
                         </div>
                     </CardContent>
                 </Card>
@@ -631,7 +621,7 @@ function AcademicInfoSection() {
                 <Card className="bg-muted/40 border-l-4 border-l-theme">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-base flex items-center">
-                            <BookOpen className="mr-2 h-4 w-4" /> Academic status
+                            <BookOpen className="mr-2 text-theme" /> Academic status
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -642,7 +632,7 @@ function AcademicInfoSection() {
                     </CardContent>
                 </Card>
             </div>
-
+            
             <Card className='border-l-4 border-l-theme'>
                 <CardHeader>
                     <CardTitle className="text-lg">Continue learning</CardTitle>
@@ -672,9 +662,9 @@ function AcademicInfoSection() {
                     </div>
                 </CardContent>
             </Card>
-            
-             {isLoadingLevels ? <Skeleton className='w-full h-full' /> :
-                        <PianoLevelTimeline levels={levels} currentLevelId={account.levelId} />}
+
+            {isLoadingLevels ? <Skeleton className='w-full h-full' /> :
+                <PianoLevelTimeline levels={levels} currentLevelId={account.levelId} />}
 
         </div>
     )

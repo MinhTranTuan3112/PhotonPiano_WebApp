@@ -31,7 +31,7 @@ const StepperBar = ({ steps, currentStep, showIndicatorTitle = true }: Props) =>
                                 <div
                                     className={cn(
                                         "text-center text-sm mt-2 max-w-[120px]",
-                                        index === currentStep ? "text-blue-700 font-medium" : "text-gray-600",
+                                        index === currentStep ? "text-theme font-medium" : "text-gray-600",
                                     )}
                                 >
                                     {step}
