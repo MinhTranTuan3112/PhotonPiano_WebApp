@@ -146,7 +146,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
             return redirect(requiresEntranceTestRegistering ? "/?enroll-now=true" : "/", { headers });
         }
-        
+
     } catch (error) {
         console.error({ error })
 
@@ -185,7 +185,7 @@ export default function EntranceSurveyPage({ }: Props) {
                     </p>
                 </header>
 
-                <Card className="shadow-lg border-t-4 border-t-primary">
+                <Card className="shadow-lg border-t-4 border-t-theme">
                     <CardContent className="p-6 md:p-8">
                         <Suspense fallback={<LoadingSkeleton />}>
                             <Await resolve={promise}>

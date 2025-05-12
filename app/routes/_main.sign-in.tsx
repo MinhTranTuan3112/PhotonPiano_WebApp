@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Button, buttonVariants } from '~/components/ui/button'
+import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
@@ -7,9 +7,8 @@ import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from 'zod'
 import { useRemixForm, getValidatedFormData } from "remix-hook-form";
-import { Mail, ArrowRight, Music, BookOpen, Headphones, MusicIcon, Users } from 'lucide-react'
+import { Mail, Music, BookOpen, Headphones, MusicIcon, Users } from 'lucide-react'
 import { PasswordInput } from '~/components/ui/password-input'
-import { toast } from 'sonner'
 import { fetchSignIn } from '~/lib/services/auth'
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime'
 import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
