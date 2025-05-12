@@ -132,7 +132,9 @@ export async function action({ request }: ActionFunctionArgs) {
         })
 
         if (response.status === 200) {
-            const { idToken, refreshToken, expiresIn, role, localId }: AuthResponse = await response.data
+            const { idToken, refreshToken, expiresIn, role, localId, requiresEntranceTestRegistering }: AuthResponse & {
+                requiresEntranceTestRegistering: boolean
+            } = await response.data;
             const expirationTime = getCurrentTimeInSeconds() + Number.parseInt(expiresIn)
 
             const headers = new Headers()
@@ -142,8 +144,9 @@ export async function action({ request }: ActionFunctionArgs) {
             headers.append("Set-Cookie", await roleCookie.serialize(role))
             headers.append("Set-Cookie", await accountIdCookie.serialize(localId))
 
-            return redirect("/?enroll-now=true", { headers });
+            return redirect(requiresEntranceTestRegistering ? "/?enroll-now=true" : "/", { headers });
         }
+
     } catch (error) {
         console.error({ error })
 
@@ -182,7 +185,7 @@ export default function EntranceSurveyPage({ }: Props) {
                     </p>
                 </header>
 
-                <Card className="shadow-lg border-t-4 border-t-primary">
+                <Card className="shadow-lg border-t-4 border-t-theme">
                     <CardContent className="p-6 md:p-8">
                         <Suspense fallback={<LoadingSkeleton />}>
                             <Await resolve={promise}>
