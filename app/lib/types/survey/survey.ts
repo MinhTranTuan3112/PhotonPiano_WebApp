@@ -72,7 +72,7 @@ export type SendEntranceSurveyAnswers = {
         surveyQuestionId: string;
         answers: string[];
     }[]
-} & Pick<Account, 'fullName' | 'phone' | 'email'>
+} & Pick<Account, 'fullName' | 'phone' | 'email' | 'gender' | 'selfEvaluatedLevelId'>
 
 export type UpdateSurveyRequest = Partial<Pick<Survey, 'name' | 'description' | 'minAge' | 'maxAge'> & {
     isEntranceSurvey: boolean

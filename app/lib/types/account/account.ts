@@ -26,6 +26,7 @@ export type Account = {
     studentStatus?: StudentStatus;
     role: Role;
     wantToContinue?: boolean;
+    selfEvaluatedLevelId?: string;
 };
 
 export type AccountDetail = {
@@ -34,6 +35,7 @@ export type AccountDetail = {
     learnerSurveys: LearnerSurveyWithAnswersDetail[],
     entranceTestStudents: EntranceTestStudentDetail[],
     freeSlots: FreeSlot[]
+    selfEvaluatedLevel?: Level;
 } & Account
 
 export type TeacherDetail = {
