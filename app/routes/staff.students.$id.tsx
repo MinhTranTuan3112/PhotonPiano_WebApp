@@ -15,6 +15,7 @@ import { LearnerSurveyWithAnswersDetail } from '~/lib/types/survey/survey';
 import StudiedClassesSection, { ClassCard } from '~/components/learner/learner-details/studied-classes-section';
 import StudentHeader from '~/components/learner/learner-details/student-header';
 import EntranceTestsSection from '~/components/learner/learner-details/entrance-tests-section';
+import TuitionSection from '~/components/learner/learner-details/tuition-section';
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -53,7 +54,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 
 export default function StaffStudentDetailPage() {
+  
   const { promise, id } = useLoaderData<typeof loader>();
+
   return (
     <div className="container mx-auto px-4 pb-6 pt-2 animate-fade-in">
       <Suspense fallback={<LoadingSkeleton />} key={id}>
@@ -80,6 +83,8 @@ export default function StaffStudentDetailPage() {
               )}
 
               <StudiedClassesSection student={student} type='past' />
+
+              <TuitionSection student={student} />
 
               <FreeTimesSection student={student} />
 

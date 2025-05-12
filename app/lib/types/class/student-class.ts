@@ -1,4 +1,5 @@
 import { Account } from "../account/account"
+import { Tuition } from "../tuition/tuition";
 import { Class } from "./class"
 import { StudentClassScoreWithCriteria } from "./student-class-score"
 
@@ -17,6 +18,11 @@ export type StudentClass = {
   instructorComment: string | null;
   student: Student;
 };
+
+export type StudentClassDetails = {
+  class: Class;
+  tutions: Tuition[];
+} & StudentClass;
 
 // Student type
 export type Student = {
@@ -48,11 +54,11 @@ export type Student = {
 };
 
 export type StudentClassWithStudent = {
-    student : Account,
+  student: Account,
 } & StudentClass
 
 export type StudentClassWithClass = {
-    class : Class,
+  class: Class,
 } & StudentClass
 
 export type StudentClassWithScore = {

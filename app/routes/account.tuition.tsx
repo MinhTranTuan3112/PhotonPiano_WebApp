@@ -69,7 +69,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         //     tuition = tuition.filter(fee => fee.paymentStatus !== PaymentStatus.Successed)
         // }
 
-        tuition = tuition.sort( (a, b) =>  a.paymentStatus - b.paymentStatus  )
+        tuition = tuition.sort((a, b) => a.paymentStatus - b.paymentStatus)
 
         return { tuition, idToken, role };
 
@@ -480,7 +480,7 @@ export default function TuitionPage() {
                         </div>
 
                         ${selectedFee.paymentStatus === PaymentStatus.Pending ?
-                `<div class="warning-box">
+                    `<div class="warning-box">
                               Please make your payment by ${formatDate(selectedFee.deadline)} to avoid any interruption to your studies.
                           </div>` : ''}
 
@@ -641,11 +641,11 @@ export default function TuitionPage() {
                     <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold">Total Debt:</span>
                         <span className="text-lg font-bold text-red-600">
-            {totalDebt.toLocaleString("vi-VN", {
-                style: "currency",
-                currency: "VND",
-            })}
-          </span>
+                            {totalDebt.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                            })}
+                        </span>
                     </div>
                 </div>
 
@@ -653,12 +653,12 @@ export default function TuitionPage() {
                     tuition.map((tuition) => (
                         <div key={tuition.id} className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm">
                             <div className="flex justify-between items-center mb-2">
-              <span className="text-lg font-semibold">
-                {(tuition.amount + tuition.fee).toLocaleString("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                })}
-              </span>
+                                <span className="text-lg font-semibold">
+                                    {(tuition.amount + tuition.fee).toLocaleString("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                    })}
+                                </span>
                                 <Badge variant={tuition.isPassed ? "destructive" : "secondary"}>
                                     Class Status: {tuition.isPassed ? "Passed" : "In Progress"}
                                 </Badge>
@@ -674,19 +674,19 @@ export default function TuitionPage() {
                             <div className="text-sm text-gray-600 mb-2">Tax Fee: {tuition.fee.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
                             <div className="text-sm text-gray-600 mb-2">Tuition: {tuition.amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}</div>
                             <div className="flex justify-between items-center">
-              <span className="text-sm">
-                Payment Status:
-                <span
-                    className={`ml-1 font-bold ${tuition.paymentStatus === PaymentStatus.Successed ? "text-green-600" : "text-gray-600"}`}
-                >
-                  {PaymentStatusText[tuition.paymentStatus] || "Unknown"}
-                </span>
-              </span>
+                                <span className="text-sm">
+                                    Payment Status:
+                                    <span
+                                        className={`ml-1 font-bold ${tuition.paymentStatus === PaymentStatus.Successed ? "text-green-600" : "text-gray-600"}`}
+                                    >
+                                        {PaymentStatusText[tuition.paymentStatus] || "Unknown"}
+                                    </span>
+                                </span>
                                 {tuition.paymentStatus !== PaymentStatus.Successed && !tuition.isPassed && (
                                     <Button
                                         onClick={() => handlePayNowClick(tuition)}
                                         disabled={role === 4}
-                                       variant="theme"
+                                        variant="theme"
                                     >
                                         Pay Now
                                     </Button>
