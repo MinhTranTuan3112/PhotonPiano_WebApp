@@ -14,7 +14,8 @@ type Props<T> = {
     resolvedData? : T[],
     pageParamName? : string,
     sizeParamName? : string,
-    allowHideColumns? : boolean
+    allowHideColumns? : boolean;
+    className? : string
 }
 
 export default function GenericDataTable<T>({ columns,
@@ -25,7 +26,8 @@ export default function GenericDataTable<T>({ columns,
     metadata,
     pageParamName = 'page',
     sizeParamName = 'size',
-    allowHideColumns = true
+    allowHideColumns = true,
+    className
 }: Props<T>) {
 
     const { totalCount, totalPages } = metadata;
@@ -40,6 +42,7 @@ export default function GenericDataTable<T>({ columns,
 
     return (
         <DataTable data={data} columns={columns}
+            className={className}
             extraHeaderContent={extraHeaderContent}
             enableColumnDisplayOptions={allowHideColumns}
             defaultPageSize={Number.parseInt(searchParams.get('size') || '10')}

@@ -23,7 +23,7 @@ import { Skeleton } from '~/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
-import { fetchAccounts } from '~/lib/services/account';
+import { fetchAccounts, fetchAvailableTeachersForClass } from '~/lib/services/account';
 import { fetchClassDetail, fetchClassScoreboard } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
 import { fetchSystemConfigByName } from '~/lib/services/system-config';
@@ -307,7 +307,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
                             idToken={idToken}
                             queryKey='teachers'
                             fetcher={async (query) => {
-                              const response = await fetchAccounts({ ...query, roles: [Role.Instructor] });
+                              const response = await fetchAvailableTeachersForClass({ ...query, classId : classInfo.id });
 
                               const headers = response.headers;
 
@@ -488,7 +488,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {
+        {/* {
           (minimum - classInfo.studentNumber > 0) && (
             <Alert variant="warning" className='my-5 w-full'>
               <AlertTriangle className="h-10 w-10 pr-5" />
@@ -500,7 +500,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
               </AlertDescription>
             </Alert>
           )
-        }
+        } */}
         <div className='flex flex-col lg:flex-row gap-2'>
           <Button variant={'outline'} disabled={(classInfo.capacity <= classInfo.studentClasses.length)} onClick={() => onOpenChange(true)}>
             <PlusCircle className='mr-4' /> Add new learner
