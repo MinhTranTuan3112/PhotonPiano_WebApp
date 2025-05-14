@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import {  LoaderFunctionArgs, redirect } from '@remix-run/node';
+import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
 import { PlusCircle, Search, Shuffle, Users } from 'lucide-react';
 import { Suspense, useState } from 'react'
@@ -164,11 +164,12 @@ export default function StaffClassesPage({ }: Props) {
         <Suspense fallback={<LoadingSkeleton />}>
           <Await resolve={promise}>
             {(data) => (
-              <GenericDataTable
-                columns={classColums}
-                metadata={data.metadata}
-                resolvedData={data.classes}
-              />
+                <GenericDataTable
+                 
+                  columns={classColums}
+                  metadata={data.metadata}
+                  resolvedData={data.classes}
+                />
             )}
           </Await>
         </Suspense>
