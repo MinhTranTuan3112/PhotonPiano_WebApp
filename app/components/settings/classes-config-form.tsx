@@ -83,7 +83,7 @@ export default function ClassesConfigForm({ fetcher, isSubmitting, ...defaultDat
                             render={({ field: { onChange, onBlur, value, ref } }) => (
                                 <div>
                                     <Switch checked={value} onCheckedChange={onChange}
-                                        className='m-0' />
+                                        className='m-0 data-[state=checked]:bg-theme' />
                                 </div>
                             )}
                         />
@@ -105,7 +105,7 @@ export default function ClassesConfigForm({ fetcher, isSubmitting, ...defaultDat
                 </div>
 
                 <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
-                    onClick={handleOpenConfirmDialog}>
+                    onClick={handleOpenConfirmDialog} variant={'theme'}>
                     {isSubmitting ? 'Saving...' : 'Save Change'}
                 </Button>
             </Form>
