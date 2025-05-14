@@ -44,6 +44,7 @@ type DataTableProps<TData, TValue> = {
     totalCount?: number;
     pageParamName?: string;
     sizeParamName?: string;
+    className? : string;
 }
 
 export function DataTable<TData, TValue>({
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
     totalCount = 0,
     pageParamName = 'page',
     sizeParamName = 'size',
+    className
 }: DataTableProps<TData, TValue>) {
 
     const [sorting, setSorting] = useState<SortingState>([])
@@ -158,7 +160,7 @@ export function DataTable<TData, TValue>({
                 )}
             </div>
             <div className="rounded-md border">
-                <Table className="w-full">
+                <Table className={`w-full ${className}`}>
                     <TableHeader className="bg-gradient-to-bl from-theme/100 to-theme/30">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>

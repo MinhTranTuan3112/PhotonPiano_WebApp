@@ -19,7 +19,7 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchRooms } from '~/lib/services/rooms';
-import { fetchSlotById } from '~/lib/services/scheduler';
+import { fetchAvailableTeachersForSlot, fetchSlotById } from '~/lib/services/scheduler';
 import { Account, Level, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
@@ -405,10 +405,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                                         idToken={idToken}
                                                         queryKey="teachers"
                                                         fetcher={async (query) => {
-                                                            const response = await fetchAccounts({
-                                                                ...query,
-                                                                roles: [Role.Instructor]
-                                                            });
+                                                            const response = await fetchAvailableTeachersForSlot(slot.id, query.idToken);
                                                             const headers = response.headers;
                                                             const metadata: PaginationMetaData = {
                                                                 page: parseInt(headers['x-page'] || '1'),
