@@ -84,7 +84,7 @@ export type StudentAttendanceModel =  {
 
 export type SlotDetail = {
     id: string;
-    classId: string | null;
+    classId: string;
     roomId: string | null;
     shift: Shift;
     date: string;

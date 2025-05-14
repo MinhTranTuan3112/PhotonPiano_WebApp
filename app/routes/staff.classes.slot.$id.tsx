@@ -218,7 +218,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                 <Edit2Icon className="mr-2 h-4 w-4" /> Edit Slot
                             </Button>
                         )}
-                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} />
+                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} classId={slot.classId}/>
                     </div>
                 </div>
 
@@ -587,9 +587,11 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
 
 function DeleteSlotSection({
     slotId,
+    classId,
     slotStatus
 }: {
     slotId: string;
+    classId : string;
     slotStatus: SlotStatus;
 }) {
 
@@ -614,10 +616,13 @@ function DeleteSlotSection({
         }
     });
 
+    const navigate = useNavigate()
+
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
             toast.success("Slot deleted successfully");
+            navigate(`/staff/classes/${classId}?tab=timeTable`)
             return;
         }
 
