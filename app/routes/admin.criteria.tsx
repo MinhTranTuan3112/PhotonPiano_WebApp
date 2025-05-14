@@ -324,249 +324,247 @@ export default function AdminCriteria({ }: Props) {
                                                 </Button>
                                             </>
                                         ) : (
-                                            <Button type='button' variant={'theme'} onClick={() => setIsEdit(true)}><Edit2Icon className='mr-4' /> Chỉnh sửa</Button>
+                                            <Button type='button' variant={'theme'} onClick={() => setIsEdit(true)}><Edit2Icon className='mr-4' /> Edit</Button>
                                         )
                                     }
                                 </div>
                                 <Tabs defaultValue='entrance-tests'>
-                                    <TabsList className="w-full grid grid-cols-2">
-                                        <TabsTrigger value="entrance-tests" onClick={() => setCriteriaFor(0)}>
+                                    <TabsList className="w-full grid grid-cols-2 p-0 h-auto bg-background">
+                                        <TabsTrigger value="entrance-tests" onClick={() => setCriteriaFor(0)}
+                                            className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                                             Entrance Test
                                         </TabsTrigger>
-                                        <TabsTrigger value="classes" onClick={() => setCriteriaFor(1)}>
+                                        <TabsTrigger value="classes" onClick={() => setCriteriaFor(1)}
+                                            className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>
                                             Class
                                         </TabsTrigger>
                                     </TabsList>
 
                                     <TabsContent value="entrance-tests" >
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="bg-sky-100">
-                                                    <th className="font-bold text-left p-3  w-1/6">Name</th>
-                                                    <th className="font-bold text-center p-3">Description</th>
-                                                    <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
-                                                    <th className="font-bold text-center p-3  w-1/6"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {
-                                                    criteria.filter(c => c.for === CriteriaFor.EntranceTest).map(c => {
-                                                        const updater = criteriaUpdater.find(u => u.id === c.id) ?? c;
-
-                                                        return !isEdit ? (
-                                                            <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-left p-3">{c.name}</td>
-                                                                <td className="text-center p-3">{c.description}</td>
-                                                                <td className="text-right p-3">{c.weight}</td>
-                                                                <td className="text-center p-3">
-                                                                    <Button type='button' variant={'destructive'} onClick={() => {
-                                                                        setSelectedCriteria(c.id)
-                                                                        handleOpenDeleteModal()
-                                                                    }}><X /></Button>
-                                                                </td>
-                                                            </tr>
-                                                        ) : (
-                                                            <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        value={updater.name || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, name: e.target.value }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        value={updater.description || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, description: e.target.value }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        type="number"
-                                                                        value={updater.weight?.toString() || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, weight: parseFloat(e.target.value) || 0 }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Button type='button' variant={'destructive'} onClick={() => {
-                                                                        setSelectedCriteria(c.id)
-                                                                        handleOpenDeleteModal()
-                                                                    }}><X /></Button>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                }
-                                                <tr>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('name')} name="name" placeholder='Name...'></Input>
-
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('description')} name="description" placeholder='Description...'></Input>
-
-
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('weight')}
-                                                                type='number'
-                                                                name="weight"
-                                                                placeholder='Weight...'></Input>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex justify-center'>
-                                                            <Button type='submit' name='action' variant={'theme'} value="ADD"><PlusCircle /></Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{errors.name && errors.name.message && <span className='text-red-500'>{errors.name.message}</span>}</td>
-                                                    <td>{errors.description && errors.description.message && <span className='text-red-500'>{errors.description.message}</span>}</td>
-                                                    <td>{errors.weight && errors.weight.message && <span className='text-red-500'>{errors.weight.message}</span>}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        <div className="overflow-hidden rounded-xl border border-neutral-200 border-t-4 border-t-theme">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="bg-neutral-50 border-b border-neutral-200">
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Name</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Description</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Weight (%)</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        criteria.filter(c => c.for === CriteriaFor.EntranceTest).map(c => {
+                                                            const updater = criteriaUpdater.find(u => u.id === c.id) ?? c;
+                                                            return !isEdit ? (
+                                                                <tr key={c.id} className="hover:bg-gray-50 border-b">
+                                                                    <td className="p-3">{c.name}</td>
+                                                                    <td className="p-3">{c.description}</td>
+                                                                    <td className="p-3">{c.weight}</td>
+                                                                    <td className="p-3">
+                                                                        <Button type='button' variant={'destructive'} onClick={() => {
+                                                                            setSelectedCriteria(c.id)
+                                                                            handleOpenDeleteModal()
+                                                                        }}><X /></Button>
+                                                                    </td>
+                                                                </tr>
+                                                            ) : (
+                                                                <tr key={c.id} className="hover:bg-gray-50 border-b">
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            value={updater.name || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, name: e.target.value }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            value={updater.description || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, description: e.target.value }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={updater.weight?.toString() || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, weight: parseFloat(e.target.value) || 0 }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Button type='button' variant={'destructive'} onClick={() => {
+                                                                            setSelectedCriteria(c.id)
+                                                                            handleOpenDeleteModal()
+                                                                        }}><X /></Button>
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        })
+                                                    }
+                                                    <tr>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('name')} name="name" placeholder='Name...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('description')} name="description" placeholder='Description...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('weight')}
+                                                                    type='number'
+                                                                    name="weight"
+                                                                    placeholder='Weight...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex justify-center'>
+                                                                <Button type='submit' name='action' variant={'theme'} value="ADD"><PlusCircle /></Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{errors.name && errors.name.message && <span className='text-red-500'>{errors.name.message}</span>}</td>
+                                                        <td>{errors.description && errors.description.message && <span className='text-red-500'>{errors.description.message}</span>}</td>
+                                                        <td>{errors.weight && errors.weight.message && <span className='text-red-500'>{errors.weight.message}</span>}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </TabsContent>
                                     <TabsContent value="classes">
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="bg-sky-100">
-                                                    <th className="font-bold text-left p-3 w-1/6">Name</th>
-                                                    <th className="font-bold text-center p-3">Description</th>
-                                                    <th className="font-bold text-right p-3  w-1/6">Weight (%)</th>
-                                                    <th></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {
-                                                    criteria.filter(c => c.for === CriteriaFor.Class).map(c => {
-                                                        const updater = criteriaUpdater.find(u => u.id === c.id) ?? c;
-
-                                                        return !isEdit ? (
-                                                            <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-left p-3">{c.name}</td>
-                                                                <td className="text-center p-3">{c.description}</td>
-                                                                <td className="text-right p-3">{c.weight}</td>
-                                                                <td className="text-center p-3">
-                                                                    <Button type='button' variant={'destructive'} onClick={() => {
-                                                                        setSelectedCriteria(c.id)
-                                                                        handleOpenDeleteModal()
-                                                                    }}><X /></Button>
-                                                                </td>
-                                                            </tr>
-                                                        ) : (
-                                                            <tr key={c.id} className="hover:bg-gray-50 border-b">
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        value={updater.name || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, name: e.target.value }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        value={updater.description || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, description: e.target.value }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Input
-                                                                        type="number"
-                                                                        value={updater.weight?.toString() || ''}
-                                                                        onChange={(e) => {
-                                                                            setCriteriaUpdater(prev =>
-                                                                                prev.map(item => item.id === c.id
-                                                                                    ? { ...item, weight: parseFloat(e.target.value) || 0 }
-                                                                                    : item
-                                                                                )
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td className="text-center p-3">
-                                                                    <Button type='button' variant={'destructive'} onClick={() => {
-                                                                        setSelectedCriteria(c.id)
-                                                                        handleOpenDeleteModal()
-                                                                    }}><X /></Button>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                }
-                                                <tr>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('name')} name="name" placeholder='Name...'></Input>
-
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('description')} name="description" placeholder='Description...'></Input>
-
-
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex flex-col items-center'>
-                                                            <Input {...register('weight')}
-                                                                type='number'
-                                                                name="weight"
-                                                                placeholder='Weight...'></Input>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className='flex justify-center'>
-                                                            <Button type='submit' name='action' value="ADD" variant={'theme'} ><PlusCircle /></Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>{errors.name && errors.name.message && <span className='text-red-500'>{errors.name.message}</span>}</td>
-                                                    <td>{errors.description && errors.description.message && <span className='text-red-500'>{errors.description.message}</span>}</td>
-                                                    <td>{errors.weight && errors.weight.message && <span className='text-red-500'>{errors.weight.message}</span>}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        <div className="overflow-hidden rounded-xl border border-neutral-200 border-t-4 border-t-theme">
+                                            <table className="w-full">
+                                                <thead>
+                                                    <tr className="bg-neutral-50 border-b border-neutral-200">
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Name</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Description</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold">Weight (%)</th>
+                                                        <th className="px-3 py-4 text-left text-base font-bold"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        criteria.filter(c => c.for === CriteriaFor.Class).map(c => {
+                                                            const updater = criteriaUpdater.find(u => u.id === c.id) ?? c;
+                                                            return !isEdit ? (
+                                                                <tr key={c.id} className="hover:bg-gray-50 border-b">
+                                                                    <td className="p-3">{c.name}</td>
+                                                                    <td className="p-3">{c.description}</td>
+                                                                    <td className="p-3">{c.weight}</td>
+                                                                    <td className="p-3">
+                                                                        <Button type='button' variant={'destructive'} onClick={() => {
+                                                                            setSelectedCriteria(c.id)
+                                                                            handleOpenDeleteModal()
+                                                                        }}><X /></Button>
+                                                                    </td>
+                                                                </tr>
+                                                            ) : (
+                                                                <tr key={c.id} className="hover:bg-gray-50 border-b">
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            value={updater.name || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, name: e.target.value }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            value={updater.description || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, description: e.target.value }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={updater.weight?.toString() || ''}
+                                                                            onChange={(e) => {
+                                                                                setCriteriaUpdater(prev =>
+                                                                                    prev.map(item => item.id === c.id
+                                                                                        ? { ...item, weight: parseFloat(e.target.value) || 0 }
+                                                                                        : item
+                                                                                    )
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-center p-3">
+                                                                        <Button type='button' variant={'destructive'} onClick={() => {
+                                                                            setSelectedCriteria(c.id)
+                                                                            handleOpenDeleteModal()
+                                                                        }}><X /></Button>
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        })
+                                                    }
+                                                    <tr>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('name')} name="name" placeholder='Name...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('description')} name="description" placeholder='Description...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex flex-col items-center'>
+                                                                <Input {...register('weight')}
+                                                                    type='number'
+                                                                    name="weight"
+                                                                    placeholder='Weight...'></Input>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className='flex justify-center'>
+                                                                <Button type='submit' name='action' value="ADD" variant={'theme'} ><PlusCircle /></Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{errors.name && errors.name.message && <span className='text-red-500'>{errors.name.message}</span>}</td>
+                                                        <td>{errors.description && errors.description.message && <span className='text-red-500'>{errors.description.message}</span>}</td>
+                                                        <td>{errors.weight && errors.weight.message && <span className='text-red-500'>{errors.weight.message}</span>}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </TabsContent>
                                 </Tabs>
                             </Form>

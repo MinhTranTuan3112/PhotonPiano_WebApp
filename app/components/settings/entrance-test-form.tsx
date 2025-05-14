@@ -78,7 +78,7 @@ export default function EntranceTestConfigForm({
                         control={control}
                         name='allowEntranceTestRegistering'
                         render={({ field: { value, onChange } }) => (
-                            <Switch checked={value} onCheckedChange={onChange} />
+                            <Switch checked={value} onCheckedChange={onChange} className="data-[state=checked]:bg-theme"/>
                         )}
                     />
                 </div>
@@ -130,9 +130,9 @@ export default function EntranceTestConfigForm({
                     }}/>
                 </div>
 
-                <div className="my-2">
+                <div className="my-4">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
-                        onClick={handleOpenConfirmDialog}>
+                        onClick={handleOpenConfirmDialog} variant={'theme'} className="w-full max-w-[30%]">
                         {isSubmitting ? 'Save...' : 'Save'}
                     </Button>
                 </div>
