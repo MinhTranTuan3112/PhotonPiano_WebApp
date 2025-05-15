@@ -198,7 +198,7 @@ export default function StudentClassDetailPage() {
                         {
                             classDetails.status === 0 && (
                                 <>
-                                    <Link to={`/account/class/changing`}>
+                                    <Link to={`/account/classes/changing`}>
                                         <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
                                             <ShuffleIcon className="h-4 w-4" />
                                             Change Class

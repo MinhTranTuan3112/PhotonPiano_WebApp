@@ -8,6 +8,7 @@ export async function fetchClasses({
   pageSize = 10,
   sortColumn = "Id",
   orderByDesc = true,
+  keyword,
   levels = [],
   statuses = [],
   isPublic,
@@ -18,6 +19,7 @@ export async function fetchClasses({
     statuses: number[];
     isPublic?: boolean;
     idToken: string;
+    keyword?: string;
   }
 >) {
   let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -36,6 +38,10 @@ export async function fetchClasses({
 
   if (isPublic) {
     url += `&is-public=${isPublic}`;
+  }
+
+  if (keyword) {
+    url += `&keyword=${keyword}`;
   }
 
   const response = await axiosInstance.get(url, {
