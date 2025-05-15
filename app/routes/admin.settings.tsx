@@ -214,7 +214,7 @@ export default function AdminSettingsPage({ }: Props) {
             <Card className="border-none shadow-sm">
                 <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-t-lg pb-6">
                     <div className="flex items-center gap-2 mb-2">
-                        <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                        <Settings className="text-theme" />
                         <CardTitle className="text-2xl font-bold">System Configuration</CardTitle>
                     </div>
                     <CardDescription className="text-slate-600 dark:text-slate-400">
@@ -227,23 +227,23 @@ export default function AdminSettingsPage({ }: Props) {
                             {(configs) => (
                                 <Tabs defaultValue="entrance-tests" className="w-full">
                                     <div className="bg-slate-50 dark:bg-slate-900 p-1 rounded-lg mb-6">
-                                        <TabsList className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
-                                            <TabsTrigger value="entrance-tests" className="text-xs md:text-sm">
+                                        <TabsList className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1 p-0 h-auto bg-background">
+                                            <TabsTrigger value="entrance-tests" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Entrance Test
                                             </TabsTrigger>
-                                            <TabsTrigger value="classes" className="text-xs md:text-sm">
+                                            <TabsTrigger value="classes" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Class
                                             </TabsTrigger>
-                                            <TabsTrigger value="survey" className="text-xs md:text-sm">
+                                            <TabsTrigger value="survey" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Survey
                                             </TabsTrigger>
-                                            <TabsTrigger value="tuition" className="text-xs md:text-sm">
+                                            <TabsTrigger value="tuition" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Tuition Fee
                                             </TabsTrigger>
-                                            <TabsTrigger value="scheduler" className="text-xs md:text-sm">
+                                            <TabsTrigger value="scheduler" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Scheduling
                                             </TabsTrigger>
-                                            <TabsTrigger value="levels" className="text-xs md:text-sm">
+                                            <TabsTrigger value="levels" className="text-xs md:text-sm py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">
                                                 Level GPA
                                             </TabsTrigger>
                                         </TabsList>

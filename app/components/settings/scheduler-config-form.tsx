@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FetcherWithComponents } from "@remix-run/react";
+import { FetcherWithComponents, Form } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
-import { Form } from "~/components/ui/form";
+
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
 import { X } from "lucide-react";
@@ -293,6 +293,7 @@ export default function SchedulerConfigForm({ fetcher, isSubmitting, idToken, ..
                         disabled={isSubmitting}
                         onClick={handleOpenConfirmDialog}
                         className="min-w-32"
+                        variant={'theme'}
                     >
                         {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </Button>

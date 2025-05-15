@@ -246,10 +246,10 @@ export default function AdminManageAccountPage({ }: Props) {
       </div>
       
       <Tabs defaultValue={viewingRole.toString()}>
-        <TabsList className="w-full flex mt-4">
-          <TabsTrigger value="2" className='w-full' onClick={() => handleTabChange(Role.Instructor)}>Teachers</TabsTrigger>
-          <TabsTrigger value="4" className='w-full' onClick={() => handleTabChange(Role.Staff)}>Staffs</TabsTrigger>
-          <TabsTrigger value="3" className='w-full' onClick={() => handleTabChange(Role.Administrator)}>Admins</TabsTrigger>
+        <TabsList className="w-full flex mt-4 p-0 h-auto bg-background">
+          <TabsTrigger value="2" className='w-full py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground' onClick={() => handleTabChange(Role.Instructor)}>Teachers</TabsTrigger>
+          <TabsTrigger value="4" className='w-full py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground' onClick={() => handleTabChange(Role.Staff)}>Staffs</TabsTrigger>
+          <TabsTrigger value="3" className='w-full py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground' onClick={() => handleTabChange(Role.Administrator)}>Admins</TabsTrigger>
         </TabsList>
         <div className='flex flex-col lg:flex-row lg:place-content-between mt-4 gap-4'>
           <SearchForm setIsOpen={setIsOpenAddDialog} role={viewingRole} />

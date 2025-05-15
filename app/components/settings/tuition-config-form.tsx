@@ -111,7 +111,7 @@ export default function TuitionConfigForm({ fetcher, isSubmitting, idToken,...de
 
                 <div className="my-2">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
-                            onClick={handleOpenConfirmDialog}>
+                            onClick={handleOpenConfirmDialog} variant={'theme'}>
                         {isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
                 </div>

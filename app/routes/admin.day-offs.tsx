@@ -224,7 +224,7 @@ export default function AdminDayOff({ }: Props) {
                 </div>
                 <div className='my-2 flex justify-end w-full'>
                     <Button Icon={PlusCircle} iconPlacement='left' type='button'
-                        onClick={() => setIsOpenDialog(true)}>Add new</Button>
+                        onClick={() => setIsOpenDialog(true)} variant={'theme'}>Add new</Button>
                 </div>
                 <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                     <Await resolve={promise}>

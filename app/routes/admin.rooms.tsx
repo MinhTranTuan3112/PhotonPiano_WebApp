@@ -176,10 +176,10 @@ export default function AdminRoom({ }: Props) {
                     className='w-full'
                     defaultValue={query.keyword}
                 />
-                <Button type='submit'>Search</Button>
+                <Button type='submit' variant={'theme'}>Search</Button>
             </Form>
             <div className='flex my-2 justify-end'>
-                <Button Icon={PlusCircle} iconPlacement='left' onClick={handleOpenRoomDialog}>Add new</Button>
+                <Button Icon={PlusCircle} iconPlacement='left' onClick={handleOpenRoomDialog} variant={'theme'}>Add new</Button>
             </div>
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
