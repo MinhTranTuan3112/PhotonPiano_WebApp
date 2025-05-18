@@ -44,7 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       sortColumn: searchParams.get("column") || "CreatedAt",
       orderByDesc: searchParams.get("desc") === "true" ? false : true,
       keyword: trimQuotes(searchParams.get("keyword") || ""),
-      levels: [currentAccount.levelId ?? "0"],
+      levels: currentAccount.levelId ? [currentAccount.levelId] : [],
       statuses: [0],
       isPublic: true,
       idToken: idToken,
@@ -363,7 +363,7 @@ export default function AccountClassRegistering() {
                   return (
                     <>
                       {/* Deadline Notice */}
-                      {(currentClass && data.currentAccount.status !== 3) ? (
+                      {((currentClass && currentClass.status !== 2) || data.currentAccount.studentStatus !== 3) ? (
                         <div
                           className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
                         >
