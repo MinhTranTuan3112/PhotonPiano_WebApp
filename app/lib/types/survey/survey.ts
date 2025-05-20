@@ -66,7 +66,7 @@ export type CreateSurveyRequest = Pick<Survey, 'name' | 'description' | 'minAge'
     questions: CreateQuestionInSurveyRequest[];
 };
 
-export type SendEntranceSurveyAnswers = {
+export type SendEntranceSurveyAnswersRequest = {
     password: string;
     surveyAnswers: {
         surveyQuestionId: string;

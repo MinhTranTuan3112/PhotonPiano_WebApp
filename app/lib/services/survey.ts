@@ -1,5 +1,5 @@
 import { QueryPagedRequest } from "../types/query/query-paged-request";
-import { CreateSurveyRequest, SendEntranceSurveyAnswers as SendEntranceSurveyAnswersRequest, UpdateSurveyRequest } from "../types/survey/survey";
+import { CreateSurveyRequest, SendEntranceSurveyAnswersRequest, UpdateSurveyRequest } from "../types/survey/survey";
 import axiosInstance from "../utils/axios-instance";
 
 export async function fetchSurveys({
