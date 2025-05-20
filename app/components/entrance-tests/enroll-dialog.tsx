@@ -137,6 +137,7 @@ function EnrollForm() {
             <div className='w-full flex gap-4 '>
                 <Button disabled={!isAgreed}
                     type="button" className='w-full' isLoading={isSubmitting}
+                    variant={'theme'}
                     onClick={handleOpenConfirmDialog}>
                     Register
                 </Button>
