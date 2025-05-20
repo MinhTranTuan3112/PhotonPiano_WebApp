@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from "@remix-run/react"
-import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, Piano } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, Piano } from "lucide-react"
 import type React from "react"
 import { Suspense, useState } from "react"
 import { Controller } from "react-hook-form"
@@ -34,7 +34,6 @@ import { Progress } from "~/components/ui/progress"
 import RadioGroupCards from "~/components/ui/radio-group-card"
 import { useQuery } from "@tanstack/react-query"
 import { fetchLevels } from "~/lib/services/level"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
 type Props = {}
 
@@ -67,7 +66,7 @@ const entranceSurveySchema = z
             }),
         ),
         gender: z.coerce.number(),
-        selfEvaluatedLevelId: z.string().optional(),
+        selfEvaluatedLevelId: z.string().optional()
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Confirm password did not match",
@@ -119,9 +118,15 @@ export async function action({ request }: ActionFunctionArgs) {
             receivedValues: defaultValues,
         } = await getValidatedFormData<EntranceSurveyFormData>(request, zodResolver(entranceSurveySchema))
 
+        console.log({ lv: data?.selfEvaluatedLevelId });
+
         if (errors) {
             return { success: false, errors, defaultValues }
         }
+
+        // return {
+        //     success: true
+        // }
 
         const response = await fetchSendEntranceSurveyAnswers({
             ...data,
@@ -454,21 +459,14 @@ function EntranceSurveyForm() {
                                 </div>
 
                                 <div className="space-y-4 flex flex-col gap-2">
-                                    <Label className="font-bold flex flex-row gap-2 items-center">
-                                        How do you evaluate your piano skills?
-                                        <TooltipProvider >
-                                            <Tooltip >
-                                                <TooltipTrigger asChild>
-                                                    <CircleHelp className="cursor-pointer size-4 text-gray-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="font-normal">
-                                                    If you self evaluate your piano skills higher than the first level,
-                                                    <br />
-                                                    you will have to
-                                                    participate in an piano entrance evaluation test to determine your piano level.
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                    <Label className="font-bold flex flex-col gap-2">
+                                        <div className="text-xl">How do you evaluate your piano skills?</div>
+                                        <div className="text-muted-foreground">
+                                            If you self evaluate your piano skills higher than the first level,
+                                            <br />
+                                            you will have to
+                                            participate in an piano entrance evaluation test to determine your piano level.
+                                        </div>
                                     </Label>
                                     <Controller
                                         control={control}
@@ -480,7 +478,9 @@ function EntranceSurveyForm() {
                                             />
                                         )}
                                     />
+
                                 </div>
+                                {errors.selfEvaluatedLevelId && <p className="text-sm text-red-500">{errors.selfEvaluatedLevelId.message}</p>}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -702,6 +702,19 @@ function LevelRadioGroup({
     if (isLoading) {
         return <Skeleton className="h-full w-full" />
     }
+
+    useEffect(() => {
+
+        if (levels.length > 0) {
+            onChange(levels[0].id);
+            return;
+        }
+
+        return () => {
+
+        }
+    }, [levels]);
+
 
     return <RadioGroupCards
         options={levels.map((level) => {
