@@ -46,6 +46,10 @@ const data = {
                     url: "/account/scheduler",
                 },
                 {
+                    title: "Class Registering",
+                    url: "/account/class-registering",
+                },
+                {
                     title: "My classes",
                     url: "/account/classes",
                 },
