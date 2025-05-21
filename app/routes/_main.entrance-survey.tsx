@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from "@remix-run/react"
-import { ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, Piano } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, Piano } from "lucide-react"
 import type React from "react"
 import { Suspense, useState } from "react"
-import { Controller } from "react-hook-form"
+import { Control, Controller } from "react-hook-form"
 import { getValidatedFormData, useRemixForm } from "remix-hook-form"
 import { z } from "zod"
 import { Button } from "~/components/ui/button"
@@ -34,7 +34,6 @@ import { Progress } from "~/components/ui/progress"
 import RadioGroupCards from "~/components/ui/radio-group-card"
 import { useQuery } from "@tanstack/react-query"
 import { fetchLevels } from "~/lib/services/level"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip"
 
 type Props = {}
 
@@ -67,7 +66,7 @@ const entranceSurveySchema = z
             }),
         ),
         gender: z.coerce.number(),
-        selfEvaluatedLevelId: z.string().optional(),
+        selfEvaluatedLevelId: z.string().optional()
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Confirm password did not match",
@@ -119,9 +118,15 @@ export async function action({ request }: ActionFunctionArgs) {
             receivedValues: defaultValues,
         } = await getValidatedFormData<EntranceSurveyFormData>(request, zodResolver(entranceSurveySchema))
 
+        console.log({ lv: data?.selfEvaluatedLevelId });
+
         if (errors) {
             return { success: false, errors, defaultValues }
         }
+
+        // return {
+        //     success: true
+        // }
 
         const response = await fetchSendEntranceSurveyAnswers({
             ...data,
@@ -172,7 +177,7 @@ export default function EntranceSurveyPage({ }: Props) {
     const { promise } = useLoaderData<typeof loader>()
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-4">
+        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-2">
             <div className="max-w-4xl mx-auto">
                 <header className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">
@@ -377,6 +382,15 @@ function EntranceSurveyForm() {
         ...questionSteps,
         {
             isRequired: true,
+            title: 'How do you evaluate your piano skills?',
+            content: (
+                <SelfEvaluateLevelSection control={control}
+                    onChange={(value) => setFormValue('selfEvaluatedLevelId', value)}
+                    value={watch('selfEvaluatedLevelId')} />
+            )
+        },
+        {
+            isRequired: true,
             title: "Create Account",
             content: (
                 <>
@@ -453,22 +467,15 @@ function EntranceSurveyForm() {
                                     />
                                 </div>
 
-                                <div className="space-y-4 flex flex-col gap-2">
-                                    <Label className="font-bold flex flex-row gap-2 items-center">
-                                        How do you evaluate your piano skills?
-                                        <TooltipProvider >
-                                            <Tooltip >
-                                                <TooltipTrigger asChild>
-                                                    <CircleHelp className="cursor-pointer size-4 text-gray-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="font-normal">
-                                                    If you self evaluate your piano skills higher than the first level,
-                                                    <br />
-                                                    you will have to
-                                                    participate in an piano entrance evaluation test to determine your piano level.
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                {/* <div className="space-y-4 flex flex-col gap-2">
+                                    <Label className="font-bold flex flex-col gap-2">
+                                        <div className="text-xl">How do you evaluate your piano skills?</div>
+                                        <div className="text-muted-foreground">
+                                            If you self evaluate your piano skills higher than the first level,
+                                            <br />
+                                            you will have to
+                                            participate in an piano entrance evaluation test to determine your piano level.
+                                        </div>
                                     </Label>
                                     <Controller
                                         control={control}
@@ -480,7 +487,9 @@ function EntranceSurveyForm() {
                                             />
                                         )}
                                     />
-                                </div>
+
+                                </div> */}
+                                {errors.selfEvaluatedLevelId && <p className="text-sm text-red-500">{errors.selfEvaluatedLevelId.message}</p>}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -678,12 +687,14 @@ function LoadingSkeleton() {
 }
 
 
-function LevelRadioGroup({
+function SelfEvaluateLevelSection({
     value,
-    onChange
+    onChange,
+    control
 }: {
     value: string | undefined;
     onChange: (value: string) => void;
+    control: Control<EntranceSurveyFormData>;
 }) {
 
     const { data, isLoading, isError } = useQuery({
@@ -703,20 +714,57 @@ function LevelRadioGroup({
         return <Skeleton className="h-full w-full" />
     }
 
-    return <RadioGroupCards
-        options={levels.map((level) => {
-            return {
-                label: <div style={{
-                    color: level.themeColor || 'black',
-                }}>
-                    {level.name}
-                </div>,
-                value: level.id,
-                description: level.description
-            }
-        })}
-        value={value}
-        onValueChange={onChange}
-        orientation="vertical"
-    />
+    useEffect(() => {
+
+        if (levels.length > 0) {
+            onChange(value || levels[0].id);
+            return;
+        }
+
+        return () => {
+
+        }
+
+    }, [levels]);
+
+    return <div className="space-y-4 flex flex-col gap-2">
+        <Label className="flex flex-col gap-2 justify-center items-center">
+            <div className="text-xl font-bold">How do you evaluate your piano skills?</div>
+            <div className="text-muted-foreground leading-5 text-center">
+                If you self evaluate your piano skills higher than the first level <span className="font-bold" style={{
+                    color: levels[0].themeColor || 'black',
+                }}>&#40;{levels[0].name}&#41;</span>,
+                <br />
+                you will have to
+                participate in an piano entrance evaluation test to determine your piano level for suitable class arrangement.
+            </div>
+        </Label>
+        <div className="flex justify-center">
+            <Controller
+                control={control}
+                name="selfEvaluatedLevelId"
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <RadioGroupCards
+                        options={levels.map((level) => {
+                            return {
+                                label: <div style={{
+                                    color: level.themeColor || 'black',
+                                }}>
+                                    {level.name}
+                                </div>,
+                                value: level.id,
+                                description: level.description,
+                                id: level.id,
+                            }
+                        })}
+                        value={value}
+                        onValueChange={onChange}
+                        orientation="vertical"
+                        hasDetailsButton={true}
+                    />
+                )}
+            />
+        </div>
+
+    </div>
 }

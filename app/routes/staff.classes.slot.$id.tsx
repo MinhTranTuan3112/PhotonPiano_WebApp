@@ -19,7 +19,7 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts } from '~/lib/services/account';
 import { fetchRooms } from '~/lib/services/rooms';
-import { fetchSlotById } from '~/lib/services/scheduler';
+import { fetchAvailableTeachersForSlot, fetchSlotById } from '~/lib/services/scheduler';
 import { Account, Level, Role } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
@@ -218,7 +218,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                 <Edit2Icon className="mr-2 h-4 w-4" /> Edit Slot
                             </Button>
                         )}
-                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} />
+                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} classId={slot.classId}/>
                     </div>
                 </div>
 
@@ -405,10 +405,7 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                                         idToken={idToken}
                                                         queryKey="teachers"
                                                         fetcher={async (query) => {
-                                                            const response = await fetchAccounts({
-                                                                ...query,
-                                                                roles: [Role.Instructor]
-                                                            });
+                                                            const response = await fetchAvailableTeachersForSlot(slot.id, query.idToken);
                                                             const headers = response.headers;
                                                             const metadata: PaginationMetaData = {
                                                                 page: parseInt(headers['x-page'] || '1'),
@@ -590,9 +587,11 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
 
 function DeleteSlotSection({
     slotId,
+    classId,
     slotStatus
 }: {
     slotId: string;
+    classId : string;
     slotStatus: SlotStatus;
 }) {
 
@@ -617,10 +616,13 @@ function DeleteSlotSection({
         }
     });
 
+    const navigate = useNavigate()
+
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
             toast.success("Slot deleted successfully");
+            navigate(`/staff/classes/${classId}?tab=timeTable`)
             return;
         }
 

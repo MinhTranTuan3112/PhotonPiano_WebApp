@@ -9,7 +9,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Pipette, Plus } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { HexColorPicker } from "react-colorful";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -17,6 +17,7 @@ import GenericCombobox from '../ui/generic-combobox';
 import { requireAuth } from '~/lib/utils/auth';
 import { fetchLevels } from '~/lib/services/level';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
+import { useColorPickerDialog } from '~/hooks/use-color-picker-dialog';
 
 type Props = {
     isEditing?: boolean;
@@ -65,14 +66,20 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Confirm action',
-        description: `Are you sure want to ${isEditing ? 'update' : 'create'} this level?` ,
+        description: `Are you sure want to ${isEditing ? 'update' : 'create'} this level?`,
         confirmText: isEditing ? 'Save' : 'Create',
         onConfirm: handleSubmit
     });
 
     const [newSkill, setNewSkill] = useState('');
-    const [selectedColor, setSelectedColor] = useState<string>(getFormValue('themeColor') || '#000000');
     const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false)
+
+    const { handleOpen: handleOpenColorPickerDialog, colorPickerDialog } = useColorPickerDialog({
+        color: watch('themeColor') || '#000000',
+        onColorChange: (color) => {
+            setFormValue('themeColor', color);
+        }
+    });
 
     return (
         <>
@@ -160,22 +167,14 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
 
                 <div className="flex flex-row gap-3 w-full items-center">
 
-                    <Label className='font-bold'>Theme color:</Label>
-                    <Controller
-                        name='themeColor'
-                        control={control}
-                        render={({ field: { onChange, onBlur, value, ref } }) => (
-                            <HexColorPicker color={value} onChange={(newColor) => {
-                                setSelectedColor(newColor);
-                                onChange(newColor);
-                            }} onBlur={onBlur} />
-                        )}
-                    />
+                    <Label className='font-bold '>Theme color</Label>
 
                     <div className="h-10 w-32 rounded-md" style={{
-                        backgroundColor: selectedColor,
+                        backgroundColor: watch('themeColor'),
                     }}>
                     </div>
+                    <Button variant={'outline'} onClick={handleOpenColorPickerDialog}
+                        Icon={Pipette} iconPlacement='left'>Pick color</Button>
 
                 </div>
 
@@ -202,7 +201,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                                     };
 
                                     let data = response.data as Level[]
-                                    
+
                                     data = data.filter(l => l.id !== watch('id'))
 
                                     return {
@@ -238,6 +237,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
             </Form>
             {id && <DeleteDialog id={id} isOpenDialog={isOpenDeleteDialog} setIsOpen={setIsOpenDeleteDialog} idToken={idToken} />}
             {confirmDialog}
+            {colorPickerDialog}
         </>
     )
 }

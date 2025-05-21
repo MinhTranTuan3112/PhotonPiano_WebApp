@@ -482,7 +482,7 @@ export default function StaffAutoArrangeClass({}: Props) {
                                 <thead className="bg-sky-700 text-white">
                                   <tr>
                                     <th className="py-2 px-4 border border-sky-300">Name</th>
-                                    <th className="py-2 px-4 border border-sky-300">Learner number</th>
+                                    {/* <th className="py-2 px-4 border border-sky-300">Learner number</th> */}
                                     <th className="py-2 px-4 border border-sky-300">Schedule Desc</th>
                                   </tr>
                                 </thead>
@@ -490,7 +490,7 @@ export default function StaffAutoArrangeClass({}: Props) {
                                   {classes.map((c) => (
                                     <tr key={c.id} className="border border-sky-100 hover:bg-sky-50 transition">
                                       <td className="py-2 px-4 border border-sky-100">{c.name}</td>
-                                      <td className="py-2 px-4 border border-sky-100 text-center">{c.studentNumber}</td>
+                                      {/* <td className="py-2 px-4 border border-sky-100 text-center">{c.studentNumber}</td> */}
                                       <td className="py-2 px-4 border border-sky-100">{c.scheduleDescription}</td>
                                     </tr>
                                   ))}

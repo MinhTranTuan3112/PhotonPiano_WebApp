@@ -143,9 +143,6 @@ function LevelDetailsContent({ idToken }: { idToken: string }) {
 
     const level = useAsyncValue() as LevelDetails;
 
-    console.log({ level });
-
-
     const fetcher = useFetcher<typeof action>();
 
     const isSubmitting = fetcher.state === 'submitting';
@@ -176,10 +173,10 @@ function LevelDetailsContent({ idToken }: { idToken: string }) {
     }}>
         <CardContent>
             <Tabs defaultValue="basic-info">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="basic-info">Basic information</TabsTrigger>
-                    <TabsTrigger value="students">Learners</TabsTrigger>
-                    <TabsTrigger value="classes">Classes</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 my-4 p-0 h-auto bg-background gap-1">
+                    <TabsTrigger value="basic-info" className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>Basic information</TabsTrigger>
+                    <TabsTrigger value="students" className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>Learners</TabsTrigger>
+                    <TabsTrigger value="classes" className='py-2 data-[state=active]:bg-theme data-[state=active]:text-theme-foreground'>Classes</TabsTrigger>
                 </TabsList>
                 <TabsContent value="basic-info">
                     <LevelForm {...level} fetcher={fetcher} isSubmitting={isSubmitting} idToken={idToken} />

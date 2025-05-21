@@ -98,6 +98,7 @@ export default function RoomDialog({ isEdit = false, isOpen, setIsOpen, ...defau
                                 render={({ field: { onChange, value } }) => (
                                     <Switch value={value === RoomStatus.Opened ? 1 : 0}
                                         onCheckedChange={(checked) => onChange(checked ? RoomStatus.Opened : RoomStatus.Closed)}
+                                        className='data-[state=checked]:bg-theme'
                                     />
                                 )}
                             />
@@ -106,7 +107,7 @@ export default function RoomDialog({ isEdit = false, isOpen, setIsOpen, ...defau
                         <DialogFooter>
                             <Button type="button" onClick={handleOpenConfirmDialog}
                                 isLoading={isSubmitting}
-                                disabled={isSubmitting}>{isEdit ? 'Save' : 'Create'}</Button>
+                                disabled={isSubmitting} variant={'theme'}>{isEdit ? 'Save' : 'Create'}</Button>
                         </DialogFooter>
                     </Form>
                 </DialogContent>

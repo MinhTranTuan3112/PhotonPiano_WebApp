@@ -204,3 +204,29 @@ export async function fetchRoleAdmin({
 
     return response;
 }
+
+export async function fetchAvailableTeachersForClass({
+    page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,classId,keyword, idToken
+}:
+    Partial<QueryPagedRequest & {
+        classId: string;
+        keyword: string;
+        idToken : string;
+    }>
+) {
+
+    let url = `/classes/available-teachers-for-class?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}&keyword=${keyword}`;
+
+    if (classId) {
+        url += `&class-id=${classId}`
+    }
+
+
+    const response = await axiosInstance.get(url, {
+        headers : {
+            Authorization : `Bearer ${idToken}`
+        }
+    });
+
+    return response;
+}

@@ -51,17 +51,14 @@ export type CreateEntranceTestFormData = z.infer<typeof createEntranceTestSchema
 
 export const entranceTestArrangementSchema = z.object({
     date: z.object({
-        from: z.coerce.date({ message: 'Ngày thi không được để trống.' }),
-        to: z.coerce.date({ message: 'Ngày thi không được để trống.' }),
-    }, {
-        message: 'Vui lòng chọn đợt thi.',
+        from: z.coerce.date({ message: 'Invalid date.' }),
+        to: z.coerce.date({ message: 'Invalid date.' }).optional(),
     }).refine(
         (data) => data.from > addDays(new Date(), -1),
-        "Ngày thi phải sau hôm nay"
+        { message: 'Test date must be after today', path: ['from'] }
     ),
     shiftOptions: z.array(z.string()).optional(),
-    studentIds: z.array(z.string()).min(1, { message: 'Vui lòng chọn ít nhất một học viên.' }),
+    studentIds: z.array(z.string()).min(1, { message: 'Please select at least 1 learner.' }),
 })
-
 
 export type EntranceTestArrangementFormData = z.infer<typeof entranceTestArrangementSchema>;
