@@ -23,15 +23,35 @@ import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
 import { cn } from "~/lib/utils"
-import { Level } from "~/lib/types/account/account"
-import { Class } from "~/lib/types/class/class"
-import { requireAuth } from "~/lib/utils/auth"
+import type { Level } from "~/lib/types/account/account"
+import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
+import BadgeWithPopup from "~/components/ui/badge-with-popup"
+
+
+// Helper function to adjust color brightness
+function adjustColorBrightness(hex: string, factor: number): string {
+    // Remove the hash if it exists
+    hex = hex.replace("#", "")
+
+    // Parse the hex color
+    let r = Number.parseInt(hex.substring(0, 2), 16)
+    let g = Number.parseInt(hex.substring(2, 4), 16)
+    let b = Number.parseInt(hex.substring(4, 6), 16)
+
+    // Adjust brightness
+    r = Math.min(255, Math.floor(r * factor))
+    g = Math.min(255, Math.floor(g * factor))
+    b = Math.min(255, Math.floor(b * factor))
+
+    // Convert back to hex
+    return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
+}
 
 type LoaderData = {
     levelData: Level & {
-        classes: Array<Class & { instructor?: { userName: string }, endTime?: string }>
+        classes: Array<Class & { instructor?: { userName: string }; endTime?: string }>
         nextLevel?: {
             id: string
             themeColor: string
@@ -45,15 +65,12 @@ type LoaderData = {
 }
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-    const { idToken } = await requireAuth(request);
-
     if (!params.id) {
         throw new Response("Level ID is required", { status: 400 })
     }
 
     try {
         const response = await fetchALevel({
-            idToken,
             id: params.id,
         })
 
@@ -65,23 +82,18 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 }
 
 export default function LevelDetails() {
-    const { levelData } = useLoaderData<typeof loader>();
-    const navigate = useNavigate();
+    const { levelData } = useLoaderData<typeof loader>()
+    const navigate = useNavigate()
     const [classViewMode, setClassViewMode] = useState<"card" | "table">("card")
     const formattedPricePerSlot = formatCurrency(levelData.pricePerSlot)
     const formattedTotalPrice = formatCurrency(levelData.totalPrice || levelData.pricePerSlot * levelData.totalSlots)
     const calculateDuration = () => {
-        if (levelData.estimateDurationInWeeks) {
-            const months = levelData.estimateDurationInWeeks / 4.33 
-            return formatDurationInMonths(months)
-        } else {
-            const weeks = levelData.totalSlots / levelData.slotPerWeek
-            const months = weeks / 4.33 
-            return formatDurationInMonths(months)
-        }
+        const weeks = levelData.totalSlots / levelData.slotPerWeek
+        const months = weeks / 4
+        return formatDurationInMonths(months)
     }
 
-    const formatDurationInMonths = (months : any) => {
+    const formatDurationInMonths = (months: any) => {
         const wholeMonths = Math.floor(months)
         const partialMonth = months - wholeMonths
 
@@ -126,7 +138,12 @@ export default function LevelDetails() {
                         filter: "brightness(0.7)",
                     }}
                 ></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-emerald-900/50"></div>
+                <div
+                    className="absolute inset-0 bg-gradient-to-r"
+                    style={{
+                        backgroundImage: `linear-gradient(to right, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}CC, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}99)`,
+                    }}
+                ></div>
                 <div className="relative container mx-auto h-full flex items-center z-10 px-4">
                     <div className="max-w-3xl text-white">
                         <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
@@ -138,44 +155,45 @@ export default function LevelDetails() {
 
                         <p className="text-lg text-gray-100 mb-6 max-w-2xl">{levelData.description}</p>
 
-                        <div className="flex flex-wrap gap-3 mb-8">
-                            {levelData.skillsEarned.slice(0, 4).map((skill: string, index: number) => (
-                                <Badge
-                                    key={index}
-                                    className="text-sm py-1.5 px-3 bg-white/20 backdrop-blur-sm text-white border-0 hover:bg-white/30"
-                                >
-                                    {skill}
-                                </Badge>
-                            ))}
-                            {levelData.skillsEarned.length > 4 && (
-                                <Badge className="text-sm py-1.5 px-3 bg-white/20 backdrop-blur-sm text-white border-0 hover:bg-white/30">
-                                    +{levelData.skillsEarned.length - 4} more
-                                </Badge>
-                            )}
-                        </div>
+                        <BadgeWithPopup
+                            skills={levelData.skillsEarned}
+                            visibleCount={4}
+                            className="mb-16 max-h-24"
+                            themeColor={levelData.themeColor || "#21c44d"}
+                        />
 
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        {/* <div className="flex flex-col sm:flex-row gap-4">
                             <Button
                                 size="lg"
                                 className="bg-white text-green-900 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl"
+                                onClick={() => {
+                                    navigate(`/entrance-survey`)
+                                }}
                             >
                                 Register Now
                             </Button>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
 
             <div className="container mx-auto py-12 px-4 max-w-7xl">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 -mt-16 mb-12 relative z-20">
+                <div className="mb-6">
+                    <SectionHeader
+                        icon={<Info className="h-6 w-6" style={{ color: levelData.themeColor || "#21c44d" }} />}
+                        title="Program Information"
+                        accentColor={levelData.themeColor || "#21c44d"}
+                    />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 mb-12">
                     <StatsCard
                         icon={<Calendar className="h-10 w-10 p-2 rounded-full bg-green-100 text-green-600" />}
                         title="Program Schedule"
                         stats={[
                             { label: "Total Lessons", value: levelData.totalSlots },
                             { label: "Lessons Per Week", value: levelData.slotPerWeek },
-                            { label: "Program Duration", value: `${estimatedDuration} weeks` },
+                            { label: "Program Duration", value: `${estimatedDuration}` },
                         ]}
                         accentColor={levelData.themeColor || "#21c44d"}
                     />
@@ -263,7 +281,7 @@ export default function LevelDetails() {
                                 <div className="flex flex-col md:flex-row items-start gap-6">
                                     <div
                                         className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg flex-shrink-0 md:mt-4"
-                                        style={{ backgroundColor: levelData.themeColor || "#21c44d" }}
+                                        style={{ backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }}
                                     >
                                         <Music className="h-6 w-6 text-white" />
                                     </div>
@@ -309,7 +327,7 @@ export default function LevelDetails() {
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="h-4 w-4 text-gray-500" />
-                                                    <span>{estimatedDuration} weeks</span>
+                                                    <span>{estimatedDuration} </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <span>{formattedTotalPrice}</span>
@@ -387,7 +405,11 @@ export default function LevelDetails() {
                                     size="sm"
                                     onClick={() => setClassViewMode("card")}
                                     className={classViewMode === "card" ? "" : ""}
-                                    style={classViewMode === "card" ? { backgroundColor: levelData.themeColor || "#21c44d" } : {}}
+                                    style={
+                                        classViewMode === "card"
+                                            ? { backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }
+                                            : {}
+                                    }
                                 >
                                     <LayoutGrid className="h-4 w-4 mr-1" /> Cards
                                 </Button>
@@ -396,7 +418,11 @@ export default function LevelDetails() {
                                     size="sm"
                                     onClick={() => setClassViewMode("table")}
                                     className={classViewMode === "table" ? "" : ""}
-                                    style={classViewMode === "table" ? { backgroundColor: levelData.themeColor || "#21c44d" } : {}}
+                                    style={
+                                        classViewMode === "table"
+                                            ? { backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }
+                                            : {}
+                                    }
                                 >
                                     <LayoutList className="h-4 w-4 mr-1" /> Table
                                 </Button>
@@ -485,7 +511,9 @@ export default function LevelDetails() {
                                                 className="w-full group-hover:shadow-md transition-all"
                                                 disabled={!isClassEnrollable(cls)}
                                                 style={{
-                                                    backgroundColor: isClassEnrollable(cls) ? levelData.themeColor || "#21c44d" : undefined,
+                                                    backgroundColor: isClassEnrollable(cls)
+                                                        ? adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)
+                                                        : undefined,
                                                 }}
                                             >
                                                 {isClassEnrollable(cls)
@@ -563,7 +591,9 @@ export default function LevelDetails() {
                                                             size="sm"
                                                             disabled={!isClassEnrollable(cls)}
                                                             style={{
-                                                                backgroundColor: isClassEnrollable(cls) ? levelData.themeColor || "#21c44d" : undefined,
+                                                                backgroundColor: isClassEnrollable(cls)
+                                                                    ? adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)
+                                                                    : undefined,
                                                             }}
                                                         >
                                                             {isClassEnrollable(cls)
@@ -632,8 +662,10 @@ export default function LevelDetails() {
                     <div
                         className="absolute inset-0 bg-gradient-to-r"
                         style={{
-                            backgroundImage: `linear-gradient(to right, ${levelData.themeColor || "#21c44d"}CC, ${levelData.themeColor || "#21c44d"
-                                }99)`,
+                            backgroundImage: `linear-gradient(to right, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}CC, ${adjustColorBrightness(
+                                levelData.themeColor || "#21c44d",
+                                0.7,
+                            )}99)`,
                         }}
                     ></div>
                     <div className="relative z-10 p-12 text-center text-white">
@@ -647,8 +679,11 @@ export default function LevelDetails() {
                                 size="lg"
                                 className="bg-white hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl"
                                 style={{ color: levelData.themeColor || "#21c44d" }}
+                                onClick={() => {
+                                    navigate(`/entrance-survey`)
+                                }}
                             >
-                                Register for this Level
+                                Register
                             </Button>
                         </div>
                     </div>
