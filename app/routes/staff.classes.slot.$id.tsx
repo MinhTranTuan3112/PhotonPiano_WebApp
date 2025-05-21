@@ -214,11 +214,12 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                                 type="button"
                                 className="bg-theme hover:bg-theme text-white"
                                 onClick={() => setIsEditing(true)}
+                                disabled={slot.status !== SlotStatus.NotStarted}
                             >
                                 <Edit2Icon className="mr-2 h-4 w-4" /> Edit Slot
                             </Button>
                         )}
-                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} classId={slot.classId}/>
+                        <DeleteSlotSection slotId={slot.id} slotStatus={slot.status} classId={slot.classId} />
                     </div>
                 </div>
 
@@ -591,7 +592,7 @@ function DeleteSlotSection({
     slotStatus
 }: {
     slotId: string;
-    classId : string;
+    classId: string;
     slotStatus: SlotStatus;
 }) {
 

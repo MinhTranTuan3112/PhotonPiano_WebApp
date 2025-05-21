@@ -34,7 +34,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             return redirect('/admin/levels');
         }
 
-        const promise = fetchALevel({ idToken, id }).then((response) => {
+        const promise = fetchALevel({ id }).then((response) => {
             const levelPromise: Promise<LevelDetails> = response.data;
 
             return {
