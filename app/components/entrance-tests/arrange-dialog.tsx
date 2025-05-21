@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Form, useFetcher } from '@remix-run/react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
@@ -12,7 +12,6 @@ import { Button } from '../ui/button'
 import { MultiSelect } from '../ui/multi-select'
 import { SHIFT_TIME } from '~/lib/utils/constants'
 import { action } from '~/routes/arrange-entrance-test'
-import { toast } from 'sonner'
 import { Account } from '~/lib/types/account/account'
 import { DataTable } from '../ui/data-table'
 import { studentColumns } from '../staffs/table/student-columns'
@@ -20,6 +19,7 @@ import { Separator } from '../ui/separator'
 import { CreateEntranceTestForm } from '~/routes/staff.entrance-tests.create'
 import { ScrollArea } from '../ui/scroll-area'
 import { toastWarning } from '~/lib/utils/toast-utils'
+import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 
 export type ArrangeDialogProps = {
     isOpen: boolean;
@@ -98,6 +98,7 @@ function AutoArrangementForm({
         fetcher,
         submitConfig: {
             action: '/arrange-entrance-test',
+            method: "POST"
         }
     });
 
@@ -118,50 +119,56 @@ function AutoArrangementForm({
 
     }, [fetcher.data]);
 
-    return <Form method='POST' className='flex flex-col gap-5 my-2'
-        onSubmit={handleSubmit}>
+    const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
+        title: 'Confirm action',
+        description: 'Confirm arrange entrance tests?',
+        confirmText: 'Arrange',
+        onConfirm: () => {
+            console.log({ errors });
+            handleSubmit();
+        }
+    })
 
-        <input type="hidden" {...register('studentIds')} />
-
-        {errors.studentIds && <p className='text-red-500 text-sm'>{errors.studentIds.message}</p>}
-
-        <Controller
-            name='date'
-            control={control}
-            render={({ field: { onChange, onBlur, value, ref } }) => (
-                <DateRangePicker
-                    value={value}
-                    onChange={onChange}
-                    className='w-full'
-                    placeholder='Select test date'
-                />
-            )}
-        />
-
-        {errors.date && <p className='text-red-500 text-sm'>{errors.date.message}</p>}
-
-        <Controller
-            name='shiftOptions'
-            control={control}
-            render={({ field: { onChange, onBlur, value, ref } }) => (
-                <MultiSelect
-                    options={SHIFT_TIME.map((shift, index) => {
-                        return { label: `Shift ${index + 1}: ${shift}`, value: index.toString() }
-                    })}
-                    value={value}
-                    onValueChange={onChange}
-                    placeholder='Select shifts (optional)'
-                />
-            )}
-        />
-
-        {errors.shiftOptions && <p className='text-red-500 text-sm'>{errors.shiftOptions.message}</p>}
-
-        <Button type='submit' Icon={CalendarSync}
-            iconPlacement='left'
-            isLoading={isSubmitting}
-            disabled={isSubmitting}>
-            {isSubmitting ? 'Arranging...' : 'Arrange'}
-        </Button>
-    </Form>
+    return <>
+        <Form className='flex flex-col gap-5 my-2' action='/arrange-entrance-test' method='POST'>
+            <input type="hidden" {...register('studentIds')} />
+            {errors.studentIds && <p className='text-red-500 text-sm'>{errors.studentIds.message}</p>}
+            <Controller
+                name='date'
+                control={control}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <DateRangePicker
+                        value={value}
+                        onChange={onChange}
+                        className='w-full'
+                        placeholder='Select test date'
+                    />
+                )}
+            />
+            {errors.date && <p className='text-red-500 text-sm'>{errors.date.message}</p>}
+            <Controller
+                name='shiftOptions'
+                control={control}
+                render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <MultiSelect
+                        options={SHIFT_TIME.map((shift, index) => {
+                            return { label: `Shift ${index + 1}: ${shift}`, value: index.toString() }
+                        })}
+                        value={value}
+                        onValueChange={onChange}
+                        placeholder='Select shifts (optional)'
+                    />
+                )}
+            />
+            {errors.shiftOptions && <p className='text-red-500 text-sm'>{errors.shiftOptions.message}</p>}
+            <Button type='button' Icon={CalendarSync}
+                iconPlacement='left'
+                variant={'theme'}
+                isLoading={isSubmitting}
+                disabled={isSubmitting} onClick={handleOpenConfirmDialog}>
+                {isSubmitting ? 'Arranging...' : 'Arrange'}
+            </Button>
+        </Form>
+        {confirmDialog}
+    </>
 }

@@ -78,7 +78,7 @@ export async function fetchAutoArrangeEntranceTests({
     idToken,
 }: {
     startDate: string,
-    endDate: string,
+    endDate?: string,
     shiftOptions?: number[],
     studentIds: string[],
     idToken: string

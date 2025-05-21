@@ -10,7 +10,7 @@ import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
 const serverEntranceTestArrangementSchema = z.object({
     date: z.object({
         from: z.string({ message: 'Ngày thi không được để trống.' }),
-        to: z.string({ message: 'Ngày thi không được để trống.' }),
+        to: z.string({ message: 'Ngày thi không được để trống.' }).optional(),
     }, {
         message: 'Vui lòng chọn đợt thi.',
     }),
@@ -31,9 +31,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<FormData>(request, zodResolver(serverEntranceTestArrangementSchema));
+        console.log({ data });
 
         if (errors) {
-            console.log({ data });
+            console.log({ errors });
             return { success: false, errors, defaultValues };
         }
 
