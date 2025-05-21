@@ -247,19 +247,19 @@ function LevelsDropdown() {
     return <NavigationMenuItem>
         <NavigationMenuTrigger className={`uppercase font-bold `}>Academic piano levels</NavigationMenuTrigger>
         <NavigationMenuContent>
-            {isLoading ? <Loader2 className="w-full h-full animate-spin" /> : isError ? <div className="text-red-500">Có lỗi xảy ra</div>
-                : <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+            {isLoading ? (
+                <Loader2 className="w-full h-full animate-spin" />
+            ) : isError ? (
+                <div className="text-red-500">Có lỗi xảy ra</div>
+            ) : (
+                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                     {levels.map((level, index) => (
-                        <ListItem
-                            key={level.id}
-                            title={level.name}
-                            href={'/'}
-                        >
+                        <ListItem key={level.id} title={level.name} href={`levels/${level.id}`}>
                             {level.description}
                         </ListItem>
                     ))}
-                </ul>}
-
+                </ul>
+            )}
         </NavigationMenuContent>
     </NavigationMenuItem>
 
