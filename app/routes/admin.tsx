@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { Calendar1, CircleUserRound, DoorClosed, DoorOpen, LayoutDashboard, Pen, Settings, User } from "lucide-react";
+import { Calendar1, CircleUserRound, DoorClosed, DoorOpen, LayoutDashboard, Pen, Settings, User, WalletCards } from "lucide-react";
 import React from "react";
 import NotificationBell from "~/components/notification/notification-bell";
 import { NavMain } from "~/components/sidebar/nav-main";
@@ -250,6 +250,12 @@ const data = {
             title: "Settings",
             url: "/admin/settings",
             icon: Settings,
+            isActive: true,
+        },
+        {
+            title: "Transactions",
+            url: "/admin/transactions",
+            icon: WalletCards,
             isActive: true,
         },
     ]
