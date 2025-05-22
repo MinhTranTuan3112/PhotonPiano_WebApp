@@ -1,7 +1,6 @@
 import type React from "react"
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
-import { useState } from "react"
+import { Await, useAsyncValue, useLoaderData, useNavigate } from "@remix-run/react"
+import { Suspense, useState } from "react"
 import {
     ArrowRight,
     Calendar,
@@ -28,6 +27,8 @@ import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
+import { Skeleton } from "~/components/ui/skeleton"
+import { LoaderFunctionArgs } from "@remix-run/node"
 
 
 // Helper function to adjust color brightness
@@ -49,44 +50,86 @@ function adjustColorBrightness(hex: string, factor: number): string {
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
 }
 
-type LoaderData = {
-    levelData: Level & {
-        classes: Array<Class & { instructor?: { userName: string }; endTime?: string }>
-        nextLevel?: {
-            id: string
-            themeColor: string
-            description: string
-            name: string
-        }
-        numberActiveStudentInLevel?: number
-        estimateDurationInWeeks?: number
-        totalPrice?: number
+type LevelDetails = Level & {
+    classes: Array<Class & { instructor?: { userName: string }; endTime?: string }>
+    nextLevel?: {
+        id: string
+        themeColor: string
+        description: string
+        name: string
     }
-}
+    numberActiveStudentInLevel?: number
+    estimateDurationInWeeks?: number
+    totalPrice?: number
+};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-    if (!params.id) {
-        throw new Response("Level ID is required", { status: 400 })
-    }
 
     try {
-        const response = await fetchALevel({
-            id: params.id,
+        if (!params.id) {
+            throw new Response("Level ID is required", { status: 400 })
+        }
+
+        const id = params.id as string;
+
+        const promise = fetchALevel({
+            id,
+        }).then((response) => {
+            const levelPromise: Promise<LevelDetails> = response.data;
+
+            return {
+                levelPromise
+            }
         })
 
-        return json<LoaderData>({ levelData: response.data })
+        return {
+            promise,
+            id
+        }
+
     } catch (error) {
         console.error("Error fetching level details:", error)
         throw new Response("Failed to load level details", { status: 500 })
     }
 }
 
-export default function LevelDetails() {
-    const { levelData } = useLoaderData<typeof loader>()
+const getClassStatus = (statusCode: number): string => {
+    switch (statusCode) {
+        case 0:
+            return "Not Started"
+        case 1:
+            return "Ongoing"
+        case 2:
+            return "Finished"
+        default:
+            return "Unknown"
+    }
+}
+
+export default function LevelDetailsPage() {
+
+    const { promise, id } = useLoaderData<typeof loader>();
+
+    return <Suspense key={id} fallback={<Skeleton className="h-full w-full" />}>
+        <Await resolve={promise}>
+            {({ levelPromise }) => (
+                <Await resolve={levelPromise}>
+                    <LevelDetailsContent />
+                </Await>
+            )}
+        </Await>
+    </Suspense>
+}
+
+function LevelDetailsContent() {
+
+    const levelData = useAsyncValue() as LevelDetails;
+
     const navigate = useNavigate()
     const [classViewMode, setClassViewMode] = useState<"card" | "table">("card")
     const formattedPricePerSlot = formatCurrency(levelData.pricePerSlot)
-    const formattedTotalPrice = formatCurrency(levelData.totalPrice || levelData.pricePerSlot * levelData.totalSlots)
+    const formattedTotalPrice = formatCurrency(levelData.totalPrice || levelData.pricePerSlot * levelData.totalSlots);
+
     const calculateDuration = () => {
         const weeks = levelData.totalSlots / levelData.slotPerWeek
         const months = weeks / 4
@@ -110,18 +153,6 @@ export default function LevelDetails() {
 
     const estimatedDuration = calculateDuration()
 
-    const getClassStatus = (statusCode: number): string => {
-        switch (statusCode) {
-            case 0:
-                return "Not Started"
-            case 1:
-                return "Ongoing"
-            case 2:
-                return "Finished"
-            default:
-                return "Unknown"
-        }
-    }
 
     // Check if class is enrollable
     const isClassEnrollable = (cls: Class & { instructor?: { userName: string } }): boolean => {
