@@ -1,7 +1,6 @@
 import type React from "react"
 import { json, type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useNavigate } from "@remix-run/react"
-import { useState } from "react"
 import {
     ArrowRight,
     Calendar,
@@ -13,9 +12,6 @@ import {
     BookOpen,
     Award,
     Clock,
-    LayoutGrid,
-    LayoutList,
-    Star,
     Info,
     Sparkles,
 } from "lucide-react"
@@ -28,7 +24,6 @@ import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
-
 
 // Helper function to adjust color brightness
 function adjustColorBrightness(hex: string, factor: number): string {
@@ -51,7 +46,7 @@ function adjustColorBrightness(hex: string, factor: number): string {
 
 type LoaderData = {
     levelData: Level & {
-        classes: Array<Class & { instructor?: { userName: string }; endTime?: string }>
+        classes: Array<Class & { instructor?: { userName: string }; endTime?: string; classDays?: string; classTime?: string }>
         nextLevel?: {
             id: string
             themeColor: string
@@ -83,13 +78,14 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
 export default function LevelDetails() {
     const { levelData } = useLoaderData<typeof loader>()
+    console.log(levelData)
     const navigate = useNavigate()
-    const [classViewMode, setClassViewMode] = useState<"card" | "table">("card")
+    // Table view only, no state needed for view mode
     const formattedPricePerSlot = formatCurrency(levelData.pricePerSlot)
     const formattedTotalPrice = formatCurrency(levelData.totalPrice || levelData.pricePerSlot * levelData.totalSlots)
     const calculateDuration = () => {
         const weeks = levelData.totalSlots / levelData.slotPerWeek
-        const months = weeks / 4
+        const months = weeks / 4.33
         return formatDurationInMonths(months)
     }
 
@@ -126,6 +122,57 @@ export default function LevelDetails() {
     // Check if class is enrollable
     const isClassEnrollable = (cls: Class & { instructor?: { userName: string } }): boolean => {
         return cls.status === 0 && cls.studentNumber < cls.capacity
+    }
+
+    // Format date for display
+    const formatDate = (dateString: string | null | undefined): string => {
+        if (!dateString || dateString === "0001-01-01") return "TBA"
+        try {
+            return new Date(dateString).toLocaleDateString()
+        } catch (e) {
+            return "TBA"
+        }
+    }
+
+    // Get enrollment status text and color
+    const getEnrollmentStatus = (cls: Class & { instructor?: { userName: string } }) => {
+        if (isClassEnrollable(cls)) {
+            return {
+                text: "Open for Enrollment",
+                color: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7),
+                enrollable: true,
+            }
+        } else if (cls.status === 1) {
+            return {
+                text: "In Progress",
+                color: "#f59e0b", // Amber
+                enrollable: false,
+            }
+        } else if (cls.status === 2) {
+            return {
+                text: "Completed",
+                color: "#6366f1", // Indigo
+                enrollable: false,
+            }
+        } else if (cls.status === 3) {
+            return {
+                text: "Completed",
+                color: "#6366f1", // Indigo
+                enrollable: false,
+            }
+        } else if (cls.status === 4) {
+            return {
+                text: "Cancelled",
+                color: "#ef4444", // Red
+                enrollable: false,
+            }
+        } else {
+            return {
+                text: "Class Full",
+                color: "#9ca3af", // Gray
+                enrollable: false,
+            }
+        }
     }
 
     return (
@@ -389,231 +436,80 @@ export default function LevelDetails() {
                     </div>
                 )}
 
-                {/* Available Classes Section */}
+                {/* Available Classes Section - Reworked for Guests */}
                 {levelData.classes && levelData.classes.length > 0 && (
                     <div className="mb-16">
-                        <div className="flex justify-between items-center mb-6">
-                            <SectionHeader
-                                icon={<BookOpen className="h-6 w-6" style={{ color: levelData.themeColor || "#21c44d" }} />}
-                                title="Available Classes"
-                                accentColor={levelData.themeColor || "#21c44d"}
-                                className="mb-0"
-                            />
-                            <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg shadow-sm">
-                                <Button
-                                    variant={classViewMode === "card" ? "default" : "ghost"}
-                                    size="sm"
-                                    onClick={() => setClassViewMode("card")}
-                                    className={classViewMode === "card" ? "" : ""}
-                                    style={
-                                        classViewMode === "card"
-                                            ? { backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }
-                                            : {}
-                                    }
-                                >
-                                    <LayoutGrid className="h-4 w-4 mr-1" /> Cards
-                                </Button>
-                                <Button
-                                    variant={classViewMode === "table" ? "default" : "ghost"}
-                                    size="sm"
-                                    onClick={() => setClassViewMode("table")}
-                                    className={classViewMode === "table" ? "" : ""}
-                                    style={
-                                        classViewMode === "table"
-                                            ? { backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }
-                                            : {}
-                                    }
-                                >
-                                    <LayoutList className="h-4 w-4 mr-1" /> Table
-                                </Button>
-                            </div>
-                        </div>
+                        <SectionHeader
+                            icon={<BookOpen className="h-6 w-6" style={{ color: levelData.themeColor || "#21c44d" }} />}
+                            title="Available Classes"
+                            accentColor={levelData.themeColor || "#21c44d"}
+                            className="mb-6"
+                        />
 
-                        {classViewMode === "card" ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {levelData.classes.map((cls) => (
-                                    <Card
-                                        key={cls.id}
-                                        className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all group"
-                                    >
-                                        <div
-                                            className="h-2 group-hover:h-3 transition-all"
-                                            style={{
-                                                backgroundColor: cls.status === 1 ? levelData.themeColor || "#21c44d" : "#64748b",
-                                            }}
-                                        ></div>
-                                        <CardHeader>
-                                            <div className="flex justify-between items-start">
-                                                <CardTitle className="text-lg group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                                                    {cls.name}
-                                                </CardTitle>
-                                                <Badge
-                                                    variant={cls.status === 1 ? "default" : "secondary"}
-                                                    style={cls.status === 1 ? { backgroundColor: levelData.themeColor || "#21c44d" } : {}}
-                                                    className="group-hover:scale-105 transition-transform"
-                                                >
-                                                    {getClassStatus(cls.status)}
-                                                </Badge>
-                                            </div>
-                                            <CardDescription className="flex items-center gap-1">
-                                                <Star className="h-3 w-3 text-yellow-500" />
-                                                {cls.instructor?.userName || "Instructor TBA"}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="space-y-4">
-                                            {cls.startTime && cls.startTime !== "0001-01-01" && (
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-1">
-                                                        <div className="text-xs text-gray-500 dark:text-gray-400">Start Date</div>
-                                                        <div className="font-medium">{new Date(cls.startTime).toLocaleDateString()}</div>
-                                                    </div>
-                                                    {cls.endTime && (
-                                                        <div className="space-y-1">
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">End Date</div>
-                                                            <div className="font-medium">{new Date(cls.endTime).toLocaleDateString()}</div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
+                        <Card className="border-0 shadow-lg overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                                            <th className="text-left py-4 px-6 font-semibold">Class Name</th>
+                                            <th className="text-left py-4 px-6 font-semibold">Students</th>
+                                            <th className="text-left py-4 px-6 font-semibold">Start Date</th>
+                                            <th className="text-left py-4 px-6 font-semibold">End Date</th>
+                                            <th className="text-left py-4 px-6 font-semibold">Class Days</th>
+                                            <th className="text-left py-4 px-6 font-semibold">Class Time</th>
+                                            <th className="text-left py-4 px-6 font-semibold">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {levelData.classes.map((cls) => {
+                                            const enrollmentStatus = getEnrollmentStatus(cls)
 
-                                            {cls.scheduleDescription && (
-                                                <div className="space-y-1">
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400">Schedule</div>
-                                                    <div className="font-medium flex items-center gap-1">
-                                                        <Clock className="h-3 w-3 text-gray-400" />
-                                                        {cls.scheduleDescription}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="space-y-1 pt-2">
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="font-medium">Enrollment</span>
-                                                    <span>
-                                                        {cls.studentNumber}/{cls.capacity}
-                                                    </span>
-                                                </div>
-                                                <div className="relative pt-1">
-                                                    <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
-                                                        <div
-                                                            style={{
-                                                                width: `${(cls.studentNumber / cls.capacity) * 100}%`,
-                                                                backgroundColor: levelData.themeColor || "#21c44d",
-                                                            }}
-                                                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-500 ease-in-out group-hover:shadow-lg"
-                                                        ></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                        <CardFooter className="border-t pt-4">
-                                            <Button
-                                                className="w-full group-hover:shadow-md transition-all"
-                                                disabled={!isClassEnrollable(cls)}
-                                                style={{
-                                                    backgroundColor: isClassEnrollable(cls)
-                                                        ? adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)
-                                                        : undefined,
-                                                }}
-                                            >
-                                                {isClassEnrollable(cls)
-                                                    ? "Enroll Now"
-                                                    : cls.status === 2
-                                                        ? "In Progress"
-                                                        : cls.status === 3
-                                                            ? "Completed"
-                                                            : cls.status === 4
-                                                                ? "Cancelled"
-                                                                : "Class Full"}
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
-                        ) : (
-                            <Card className="border-0 shadow-lg overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
-                                                <th className="text-left py-4 px-6 font-semibold">Class Name</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Instructor</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Schedule</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Status</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Enrollment</th>
-                                                <th className="text-left py-4 px-6 font-semibold"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                            {levelData.classes.map((cls) => (
+                                            return (
                                                 <tr key={cls.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                                    <td className="py-4 px-6 font-medium">{cls.name}</td>
-                                                    <td className="py-4 px-6">{cls.instructor?.userName || "Instructor TBA"}</td>
                                                     <td className="py-4 px-6">
-                                                        {cls.scheduleDescription || "Schedule TBA"}
-                                                        {cls.startTime && cls.startTime !== "0001-01-01" && (
-                                                            <div className="text-xs text-gray-500 mt-1">
-                                                                Starts: {new Date(cls.startTime).toLocaleDateString()}
+                                                        <div className="font-medium">{cls.name}</div>
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {cls.instructor?.userName || "Instructor TBA"}
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-6">
+                                                        <div className="font-medium">{`${cls.studentNumber}/${cls.capacity}`}</div>
+                                                        <div className="w-24 mt-1">
+                                                            <div className="overflow-hidden h-1.5 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
+                                                                <div
+                                                                    style={{
+                                                                        width: `${(cls.studentNumber / cls.capacity) * 100}%`,
+                                                                        backgroundColor: enrollmentStatus.color,
+                                                                    }}
+                                                                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center"
+                                                                ></div>
                                                             </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-6">{formatDate(cls.startTime)}</td>
+                                                    <td className="py-4 px-6">{formatDate(cls.endTime)}</td>
+                                                    <td className="py-4 px-6">{cls.classDays || "TBA"}</td>
+                                                    <td className="py-4 px-6">{cls.classTime || "TBA"}</td>
+                                                    <td className="py-4 px-6">
+                                                        {enrollmentStatus.enrollable ? (
+                                                            <Button
+                                                                size="sm"
+                                                                style={{ backgroundColor: enrollmentStatus.color }}
+                                                                onClick={() => navigate("/entrance-survey")}
+                                                            >
+                                                                Enroll Now
+                                                            </Button>
+                                                        ) : (
+                                                            <Badge style={{ backgroundColor: enrollmentStatus.color }}>{enrollmentStatus.text}</Badge>
                                                         )}
                                                     </td>
-                                                    <td className="py-4 px-6">
-                                                        <Badge
-                                                            variant={cls.status === 1 ? "default" : "secondary"}
-                                                            style={cls.status === 1 ? { backgroundColor: levelData.themeColor || "#21c44d" } : {}}
-                                                        >
-                                                            {getClassStatus(cls.status)}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="py-4 px-6">
-                                                        <div className="space-y-1 w-40">
-                                                            <div className="flex justify-between text-xs">
-                                                                <span>
-                                                                    {cls.studentNumber}/{cls.capacity}
-                                                                </span>
-                                                                <span>{Math.round((cls.studentNumber / cls.capacity) * 100)}%</span>
-                                                            </div>
-                                                            <div className="relative pt-1">
-                                                                <div className="overflow-hidden h-2 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
-                                                                    <div
-                                                                        style={{
-                                                                            width: `${(cls.studentNumber / cls.capacity) * 100}%`,
-                                                                            backgroundColor: levelData.themeColor || "#21c44d",
-                                                                        }}
-                                                                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center"
-                                                                    ></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-6">
-                                                        <Button
-                                                            size="sm"
-                                                            disabled={!isClassEnrollable(cls)}
-                                                            style={{
-                                                                backgroundColor: isClassEnrollable(cls)
-                                                                    ? adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)
-                                                                    : undefined,
-                                                            }}
-                                                        >
-                                                            {isClassEnrollable(cls)
-                                                                ? "Enroll"
-                                                                : cls.status === 2
-                                                                    ? "In Progress"
-                                                                    : cls.status === 3
-                                                                        ? "Completed"
-                                                                        : cls.status === 4
-                                                                            ? "Cancelled"
-                                                                            : "Full"}
-                                                        </Button>
-                                                    </td>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </Card>
-                        )}
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
                     </div>
                 )}
 
