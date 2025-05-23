@@ -33,7 +33,7 @@ function getBreadcrumbPageName({ pathname }: {
 }): BreadcumbNavItem[] {
     const defaultNavItem = {
         name: "Manage",
-        url: "/staff/dashboard",
+        url: "/staff/scheduler",
     };
     let otherNavItems: BreadcumbNavItem[] = []
     switch (true) {
