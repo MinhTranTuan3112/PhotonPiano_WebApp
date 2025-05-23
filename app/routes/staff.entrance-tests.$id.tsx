@@ -352,7 +352,7 @@ export function EntranceTestForm({
                         ) : (
                             <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"
                                 Icon={Edit2Icon} iconPlacement='left'
-                                disabled={defaultData.testStatus !== EntranceTestStatus.Ended}>Edit
+                                disabled={defaultData.testStatus === EntranceTestStatus.Ended}>Edit
                             </Button>
                         )
                     }
