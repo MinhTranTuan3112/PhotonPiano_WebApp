@@ -83,7 +83,7 @@ export default function ImportResultDialog({
             })
 
             entranceTestStudents.forEach((student) => {
-                const row: (string | number)[] = [student.fullName || ""]
+                const row: (string | number)[] = [student.student.fullName || ""]
 
                 if (includeTheory) {
                     row.push(student.theoraticalScore || 0)
@@ -161,7 +161,7 @@ export default function ImportResultDialog({
                     let colIndex = 1
 
                     const fullName = row.getCell(colIndex++).text
-                    const studentIndex = updatedStudents.findIndex((s) => s.fullName === fullName)
+                    const studentIndex = updatedStudents.findIndex((s) => s.student.fullName === fullName)
 
                     if (studentIndex === -1) {
                         errors.push(`Student "${fullName}" not found in the system`)
@@ -360,7 +360,7 @@ export default function ImportResultDialog({
                     }
                 }}
             >
-                <DialogContent className="max-w-4xl p-0">
+                <DialogContent className="min-w-[1000px] p-0">
                     <DialogHeader className="pl-4 pt-4">
                         <DialogTitle className="flex flex-row gap-1 items-center"><FileSpreadsheet className="text-theme size-5" />Import entrance test results using Excel file</DialogTitle>
                         <DialogDescription>Follow the steps below to complete the import process.
@@ -625,7 +625,7 @@ export default function ImportResultDialog({
 
                                                     return (
                                                         <TableRow key={student.id}>
-                                                            <TableCell className="font-medium">{student.fullName}</TableCell>
+                                                            <TableCell className="font-medium">{student.student.fullName}</TableCell>
                                                             {role === Role.Staff && <TableCell>{student.theoraticalScore}</TableCell>}
                                                             {student.entranceTestResults.map((result) => (
                                                                 <TableCell key={result.criteriaId}>
