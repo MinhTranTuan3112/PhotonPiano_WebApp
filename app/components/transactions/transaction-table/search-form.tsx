@@ -121,7 +121,7 @@ export default function SearchForm({ }: Props) {
 
             <div className="">
                 <Button type='submit' Icon={Search} iconPlacement='left' isLoading={isSubmitting}
-                    disabled={isSubmitting}>Search</Button>
+                    disabled={isSubmitting} variant={'theme'}>Search</Button>
             </div>
         </Form>
     );

@@ -156,7 +156,7 @@ function SearchForm() {
           options={levelOptions}
           value={value}
           defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
-          placeholder='Pick a Level'
+          placeholder='Select piano levels'
           className='w-full'
           onValueChange={onChange} />
       )}
@@ -183,7 +183,7 @@ function SearchForm() {
     <div className="">
       <Button type='submit' Icon={Search} iconPlacement='left'
         isLoading={isSubmitting}
-        disabled={isSubmitting}>Search</Button>
+        disabled={isSubmitting} variant={'theme'}>Search</Button>
     </div>
   </Form>
 }
