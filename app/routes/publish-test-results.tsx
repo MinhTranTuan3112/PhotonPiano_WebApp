@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { fetchUpdateEntranceTest } from "~/lib/services/entrance-tests";
+import { fetchUpdateEntranceTestScoreAnnouncementStatus } from "~/lib/services/entrance-tests";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error";
@@ -27,14 +27,14 @@ export async function action({ request }: ActionFunctionArgs) {
             throw new Error('isAnnouncedScore is required');
         }
 
-        const response = await fetchUpdateEntranceTest({
+        const response = await fetchUpdateEntranceTestScoreAnnouncementStatus({
             idToken,
-            id,
-            isAnnouncedScore: isAnnouncedScore === 'true'
+            entranceTestId: id,
+            isAnnounced: isAnnouncedScore === 'true'
         });
 
         return Response.json({
-            success: response.status === 200,
+            success: true
         }, {
             status: 200
         })

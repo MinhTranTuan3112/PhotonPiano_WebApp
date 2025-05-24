@@ -264,3 +264,20 @@ export async function fetchAddStudentsToEntranceTest({
     return response;
 
 }
+
+export async function fetchUpdateEntranceTestScoreAnnouncementStatus({
+    idToken, entranceTestId, isAnnounced
+}: {
+    idToken: string,
+    entranceTestId: string,
+    isAnnounced: boolean
+}) {
+    
+    const response = await axiosInstance.put(`/entrance-tests/${entranceTestId}/score-announcement-status`, { isAnnounced }, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+}

@@ -99,7 +99,7 @@ export default function TransactionHistoryPage({ }: Props) {
     return (
         <div className="px-4 md:px-6 space-y-6 max-w-full">
             <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">Transaction History</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-theme">Transaction History</h1>
                 <p className="text-muted-foreground text-sm">
                     View and manage transactions at Photon Piano center related to training fees, entrance exams, tuition, and
                     more.
@@ -107,7 +107,7 @@ export default function TransactionHistoryPage({ }: Props) {
             </div>
 
             <Suspense fallback={<StatsCardsSkeleton />}>
-                <Await resolve={loaderData.promise}>
+                <Await resolve={loaderData.promise} key={JSON.stringify(loaderData.query)}>
                     {({ transactionsPromise }) => (
                         <Await resolve={transactionsPromise}>
                             {(data: TransactionResponse) => {

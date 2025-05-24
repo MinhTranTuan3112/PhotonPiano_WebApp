@@ -113,7 +113,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
         const { idToken, role } = await requireAuth(request);
 
-        if (role !== Role.Instructor) {
+        if (role !== Role.Staff) {
             return redirect('/');
         }
 

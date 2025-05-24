@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, Loader2, GraduationCap } from 'lucide-react';
+import { Search, CalendarSync, RotateCcw, GraduationCap } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -185,13 +185,12 @@ function SearchForm() {
     <div className="">
       <Button type='submit' Icon={Search} iconPlacement='left'
         isLoading={isSubmitting}
-        disabled={isSubmitting}>Search</Button>
+        disabled={isSubmitting} variant={'theme'}>Search</Button>
     </div>
   </Form>
 }
 
 export default function StaffStudentsPage({ }: Props) {
-  const navigate = useNavigate()
   const { promise, query } = useLoaderData<typeof loader>();
 
   return (
@@ -205,9 +204,9 @@ export default function StaffStudentsPage({ }: Props) {
       </div>
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
-        <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto arrange classes</Button>
-        </div>
+        <Link to={'/staff/auto-arrange-class'} className={`${buttonVariants({ variant: 'theme' })} flex flex-row gap-1 items-center`}>
+          <CalendarSync /> Auto arrange classes
+        </Link>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise} >
@@ -247,7 +246,8 @@ export function ErrorBoundary() {
       <div className='flex flex-col lg:flex-row lg:place-content-between mt-8 gap-4'>
         <SearchForm />
         <div>
-          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto arrange classes</Button>
+          <Button Icon={CalendarSync} type='button' iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}
+            variant={'theme'}>Auto arrange classes</Button>
         </div>
       </div>
       <div className="flex flex-col gap-5 justify-center items-center">

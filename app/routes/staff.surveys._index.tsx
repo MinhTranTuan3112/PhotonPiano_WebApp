@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from "@remix-run/react";
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from "@remix-run/react";
 import { CirclePlus, FileQuestion, RotateCcw, Search } from "lucide-react";
 import { Suspense } from "react";
 import { columns } from "~/components/survey/survey-table";
@@ -122,16 +122,13 @@ function SearchForm() {
         <Input placeholder="Search surveys here..." name="q"
             defaultValue={searchParams.get('q') || undefined} />
 
-        <Button type="submit" Icon={Search} iconPlacement="left">Search</Button>
+        <Button type="submit" Icon={Search} iconPlacement="left" variant={'theme'}>Search</Button>
     </Form>
 }
 
 export default function StaffSurveysPage({ }: Props) {
 
     const { promise, query } = useLoaderData<typeof loader>();
-
-    const navigate = useNavigate();
-
     return (
         <article className="px-10">
             <div className="flex items-center gap-3 mb-4">
@@ -154,8 +151,10 @@ export default function StaffSurveysPage({ }: Props) {
                                 emptyText="No surveys found."
                                 extraHeaderContent={
                                     <>
-                                        <Button type="button" Icon={CirclePlus} iconPlacement="left"
-                                            onClick={() => navigate('/staff/surveys/create')}>Create new survey</Button>
+                                        <Link to={'/staff/surveys/create'} className={`${buttonVariants({ variant: 'theme' })} flex flex-row gap-1 items-center`}>
+                                            <CirclePlus />
+                                            Create new survey
+                                        </Link>
                                     </>
                                 }
                             />

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
+import { Await, Form, Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import { PlusCircle, Search, Shuffle, Users } from 'lucide-react';
 import { Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
@@ -8,14 +8,14 @@ import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import AddClassDialog from '~/components/staffs/classes/add-class-dialog';
 import { classColums } from '~/components/staffs/table/class-columns';
-import { Button } from '~/components/ui/button';
+import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { MultiSelect } from '~/components/ui/multi-select';
 import { Skeleton } from '~/components/ui/skeleton';
 import { fetchClasses } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
 import { Level } from '~/lib/types/account/account';
-import { Class, ClassResponse } from '~/lib/types/class/class';
+import { ClassResponse } from '~/lib/types/class/class';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
 import { CLASS_STATUS } from '~/lib/utils/constants';
@@ -99,25 +99,26 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
       onSubmit={handleSubmit}
       action='/staff/classes'
       className='my-1 flex flex-col'>
-      <div className='flex flex-wrap gap-2 justify-center'>
-        <Suspense fallback={<div>Loading level...</div>}>
-          <Await resolve={levelPromise}>
-            {(levels) => (
-              <Controller
-                name='levels'
-                control={control}
-                render={({ field: { onChange, onBlur, value, ref } }) => (
-                  <MultiSelect options={levels.map((level) => ({ label: level.name.split('(')[0], value: level.id }))}
-                    value={value}
-                    defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
-                    placeholder='Pick a level'
-                    className='w-64'
-                    onValueChange={onChange} />
-                )}
-              />
-            )}
-          </Await>
-        </Suspense>
+      <div className='flex gap-2 justify-center'>
+        <div className="w-80">
+          <Suspense fallback={<Skeleton className='w-full' />}>
+            <Await resolve={levelPromise}>
+              {(levels) => (
+                <Controller
+                  name='levels'
+                  control={control}
+                  render={({ field: { onChange, onBlur, value, ref } }) => (
+                    <MultiSelect options={levels.map((level) => ({ label: level.name.split('(')[0], value: level.id }))}
+                      value={value}
+                      defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
+                      placeholder='Select piano levels'
+                      onValueChange={onChange} />
+                  )}
+                />
+              )}
+            </Await>
+          </Suspense>
+        </div>
 
         <Controller
           name='statuses'
@@ -131,8 +132,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
               onValueChange={onChange} />
           )}
         />
-        <Button Icon={Search} iconPlacement='left'>Search</Button>
-
+        <Button Icon={Search} iconPlacement='left' variant={'theme'}>Search</Button>
       </div>
     </Form>
   )
@@ -140,9 +140,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
 
 export default function StaffClassesPage({ }: Props) {
   const { promise, idToken, levelPromise } = useLoaderData<typeof loader>()
-  const [searchParams, setSearchParams] = useSearchParams();
   const [isOpenAddClassDialog, setIsOpenAddClassDialog] = useState(false)
-  const navigate = useNavigate()
 
   return (
     <div>
@@ -158,18 +156,20 @@ export default function StaffClassesPage({ }: Props) {
           <SearchForm levelPromise={levelPromise} />
           <div className='flex gap-4 justify-center mt-2'>
             <Button onClick={() => setIsOpenAddClassDialog(true)} variant={'outline'}><PlusCircle className='mr-4' /> Add new class</Button>
-            <Button Icon={Shuffle} iconPlacement='left' onClick={() => navigate("/staff/auto-arrange-class")}>Auto-arrange classes</Button>
+            <Link to={'/staff/auto-arrange-class'} className={`${buttonVariants({ variant: 'theme' })} flex flex-row gap-1 items-center`}>
+              <Shuffle /> Auto arrange classes
+            </Link>
           </div>
         </div>
         <Suspense fallback={<LoadingSkeleton />}>
           <Await resolve={promise}>
             {(data) => (
-                <GenericDataTable
-                 
-                  columns={classColums}
-                  metadata={data.metadata}
-                  resolvedData={data.classes}
-                />
+              <GenericDataTable
+
+                columns={classColums}
+                metadata={data.metadata}
+                resolvedData={data.classes}
+              />
             )}
           </Await>
         </Suspense>

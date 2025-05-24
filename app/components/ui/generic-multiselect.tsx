@@ -297,15 +297,15 @@ export default function GenericMultiSelect<T>({
                                 >
                                     <div
                                         className={cn(
-                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-theme",
                                             selectedValues.length === items.length
-                                                ? "bg-primary text-primary-foreground"
+                                                ? "bg-theme text-theme-foreground"
                                                 : "opacity-50 [&_svg]:invisible"
                                         )}
                                     >
                                         <CheckIcon className="h-4 w-4" />
                                     </div>
-                                    <span className="font-bold">&#40;Select all&#41;</span>
+                                    <span className="font-bold text-theme">&#40;Select all&#41;</span>
                                 </CommandItem>
                                 {items.map((option) => {
                                     const isSelected = selectedValues.includes(option.value);
