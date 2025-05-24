@@ -14,39 +14,46 @@ import {
     Clock,
     Info,
     Sparkles,
+    X,
+    AlertCircle,
 } from "lucide-react"
 import { Badge } from "~/components/ui/badge"
 import { Button } from "~/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "~/components/ui/hover-card"
 import { cn } from "~/lib/utils"
 import type { Level } from "~/lib/types/account/account"
 import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
+import { useState } from "react"
+import { getAuth } from "~/lib/utils/auth"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
 
-// Helper function to adjust color brightness
 function adjustColorBrightness(hex: string, factor: number): string {
-    // Remove the hash if it exists
     hex = hex.replace("#", "")
 
-    // Parse the hex color
     let r = Number.parseInt(hex.substring(0, 2), 16)
     let g = Number.parseInt(hex.substring(2, 4), 16)
     let b = Number.parseInt(hex.substring(4, 6), 16)
 
-    // Adjust brightness
     r = Math.min(255, Math.floor(r * factor))
     g = Math.min(255, Math.floor(g * factor))
     b = Math.min(255, Math.floor(b * factor))
 
-    // Convert back to hex
     return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
 }
 
 type LoaderData = {
     levelData: Level & {
-        classes: Array<Class & { instructor?: { userName: string }; endTime?: string; classDays?: string; classTime?: string }>
+        classes: Array<
+            Class & {
+                instructor?: { userName: string }
+                endTime?: string
+                classDays?: string
+                classTime?: string | string[]
+            }
+        >
         nextLevel?: {
             id: string
             themeColor: string
@@ -56,6 +63,13 @@ type LoaderData = {
         numberActiveStudentInLevel?: number
         estimateDurationInWeeks?: number
         totalPrice?: number
+    }
+    authData: {
+        idToken?: string
+        refreshToken?: string
+        idTokenExpiry?: number
+        role?: number
+        accountId?: string
     }
 }
 
@@ -69,17 +83,195 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
             id: params.id,
         })
 
-        return json<LoaderData>({ levelData: response.data })
+        const authData = await getAuth(request)
+
+        return json<LoaderData>({
+            levelData: response.data,
+            authData,
+        })
     } catch (error) {
         console.error("Error fetching level details:", error)
         throw new Response("Failed to load level details", { status: 500 })
     }
 }
 
-export default function LevelDetails() {
-    const { levelData } = useLoaderData<typeof loader>()
-    console.log(levelData)
+
+function AlreadyLoggedInModal({
+    isOpen,
+    onClose,
+    accentColor,
+    userRole,
+}: {
+    isOpen: boolean
+    onClose: () => void
+    accentColor: string
+    userRole?: number
+}) {
     const navigate = useNavigate()
+
+    if (!isOpen) return null
+
+    const getProfileRoute = () => {
+        switch (userRole) {
+            case 1: // Student
+                return "/account/profile"
+            case 2: // Teacher
+                return "/teacher/profile"
+            case 3: // Admin
+                return "/admin/profile"
+            default:
+                return "/staff/profile"
+        }
+    }
+
+    const getRoleMessage = (roleNumber?: number): string => {
+        switch (roleNumber) {
+            case 0: // Guest
+                return "You're browsing as a guest. To enroll in classes, please sign up for a student account."
+            case 1: // Student
+                return "You're already logged in! You can enroll in classes directly from your profile or browse available classes here."
+            case 2: // Instructor
+                return "You're logged in as an Instructor. You can manage your classes and students from your profile, but class enrollment is for students only."
+            case 3: // Administrator
+                return "You're logged in as an Administrator. You have full system access through your admin panel, but class enrollment is for students only."
+            case 4: // Staff
+                return "You're logged in as Staff. You can manage classes and assist students from your profile, but class enrollment is for students only."
+            default:
+                return "You're logged in, but class enrollment is only available for student accounts."
+        }
+    }
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 animate-in fade-in-0 zoom-in-95 duration-200">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                        <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: `${accentColor}20` }}
+                        >
+                            <AlertCircle className="h-5 w-5" style={{ color: accentColor }} />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Already Logged In</h3>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div className="p-6">
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">
+                        {getRoleMessage(userRole)}
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            onClick={() => {
+                                onClose()
+                                navigate(getProfileRoute())
+                            }}
+                            style={{ backgroundColor: accentColor }}
+                            className="flex-1 text-white hover:opacity-90"
+                        >
+                            Go to Profile
+                        </Button>
+                        <Button variant="outline" onClick={onClose} className="flex-1">
+                            Continue Browsing
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// Component for class time display with hover card
+function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
+    if (!classTime) {
+        return <span className="text-gray-500 text-sm">TBA</span>
+    }
+
+    const timeSlots = Array.isArray(classTime) ? classTime : [classTime]
+
+    if (timeSlots.length === 1) {
+        return (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                <Clock className="h-3 w-3 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">{timeSlots[0]}</span>
+            </div>
+        )
+    }
+
+    return (
+        <HoverCard>
+            <HoverCardTrigger asChild>
+                <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-colors">
+                    <Clock className="h-3 w-3 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-800">{timeSlots[0]}</span>
+                    {timeSlots.length > 1 && (
+                        <Badge variant="secondary" className="ml-1 text-xs">
+                            +{timeSlots.length - 1}
+                        </Badge>
+                    )}
+                </button>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-80" side="top">
+                <div className="space-y-3">
+                    <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        All Available Time Slots
+                    </h4>
+                    <div className="grid grid-cols-1 gap-2">
+                        {timeSlots.map((time, index) => (
+                            <div key={index} className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                                <Clock className="h-3 w-3 text-gray-500" />
+                                <span className="text-sm">{time}</span>
+                                {index === 0 && (
+                                    <Badge variant="outline" className="ml-auto text-xs">
+                                        Primary
+                                    </Badge>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </HoverCardContent>
+        </HoverCard>
+    )
+}
+
+export default function LevelDetails() {
+    const { levelData, authData } = useLoaderData<typeof loader>()
+    const isLoggedIn = !!authData.idToken
+    const navigate = useNavigate()
+    const [showLoginModal, setShowLoginModal] = useState(false)
+
+    const handleRegisterClick = () => {
+        if (isLoggedIn) {
+            if (authData.role === 1) {
+                navigate("/account/class-registering")
+            } else {
+                setShowLoginModal(true)
+            }
+        } else {
+            navigate("/entrance-survey")
+        }
+    }
+
+    const handleEnrollClick = () => {
+        if (isLoggedIn) {
+            if (authData.role === 1) {
+                navigate("/account/class-registering")
+            } else {
+                setShowLoginModal(true)
+            }
+        } else {
+            navigate("/entrance-survey")
+        }
+    }
+
     // Table view only, no state needed for view mode
     const formattedPricePerSlot = formatCurrency(levelData.pricePerSlot)
     const formattedTotalPrice = formatCurrency(levelData.totalPrice || levelData.pricePerSlot * levelData.totalSlots)
@@ -100,7 +292,7 @@ export default function LevelDetails() {
         } else if (partialMonth < 0.75) {
             return `${wholeMonths} and a half ${wholeMonths === 1 ? "month" : "months"}`
         } else {
-            return `almost ${wholeMonths + 1} ${wholeMonths + 1 === 1 ? "month" : "months"}`
+            return `~ ${wholeMonths + 1} ${wholeMonths + 1 === 1 ? "month" : "months"}`
         }
     }
 
@@ -177,6 +369,14 @@ export default function LevelDetails() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            {/* Already Logged In Modal */}
+            <AlreadyLoggedInModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                accentColor={levelData.themeColor || "#21c44d"}
+                userRole={authData.role}
+            />
+
             {/* Hero Section with Piano Background */}
             <div className="relative h-[400px] overflow-hidden">
                 <div
@@ -208,18 +408,6 @@ export default function LevelDetails() {
                             className="mb-16 max-h-24"
                             themeColor={levelData.themeColor || "#21c44d"}
                         />
-
-                        {/* <div className="flex flex-col sm:flex-row gap-4">
-                            <Button
-                                size="lg"
-                                className="bg-white text-green-900 hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl"
-                                onClick={() => {
-                                    navigate(`/entrance-survey`)
-                                }}
-                            >
-                                Register Now
-                            </Button>
-                        </div> */}
                     </div>
                 </div>
             </div>
@@ -373,7 +561,7 @@ export default function LevelDetails() {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div className="flex items-center gap-2">
-                                                    <Clock className="h-4 w-4 text-gray-500" />
+                                                    <Clock className="h-4 w-4 text-gray-700" />
                                                     <span>{estimatedDuration} </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -436,7 +624,7 @@ export default function LevelDetails() {
                     </div>
                 )}
 
-                {/* Available Classes Section - Reworked for Guests */}
+                {/* Available Classes Section */}
                 {levelData.classes && levelData.classes.length > 0 && (
                     <div className="mb-16">
                         <SectionHeader
@@ -489,13 +677,15 @@ export default function LevelDetails() {
                                                     <td className="py-4 px-6">{formatDate(cls.startTime)}</td>
                                                     <td className="py-4 px-6">{formatDate(cls.endTime)}</td>
                                                     <td className="py-4 px-6">{cls.classDays || "TBA"}</td>
-                                                    <td className="py-4 px-6">{cls.classTime || "TBA"}</td>
+                                                    <td className="py-4 px-6">
+                                                        <TimeSlotHoverCard classTime={cls.classTime} />
+                                                    </td>
                                                     <td className="py-4 px-6">
                                                         {enrollmentStatus.enrollable ? (
                                                             <Button
                                                                 size="sm"
                                                                 style={{ backgroundColor: enrollmentStatus.color }}
-                                                                onClick={() => navigate("/entrance-survey")}
+                                                                onClick={() => handleEnrollClick()}
                                                             >
                                                                 Enroll Now
                                                             </Button>
@@ -575,11 +765,9 @@ export default function LevelDetails() {
                                 size="lg"
                                 className="bg-white hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl"
                                 style={{ color: levelData.themeColor || "#21c44d" }}
-                                onClick={() => {
-                                    navigate(`/entrance-survey`)
-                                }}
+                                onClick={handleRegisterClick}
                             >
-                                Register
+                                {isLoggedIn ? "Go to Profile" : "Register"}
                             </Button>
                         </div>
                     </div>

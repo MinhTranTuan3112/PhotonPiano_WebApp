@@ -1,8 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react"
-import { ArrowLeftCircle, TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search } from "lucide-react"
-import { Suspense, useState } from "react"
+import { TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search } from "lucide-react"
+import { Suspense } from "react"
 import { useRemixForm } from "remix-hook-form"
 import { z } from "zod"
 import { Button } from "~/components/ui/button"
@@ -12,15 +12,12 @@ import { Skeleton } from "~/components/ui/skeleton"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import useLoadingDialog from "~/hooks/use-loading-dialog"
 import { fetchAccountDetail } from "~/lib/services/account"
-import { fetchAddStudentsToClass, fetchChangeAClass, fetchClasses } from "~/lib/services/class"
-import { fetchSystemConfigByName, fetchSystemConfigServerTime } from "~/lib/services/system-config"
+import { fetchAddStudentsToClass, fetchClasses } from "~/lib/services/class"
 import { type AccountDetail, Role } from "~/lib/types/account/account"
 import type { ActionResult } from "~/lib/types/action-result"
 import type { Class } from "~/lib/types/class/class"
-import type { SystemConfig } from "~/lib/types/config/system-config"
 import type { PaginationMetaData } from "~/lib/types/pagination-meta-data"
 import { requireAuth } from "~/lib/utils/auth"
-import { DEADLINE_CHANGING_CLASS } from "~/lib/utils/config-name"
 import { getErrorDetailsInfo } from "~/lib/utils/error"
 import { formEntryToString } from "~/lib/utils/form"
 import { Input } from "~/components/ui/input"
@@ -35,39 +32,60 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const { searchParams } = new URL(request.url)
 
-  const promise = fetchAccountDetail(accountId, idToken).then((response) => {
+  // const promise = fetchAccountDetail(accountId, idToken).then((response) => {
+  //   const currentAccount = response.data as AccountDetail
+  //   return currentAccount 
+  // })
+
+  const query = {
+    page: Number.parseInt(searchParams.get("page") || "1"),
+    pageSize: Number.parseInt(searchParams.get("size") || "10"),
+    sortColumn: searchParams.get("column") || "CreatedAt",
+    orderByDesc: searchParams.get("desc") === "true" ? false : true,
+    keyword: trimQuotes(searchParams.get("keyword") || ""),
+    statuses: [0],
+    isPublic: true,
+    idToken: idToken,
+  }
+
+  // const classPromise = fetchClasses({ ...query }).then((response) => {
+  //     const classes: Class[] = response.data
+  //     const headers = response.headers
+
+  //     const metadata: PaginationMetaData = {
+  //       page: Number.parseInt(headers["x-page"] || "1"),
+  //       pageSize: Number.parseInt(headers["x-page-size"] || "9"),
+  //       totalPages: Number.parseInt(headers["x-total-pages"] || "1"),
+  //       totalCount: Number.parseInt(headers["x-total-count"] || "0"),
+  //     }
+
+  //     return {
+  //       classes,
+  //       metadata,
+  //       query
+  //     }
+  //   })
+
+  const [promise, classPromise] = [fetchAccountDetail(accountId, idToken).then((response) => {
     const currentAccount = response.data as AccountDetail
+    return currentAccount
+  }), fetchClasses({ ...query }).then((response) => {
+    const classes: Class[] = response.data
+    const headers = response.headers
 
-    const query = {
-      page: Number.parseInt(searchParams.get("page") || "1"),
-      pageSize: Number.parseInt(searchParams.get("size") || "10"),
-      sortColumn: searchParams.get("column") || "CreatedAt",
-      orderByDesc: searchParams.get("desc") === "true" ? false : true,
-      keyword: trimQuotes(searchParams.get("keyword") || ""),
-      levels: currentAccount.levelId ? [currentAccount.levelId] : [],
-      statuses: [0],
-      isPublic: true,
-      idToken: idToken,
+    const metadata: PaginationMetaData = {
+      page: Number.parseInt(headers["x-page"] || "1"),
+      pageSize: Number.parseInt(headers["x-page-size"] || "9"),
+      totalPages: Number.parseInt(headers["x-total-pages"] || "1"),
+      totalCount: Number.parseInt(headers["x-total-count"] || "0"),
     }
-    const classPromise = fetchClasses({ ...query }).then((response) => {
-      const classes: Class[] = response.data
-      const headers = response.headers
 
-      const metadata: PaginationMetaData = {
-        page: Number.parseInt(headers["x-page"] || "1"),
-        pageSize: Number.parseInt(headers["x-page-size"] || "9"),
-        totalPages: Number.parseInt(headers["x-total-pages"] || "1"),
-        totalCount: Number.parseInt(headers["x-total-count"] || "0"),
-      }
-
-      return {
-        classes,
-        metadata,
-      }
-    })
-
-    return { classPromise, currentAccount, query }
-  })
+    return {
+      classes,
+      metadata,
+      query
+    }
+  })]
 
   // const deadlinePromise = fetchSystemConfigByName({ name: DEADLINE_CHANGING_CLASS, idToken }).then((res) => {
   //   return res.data as SystemConfig
@@ -78,6 +96,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     promise,
+    classPromise
     //deadlinePromise,
     //currentServerDateTime,
   }
@@ -119,8 +138,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AccountClassRegistering() {
-  const { promise } = useLoaderData<typeof loader>()
-  const [selectedClass, setSelectedClass] = useState<string | null>(null)
+  const { promise, classPromise } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const fetcher = useFetcher<ActionResult>()
 
@@ -356,14 +374,14 @@ export default function AccountClassRegistering() {
         <Suspense fallback={<LoadingSkeleton />}>
           <Await resolve={promise}>
             {(data) => (
-              <Await resolve={data.classPromise}>
+              <Await resolve={classPromise}>
                 {(classesData) => {
                   // const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime)
-                  const currentClass = data.currentAccount.currentClass
+                  const currentClass = data.currentClass
                   return (
                     <>
                       {/* Deadline Notice */}
-                      {((currentClass && currentClass.status !== 2) || data.currentAccount.studentStatus !== 3) ? (
+                      {((currentClass && currentClass.status !== 2) || data.studentStatus !== 3) ? (
                         <div
                           className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
                         >
@@ -384,18 +402,18 @@ export default function AccountClassRegistering() {
                       ) : (
                         <>
                           {/* Filters */}
-                          <ClassFilters defaultKeyword={data.query.keyword} />
+                          <ClassFilters defaultKeyword={classesData.query.keyword} />
 
                           {/* Class List */}
                           {classesData.classes.length > 0 ? (
                             <div className="space-y-4 mt-8">
                               {classesData.classes.map((classItem) => (
                                 <Form onSubmit={handleOpenModal} key={classItem.id}>
-                                  <input type="hidden" {...register("studentId")} value={data.currentAccount.accountFirebaseId} />
+                                  <input type="hidden" {...register("studentId")} value={data.accountFirebaseId} />
                                   <input type="hidden" {...register("classId")} value={classItem.id} />
                                   <ClassCard
                                     classItem={classItem}
-                                    currentAccount={data.currentAccount}
+                                    currentAccount={data}
                                   />
                                 </Form>
                               ))}
