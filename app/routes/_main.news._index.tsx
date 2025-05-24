@@ -98,6 +98,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
             sortColumn: searchParams.get('column') || 'Id',
             orderByDesc: searchParams.get('desc') === 'true' ? true : false,
             keyword: searchParams.get('q') || undefined,
+            isPublished: true
         };
 
         const promise = fetchArticles({ ...query }).then((response) => {

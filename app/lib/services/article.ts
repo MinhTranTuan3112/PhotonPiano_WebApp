@@ -5,16 +5,22 @@ import axiosInstance from "../utils/axios-instance";
 export async function fetchArticles({
     page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
     keyword,
+    isPublished,
     idToken
 }: {
 } & Partial<QueryPagedRequest & {
     keyword: string,
+    isPublished: boolean,
     idToken: string
 }>) {
     let url = `/articles?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
 
     if (keyword) {
         url += `&q=${keyword}`;
+    }
+
+    if (isPublished) {
+        url += `&published=${isPublished ? 'true' : 'false'}`;
     }
 
     const response = await axiosInstance.get(url, {
