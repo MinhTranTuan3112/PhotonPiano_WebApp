@@ -28,7 +28,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return { accountId }
 }
 
-function getBreadcrumbPageName({pathname}: {pathname :string}): BreadcumbNavItem[] {
+function getBreadcrumbPageName({ pathname }: { pathname: string }): BreadcumbNavItem[] {
     const defaultNavItem = {
         name: "Manage",
         url: "/account/profile",
@@ -89,6 +89,16 @@ function getBreadcrumbPageName({pathname}: {pathname :string}): BreadcumbNavItem
             otherNavItems = [
                 {
                     name: "My applications",
+                    url: pathname,
+                    isCurrentPage: true
+                }
+            ]
+            break;
+
+        case pathname === '/account/class-registering':
+            otherNavItems = [
+                {
+                    name: "Piano class registering",
                     url: pathname,
                     isCurrentPage: true
                 }
