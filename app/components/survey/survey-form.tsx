@@ -36,7 +36,6 @@ import {
 } from "@dnd-kit/sortable"
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { toastWarning } from '~/lib/utils/toast-utils';
 
 export const surveySchema = z.object({
@@ -127,7 +126,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
     return (
         <>
             <div className='flex items-center'>
-                <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>1</div>
+                <div className='px-4 py-2 bg-theme text-white font-bold rounded-full'>1</div>
                 <div className='p-4 font-bold'>General information</div>
             </div>
 
@@ -153,7 +152,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     name='hasAgeConstraint'
                     render={({ field: { value, onChange } }) => (
                         <div className="flex items-center space-x-2 my-2">
-                            <Switch id="hasAgeConstraint" checked={value} onCheckedChange={onChange} />
+                            <Switch id="hasAgeConstraint" checked={value} onCheckedChange={onChange} className='data-[state=checked]:bg-theme' />
                             <Label htmlFor="hasAgeConstraint" className='font-bold'>Age constraint</Label>
                         </div>
                     )}
@@ -185,7 +184,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                     name='isEmptySurvey'
                     render={({ field: { value, onChange } }) => (
                         <div className="flex items-center space-x-2 my-2">
-                            <Switch id="isEmptySurvey" checked={value} onCheckedChange={onChange} />
+                            <Switch id="isEmptySurvey" checked={value} onCheckedChange={onChange} className='data-[state=checked]:bg-theme' />
                             <Label htmlFor="isEmptySurvey" className='font-bold'>Is empty survey</Label>
                         </div>
                     )}
@@ -207,7 +206,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                 {!isEmptySurvey && (
                     <>
                         <div className='flex items-center'>
-                            <div className='px-4 py-2 bg-black text-white font-bold rounded-full'>2</div>
+                            <div className='px-4 py-2 bg-theme text-white font-bold rounded-full'>2</div>
                             <div className='p-4 font-bold'>Questions</div>
                         </div>
 
@@ -276,9 +275,9 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                         </div>}
 
                         <div className="flex flex-row gap-3 mt-7 items-center justify-center max-w-[50%]">
-                            <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog}>Create new question</Button>
+                            <Button type='button' Icon={CirclePlus} iconPlacement='left' onClick={handleOpenQuestionDialog} variant={'theme'}>Create new question</Button>
                             <Button type='button' variant={'outline'} Icon={List} iconPlacement='left'
-                                onClick={handleOpenQuestionsListDialog}>Add from question bank</Button>
+                                onClick={handleOpenQuestionsListDialog} >Add from question bank</Button>
                         </div>
 
                         <Separator className='w-full my-2' />
@@ -286,7 +285,7 @@ export default function SurveyForm({ idToken, fetcher, surveyData, isEditing = f
                 )}
 
                 <Button type='button' isLoading={isSubmitting} disabled={isSubmitting}
-                    className='max-w-[30%] mt-4' onClick={handleOpenConfirmDialog}>
+                    className='max-w-[30%] mt-4' onClick={handleOpenConfirmDialog} variant={'theme'}>
                     {isEditing ? 'Update' : 'Create'}
                 </Button>
             </Form>
