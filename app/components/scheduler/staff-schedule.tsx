@@ -652,7 +652,7 @@ export const StaffSchedule = ({
                                                             slot.status === SlotStatus.Cancelled
                                                                 ? "outline"
                                                                 : slot.status === SlotStatus.Finished
-                                                                    ? "default"
+                                                                    ? "success"
                                                                     : slot.status === SlotStatus.Ongoing
                                                                         ? "secondary"
                                                                         : "outline"
