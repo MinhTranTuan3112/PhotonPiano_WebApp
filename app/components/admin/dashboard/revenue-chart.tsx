@@ -48,7 +48,7 @@ export default function RevenueChart({
     if (isLoading) {
         return <Skeleton className="h-full w-full" />
     }
-
+    console.log(filteredData)
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-end space-x-2">
@@ -78,16 +78,17 @@ export default function RevenueChart({
                         axisLine={false}
                     />
                     <YAxis
+                        dataKey="value"
                         stroke="#64748b"
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `$${value}`}
+                        tickFormatter={(value) => `${value} VND`}
                     />
                     <Tooltip />
                     <Area
                         type="monotone"
-                        dataKey="total"
+                        dataKey="value"
                         stroke="#0369a1" // sky-800
                         fill="url(#colorTotal)"
                         strokeWidth={2}

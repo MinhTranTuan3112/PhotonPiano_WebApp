@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, MapPin, Trash, User, XIcon } from 'lucide-react'
+import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, Mail, MapPin, Phone, Trash, User, User2, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -40,6 +40,7 @@ import { toastWarning } from '~/lib/utils/toast-utils'
 import { ActionResult } from '~/lib/types/action-result'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Badge } from '~/components/ui/badge'
+import NoInformation from '~/components/common/no-information'
 
 type Props = {}
 
@@ -552,7 +553,20 @@ export function EntranceTestForm({
                                     )}
                                 />
                             ) : (
-                                <p className="text-gray-900">{defaultData.instructor?.fullName || defaultData.instructor?.email}</p>
+                                // <p className="text-gray-900">{defaultData.instructor?.fullName || defaultData.instructor?.email}</p>
+                                <div className="flex flex-col gap-2">
+                                    {defaultData.instructor?.fullName || defaultData.instructor?.email}
+                                    <div className="flex flex-row justify-between">
+                                        <div className="flex flex-row gap-2 items-center">
+                                            <Mail className='text-theme size-5' />
+                                            <span className="italic">{defaultData.instructor?.email}</span>
+                                        </div>
+                                        <div className="flex flex-row gap-2 items-center">
+                                            <Phone className='text-theme size-5' />
+                                            {defaultData.instructor?.phone || <NoInformation />}
+                                        </div>
+                                    </div>
+                                </div>
                             )
                         }
                         {errors.instructorId && <span className='text-red-500'>{errors.instructorId.message}</span>}

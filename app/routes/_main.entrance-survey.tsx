@@ -595,7 +595,7 @@ function EntranceSurveyForm() {
                 <Progress value={progressPercentage} className="h-2 " indicatorColor="bg-blue-500" />
 
                 <div className="mt-4 hidden md:block">
-                    <StepperBar steps={steps.map((s) => s.title)} currentStep={stepCnt} showIndicatorTitle={true} />
+                    <StepperBar steps={steps.map((s) => s.title)} currentStep={stepCnt} showIndicatorTitle={false} />
                 </div>
             </div>
 

@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "~/components/ui/button";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { toast } from "sonner";
-import { useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { Link, useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { loader } from "~/root";
 import { Role } from "~/lib/types/account/account";
 import { action } from "~/routes/delete-entrance-test";
@@ -66,7 +66,7 @@ export const columns: ColumnDef<EntranceTest>[] = [
         accessorKey: "Test name",
         header: "Test name",
         cell: ({ row }) => {
-            return <div>{row.original.name}</div>
+            return <TestNameSection row={row}/>
         }
     },
     {
@@ -101,7 +101,7 @@ export const columns: ColumnDef<EntranceTest>[] = [
         accessorKey: 'Is score announced',
         header: 'Is score announced',
         cell: ({ row }) => {
-            return <div className="flex justify-center">{row.original.isAnnouncedScore ? <CheckCircle className="text-green-500"/> : <XCircle className="text-red-500"/>}</div>
+            return <div className="flex justify-center">{row.original.isAnnouncedScore ? <CheckCircle className="text-green-500" /> : <XCircle className="text-red-500" />}</div>
         }
     },
     {
@@ -120,6 +120,14 @@ export const columns: ColumnDef<EntranceTest>[] = [
         }
     }
 ]
+
+function TestNameSection({ row }: { row: Row<EntranceTest> }) {
+    const authData = useRouteLoaderData<typeof loader>("root");
+
+    return <div className="font-bold">
+        <Link to={`/${authData?.role === Role.Staff ? 'staff' : 'teacher'}/entrance-tests/${row.original.id}`} className="hover:underline">{row.original.name}</Link>
+    </div>
+}
 
 function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
 
@@ -179,7 +187,7 @@ function ActionsDropdown({ row }: { row: Row<EntranceTest> }) {
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => navigate(authData?.role === Role.Staff ? `../entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
+                    onClick={() => navigate(authData?.role === Role.Staff ? `/staff/entrance-tests/${row.original.id}` : `/teacher/entrance-tests/${row.original.id}`)}>
                     <Eye /> View
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenDialog}
