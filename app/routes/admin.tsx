@@ -31,9 +31,9 @@ import { requireAuth } from "~/lib/utils/auth";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
-  const { accountId } = await requireAuth(request);
-  
-  return {accountId}
+    const { accountId } = await requireAuth(request);
+
+    return { accountId }
 }
 
 function getBreadcrumbPageName({ pathname }: {
@@ -141,7 +141,7 @@ function getBreadcrumbPageName({ pathname }: {
 export default function AdminLayout() {
 
     const { pathname } = useLocation();
-    const {accountId} = useLoaderData<typeof loader>()
+    const { accountId } = useLoaderData<typeof loader>()
 
     return (
         <SidebarProvider>
@@ -247,17 +247,18 @@ const data = {
             isActive: true,
         },
         {
-            title: "Settings",
-            url: "/admin/settings",
-            icon: Settings,
-            isActive: true,
-        },
-        {
             title: "Transactions",
             url: "/admin/transactions",
             icon: WalletCards,
             isActive: true,
         },
+        {
+            title: "Settings",
+            url: "/admin/settings",
+            icon: Settings,
+            isActive: true,
+        },
+
     ]
 }
 

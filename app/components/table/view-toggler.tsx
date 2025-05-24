@@ -32,7 +32,7 @@ export default function ViewToggle({ defaultView = "table", onViewChange, classN
             <ToggleGroupItem
                 value="table"
                 aria-label="Toggle table view"
-                className="rounded-full data-[state=on]:bg-black data-[state=on]:text-white"
+                className="rounded-full data-[state=on]:bg-theme data-[state=on]:text-white"
             >
                 <Table2 className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Table</span>
@@ -41,7 +41,7 @@ export default function ViewToggle({ defaultView = "table", onViewChange, classN
             <ToggleGroupItem
                 value="grid"
                 aria-label="Toggle grid view"
-                className="rounded-full data-[state=on]:bg-black data-[state=on]:text-white"
+                className="rounded-full data-[state=on]:bg-theme data-[state=on]:text-white"
             >
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 <span className="hidden sm:inline">Card</span>

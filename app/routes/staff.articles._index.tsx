@@ -140,8 +140,8 @@ export default function NewsManagementPage({ }: Props) {
 
             <div className="flex flex-row justify-between w-full my-5">
                 <ViewToggle defaultView={currentView} onViewChange={setCurrentView} />
-                <Button type='button' variant={'outline'} Icon={PencilLine}
-                    iconPlacement='left' onClick={() => navigate('/staff/articles/create')}>
+                <Button type='button' variant={'theme'} Icon={PencilLine}
+                    iconPlacement='left' onClick={() => navigate('/staff/articles/create')} >
                     Create new article
                 </Button>
             </div>
@@ -180,7 +180,7 @@ function SearchForm() {
 
     return <Form method='GET' className='flex flex-row gap-2 items-center my-3'>
         <Input name='q' placeholder='Search here...' type='text' />
-        <Button type='submit' Icon={Search} iconPlacement='left'>
+        <Button type='submit' Icon={Search} iconPlacement='left' variant={'theme'}>
             Search
         </Button>
     </Form>
