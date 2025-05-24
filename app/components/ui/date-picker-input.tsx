@@ -15,7 +15,7 @@ type Props = {
 } & Omit<React.ComponentProps<"input">, "defaultValue" | "type" | "value">
 
 const DatePickerInput = React.forwardRef<HTMLInputElement, Props>(
-    ({ className, defaultValue, value, placeholder = "Chọn ngày", onChange, disabled, ...props }, ref) => {
+    ({ className, defaultValue, value, placeholder = "Select date", onChange, disabled, ...props }, ref) => {
         const [date, setDate] = React.useState<Date | undefined>(defaultValue ? new Date(defaultValue) : undefined)
         const [year, setYear] = React.useState<number>(date?.getFullYear() || new Date().getFullYear())
         const [month, setMonth] = React.useState<number>(date?.getMonth() || new Date().getMonth())
