@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react"
-import { TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search } from "lucide-react"
+import { TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search, UserRoundPlus } from "lucide-react"
 import { Suspense } from "react"
 import { useRemixForm } from "remix-hook-form"
 import { z } from "zod"
@@ -22,6 +22,7 @@ import { getErrorDetailsInfo } from "~/lib/utils/error"
 import { formEntryToString } from "~/lib/utils/form"
 import { Input } from "~/components/ui/input"
 import { trimQuotes } from "~/lib/utils/url"
+import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime"
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const { idToken, role, accountId } = await requireAuth(request)
@@ -96,7 +97,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     promise,
-    classPromise
+    classPromise,
+    query
     //deadlinePromise,
     //currentServerDateTime,
   }
@@ -138,7 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AccountClassRegistering() {
-  const { promise, classPromise } = useLoaderData<typeof loader>()
+  const { promise, classPromise, query } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const fetcher = useFetcher<ActionResult>()
 
@@ -157,13 +159,6 @@ export default function AccountClassRegistering() {
     },
   })
 
-  const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
-    title: "Confirm Registering New Class",
-    description: "Are you sure want to register to enroll this class?",
-    onConfirm: () => {
-      handleSubmit()
-    },
-  })
 
   const {
     handleSubmit,
@@ -177,6 +172,12 @@ export default function AccountClassRegistering() {
     submitConfig: { method: "POST" }
   })
 
+  const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
+    title: "Confirm Registering New Class",
+    description: "Are you sure want to register to enroll this class?",
+    onConfirm: handleSubmit,
+    confirmText: 'Register for me',
+  })
   // Status badge component
   const StatusBadge = ({ status }: { status: number }) => {
     let color = ""
@@ -234,11 +235,17 @@ export default function AccountClassRegistering() {
     const isCurrentClass = currentAccount.currentClass?.id === classItem.id
 
     return (
-      <div className="bg-gradient-to-br from-sky-50 to-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-sky-100">
+      <div className="p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-sky-100">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-bold text-sky-900">{classItem.name}</h3>
+              <h3 className="text-xl font-bold text-sky-900"> {classItem.name}
+              </h3>
+              <div className="flex items-center gap-2">
+                <Badge style={{
+                  backgroundColor: classItem.level.themeColor
+                }}>{classItem.level.name}</Badge>
+              </div>
               <StatusBadge status={classItem.status} />
               {isCurrentClass && <Badge className="bg-sky-200 text-sky-800">Current</Badge>}
             </div>
@@ -262,13 +269,10 @@ export default function AccountClassRegistering() {
                 <p className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span className="font-medium">Start Time:</span>
-                  {new Date(classItem.startTime).toLocaleDateString()}
+                  {formatRFC3339ToDisplayableDate(classItem.startTime, false, false)}
                 </p>
               )}
 
-              <div className="flex items-center gap-2">
-                <Badge className="bg-sky-600 hover:bg-sky-700">{classItem.level.name}</Badge>
-              </div>
 
               <p className="flex items-center gap-2">
                 <span className="font-medium">Total slots:</span>
@@ -279,39 +283,65 @@ export default function AccountClassRegistering() {
 
           <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-end justify-between">
             <div className="text-right mb-4">
-              <p className="text-sm text-sky-600">
+              {/* <p className="text-sm text-sky-600">
                 <Users className="h-4 w-4 inline mr-1" />
-                <span className="font-bold">{classItem.studentNumber}</span> / {classItem.capacity} students
-              </p>
-              <p className="text-sm text-sky-600">
+                <span className="font-bold">{classItem.studentNumber}</span> / {classItem.capacity} learners
+              </p> */}
+              <p className={availableSlots > 0 ? 'text-green-600' : 'text-red-600'}>
                 <span className="font-bold text-lg">{availableSlots}</span> slots available
               </p>
             </div>
-            <Button
-              type="submit"
-              // onClick={() => handleClassSelection(classItem.id, currentAccount)}
-              className="bg-sky-500 hover:bg-sky-600 text-white"
-              disabled={availableSlots <= 0 || classItem.status !== 0 || isCurrentClass}
-            >
-              {isCurrentClass
-                ? "Current Class"
-                : availableSlots > 0 && classItem.status === 0
-                  ? "Register this Class"
-                  : "Full"}
-            </Button>
+
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="mt-4 w-full bg-sky-100 rounded-full h-2.5">
-          <div className="bg-sky-500 h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+        <div className="flex flex-col my-4 gap-2">
+          <div className="text-sm text-sky-600">
+            <Users className="h-4 w-4 inline mr-1" />
+            <span className="font-bold">{classItem.studentNumber}</span> / {classItem.capacity} learners
+          </div>
+          <div className="w-full bg-sky-100 rounded-full h-2.5">
+            <div className="bg-theme h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+          </div>
         </div>
+
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            // onClick={() => handleClassSelection(classItem.id, currentAccount)}
+            variant={'theme'}
+            className="uppercase"
+            disabled={availableSlots <= 0 || classItem.status !== 0 || isCurrentClass}
+            onClick={handleOpenModal}
+            Icon={UserRoundPlus}
+            iconPlacement="left"
+          >
+            {isCurrentClass
+              ? "Current Class"
+              : availableSlots > 0 && classItem.status === 0
+                ? "Register"
+                : "Full"}
+          </Button>
+        </div>
+
       </div>
     )
   }
 
+  type QueryClasses = {
+    page: number;
+    pageSize: number;
+    sortColumn: string;
+    orderByDesc: boolean;
+    keyword: string;
+    statuses: number[];
+    isPublic: boolean;
+    idToken: string;
+  }
+
   // Filter component
-  const ClassFilters = ({ defaultKeyword }: { defaultKeyword?: string }) => {
+  const ClassFilters = ({ defaultKeyword, query }: { defaultKeyword?: string; query: QueryClasses }) => {
 
     const { pathname } = useLocation();
 
@@ -371,7 +401,7 @@ export default function AccountClassRegistering() {
         </div>
 
         {/* Classes List */}
-        <Suspense fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
           <Await resolve={promise}>
             {(data) => (
               <Await resolve={classPromise}>
@@ -402,7 +432,7 @@ export default function AccountClassRegistering() {
                       ) : (
                         <>
                           {/* Filters */}
-                          <ClassFilters defaultKeyword={classesData.query.keyword} />
+                          <ClassFilters defaultKeyword={classesData.query.keyword} query={query} />
 
                           {/* Class List */}
                           {classesData.classes.length > 0 ? (
@@ -448,10 +478,12 @@ export default function AccountClassRegistering() {
 /* Skeleton Loading Component */
 function LoadingSkeleton() {
   return (
-    <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      {[...Array(6)].map((_, index) => (
-        <Skeleton key={index} className="h-[120px] w-full rounded-lg" />
-      ))}
-    </div>
+    <>
+      <Skeleton className="h-[120px] w-full rounded-lg" />
+
+      <br />
+
+      <Skeleton className="h-[400px] w-full rounded-lg" />
+    </>
   )
 }
