@@ -78,57 +78,49 @@ export default function SearchForm({
                     )}
                 />
                 {role !== Role.Student && (
-                    <Controller
-                        name='roomIds'
-                        control={control}
-                        render={({ field: { value = [], onChange } }) => (
-                            // <RoomsMultiSelect
-                            //     idToken={query.idToken}
-                            //     value={value}
-                            //     onValueChange={onChange}
-                            //     placeholder='Chọn phòng'
-                            //     className='w-full max-w-[40%]'
-                            //     defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)} />
-                            <GenericMultiSelect<Room>
-                                defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)}
-                                queryKey='rooms'
-                                fetcher={async (query) => {
-                                    const response = await fetchRooms({ ...query });
-
-                                    const headers = response.headers;
-
-                                    const metadata: PaginationMetaData = {
-                                        page: parseInt(headers['x-page'] || '1'),
-                                        pageSize: parseInt(headers['x-page-size'] || '10'),
-                                        totalPages: parseInt(headers['x-total-pages'] || '1'),
-                                        totalCount: parseInt(headers['x-total-count'] || '0'),
-                                    };
-
-                                    return {
-                                        data: response.data,
-                                        metadata
-                                    }
-                                }}
-                                mapItem={(item) => {
-                                    return {
-                                        label: item?.name,
-                                        value: item?.id
-                                    }
-                                }}
-                                idToken={query.idToken}
-                                value={value}
-                                onValueChange={onChange}
-                                placeholder='Select room'
-                                emptyText='No rooms found.'
-                                errorText='Errors loading rooms.'
-                            />
-                        )}
-                    />
+                    <div className="max-w-[50%] w-full">
+                        <Controller
+                            name='roomIds'
+                            control={control}
+                            render={({ field: { value = [], onChange } }) => (
+                                <GenericMultiSelect<Room>
+                                    defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('roomIds') }).map(String)}
+                                    queryKey='rooms'
+                                    fetcher={async (query) => {
+                                        const response = await fetchRooms({ ...query });
+                                        const headers = response.headers;
+                                        const metadata: PaginationMetaData = {
+                                            page: parseInt(headers['x-page'] || '1'),
+                                            pageSize: parseInt(headers['x-page-size'] || '10'),
+                                            totalPages: parseInt(headers['x-total-pages'] || '1'),
+                                            totalCount: parseInt(headers['x-total-count'] || '0'),
+                                        };
+                                        return {
+                                            data: response.data,
+                                            metadata
+                                        }
+                                    }}
+                                    mapItem={(item) => {
+                                        return {
+                                            label: item?.name,
+                                            value: item?.id
+                                        }
+                                    }}
+                                    idToken={query.idToken}
+                                    value={value}
+                                    onValueChange={onChange}
+                                    placeholder='Select room'
+                                    emptyText='No rooms found.'
+                                    errorText='Errors loading rooms.'
+                                />
+                            )}
+                        />
+                    </div>
                 )}
             </div>
 
             <div className="w-full flex flex-row gap-3">
-                <Link className={`${buttonVariants({ variant: "theme" })} size-52 font-bold 
+                <Link className={`${buttonVariants({ variant: "outline" })} size-52 font-bold 
                                       flex flex-row gap-3`}
                     to={pathname ? `${pathname}` : '/'}
                     replace={true}
@@ -136,6 +128,7 @@ export default function SearchForm({
                     <FilterX /> Reset filter
                 </Link>
                 <Button type='submit' isLoading={isSubmitting}
+                    variant={'theme'}
                     disabled={isSubmitting} Icon={Search} iconPlacement='left'>
                     Search
                 </Button>

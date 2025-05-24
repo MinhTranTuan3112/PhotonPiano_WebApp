@@ -13,15 +13,15 @@ import { Loader2 } from 'lucide-react'
 import { formatPrice } from '~/lib/utils/price'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { action } from '~/routes/enroll'
-import { toast } from 'sonner'
 import { toastWarning } from '~/lib/utils/toast-utils'
 
 type Props = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
+    disabled?: boolean
 }
 
-export default function EnrollDialog({ isOpen, setIsOpen }: Props) {
+export default function EnrollDialog({ isOpen, setIsOpen, disabled = false }: Props) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -34,14 +34,18 @@ export default function EnrollDialog({ isOpen, setIsOpen }: Props) {
                             Hãy xác nhận các thông tin sau để tiến hành đăng ký.
                             </DialogDescription> */}
                 </DialogHeader>
-                <EnrollForm />
+                <EnrollForm disabled={disabled}/>
             </DialogContent>
         </Dialog>
     )
 }
 
 
-function EnrollForm() {
+function EnrollForm({ 
+    disabled = false
+}: {
+    disabled?: boolean
+}) {
 
     const navigation = useNavigation();
     const [isAgreed, setIsAgreee] = useState(false);
@@ -108,7 +112,7 @@ function EnrollForm() {
                 per registration request
             </div>
             <div className='flex gap-4 items-start mb-3'>
-                <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} />
+                <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} variant={'theme'}/>
                 <span className='text-sm'>I agree with <a className='underline font-bold' href='/'>terms and conditions</a>  Photon Piano center</span>
             </div>
             <RadioGroup defaultValue='vnpay'>
@@ -135,8 +139,9 @@ function EnrollForm() {
                 </div>
             </div>
             <div className='w-full flex gap-4 '>
-                <Button disabled={!isAgreed}
+                <Button disabled={!isAgreed || disabled}
                     type="button" className='w-full' isLoading={isSubmitting}
+                    variant={'theme'}
                     onClick={handleOpenConfirmDialog}>
                     Register
                 </Button>

@@ -110,10 +110,11 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     {({ entranceTestsPromise, metadata }) => (
                         <Await resolve={entranceTestsPromise}>
                             <GenericDataTable columns={columns} extraHeaderContent={
-                                <Button variant={'theme'} Icon={CirclePlus} iconPlacement='left'
-                                    onClick={() => navigate('../entrance-tests/create')}>
-                                    Create new test
-                                </Button>
+                                // <Button variant={'theme'} Icon={CirclePlus} iconPlacement='left'
+                                //     onClick={() => navigate('../entrance-tests/create')}>
+                                //     Create new test
+                                // </Button>
+                                <></>
                             } metadata={metadata}
                                 emptyText='No test found.' />
                         </Await>

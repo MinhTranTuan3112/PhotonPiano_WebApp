@@ -79,8 +79,8 @@ export default function GenericMultiSelect<T>({
     modalPopover = false,
     asChild = false,
     className,
-    errorText = 'Lỗi',
-    emptyText = 'Không có kết quả.',
+    errorText = 'Error',
+    emptyText = 'No results found.',
     maxItemsDisplay = 10,
     ...props
 }: Props<T>) {
@@ -297,15 +297,15 @@ export default function GenericMultiSelect<T>({
                                 >
                                     <div
                                         className={cn(
-                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-theme",
                                             selectedValues.length === items.length
-                                                ? "bg-primary text-primary-foreground"
+                                                ? "bg-theme text-theme-foreground"
                                                 : "opacity-50 [&_svg]:invisible"
                                         )}
                                     >
                                         <CheckIcon className="h-4 w-4" />
                                     </div>
-                                    <span className="font-bold">&#40;Chọn tất cả&#41;</span>
+                                    <span className="font-bold text-theme">&#40;Select all&#41;</span>
                                 </CommandItem>
                                 {items.map((option) => {
                                     const isSelected = selectedValues.includes(option.value);
@@ -317,9 +317,9 @@ export default function GenericMultiSelect<T>({
                                         >
                                             <div
                                                 className={cn(
-                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-theme",
                                                     isSelected
-                                                        ? "bg-primary text-primary-foreground"
+                                                        ? "bg-theme text-theme-foreground"
                                                         : "opacity-50 [&_svg]:invisible"
                                                 )}
                                             >
@@ -345,7 +345,7 @@ export default function GenericMultiSelect<T>({
                                         onSelect={handleClear}
                                         className="flex-1 justify-center cursor-pointer"
                                     >
-                                        Xóa hết
+                                        Clear All
                                     </CommandItem>
                                     <Separator
                                         orientation="vertical"
@@ -357,7 +357,7 @@ export default function GenericMultiSelect<T>({
                                 onSelect={() => setIsPopoverOpen(false)}
                                 className="flex-1 justify-center cursor-pointer max-w-full"
                             >
-                                Đóng
+                                Close
                             </CommandItem>
                         </div>
                     </CommandGroup>

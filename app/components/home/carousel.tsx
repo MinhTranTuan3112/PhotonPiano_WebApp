@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import EnrollDialog from '../entrance-tests/enroll-dialog';
 import { useAuth } from '~/lib/contexts/auth-context';
 import { useNavigate } from '@remix-run/react';
+import { StudentStatus } from '~/lib/types/account/account';
 
 const slides = [
     {
@@ -87,7 +88,7 @@ export default function Carousel({ isOpenDialog, allowEntranceTestRegistering }:
                             <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl uppercase leading-7">{slide.title}</h1>
                             <p className="mt-6 max-w-2xl text-xl leading-8">{slide.description}</p>
                             {
-                                (allowEntranceTestRegistering && index === 0 && (!currentAccount || currentAccount.studentStatus === 0)) && (
+                                (allowEntranceTestRegistering && index === 0 && (!currentAccount || currentAccount.studentStatus === StudentStatus.Unregistered || currentAccount.studentStatus === StudentStatus.DropOut)) && (
                                     <button onClick={() => {
                                         if (currentAccount)
                                             setIsOpenEnrollDialog(!isOpenEnrollDialog)
@@ -134,7 +135,10 @@ export default function Carousel({ isOpenDialog, allowEntranceTestRegistering }:
                     ))}
                 </div>
             </div>
-            <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog} />
+            {currentAccount && <EnrollDialog setIsOpen={setIsOpenEnrollDialog} isOpen={isOpenEnrollDialog}
+                disabled={currentAccount?.studentStatus !== StudentStatus.Unregistered
+                    && currentAccount?.studentStatus !== StudentStatus.DropOut} />}
+
         </>
     );
 }

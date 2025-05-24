@@ -35,7 +35,7 @@ export default function ViewToggle({ defaultView = "table", onViewChange, classN
                 className="rounded-full data-[state=on]:bg-black data-[state=on]:text-white"
             >
                 <Table2 className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Bảng</span>
+                <span className="hidden sm:inline">Table</span>
                 <span className="sr-only">Table view</span>
             </ToggleGroupItem>
             <ToggleGroupItem
@@ -44,8 +44,8 @@ export default function ViewToggle({ defaultView = "table", onViewChange, classN
                 className="rounded-full data-[state=on]:bg-black data-[state=on]:text-white"
             >
                 <LayoutGrid className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Thẻ</span>
-                <span className="sr-only">Grid view</span>
+                <span className="hidden sm:inline">Card</span>
+                <span className="sr-only">Card view</span>
             </ToggleGroupItem>
         </ToggleGroup>
     );
