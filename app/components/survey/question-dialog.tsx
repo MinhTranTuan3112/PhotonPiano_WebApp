@@ -319,7 +319,7 @@ export default function QuestionDialog({
                                     // }
 
                                     // Then continue with your existing logic
-                                }}>
+                                }} variant={'theme'}>
                                     {!requiresUpload ? 'Confirm' : isEditing ? 'Save' : 'Add'}
                                 </Button>
                             </DialogFooter>

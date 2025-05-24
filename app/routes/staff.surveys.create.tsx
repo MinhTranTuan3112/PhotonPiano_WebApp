@@ -125,7 +125,7 @@ export default function CreateSurveyPage({ }: Props) {
                 <FilePlus className="h-8 w-8 text-sky-600" />
                 <div>
                     <h3 className="text-2xl font-bold text-sky-800">Create New Survey</h3>
-                    <p className="text-sm text-sky-600">Create new survey with a set of questons</p>
+                    <p className="text-sm text-sky-600">Create new survey with a set of questions</p>
                 </div>
             </div>
             <Separator className='w-full my-2' />
