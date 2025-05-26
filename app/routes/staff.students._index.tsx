@@ -2,12 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, GraduationCap } from 'lucide-react';
+import { Search, CalendarSync, RotateCcw, GraduationCap, FilterX } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { studentColumns } from '~/components/staffs/table/student-columns';
+import { LevelBadge, studentColumns } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -139,7 +139,7 @@ function SearchForm() {
 
   const levelOptions = levels.map((level, index) => {
     return {
-      label: level.name,
+      label: <LevelBadge level={level} key={level.id} />,
       value: level.id.toString(),
       icon: undefined
     }
@@ -182,10 +182,19 @@ function SearchForm() {
       className='col-span-full w-full'
       defaultValue={trimQuotes(searchParams.get('q') || '')} />
 
-    <div className="">
-      <Button type='submit' Icon={Search} iconPlacement='left'
-        isLoading={isSubmitting}
-        disabled={isSubmitting} variant={'theme'}>Search</Button>
+    <div className="w-full flex flex-row gap-3">
+      <Link className={`${buttonVariants({ variant: "outline" })} size-52 font-bold 
+                                      flex flex-row gap-3`}
+        to={'/staff/students'}
+        replace={true}
+        reloadDocument={true}>
+        <FilterX /> Reset filter
+      </Link>
+      <Button type='submit' isLoading={isSubmitting}
+        variant={'theme'}
+        disabled={isSubmitting} Icon={Search} iconPlacement='left'>
+        Search
+      </Button>
     </div>
   </Form>
 }

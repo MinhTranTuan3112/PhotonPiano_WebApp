@@ -1,19 +1,17 @@
 import {
-    BadgeCheck,
-    Bell,
     ChevronsUpDown,
-    CreditCard,
     LogOut,
 } from "lucide-react"
 
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../ui/sidebar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { useAuth } from "~/lib/contexts/auth-context"
 import { Skeleton } from "../ui/skeleton"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
-import { redirect, useFetcher, useNavigate } from "@remix-run/react"
+import { useFetcher } from "@remix-run/react"
 import { action } from "~/routes/sign-out"
+import { LevelBadge } from "../staffs/table/student-columns"
 
 export function NavUser({
 
@@ -56,14 +54,16 @@ export function NavUser({
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{currentAccount?.fullName || currentAccount?.userName}</span>
-                                <span className="truncate text-xs">{currentAccount?.email}</span>
+                                <span className="truncate font-semibold">
+                                    {currentAccount?.fullName || currentAccount?.userName}
+                                </span>
+                                <span className="truncate text-xs italic">{currentAccount?.email}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        className="w-[--radix-dropdown-menu-trigger-width]  rounded-lg"
                         side={isMobile ? "bottom" : "right"}
                         align="start"
                         sideOffset={4}
@@ -76,28 +76,19 @@ export function NavUser({
                                         <Skeleton className="rounded-full" />
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">{currentAccount?.fullName || currentAccount?.userName}</span>
-                                    <span className="truncate text-xs">{currentAccount?.email}</span>
+                                <div className="flex flex-col gap-1 text-left text-sm leading-tight">
+                                    <span className="font-semibold">
+                                        {currentAccount?.fullName || currentAccount?.userName}
+                                    </span>
+                                    <span className="truncate text-xs italic">{currentAccount?.email}</span>
                                 </div>
                             </div>
+                            <div className="w-full mb-3">
+                                {currentAccount?.levelId && (
+                                    <LevelBadge level={currentAccount.level} />
+                                )}
+                            </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <BadgeCheck />
-                                Account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <CreditCard />
-                                Billing
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Bell />
-                                Notifications
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer" onClick={() => handleOpenModal()} disabled={isSubmitting}>
                             <LogOut />

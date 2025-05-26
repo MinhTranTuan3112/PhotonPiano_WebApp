@@ -24,7 +24,7 @@ export const ENTRANCE_TEST_STATUSES = [
 
 export const LEVEL = ["Người mới học", "Nghiệp dư", "Trung cấp", "Cao cấp", "Bậc thầy"];
 
-export const STUDENT_STATUS = ["Unregistered", "Waiting for entrance tests", "Attempting entrance test", "Waiting for class", 
+export const STUDENT_STATUS = ["Unregistered", "Waiting for entrance tests", "Attempting entrance test", "Waiting for class",
   "Learning", "Drop Out", "Left"];
 
 export const CLASS_STATUS = ["Not Started", "On Going", "Finished", "Disabled"];
@@ -36,7 +36,7 @@ export const ATTENDANCE_STATUS = ["Not Yet", "Attended", "Absent"];
 export const API_PUB_SUB_URL = import.meta.env.VITE_API_PUB_SUB_URL as string;
 
 export const APPLICATION_TYPE = ["Leave of absence", "Temporary suspension of term", "Re-examine entrance scores", "Re-examine final exam scores",
-   "Class transfer", "Teacher complaint", "Service complaint", "Refund tuition", "Other", "Certificate issue report"];
+  "Class transfer", "Teacher complaint", "Service complaint", "Refund tuition", "Other", "Certificate issue report"];
 
 export const APPLICATION_STATUS = ["Pending", "Approved", "Rejected", "Cancelled"];
 
@@ -48,4 +48,6 @@ export const API_SCORE_URL = import.meta.env.VITE_API_SCORE_URL as string;
 
 export const QUESTION_TYPES = ["Single Choice Question", "Multiple Choice Question", "Text Input Question", "Rate Question", "Number question"];
 
-export const ROOM_STATUS = ["Available","Unavailable"];
+export const ROOM_STATUS = ["Available", "Unavailable"];
+
+export const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;

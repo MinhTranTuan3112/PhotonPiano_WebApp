@@ -236,7 +236,7 @@ function EntranceTestStudentContent({
                   <Mail className="h-5 w-5 text-gray-500 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-gray-500">Email</p>
-                    <p className="text-base font-semibold text-gray-900">
+                    <p className="text-base font-semibold text-gray-900 italic">
                       {entranceTestStudent.entranceTest.instructor.email}
                     </p>
                   </div>
