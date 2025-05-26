@@ -4,7 +4,7 @@ import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { CheckCircle, Eye, MoreHorizontal, Trash2, XCircle } from "lucide-react";
-import { useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
+import { Link, useFetcher, useNavigate, useRouteLoaderData } from "@remix-run/react";
 import { action } from "~/routes/staff.surveys._index";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { useEffect } from "react";
@@ -25,7 +25,9 @@ export const columns: ColumnDef<Survey>[] = [
         accessorKey: 'Name',
         header: 'Name',
         cell: ({ row }) => {
-            return <div className="">{row.original.name}</div>
+            return <div className="">
+                <Link to={`/staff/surveys/${row.original.id}`} className="hover:underline font-bold">{row.original.name}</Link>
+            </div>
         }
     },
     {

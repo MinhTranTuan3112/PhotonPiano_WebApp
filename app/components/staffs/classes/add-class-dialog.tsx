@@ -19,6 +19,8 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { Level } from '~/lib/types/account/account';
 import { Loader2 } from 'lucide-react';
+import { LevelBadge } from '../table/student-columns';
+import { Label } from '~/components/ui/label';
 
 
 type Props = {
@@ -62,9 +64,7 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
     const { open: handleOpenAddModal, dialog: confirmAddModal } = useConfirmationDialog({
         title: 'Confirm adding new class',
         description: 'Are you sure about this action?',
-        onConfirm: () => {
-            handleSubmit();
-        }
+        onConfirm: handleSubmit
     })
 
     const { loadingDialog: loadingAddDialog } = useLoadingDialog({
@@ -76,50 +76,48 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
     })
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className=''>
+            <DialogContent className='min-w-[700px]'>
                 <DialogHeader>
                     <DialogTitle>Add New Class</DialogTitle>
                 </DialogHeader>
                 <Form onSubmit={handleOpenAddModal}>
-                    <div className='grid grid-cols-2 gap-4'>
+                    <div className='flex flex-row gap-2 items-center'>
                         {/* <div className='flex items-center'>Tên lớp</div>
                         <Input name='name' placeholder='Nhập tên lớp'/> */}
-                        <div className='flex items-center'>Level</div>
-                        <div>
-                            <Controller
-                                control={control}
-                                name='level'
-                                render={({ field: { onChange, onBlur, value, ref } }) => (
-                                    <div>
-                                        <Select value={value} onValueChange={onChange}>
-                                            <SelectTrigger className="mt-2">
-                                                <SelectValue placeholder="Pick a level" />
-                                            </SelectTrigger>
-                                            <SelectGroup>
-                                                <SelectContent>
-                                                    <Suspense fallback={<Loader2 className='animate-spin' />}>
-                                                        <Await resolve={levelPromise}>
-                                                            {(levels) =>
-                                                                levels.map(l => (
-                                                                    <SelectItem value={l.id} key={l.id}>{l.name.split('(')[0]}</SelectItem>
-                                                                ))}
-                                                        </Await>
-                                                    </Suspense>
-                                                </SelectContent>
-                                            </SelectGroup>
-                                        </Select>
-                                        {errors.level && <div className='text-red-500'>{errors.level.message}</div>}
-                                    </div>
+                        <Label className='font-bold'>Level</Label>
+                        <Controller
+                            control={control}
+                            name='level'
+                            render={({ field: { onChange, onBlur, value, ref } }) => (
+                                <div className='w-full max-w-[50%]'>
+                                    <Select value={value} onValueChange={onChange} >
+                                        <SelectTrigger className="mt-2">
+                                            <SelectValue placeholder="Select a piano level" />
+                                        </SelectTrigger>
+                                        <SelectGroup>
+                                            <SelectContent>
+                                                <Suspense fallback={<Loader2 className='animate-spin' />}>
+                                                    <Await resolve={levelPromise}>
+                                                        {(levels) =>
+                                                            levels.map(l => (
+                                                                <SelectItem value={l.id} key={l.id}>
+                                                                    <LevelBadge level={l} key={l.id}/>
+                                                                </SelectItem>
+                                                            ))}
+                                                    </Await>
+                                                </Suspense>
+                                            </SelectContent>
+                                        </SelectGroup>
+                                    </Select>
+                                    {errors.level && <div className='text-red-500'>{errors.level.message}</div>}
+                                </div>
 
-                                )}
-                            />
-
-                        </div>
+                            )}
+                        />
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow'>Create Class</Button>
+                        <Button className='flex-grow' variant={'theme'}>Create Class</Button>
                         <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
-
                     </div>
                 </Form>
                 {confirmAddModal}

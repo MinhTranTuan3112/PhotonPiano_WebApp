@@ -173,7 +173,7 @@ function SearchForm() {
 
             defaultValue={searchParams.get('q') || undefined} />
 
-        <Button type="submit" Icon={Search} iconPlacement="left">Search</Button>
+        <Button type="submit" Icon={Search} iconPlacement="left" variant={'theme'}>Search</Button>
     </Form>
 }
 
@@ -195,8 +195,6 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
     });
 
     useEffect(() => {
-
-        console.log(fetcher.data);
 
         if (fetcher.data?.success === true) {
             let message = '';
@@ -260,7 +258,7 @@ export default function ManageSurveyQuestionsPage({ }: Props) {
                                     extraHeaderContent={
                                         <>
                                             <Button type="button" Icon={CirclePlus} iconPlacement="left"
-                                                onClick={handleOpenQuestionDialog}>
+                                                onClick={handleOpenQuestionDialog} variant={'theme'}>
                                                 Create new question
                                             </Button>
                                         </>
