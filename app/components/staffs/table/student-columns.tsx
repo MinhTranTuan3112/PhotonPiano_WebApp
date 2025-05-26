@@ -19,6 +19,7 @@ import { toastWarning } from "~/lib/utils/toast-utils";
 import useLoadingDialog from "~/hooks/use-loading-dialog";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { ActionResult } from "~/lib/types/action-result";
+import NoInformation from "~/components/common/no-information";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -116,7 +117,7 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Phone',
         header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
         cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
+            return <div>{row.original.phone || <NoInformation />}</div>
         }
     },
     {

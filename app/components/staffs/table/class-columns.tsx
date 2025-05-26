@@ -1,14 +1,12 @@
-import { CellContext, ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User, BanIcon, Medal, Music2, Calendar, Users2, UsersRound, Check, CheckCircle } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
-import { Button } from "~/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { CalendarClock, Clock, Eye, User, Music2, Calendar, Users2, CheckCircle, XCircle } from 'lucide-react'
 import { Badge } from "~/components/ui/badge";
-import { CLASS_STATUS, STUDENT_STATUS } from "~/lib/utils/constants";
-import { Class, ClassResponse } from "~/lib/types/class/class";
+import { CLASS_STATUS } from "~/lib/utils/constants";
+import { ClassResponse } from "~/lib/types/class/class";
 import { Level } from "~/lib/types/account/account";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
 import { Link } from "@remix-run/react";
+import NoInformation from "~/components/common/no-information";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -95,31 +93,28 @@ export const classColums: ColumnDef<ClassResponse>[] = [
         }
     },
     {
-        accessorKey: 'Start Time',
-        header: () => <div className="flex flex-row gap-1 items-center"><CalendarClock /> Start Time</div>,
+        accessorKey: 'Duration',
+        header: () => <div className="flex flex-row gap-1 items-center"><CalendarClock /> Duration</div>,
         cell: ({ row }) => {
-            return <div>{row.original.startTime ? formatRFC3339ToDisplayableDate(row.original.startTime, false, false) : '(No information)'}</div>
+            return <div className="">
+                {row.original.startTime && row.original.endTime ?
+                    `${formatRFC3339ToDisplayableDate(row.original.startTime, false, false)} - ${formatRFC3339ToDisplayableDate(row.original.endTime, false, false)}` :
+                    <NoInformation />}
+            </div>
         }
     },
     {
-        accessorKey: 'End Time',
-        header: () => <div className="flex flex-row gap-1 items-center"><Clock /> End Time</div>,
+        accessorKey: 'Teacher',
+        header: () => <div className="flex flex-row gap-1 items-center"><User /> Teacher</div>,
         cell: ({ row }) => {
-            return <div>{row.original.endTime ? formatRFC3339ToDisplayableDate(row.original.endTime, false, false) : '(No information)'}</div>
+            return <div>{row.original.instructor?.fullName || row.original.instructor?.email || "(Unassigned)"}</div>
         }
     },
     {
-        accessorKey: 'Instructor',
-        header: () => <div className="flex flex-row gap-1 items-center"><User /> Instructor</div>,
+        accessorKey: 'Total learners',
+        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Total learners</div>,
         cell: ({ row }) => {
-            return <div>{row.original.instructor?.userName ?? "(Unassigned)"}</div>
-        }
-    },
-    {
-        accessorKey: 'Learner Number',
-        header: () => <div className="flex flex-row gap-1 items-center"><Users2 /> Learner Number</div>,
-        cell: ({ row }) => {
-            return <div>{row.original.studentNumber} / {row.original.capacity}</div>
+            return <div className="">{row.original.studentNumber} / {row.original.capacity}</div>
         }
     },
     {
@@ -134,21 +129,30 @@ export const classColums: ColumnDef<ClassResponse>[] = [
         header: () => <div className="flex flex-row gap-1 items-center">Public</div>,
         cell: ({ row }) => {
             return (
-                row.original.isPublic && (
+                row.original.isPublic ? (
                     <div className="text-green-400 flex justify-center">
                         <CheckCircle />
                     </div>
-                )
+                ) :
+                    <div className="text-red-400 flex justify-center">
+                        <XCircle />
+                    </div>
             )
         }
     },
     {
         id: "actions",
+        header: 'Actions',
         cell: ({ row }) => {
             return (
-                <Button Icon={Eye} iconPlacement="left" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
-                    Detail
-                </Button>
+                // <Button Icon={Eye} iconPlacement="left" onClick={() => window.location.href = `/staff/classes/${row.original.id}`}>
+                //     Detail
+                // </Button>
+                <div className="flex justify-center">
+                    <Link to={`/staff/classes/${row.original.id}`} className="w-full">
+                        <Eye className="w-full" />
+                    </Link>
+                </div>
                 // <DropdownMenu>
                 //     <DropdownMenuTrigger asChild>
                 //         <Button variant="ghost" className="h-8 w-8 p-0">
