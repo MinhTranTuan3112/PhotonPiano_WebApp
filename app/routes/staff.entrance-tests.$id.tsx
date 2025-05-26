@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, FetcherWithComponents, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
-import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, Mail, MapPin, Phone, Trash, User, User2, XIcon } from 'lucide-react'
+import { AlertTriangle, Calendar, CirclePlus, Clock, Delete, Edit2Icon, Import, Mail, MapPin, Phone, Piano, Trash, User, XIcon } from 'lucide-react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { getValidatedFormData, useRemixForm } from 'remix-hook-form'
@@ -39,7 +39,6 @@ import { getEntranceTestName } from './staff.entrance-tests.create'
 import { toastWarning } from '~/lib/utils/toast-utils'
 import { ActionResult } from '~/lib/types/action-result'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
-import { Badge } from '~/components/ui/badge'
 import NoInformation from '~/components/common/no-information'
 
 type Props = {}
@@ -156,7 +155,6 @@ const serverSchema = updateEntranceTestSchema.pick({
     shift: true,
     instructorId: true,
     roomId: true,
-    isAnnouncedScore: true
 }).extend({
     date: z.coerce.date({ message: 'Test date cannot be empty.' })
 }).partial();
@@ -254,7 +252,7 @@ export function EntranceTestDetailsContent({
     return <>
         <div className="flex flex-row justify-between items-center w-full">
             <div className="">
-                <h1 className="text-xl font-bold text-theme">Test details information</h1>
+                <h1 className="text-xl font-bold text-theme flex flex-row gap-1 items-center"><Piano className='size-5'/> Piano test details information</h1>
                 <p className='text-sm mb-4 text-theme/60'>
                     Manage information about the time, exam room and score table, list of learners.
                 </p>
@@ -668,13 +666,13 @@ function StudentsSection({
                         {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
                             <Button type='button' variant={'theme'}
                                 Icon={CirclePlus} iconPlacement='left'
-                                disabled={isSubmitting} isLoading={isSubmitting}>
+                                disabled={isSubmitting || entranceTest.testStatus !== EntranceTestStatus.NotStarted} isLoading={isSubmitting}>
                                 Add learner
                             </Button>
                         </div>}
                         <div className="flex justify-end">
                             <Button type='button' variant={'theme'} onClick={handleOpenImportDialog}
-                                Icon={Import} iconPlacement='left'>Import results with Excel file</Button>
+                                Icon={Import} iconPlacement='left' disabled={entranceTest.testStatus !== EntranceTestStatus.Ended}>Import results with Excel file</Button>
                         </div>
                     </div>
                     <ResultTable data={entranceTest.entranceTestStudents} />

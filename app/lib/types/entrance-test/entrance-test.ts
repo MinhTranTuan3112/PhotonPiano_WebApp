@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Account } from "../account/account";
 import { Room } from "../room/room";
 import { EntranceTestStudentWithResults } from "./entrance-test-student";
+import { addDays } from "date-fns";
 
 export type EntranceTest = {
     id: string,
@@ -48,7 +49,7 @@ export type UpdateEntranceTest = {
 export const updateEntranceTestSchema = z.object({
     name: z.string({ message: 'Test name cannot be empty.' }).nonempty({ message: 'Test name cannot be empty.' }),
     shift: z.string({ message: 'Shift cannot be empty.' }).nonempty({ message: 'Shift cannot be empty.' }),
-    date: z.coerce.date(),
+    date: z.coerce.date().min(addDays(new Date(), 1), { message: 'Test date must be after today.' }),
     roomId: z.string().nonempty(),
     roomName: z.string(),
     isAnnouncedScore: z.boolean().optional(),

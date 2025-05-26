@@ -13,12 +13,13 @@ import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
 import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/arrange-dialog";
 import { toast } from "sonner";
-import { useFetcher, useRouteLoaderData, useSearchParams } from "@remix-run/react";
+import { Link, useFetcher, useRouteLoaderData, useSearchParams } from "@remix-run/react";
 import { loader } from "~/root";
 import { toastWarning } from "~/lib/utils/toast-utils";
 import useLoadingDialog from "~/hooks/use-loading-dialog";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { ActionResult } from "~/lib/types/action-result";
+import NoInformation from "~/components/common/no-information";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -98,7 +99,11 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Name',
         header: 'Name',
         cell: ({ row }) => {
-            return <div>{row.original.fullName || row.original.userName}</div>
+            return <div>
+                <Link to={`/staff/students/${row.original.accountFirebaseId}`} className="hover:underline font-bold">
+                    {row.original.fullName || row.original.userName}
+                </Link>
+            </div>
         }
     },
     {
@@ -112,7 +117,7 @@ export const studentColumns: ColumnDef<Account>[] = [
         accessorKey: 'Phone',
         header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
         cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
+            return <div>{row.original.phone || <NoInformation />}</div>
         }
     },
     {
@@ -215,7 +220,7 @@ function ActionsDropdown({ table, row }: {
                     }}>
                     <Calendar /> Arrange entrance tests
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600 cursor-pointer"  onClick={handleOpenToggleDialog}>
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenToggleDialog}>
                     {
                         row.original.status === 0 ? (
                             <div className="text-red-600 flex gap-2">
