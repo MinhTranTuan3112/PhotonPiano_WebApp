@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react"
 import { TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search, UserRoundPlus } from "lucide-react"
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { useRemixForm } from "remix-hook-form"
 import { z } from "zod"
 import { Button } from "~/components/ui/button"
@@ -144,13 +144,10 @@ export default function AccountClassRegistering() {
   const navigate = useNavigate()
   const fetcher = useFetcher<ActionResult>()
 
-  const changeClassSchema = z.object({
-    studentId: z.string(),
-    classId: z.string(),
-  })
-
-  type ChangeClassSchema = z.infer<typeof changeClassSchema>
-  const resolver = zodResolver(changeClassSchema)
+  const [registerClassData, setRegisterClassData] = useState<{
+    classId?: string,
+    studentId?: string
+  }>({})
 
   const { loadingDialog } = useLoadingDialog({
     fetcher,
@@ -160,24 +157,20 @@ export default function AccountClassRegistering() {
   })
 
 
-  const {
-    handleSubmit,
-    formState: { errors },
-    register,
-    control,
-  } = useRemixForm<ChangeClassSchema>({
-    mode: "onSubmit",
-    resolver,
-    fetcher,
-    submitConfig: { method: "POST" }
-  })
-
   const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
     title: "Confirm Registering New Class",
     description: "Are you sure want to register to enroll this class?",
-    onConfirm: handleSubmit,
+    onConfirm: () => {
+      fetcher.submit(registerClassData, {
+        method: "POST",
+      })
+    },
     confirmText: 'Register for me',
   })
+
+
+
+
   // Status badge component
   const StatusBadge = ({ status }: { status: number }) => {
     let color = ""
@@ -308,12 +301,11 @@ export default function AccountClassRegistering() {
 
         <div className="flex justify-end">
           <Button
-            type="button"
+            type="submit"
             // onClick={() => handleClassSelection(classItem.id, currentAccount)}
             variant={'theme'}
             className="uppercase"
             disabled={availableSlots <= 0 || classItem.status !== 0 || isCurrentClass}
-            onClick={handleOpenModal}
             Icon={UserRoundPlus}
             iconPlacement="left"
           >
@@ -388,6 +380,18 @@ export default function AccountClassRegistering() {
     )
   }
 
+  function prepareSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); // Prevent default form submission
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    const studentId = formData.get("studentId") as string;
+    const classId = formData.get("classId") as string;
+    setRegisterClassData({ classId, studentId })
+    handleOpenModal();
+  }
+
   return (
     <div>
       <div className="py-4 w-full mx-auto px-8">
@@ -438,9 +442,9 @@ export default function AccountClassRegistering() {
                           {classesData.classes.length > 0 ? (
                             <div className="space-y-4 mt-8">
                               {classesData.classes.map((classItem) => (
-                                <Form onSubmit={handleOpenModal} key={classItem.id}>
-                                  <input type="hidden" {...register("studentId")} value={data.accountFirebaseId} />
-                                  <input type="hidden" {...register("classId")} value={classItem.id} />
+                                <Form onSubmit={prepareSubmit} key={classItem.id}>
+                                  <input type="hidden" name="studentId" value={data.accountFirebaseId} />
+                                  <input type="hidden" name="classId" value={classItem.id} />
                                   <ClassCard
                                     classItem={classItem}
                                     currentAccount={data}

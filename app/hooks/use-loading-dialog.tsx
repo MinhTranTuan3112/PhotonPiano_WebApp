@@ -34,9 +34,13 @@ export default function useLoadingDialog({ loadingMessage = "Please Wait...", fe
             return;
         }
 
-        if (fetcher.data?.success === false && fetcher.data.error) {
+        if (fetcher.data?.success === false) {
             setResult(false)
-            setMessage(fetcher.data.error)
+            if (fetcher.data.error) {
+                setMessage(fetcher.data.error)
+            } else {
+                setMessage("An unknown error occured")
+            }
             return;
         }
 
