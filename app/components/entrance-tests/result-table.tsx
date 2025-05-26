@@ -13,7 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '../ui/dialog';
-import { Form, useFetcher, useLoaderData, useNavigate, useRouteLoaderData } from '@remix-run/react';
+import { Form, Link, useFetcher, useLoaderData, useRouteLoaderData } from '@remix-run/react';
 import { UpdateEntranceTestResultsFormData, updateEntranceTestResultsSchema } from '~/lib/types/entrance-test/entrance-test-result';
 import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,6 +52,8 @@ import { Badge } from '../ui/badge';
 import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
 import { toastWarning } from '~/lib/utils/toast-utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import NoInformation from '../common/no-information';
+import { loader as rootLoader } from '~/root';
 
 type Props = {
     data: EntranceTestStudentWithResults[];
@@ -82,17 +84,21 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         enableHiding: false,
     },
     {
+        accessorKey: 'Learner',
+        header: 'Learner',
+        cell: ({ row }) => {
+            return <div>
+                <Link to={`/staff/students/${row.original.studentFirebaseId}`} className='hover:underline font-bold' target="_blank" rel="noopener noreferrer">
+                    {row.original.student.fullName || row.original.student.userName}
+                </Link>
+            </div>
+        }
+    },
+    {
         accessorKey: 'Email',
         header: 'Email',
         cell: ({ row }) => {
             return <div>{row.original.student.email}</div>
-        }
-    },
-    {
-        accessorKey: 'Learner',
-        header: 'Learner',
-        cell: ({ row }) => {
-            return <div>{row.original.student.fullName || row.original.student.userName}</div>
         }
     },
     {
@@ -150,13 +156,14 @@ function ActionDropdown({ row, table }: {
     row: Row<EntranceTestStudentWithResults>,
     table: TanstackTable<EntranceTestStudentWithResults>
 }) {
+
+    const authData = useRouteLoaderData<typeof rootLoader>("root");
+
     const [isOpen, setIsOpen] = useState(false);
 
     const fetcher = useFetcher<typeof deleteStudentsFromTestAction>();
 
     const isSubmitting = fetcher.state === 'submitting';
-
-    const navigate = useNavigate();
 
     const { open: handleDeleteConfirmDialog, dialog: confirmDeleteDialog } = useConfirmationDialog({
         title: `Confirm removing learner ${row.original.student.fullName || row.original.student.email} out of the test?`,
@@ -213,8 +220,12 @@ function ActionDropdown({ row, table }: {
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate(`/staff/students/${row.original.studentFirebaseId}`)}>
-                    <User /> View info
+                <DropdownMenuItem >
+                    <Link to={`/${authData?.role === Role.Staff ? 'staff' : 'teacher'}/students/${row.original.studentFirebaseId}`}
+                        className='flex flex-row gap-1 items-center w-full'
+                        target="_blank" rel="noopener noreferrer">
+                        <User /> View info
+                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
                     <Pencil /> Edit results
@@ -479,7 +490,7 @@ function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
                                                     className='' />
                                                 {errors.theoraticalScore && <div className="text-red-600 text-sm">{errors.theoraticalScore.message}</div>}
                                             </> : <div>
-                                                {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : 'Chưa có'}
+                                                {entranceTestStudent.theoraticalScore ? formatScore(entranceTestStudent.theoraticalScore) : <NoInformation />}
                                             </div>}
                                         </TableCell>
                                         <TableCell>{isFetchingScorePercentages ? <Loader2 className='animate-spin' /> : `${theoryPercentage}%`}</TableCell>

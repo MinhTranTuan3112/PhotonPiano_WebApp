@@ -40,46 +40,48 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const promise = fetchAccountDetail(accountId, idToken).then((response) => {
         const currentAccount = response.data as AccountDetail
 
-        const query = {
-            page: Number.parseInt(searchParams.get("page") || "1"),
-            pageSize: Number.parseInt(searchParams.get("size") || "10"),
-            sortColumn: searchParams.get("column") || "CreatedAt",
-            orderByDesc: searchParams.get("desc") === "true" ? false : true,
-            keyword: trimQuotes(searchParams.get("keyword") || ""),
-            levels: [currentAccount.levelId ?? "0"],
-            statuses: [0],
-            isPublic: true,
-            idToken: idToken,
-        }
-        const classPromise = fetchClasses({ ...query }).then((response) => {
-            const classes: Class[] = response.data
-            const headers = response.headers
-
-            const metadata: PaginationMetaData = {
-                page: Number.parseInt(headers["x-page"] || "1"),
-                pageSize: Number.parseInt(headers["x-page-size"] || "9"),
-                totalPages: Number.parseInt(headers["x-total-pages"] || "1"),
-                totalCount: Number.parseInt(headers["x-total-count"] || "0"),
-            }
-
-            return {
-                classes,
-                metadata,
-            }
-        })
-
-        return { classPromise, currentAccount, query }
+        return currentAccount
     })
 
     const deadlinePromise = fetchSystemConfigByName({ name: DEADLINE_CHANGING_CLASS, idToken }).then((res) => {
         return res.data as SystemConfig
     })
 
+    const query = {
+        page: Number.parseInt(searchParams.get("page") || "1"),
+        pageSize: Number.parseInt(searchParams.get("size") || "10"),
+        sortColumn: searchParams.get("column") || "CreatedAt",
+        orderByDesc: searchParams.get("desc") === "true" ? false : true,
+        keyword: trimQuotes(searchParams.get("keyword") || ""),
+        statuses: [0],
+        isPublic: true,
+        idToken: idToken,
+    }
+    const classPromise = fetchClasses({ ...query }).then((response) => {
+        const classes: Class[] = response.data
+        const headers = response.headers
+
+        const metadata: PaginationMetaData = {
+            page: Number.parseInt(headers["x-page"] || "1"),
+            pageSize: Number.parseInt(headers["x-page-size"] || "9"),
+            totalPages: Number.parseInt(headers["x-total-pages"] || "1"),
+            totalCount: Number.parseInt(headers["x-total-count"] || "0"),
+        }
+
+        return {
+            classes,
+            metadata,
+        }
+    })
+
+
     const serverTimeRes = await fetchSystemConfigServerTime({ idToken })
     const currentServerDateTime = serverTimeRes.data
 
     return {
         promise,
+        classPromise,
+        query,
         idToken,
         deadlinePromise,
         currentServerDateTime,
@@ -131,7 +133,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AccountClassChanging() {
-    const { promise, deadlinePromise, currentServerDateTime } = useLoaderData<typeof loader>()
+    const { promise, deadlinePromise, currentServerDateTime, classPromise, query } = useLoaderData<typeof loader>()
     const [selectedClass, setSelectedClass] = useState<string | null>(null)
     const navigate = useNavigate()
     const fetcher = useFetcher<ActionResult>()
@@ -322,7 +324,7 @@ export default function AccountClassChanging() {
     }
 
     // Filter component
-    const ClassFilters = ({defaultKeyword} : {defaultKeyword? : string}) => {
+    const ClassFilters = ({ defaultKeyword }: { defaultKeyword?: string }) => {
 
         const { pathname } = useLocation();
 
@@ -409,10 +411,10 @@ export default function AccountClassChanging() {
                         {(deadline) => (
                             <Await resolve={promise}>
                                 {(data) => (
-                                    <Await resolve={data.classPromise}>
+                                    <Await resolve={classPromise}>
                                         {(classesData) => {
-                                            const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentAccount.currentClass?.startTime || "")
-                                            const deadlineDate = getDeadlineDate(data.currentAccount.currentClass?.startTime || "", deadline)
+                                            const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "")
+                                            const deadlineDate = getDeadlineDate(data.currentClass?.startTime || "", deadline)
                                             return (
                                                 <>
                                                     {/* Deadline Notice */}
@@ -449,19 +451,19 @@ export default function AccountClassChanging() {
                                                     )}
 
                                                     {/* Filters */}
-                                                    <ClassFilters defaultKeyword={data.query.keyword}/>
+                                                    <ClassFilters defaultKeyword={query.keyword} />
 
                                                     {/* Class List */}
                                                     {classesData.classes.length > 0 ? (
                                                         <div className="space-y-4 mt-8">
                                                             {classesData.classes.map((classItem) => (
                                                                 <Form onSubmit={handleOpenModal} key={classItem.id}>
-                                                                    <input type="hidden" {...register("studentId")} value={data.currentAccount.accountFirebaseId} />
-                                                                    <input type="hidden" {...register("oldClassId")} value={data.currentAccount.currentClass?.id || ""} />
+                                                                    <input type="hidden" {...register("studentId")} value={data.accountFirebaseId} />
+                                                                    <input type="hidden" {...register("oldClassId")} value={data.currentClass?.id || ""} />
                                                                     <input type="hidden" {...register("newClassId")} value={classItem.id} />
                                                                     <ClassCard
                                                                         classItem={classItem}
-                                                                        currentAccount={data.currentAccount}
+                                                                        currentAccount={data}
                                                                         isOpen={registrationOpen}
                                                                     />
                                                                 </Form>

@@ -8,6 +8,7 @@ import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import AddClassDialog from '~/components/staffs/classes/add-class-dialog';
 import { classColums } from '~/components/staffs/table/class-columns';
+import { LevelBadge } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { MultiSelect } from '~/components/ui/multi-select';
@@ -108,7 +109,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
                   name='levels'
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <MultiSelect options={levels.map((level) => ({ label: level.name.split('(')[0], value: level.id }))}
+                    <MultiSelect options={levels.map((level) => ({ label: <LevelBadge level={level} key={level.id}/>, value: level.id }))}
                       value={value}
                       defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
                       placeholder='Select piano levels'

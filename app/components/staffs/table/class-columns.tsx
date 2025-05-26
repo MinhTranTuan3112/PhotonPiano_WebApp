@@ -8,6 +8,7 @@ import { CLASS_STATUS, STUDENT_STATUS } from "~/lib/utils/constants";
 import { Class, ClassResponse } from "~/lib/types/class/class";
 import { Level } from "~/lib/types/account/account";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
+import { Link } from "@remix-run/react";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -72,7 +73,9 @@ export const classColums: ColumnDef<ClassResponse>[] = [
         accessorKey: "Class Name",
         header: "Class Name",
         cell: ({ row }) => {
-            return <div>{row.original.name}</div>
+            return <div>
+                <Link to={`/staff/classes/${row.original.id}`} className="w-full hover:underline font-bold">{row.original.name}</Link>
+            </div>
         }
     },
     {
