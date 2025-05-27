@@ -109,7 +109,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
                   name='levels'
                   control={control}
                   render={({ field: { onChange, onBlur, value, ref } }) => (
-                    <MultiSelect options={levels.map((level) => ({ label: <LevelBadge level={level} key={level.id}/>, value: level.id }))}
+                    <MultiSelect options={levels.map((level) => ({ label: <LevelBadge level={level} key={level.id} />, value: level.id }))}
                       value={value}
                       defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('levels') })}
                       placeholder='Select piano levels'
@@ -140,7 +140,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
 }
 
 export default function StaffClassesPage({ }: Props) {
-  const { promise, idToken, levelPromise } = useLoaderData<typeof loader>()
+  const { promise, idToken, levelPromise, query } = useLoaderData<typeof loader>()
   const [isOpenAddClassDialog, setIsOpenAddClassDialog] = useState(false)
 
   return (
@@ -162,11 +162,10 @@ export default function StaffClassesPage({ }: Props) {
             </Link>
           </div>
         </div>
-        <Suspense fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
           <Await resolve={promise}>
             {(data) => (
               <GenericDataTable
-
                 columns={classColums}
                 metadata={data.metadata}
                 resolvedData={data.classes}
