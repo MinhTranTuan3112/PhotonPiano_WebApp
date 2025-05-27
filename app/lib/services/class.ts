@@ -503,3 +503,27 @@ export async function fetchUpdateLearningStatus({
 
   return response;
 }
+export async function fetchDelayAClass({
+  classId,
+  weeks,
+  idToken,
+}: {
+  classId: string;
+  weeks: number;
+  idToken: string;
+}) {
+  const response = await axiosInstance.put(
+    `/classes/schedule-shifting`,
+    {
+      classId,
+      weeks,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
