@@ -24,7 +24,6 @@ import { motion } from "framer-motion"
 import { Button } from "~/components/ui/button"
 import { Card } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import { Badge } from "~/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
@@ -54,6 +53,7 @@ import {
 import { fetchSystemConfigSlotCancel } from "~/lib/services/system-config"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { toastWarning } from "~/lib/utils/toast-utils"
+import { Badge } from "./fix-badge"
 
 // Shift times mapping
 const shiftTimesMap: Record<Shift, string> = {
@@ -149,14 +149,38 @@ export const StaffSchedule = ({
     const [isTeacherLoading, setIsTeacherLoading] = useState<boolean>(false)
     const [changeTeacherReason, setChangeTeacherReason] = useState<string>("")
     const [viewMode, setViewMode] = useState<string>("week")
+    const [filterLabels, setFilterLabels] = useState({
+        teacherNames: [] as string[],
+        classNames: [] as string[],
+    })
 
     // Derived data
     const uniqueShifts = Array.from(new Set(slots.map((slot) => slot.shift)))
     const uniqueSlotStatuses = Array.from(new Set(slots.map((slot) => slot.status)))
-    const uniqueInstructorIds = Array.from(new Set(slots.map((slot) => slot.class.instructorId)))
+    const uniqueInstructorIds = Array.from(
+        new Set(slots.filter((slot) => slot.teacher?.accountFirebaseId).map((slot) => slot.teacher.accountFirebaseId)),
+    )
+
     const uniqueClassIds = Array.from(new Set(slots.map((slot) => slot.class.id)))
 
-    const instructorMap = new Map(slots.map((slot) => [slot.class.instructorId, slot.class.instructorName]))
+    const instructorMap = new Map(
+        slots
+            .filter((slot) => slot.teacher?.accountFirebaseId)
+            .map((slot) => {
+                const teacherName =
+                    slot.teacher?.fullName ||
+                    slot.teacher?.userName ||
+                    `Teacher ${slot.teacher?.accountFirebaseId?.substring(0, 8)}`
+                return [slot.teacher.accountFirebaseId, teacherName]
+            }),
+    )
+
+    // Preserve previously selected teacher names for filters
+    const preservedInstructorMap = new Map([
+        ...instructorMap,
+        ...filterLabels.teacherNames.map((name, index) => [`preserved_${index}`, name] as [string, string]),
+    ])
+
     const classMap = new Map(slots.map((slot) => [slot.class.id, slot.class.name]))
 
     const weekDates = Array.from({ length: 7 }, (_, i) => {
@@ -238,6 +262,19 @@ export const StaffSchedule = ({
             setSlots(response.data)
             setStartDate(startDate)
             setEndDate(endDate)
+
+            // Show message if filters are applied but no results
+            if (
+                response.data.length === 0 &&
+                (filters.shifts.length > 0 ||
+                    filters.slotStatuses.length > 0 ||
+                    filters.instructorFirebaseIds.length > 0 ||
+                    filters.classIds.length > 0)
+            ) {
+                toast.info(
+                    "No slots found for the selected filters in this week. Try adjusting your filters or selecting a different week.",
+                )
+            }
         } catch (error) {
             console.error("Failed to fetch slots for week:", error)
             toastWarning("Failed to fetch schedule data. Please try again.")
@@ -421,7 +458,6 @@ export const StaffSchedule = ({
         }
     }
 
-
     return (
         <div className="staff-scheduler p-6 bg-gradient-to-b from-slate-50 to-white min-h-screen relative">
             {/* Loading Overlays */}
@@ -584,25 +620,25 @@ export const StaffSchedule = ({
                                                                         </div>
                                                                         <div className="flex flex-wrap gap-1">
                                                                             {slotsForDateAndShift.map((slot, idx) => (
-                                                                                <TooltipProvider key={idx}>
-                                                                                    <Tooltip>
-                                                                                        <TooltipTrigger asChild>
-                                                                                            <Badge
-                                                                                                variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
-                                                                                                className="cursor-pointer"
-                                                                                                onClick={() =>
-                                                                                                    slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
-                                                                                                }
-                                                                                            >
-                                                                                                {slot.room?.name}
-                                                                                            </Badge>
-                                                                                        </TooltipTrigger>
-                                                                                        <TooltipContent>
-                                                                                            <p>{slot.class?.name}</p>
-                                                                                            <p className="text-xs">{SlotStatusText[slot.status]}</p>
-                                                                                        </TooltipContent>
-                                                                                    </Tooltip>
-                                                                                </TooltipProvider>
+                                                                                    <TooltipProvider key={idx}>
+                                                                                        <Tooltip>
+                                                                                            <TooltipTrigger asChild>
+                                                                                                <Badge
+                                                                                                    variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
+                                                                                                    className="cursor-pointer"
+                                                                                                    onClick={() =>
+                                                                                                        slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
+                                                                                                    }
+                                                                                                >
+                                                                                                    {slot.room?.name}
+                                                                                                </Badge>
+                                                                                            </TooltipTrigger>
+                                                                                            <TooltipContent>
+                                                                                                <p>{slot.class?.name}</p>
+                                                                                                <p className="text-xs">{SlotStatusText[slot.status]}</p>
+                                                                                            </TooltipContent>
+                                                                                        </Tooltip>
+                                                                                    </TooltipProvider>
                                                                             ))}
                                                                         </div>
                                                                     </div>
@@ -635,51 +671,77 @@ export const StaffSchedule = ({
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {[...slots].sort((a, b) => {
-                                            const dateComparison = a.date.localeCompare(b.date)
-                                            if (dateComparison !== 0) return dateComparison
-                                            return a.shift - b.shift
-                                        }).map((slot, idx) => (
-                                            <TableRow key={idx} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
-                                                <TableCell>{slot.date}</TableCell>
-                                                <TableCell>{shiftTimesMap[slot.shift]}</TableCell>
-                                                <TableCell>{slot.room?.name}</TableCell>
-                                                <TableCell>{slot.class?.name}</TableCell>
-                                                <TableCell>{slot.teacher?.fullName}</TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={
-                                                            slot.status === SlotStatus.Cancelled
-                                                                ? "outline"
-                                                                : slot.status === SlotStatus.Finished
-                                                                    ? "success"
-                                                                    : slot.status === SlotStatus.Ongoing
-                                                                        ? "secondary"
-                                                                        : "outline"
-                                                        }
-                                                    >
-                                                        {SlotStatusText[slot.status]}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleSlotClick(slot.id)}
-                                                            disabled={slot.status === SlotStatus.Cancelled}
+                                        {[...slots]
+                                            .sort((a, b) => {
+                                                const dateComparison = a.date.localeCompare(b.date)
+                                                if (dateComparison !== 0) return dateComparison
+                                                return a.shift - b.shift
+                                            })
+                                            .map((slot, idx) => (
+                                                <TableRow key={idx} className={idx % 2 === 0 ? "bg-slate-50" : ""}>
+                                                    <TableCell>{slot.date}</TableCell>
+                                                    <TableCell>{shiftTimesMap[slot.shift]}</TableCell>
+                                                    <TableCell>{slot.room?.name}</TableCell>
+                                                    <TableCell>{slot.class?.name}</TableCell>
+                                                    <TableCell>{slot.teacher?.fullName || slot.teacher?.userName || "Unknown Teacher"}</TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            variant={
+                                                                slot.status === SlotStatus.Cancelled
+                                                                    ? "outline"
+                                                                    : slot.status === SlotStatus.Finished
+                                                                        ? "success"
+                                                                        : slot.status === SlotStatus.Ongoing
+                                                                            ? "secondary"
+                                                                            : "outline"
+                                                            }
                                                         >
-                                                            <Info className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                                            {SlotStatusText[slot.status]}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleSlotClick(slot.id)}
+                                                                disabled={slot.status === SlotStatus.Cancelled}
+                                                            >
+                                                                <Info className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
                                     </TableBody>
                                 </Table>
                             </div>
                         </Card>
                     </TabsContent>
+
+                    {slots.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <Calendar className="w-16 h-16 text-gray-400 mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-600 mb-2">No slots found</h3>
+                            <p className="text-gray-500 mb-4">
+                                {filters.shifts.length > 0 ||
+                                    filters.slotStatuses.length > 0 ||
+                                    filters.instructorFirebaseIds.length > 0 ||
+                                    filters.classIds.length > 0
+                                    ? "No slots match your current filters for this week."
+                                    : "No slots are scheduled for this week."}
+                            </p>
+                            {(filters.shifts.length > 0 ||
+                                filters.slotStatuses.length > 0 ||
+                                filters.instructorFirebaseIds.length > 0 ||
+                                filters.classIds.length > 0) && (
+                                    <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2">
+                                        <X className="w-4 h-4" />
+                                        Clear Filters
+                                    </Button>
+                                )}
+                        </div>
+                    )}
                 </Tabs>
 
                 {/* Slot Detail Modal */}
@@ -715,7 +777,8 @@ export const StaffSchedule = ({
                                         <div className="flex items-center gap-2">
                                             <User size={18} className="text-theme" />
                                             <span>
-                                                <strong>Teacher:</strong> {selectedSlot.teacher?.fullName}
+                                                <strong>Teacher:</strong>{" "}
+                                                {selectedSlot.teacher?.fullName || selectedSlot.teacher?.userName || "Unknown Teacher"}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -905,8 +968,8 @@ export const StaffSchedule = ({
                                             <div
                                                 key={value}
                                                 className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.shifts.includes(value)
-                                                    ? "bg-indigo-200 border-indigo-300 shadow-md"
-                                                    : "bg-white border-indigo-100 hover:bg-indigo-50"
+                                                        ? "bg-indigo-200 border-indigo-300 shadow-md"
+                                                        : "bg-white border-indigo-100 hover:bg-indigo-50"
                                                     }`}
                                                 onClick={() =>
                                                     handleFilterChange(
@@ -940,8 +1003,8 @@ export const StaffSchedule = ({
                                             <div
                                                 key={value}
                                                 className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.slotStatuses.includes(value)
-                                                    ? "bg-purple-200 border-purple-300 shadow-md"
-                                                    : "bg-white border-purple-100 hover:bg-purple-50"
+                                                        ? "bg-purple-200 border-purple-300 shadow-md"
+                                                        : "bg-white border-purple-100 hover:bg-purple-50"
                                                     }`}
                                                 onClick={() =>
                                                     handleFilterChange(
@@ -972,32 +1035,64 @@ export const StaffSchedule = ({
                                             Teachers
                                         </h3>
                                         <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                                            {uniqueInstructorIds.map((id) => (
-                                                <div
-                                                    key={id}
-                                                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.instructorFirebaseIds.includes(id || "")
-                                                        ? "bg-pink-200 border-pink-300 shadow-md"
-                                                        : "bg-white border-pink-100 hover:bg-pink-50"
-                                                        }`}
-                                                    onClick={() =>
-                                                        handleFilterChange(
-                                                            "instructorFirebaseIds",
-                                                            filters.instructorFirebaseIds.includes(id || "")
-                                                                ? filters.instructorFirebaseIds.filter((i) => i !== id)
-                                                                : [...filters.instructorFirebaseIds, id],
-                                                        )
-                                                    }
-                                                >
-                                                    <Checkbox
-                                                        id={`instructor-${id}`}
-                                                        checked={id ? filters.instructorFirebaseIds.includes(id) : false}
-                                                        className="data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600"
-                                                    />
-                                                    <label htmlFor={`instructor-${id}`} className="text-pink-800 flex-1 cursor-pointer text-sm">
-                                                        {instructorMap.get(id) || "Unknown Instructor"}
-                                                    </label>
+                                            {uniqueInstructorIds.length === 0 && filters.instructorFirebaseIds.length > 0 ? (
+                                                <div className="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg">
+                                                    <p className="font-medium mb-2">Selected teachers (no slots this week):</p>
+                                                    {filters.instructorFirebaseIds.map((id, index) => (
+                                                        <div key={id} className="flex items-center justify-between py-1">
+                                                            <span>{filterLabels.teacherNames[index] || `Teacher ${id.substring(0, 8)}...`}</span>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newIds = filters.instructorFirebaseIds.filter((fId) => fId !== id)
+                                                                    const newNames = filterLabels.teacherNames.filter((_, i) => i !== index)
+                                                                    setFilters((prev) => ({ ...prev, instructorFirebaseIds: newIds }))
+                                                                    setFilterLabels((prev) => ({ ...prev, teacherNames: newNames }))
+                                                                }}
+                                                                className="text-red-500 hover:text-red-700 ml-2"
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            ) : (
+                                                uniqueInstructorIds.map((id) => (
+                                                    <div
+                                                        key={id}
+                                                        className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.instructorFirebaseIds.includes(id || "")
+                                                                ? "bg-pink-200 border-pink-300 shadow-md"
+                                                                : "bg-white border-pink-100 hover:bg-pink-50"
+                                                            }`}
+                                                        onClick={() => {
+                                                            const teacherName = instructorMap.get(id) || `Teacher ${id?.substring(0, 8)}...`
+                                                            handleFilterChange(
+                                                                "instructorFirebaseIds",
+                                                                filters.instructorFirebaseIds.includes(id || "")
+                                                                    ? filters.instructorFirebaseIds.filter((i) => i !== id)
+                                                                    : [...filters.instructorFirebaseIds, id],
+                                                            )
+                                                            setFilterLabels((prev) => ({
+                                                                ...prev,
+                                                                teacherNames: filters.instructorFirebaseIds.includes(id || "")
+                                                                    ? prev.teacherNames.filter(
+                                                                        (_, index) =>
+                                                                            filters.instructorFirebaseIds.indexOf(uniqueInstructorIds[index]) === -1,
+                                                                    )
+                                                                    : [...prev.teacherNames, teacherName],
+                                                            }))
+                                                        }}
+                                                    >
+                                                        <Checkbox
+                                                            id={`instructor-${id}`}
+                                                            checked={id ? filters.instructorFirebaseIds.includes(id) : false}
+                                                            className="data-[state=checked]:bg-pink-600 data-[state=checked]:border-pink-600"
+                                                        />
+                                                        <label htmlFor={`instructor-${id}`} className="text-pink-800 flex-1 cursor-pointer text-sm">
+                                                            {instructorMap.get(id) || `Unknown Instructor (ID: ${id?.substring(0, 8)}...)`}
+                                                        </label>
+                                                    </div>
+                                                ))
+                                            )}
                                         </div>
                                     </div>
 
@@ -1011,8 +1106,8 @@ export const StaffSchedule = ({
                                                 <div
                                                     key={id}
                                                     className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.classIds.includes(id)
-                                                        ? "bg-amber-200 border-amber-300 shadow-md"
-                                                        : "bg-white border-amber-100 hover:bg-amber-50"
+                                                            ? "bg-amber-200 border-amber-300 shadow-md"
+                                                            : "bg-white border-amber-100 hover:bg-amber-50"
                                                         }`}
                                                     onClick={() =>
                                                         handleFilterChange(

@@ -14,6 +14,7 @@ import { fetchCurrentAccountInfo } from "~/lib/services/auth"
 import { Scheduler } from "~/components/scheduler/scheduler"
 import { redirect, useLoaderData } from "@remix-run/react"
 import { Role } from "~/lib/types/account/account"
+import { LearnerScheduler } from "~/components/scheduler/account-scheduler"
 
 type Props = {}
 
@@ -52,10 +53,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
 }
 
-export default function StaffScheduler({} : Props) {
+export default function AccountScheduler({} : Props) {
     const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount } = useLoaderData<typeof loader>()
     return (
-        <Scheduler 
+        <LearnerScheduler 
             currentAccount={currentAccount}
             idToken={idToken}
             initialEndDate={endDate}
