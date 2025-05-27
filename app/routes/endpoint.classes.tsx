@@ -1,5 +1,6 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDeleteClass, fetchPublishAClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
+import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDelayAClass, fetchDeleteClass, fetchPublishAClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
+import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from "~/lib/utils/form";
 
@@ -147,10 +148,10 @@ export async function action({ request }: ActionFunctionArgs) {
                 }
             }
             console.log(dayOfWeeks,startWeek,shift,id)
-            if (dayOfWeeks.length === 0 || !startWeek || !shift || !id) {
+            if (dayOfWeeks.length === 0 || !startWeek || shift == undefined || shift < 0 || !id) {
                 return {
                     success: false,
-                    error: 'Dữ liệu đã bị gửi thiếu.',
+                    error: 'Invalid Data.',
                     status: 400
                 }
             }
@@ -173,7 +174,7 @@ export async function action({ request }: ActionFunctionArgs) {
             if (!id) {
                 return {
                     success: false,
-                    error: 'Không xác định lớp học.',
+                    error: 'Invalid Class.',
                     status: 400
                 }
             }
@@ -186,6 +187,24 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchPublishAClass({id,idToken : token});
+
+            return {
+                success: true
+            }
+        } else if (action === "DELAY"){
+            const classId = formEntryToString(formData.get("classId"));
+            const weeks = formEntryToNumber(formData.get("weeks"));
+            const {idToken} = await requireAuth(request)
+
+            if (!classId || !weeks) {
+                return {
+                    success: false,
+                    error: 'Invalid Data.',
+                    status: 400
+                }
+            }
+
+            await fetchDelayAClass({classId, weeks,idToken});
 
             return {
                 success: true

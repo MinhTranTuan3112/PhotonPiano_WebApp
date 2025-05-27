@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { AlertTriangle, CalendarDays, CheckIcon, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckIcon, ClockArrowDown, Edit2Icon, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -11,6 +11,7 @@ import AddSlotDialog from '~/components/staffs/classes/add-slot-dialog';
 import AddStudentClassDialog from '~/components/staffs/classes/add-student-class-dialog';
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
+import DelayClassDialog from '~/components/staffs/classes/delay-class-dialog';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
@@ -307,7 +308,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
                             idToken={idToken}
                             queryKey='teachers'
                             fetcher={async (query) => {
-                              const response = await fetchAvailableTeachersForClass({ ...query, classId : classInfo.id });
+                              const response = await fetchAvailableTeachersForClass({ ...query, classId: classInfo.id });
 
                               const headers = response.headers;
 
@@ -532,6 +533,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
   const [searchParams, setSearchParams] = useSearchParams();
   const [isOpenAddSlotDialog, setIsOpenAddSlotDialog] = useState(false)
   const [isOpenArrangeDialog, setIsOpenArrangeDialog] = useState(false)
+  const [isOpenDelayDialog, setIsOpenDelayDialog] = useState(false)
+
   classInfo.slots.sort((a, b) => {
     // Compare dates first
     const dateComparison = a.date.localeCompare(b.date);
@@ -642,7 +645,10 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             <Button disabled={(classInfo.slots.length > 0)} onClick={() => setIsOpenArrangeDialog(true)} variant={'outline'} Icon={CalendarDays} iconPlacement='left'>Auto-Schedule</Button>
             {
               classInfo.slots.length > 0 && (
-                <Button disabled={(classInfo.status !== 0 || classInfo.isPublic)} onClick={handleOpenDeleteModal} variant={'destructive'} Icon={Trash} iconPlacement='left'>Delete Schedule</Button>
+                <>
+                  <Button disabled={(classInfo.status !== 0)} onClick={() => setIsOpenDelayDialog(true)}  className='bg-yellow-500 hover:bg-yellow-300' Icon={ClockArrowDown} iconPlacement='left'>Delay Schedule</Button>
+                  <Button disabled={(classInfo.status !== 0 || classInfo.isPublic)} onClick={handleOpenDeleteModal} variant={'destructive'} Icon={Trash} iconPlacement='left'>Delete Schedule</Button>
+                </>
               )
             }
           </div>
@@ -691,6 +697,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         <AddSlotDialog isOpen={isOpenAddSlotDialog} setIsOpen={setIsOpenAddSlotDialog} idToken={idToken} classId={classInfo.id} />
         <ArrangeScheduleClassDialog isOpen={isOpenArrangeDialog} setIsOpen={setIsOpenArrangeDialog} idToken={idToken}
           slotsPerWeek={slotsPerWeek} totalSlots={totalSlots} level={classInfo.level} classId={classInfo.id} />
+        <DelayClassDialog isOpen={isOpenDelayDialog} setIsOpen={setIsOpenDelayDialog} classId={classInfo.id}/>
         {confirmDeleteDialog}
         {loadingDialog}
         {confirmEditDialog}

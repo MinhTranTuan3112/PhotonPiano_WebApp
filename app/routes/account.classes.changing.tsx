@@ -134,18 +134,22 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function AccountClassChanging() {
     const { promise, deadlinePromise, currentServerDateTime, classPromise, query } = useLoaderData<typeof loader>()
-    const [selectedClass, setSelectedClass] = useState<string | null>(null)
+    const [changeClassData, setChangeClassData] = useState<{
+        newClassId?: string,
+        oldClassId?: string,
+        studentId?: string
+    }>({})
     const navigate = useNavigate()
     const fetcher = useFetcher<ActionResult>()
 
-    const changeClassSchema = z.object({
-        studentId: z.string(),
-        oldClassId: z.string(),
-        newClassId: z.string(),
-    })
+    // const changeClassSchema = z.object({
+    //     studentId: z.string(),
+    //     oldClassId: z.string(),
+    //     newClassId: z.string(),
+    // })
 
-    type ChangeClassSchema = z.infer<typeof changeClassSchema>
-    const resolver = zodResolver(changeClassSchema)
+    // type ChangeClassSchema = z.infer<typeof changeClassSchema>
+    // const resolver = zodResolver(changeClassSchema)
 
     const { loadingDialog } = useLoadingDialog({
         fetcher,
@@ -158,20 +162,35 @@ export default function AccountClassChanging() {
         title: "Confirm Changing New Class",
         description: "Are you sure want to change to this class?",
         onConfirm: () => {
-            handleSubmit()
+            fetcher.submit(changeClassData, {
+                method: "POST",
+            })
         },
     })
 
-    const {
-        handleSubmit,
-        formState: { errors },
-        register,
-        control,
-    } = useRemixForm<ChangeClassSchema>({
-        mode: "onSubmit",
-        resolver,
-        fetcher,
-    })
+    function prepareSubmit(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault(); // Prevent default form submission
+
+        const form = event.currentTarget;
+        const formData = new FormData(form);
+
+        const studentId = formData.get("studentId") as string;
+        const oldClassId = formData.get("oldClassId") as string;
+        const newClassId = formData.get("newClassId") as string;
+        setChangeClassData({ newClassId, oldClassId, studentId })
+        handleOpenModal();
+    }
+
+    // const {
+    //     handleSubmit,
+    //     formState: { errors },
+    //     register,
+    //     control,
+    // } = useRemixForm<ChangeClassSchema>({
+    //     mode: "onSubmit",
+    //     resolver,
+    //     fetcher,
+    // })
     const getDeadlineDate = (date: string, deadline: SystemConfig): Date => {
         const deadlineDate = new Date(date)
         deadlineDate.setDate(deadlineDate.getDate() - Number.parseInt(deadline.configValue))
@@ -457,10 +476,10 @@ export default function AccountClassChanging() {
                                                     {classesData.classes.length > 0 ? (
                                                         <div className="space-y-4 mt-8">
                                                             {classesData.classes.map((classItem) => (
-                                                                <Form onSubmit={handleOpenModal} key={classItem.id}>
-                                                                    <input type="hidden" {...register("studentId")} value={data.accountFirebaseId} />
-                                                                    <input type="hidden" {...register("oldClassId")} value={data.currentClass?.id || ""} />
-                                                                    <input type="hidden" {...register("newClassId")} value={classItem.id} />
+                                                                <Form onSubmit={prepareSubmit} key={classItem.id}>
+                                                                    <input type="hidden" name="studentId" value={data.accountFirebaseId} />
+                                                                    <input type="hidden" name="oldClassId" value={data.currentClass?.id || ""} />
+                                                                    <input type="hidden" name="newClassId" value={classItem.id} />
                                                                     <ClassCard
                                                                         classItem={classItem}
                                                                         currentAccount={data}
