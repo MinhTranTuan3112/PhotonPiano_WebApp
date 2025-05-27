@@ -159,7 +159,7 @@ export default function StudentClassDetailPage() {
         await fetch("/endpoint/delete-student-class", {
             method: "DELETE",
             body: new URLSearchParams({
-                studentId : studentClass.studentFirebaseId,
+                studentId: studentClass.studentFirebaseId,
                 classId: studentClass.classId
             }),
             headers: {
@@ -196,21 +196,24 @@ export default function StudentClassDetailPage() {
                             </Button>
                         </Link>
                         {
-                            classDetails.status === 0 && (
-                                <>
-                                    <Link to={`/account/classes/changing`}>
-                                        <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
-                                            <ShuffleIcon className="h-4 w-4" />
-                                            Change Class
-                                        </Button>
-                                    </Link>
-                                    <Button variant="destructive" className="gap-2 border-slate-200 shadow-sm" onClick={handleOpenModal}>
-                                        <DoorOpen className="h-4 w-4" />
-                                        Leave Class
+                            classDetails.status !== 2 && (
+                                <Link to={`/account/classes/changing`}>
+                                    <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+                                        <ShuffleIcon className="h-4 w-4" />
+                                        Change Class
                                     </Button>
-                                </>
+                                </Link>
                             )
                         }
+                        {
+                            classDetails.status === 0 && (
+                                <Button variant="destructive" className="gap-2 border-slate-200 shadow-sm" onClick={handleOpenModal}>
+                                    <DoorOpen className="h-4 w-4" />
+                                    Leave Class
+                                </Button>
+                            )
+                        }
+
 
                         {/* <Link to="/account/class/changing">
               <Button className="gap-2" variant="outline">
