@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { fetchSlots, fetchSlotById } from "~/lib/services/scheduler"
@@ -14,6 +16,7 @@ import {
     StickyNote,
     Award,
     CheckCircle,
+    Info,
 } from "lucide-react"
 import { Button } from "~/components/ui/button"
 import { Card } from "~/components/ui/card"
@@ -66,6 +69,34 @@ const getVietnameseWeekday = (date: Date): string => {
     return weekdays[date.getDay()]
 }
 
+// Attendance Legend Component
+const AttendanceLegend = ({ learnerName }: { learnerName: string }) => {
+    return (
+        <Card className="bg-slate-50 border border-slate-200 p-4 mt-6">
+            <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" />
+                <div>
+                    <h3 className="font-semibold text-slate-800 mb-2">More note / Attendance Status:</h3>
+                    <ul className="space-y-2 text-sm">
+                        <li className="flex items-center gap-2">
+                            <span className="px-2 py-1 rounded text-white bg-green-600 font-medium text-xs">(attended)</span>
+                            <span className="text-slate-700">{learnerName} had attended this activity</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="px-2 py-1 rounded text-white bg-red-600 font-medium text-xs">(absent)</span>
+                            <span className="text-slate-700">{learnerName} had NOT attended this activity</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                            <span className="px-2 py-1 rounded text-white bg-gray-500 font-medium text-xs">(-)</span>
+                            <span className="text-slate-700">no data was given</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </Card>
+    )
+}
+
 type LearnerSchedulerProps = {
     initialSlots: SlotDetail[]
     initialStartDate: Date
@@ -96,6 +127,9 @@ export const LearnerScheduler = ({
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
     const [isLoading, setIsLoading] = useState(false)
     const [viewMode, setViewMode] = useState<string>("week")
+
+    // Get learner name for the legend
+    const learnerName = currentAccount?.fullName || currentAccount?.userName || "Student"
 
     const weekDates = Array.from({ length: 7 }, (_, i) => {
         const currentDay = new Date(startDate)
@@ -211,7 +245,7 @@ export const LearnerScheduler = ({
                         className="text-xs"
                         variant={
                             slot.attendanceStatus === AttendanceStatus.Attended
-                                ? "default"
+                                ? "success"
                                 : slot.attendanceStatus === AttendanceStatus.Absent
                                     ? "destructive"
                                     : "outline"
@@ -428,11 +462,12 @@ export const LearnerScheduler = ({
                                                                 <Badge
                                                                     variant={
                                                                         slot.attendanceStatus === AttendanceStatus.Attended
-                                                                            ? "default"
+                                                                            ? "success"
                                                                             : slot.attendanceStatus === AttendanceStatus.Absent
                                                                                 ? "destructive"
                                                                                 : "outline"
                                                                     }
+                                                                    title={AttendanceStatusText[slot.attendanceStatus]}
                                                                 >
                                                                     {AttendanceStatusText[slot.attendanceStatus]}
                                                                 </Badge>
@@ -549,10 +584,29 @@ export const LearnerScheduler = ({
                                                         </div>
                                                     )}
                                                     {(student.attendanceStatus === AttendanceStatus.Attended ||
-                                                        student.attendanceStatus === AttendanceStatus.Absent) && (
-                                                            <div className="flex items-center gap-2">
-                                                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                                                <span>
+                                                        student.attendanceStatus === AttendanceStatus.Absent ||
+                                                        student.attendanceStatus === AttendanceStatus.NotYet) && (
+                                                            <div className="flex items-center gap-2 sm:col-span-2">
+                                                                <CheckCircle
+                                                                    className={cn(
+                                                                        "w-4 h-4",
+                                                                        student.attendanceStatus === AttendanceStatus.Attended
+                                                                            ? "text-green-600"
+                                                                            : student.attendanceStatus === AttendanceStatus.Absent
+                                                                                ? "text-red-600"
+                                                                                : "text-gray-400",
+                                                                    )}
+                                                                />
+                                                                <span
+                                                                    className={cn(
+                                                                        "text-sm",
+                                                                        student.attendanceStatus === AttendanceStatus.Attended
+                                                                            ? "text-green-800"
+                                                                            : student.attendanceStatus === AttendanceStatus.Absent
+                                                                                ? "text-red-800"
+                                                                                : "text-gray-600",
+                                                                    )}
+                                                                >
                                                                     <strong>Attendance:</strong> {AttendanceStatusText[student.attendanceStatus]}
                                                                 </span>
                                                             </div>
@@ -599,6 +653,9 @@ export const LearnerScheduler = ({
                         )}
                     </DialogContent>
                 </Dialog>
+
+                {/* Attendance Legend moved to bottom */}
+                <AttendanceLegend learnerName={learnerName} />
             </div>
         </div>
     )
