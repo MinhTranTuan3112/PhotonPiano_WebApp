@@ -95,7 +95,6 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     }
 }
 
-
 function AlreadyLoggedInModal({
     isOpen,
     onClose,
@@ -162,9 +161,7 @@ function AlreadyLoggedInModal({
                 </div>
 
                 <div className="p-6">
-                    <p className="text-gray-600 dark:text-gray-300 mb-6">
-                        {getRoleMessage(userRole)}
-                    </p>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6">{getRoleMessage(userRole)}</p>
 
                     <div className="flex flex-col sm:flex-row gap-3">
                         <Button
@@ -649,57 +646,85 @@ export default function LevelDetails() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                        {levelData.classes.map((cls) => {
-                                            const enrollmentStatus = getEnrollmentStatus(cls)
+                                        {levelData.classes
+                                            .filter((cls) => cls.status === 0)
+                                            .map((cls) => {
+                                                const enrollmentStatus = getEnrollmentStatus(cls)
 
-                                            return (
-                                                <tr key={cls.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                                    <td className="py-4 px-6">
-                                                        <div className="font-medium">{cls.name}</div>
-                                                        <div className="text-xs text-gray-500 mt-1">
-                                                            {cls.instructor?.userName || "Instructor TBA"}
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-6">
-                                                        <div className="font-medium">{`${cls.studentNumber}/${cls.capacity}`}</div>
-                                                        <div className="w-24 mt-1">
-                                                            <div className="overflow-hidden h-1.5 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
-                                                                <div
-                                                                    style={{
-                                                                        width: `${(cls.studentNumber / cls.capacity) * 100}%`,
-                                                                        backgroundColor: enrollmentStatus.color,
-                                                                    }}
-                                                                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center"
-                                                                ></div>
+                                                return (
+                                                    <tr key={cls.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                                        <td className="py-4 px-6">
+                                                            <div className="font-medium">{cls.name}</div>
+                                                            <div className="text-xs text-gray-500 mt-1">
+                                                                {cls.instructor?.userName || "Instructor TBA"}
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-6">{formatDate(cls.startTime)}</td>
-                                                    <td className="py-4 px-6">{formatDate(cls.endTime)}</td>
-                                                    <td className="py-4 px-6">{cls.classDays || "TBA"}</td>
-                                                    <td className="py-4 px-6">
-                                                        <TimeSlotHoverCard classTime={cls.classTime} />
-                                                    </td>
-                                                    <td className="py-4 px-6">
-                                                        {enrollmentStatus.enrollable ? (
-                                                            <Button
-                                                                size="sm"
-                                                                style={{ backgroundColor: enrollmentStatus.color }}
-                                                                onClick={() => handleEnrollClick()}
-                                                            >
-                                                                Enroll Now
-                                                            </Button>
-                                                        ) : (
-                                                            <Badge style={{ backgroundColor: enrollmentStatus.color }}>{enrollmentStatus.text}</Badge>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            )
-                                        })}
+                                                        </td>
+                                                        <td className="py-4 px-6">
+                                                            <div className="font-medium">{`${cls.studentNumber}/${cls.capacity}`}</div>
+                                                            <div className="w-24 mt-1">
+                                                                <div className="overflow-hidden h-1.5 text-xs flex rounded bg-gray-200 dark:bg-gray-700">
+                                                                    <div
+                                                                        style={{
+                                                                            width: `${(cls.studentNumber / cls.capacity) * 100}%`,
+                                                                            backgroundColor: enrollmentStatus.color,
+                                                                        }}
+                                                                        className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center"
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-4 px-6">{formatDate(cls.startTime)}</td>
+                                                        <td className="py-4 px-6">{formatDate(cls.endTime)}</td>
+                                                        <td className="py-4 px-6">{cls.classDays || "TBA"}</td>
+                                                        <td className="py-4 px-6">
+                                                            <TimeSlotHoverCard classTime={cls.classTime} />
+                                                        </td>
+                                                        <td className="py-4 px-6">
+                                                            {(() => {
+                                                                const enrollmentStatus = getEnrollmentStatus(cls)
+
+                                                                // For learners (role 1), show "Enroll Now" button if enrollable, otherwise show badge
+                                                                if (authData.role === 1) {
+                                                                    if (enrollmentStatus.enrollable) {
+                                                                        return (
+                                                                            <Button
+                                                                                size="sm"
+                                                                                style={{ backgroundColor: enrollmentStatus.color }}
+                                                                                onClick={() => handleEnrollClick()}
+                                                                            >
+                                                                                Enroll Now
+                                                                            </Button>
+                                                                        )
+                                                                    } else {
+                                                                        return (
+                                                                            <Badge style={{ backgroundColor: enrollmentStatus.color }}>
+                                                                                {enrollmentStatus.text}
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+                                                                }
+
+                                                                // For all other users (guests, teachers, admin, staff), show badge
+                                                                return (
+                                                                    <Badge style={{ backgroundColor: enrollmentStatus.color }}>
+                                                                        {enrollmentStatus.text}
+                                                                    </Badge>
+                                                                )
+                                                            })()}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
                                     </tbody>
                                 </table>
                             </div>
                         </Card>
+                        {levelData.classes.filter((cls) => cls.status === 0).length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                                <p>No classes are currently available for enrollment.</p>
+                                <p className="text-sm mt-2">Please check back later or contact us for more information.</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
