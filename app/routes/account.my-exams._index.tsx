@@ -168,7 +168,7 @@ function TestRegistrationSection({ }: {
   });
 
   return <>
-    <div className="flex justify-center">
+    <div className="flex justify-center my-4">
       <Button type='button' variant={'theme'} className='uppercase font-bold' disabled={isDisabled}
         onClick={handleOpen} Icon={UserRoundPlus} iconPlacement='left'>
         Register for entrance test

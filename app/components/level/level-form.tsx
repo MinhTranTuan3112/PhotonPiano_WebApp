@@ -12,12 +12,13 @@ import { useState } from 'react';
 import { Pipette, Plus } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { HexColorPicker } from "react-colorful";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import GenericCombobox from '../ui/generic-combobox';
 import { requireAuth } from '~/lib/utils/auth';
 import { fetchLevels } from '~/lib/services/level';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { useColorPickerDialog } from '~/hooks/use-color-picker-dialog';
+import { Switch } from '../ui/switch';
 
 type Props = {
     isEditing?: boolean;
@@ -39,6 +40,7 @@ export const levelSchema = z.object({
     themeColor: z.string().optional(),
     nextLevelId: z.string().optional(),
     isGenreDivided: z.boolean().optional(),
+    requiresEntranceTest: z.boolean()
 });
 
 export type LevelFormData = z.infer<typeof levelSchema>;
@@ -164,6 +166,19 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                         placeholder='Enter slot price...' />
                 </div>
                 {errors.pricePerSlot && <p className='text-red-500 text-sm'>{errors.pricePerSlot.message}</p>}
+
+                <div className="flex flex-row gap-3 w-full lg:max-w-[50%] ">
+                    <Label className='font-bold w-64'>Requires entrance test</Label>
+                    <Controller
+                        control={control}
+                        name='requiresEntranceTest'
+                        render={({ field: { onChange, onBlur, value, ref } }) => (
+                            <Switch checked={value} onCheckedChange={onChange} ref={ref} onBlur={onBlur}
+                                className='data-[state=checked]:bg-theme' />
+                        )}
+                    />
+                </div>
+                {errors.requiresEntranceTest && <p className='text-red-500 text-sm'>{errors.requiresEntranceTest.message}</p>}
 
                 <div className="flex flex-row gap-3 w-full items-center">
 
