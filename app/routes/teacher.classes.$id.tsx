@@ -576,13 +576,12 @@ export default function TeacherClassDetailsPage() {
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div
-                            className={`p-2 rounded-full ${
-                              index % 3 === 0
-                                ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
-                                : index % 3 === 1
-                                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-                                  : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
-                            }`}
+                            className={`p-2 rounded-full ${index % 3 === 0
+                              ? "bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400"
+                              : index % 3 === 1
+                                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                                : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
+                              }`}
                           >
                             <Sparkles className="h-4 w-4" />
                           </div>
@@ -713,13 +712,12 @@ export default function TeacherClassDetailsPage() {
                             <TableCell>
                               {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                                 <span
-                                  className={`font-medium px-2 py-1 rounded-md ${
-                                    studentClass.gpa >= 7
-                                      ? "bg-green-100 text-green-800"
-                                      : studentClass.gpa >= 5
-                                        ? "bg-amber-100 text-amber-800"
-                                        : "bg-red-100 text-red-800"
-                                  }`}
+                                  className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
+                                    ? "bg-green-100 text-green-800"
+                                    : studentClass.gpa >= 5
+                                      ? "bg-amber-100 text-amber-800"
+                                      : "bg-red-100 text-red-800"
+                                    }`}
                                 >
                                   {studentClass.gpa ? studentClass.gpa.toFixed(1) : "Not available"}
                                 </span>
@@ -992,7 +990,6 @@ export default function TeacherClassDetailsPage() {
                       <TableHead>GPA</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Certificate</TableHead>
-                      <TableHead>Comments</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1017,13 +1014,12 @@ export default function TeacherClassDetailsPage() {
                           <TableCell>
                             {studentClass?.gpa !== null && studentClass?.gpa !== undefined ? (
                               <span
-                                className={`font-medium px-2 py-1 rounded-md ${
-                                  studentClass.gpa >= 7
-                                    ? "bg-green-100 text-green-800"
-                                    : studentClass.gpa >= 5
-                                      ? "bg-amber-100 text-amber-800"
-                                      : "bg-red-100 text-red-800"
-                                }`}
+                                className={`font-medium px-2 py-1 rounded-md ${studentClass.gpa >= 7
+                                  ? "bg-green-100 text-green-800"
+                                  : studentClass.gpa >= 5
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-red-100 text-red-800"
+                                  }`}
                               >
                                 {studentClass.gpa !== undefined ? studentClass.gpa.toFixed(1) : "Not available"}
                               </span>
@@ -1054,11 +1050,6 @@ export default function TeacherClassDetailsPage() {
                               <span className="text-muted-foreground text-sm">Not issued</span>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <p className="text-sm truncate max-w-[200px]">
-                              {studentClass?.instructorComment || "No comments"}
-                            </p>
-                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
@@ -1081,12 +1072,12 @@ export default function TeacherClassDetailsPage() {
 
       {/* Validation Error Modal */}
       {validationErrorModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-4xl w-full max-h-[80vh] flex flex-col">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-orange-600">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-red-600">
                 <CircleX className="h-5 w-5" />
-                Highest Warning Level
+                Import Validation Errors
               </h3>
               <Button
                 variant="ghost"
@@ -1099,33 +1090,164 @@ export default function TeacherClassDetailsPage() {
               </Button>
             </div>
             <div className="p-4 overflow-auto flex-1">
-              <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-md border border-orange-200 dark:border-orange-800">
-                <h4 className="font-medium mb-2 text-orange-800">The following validation errors were found:</h4>
-                <div className="space-y-3">
-                  {validationErrorDetails.split("Invalid scores detected:").map((error, index) => {
-                    if (index === 0) return null // Skip the first part before "Invalid scores detected:"
-                    return (
-                      <div key={index} className="pl-4 border-l-2 border-orange-300 dark:border-orange-700">
-                        <p className="text-sm text-orange-700 dark:text-orange-200">{error.trim()}</p>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              <div className="mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Please correct these errors in your Excel file and try uploading again.
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-md border border-red-200 dark:border-red-800 mb-4">
+                <h4 className="font-medium mb-2 text-red-800 dark:text-red-200 flex items-center gap-2">
+                  <CircleX className="h-4 w-4" />
+                  The following validation errors were found in your Excel file:
+                </h4>
+                <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                  Please correct these errors and try uploading again.
                 </p>
               </div>
+
+              <div className="space-y-4">
+                {(() => {
+                  // Parse and group errors by student name
+                  const errorText = validationErrorDetails
+                  const groupedErrors = new Map<string, string[]>()
+                  const ungroupedErrors: string[] = []
+
+                  if (errorText.includes("Invalid scores detected:")) {
+                    const mainError = errorText.split("Invalid scores detected:")[1]
+                    if (mainError) {
+                      const errorLines = mainError.split("\n").filter((line) => line.trim())
+
+                      errorLines.forEach((error) => {
+                        const trimmedError = error.trim()
+                        if (!trimmedError) return
+
+                        // Try to extract student name from error message
+                        const studentMatch = trimmedError.match(/Student\s+'([^']+)'/)
+                        if (studentMatch) {
+                          const studentName = studentMatch[1]
+                          const errorMessage = trimmedError.replace(/Student\s+'[^']+',?\s*/, "").trim()
+
+                          if (!groupedErrors.has(studentName)) {
+                            groupedErrors.set(studentName, [])
+                          }
+                          groupedErrors.get(studentName)!.push(errorMessage)
+                        } else {
+                          ungroupedErrors.push(trimmedError)
+                        }
+                      })
+                    }
+                  } else {
+                    // Fallback: split by periods or semicolons
+                    const splitErrors = errorText.split(/[.;]/).filter((error) => error.trim())
+                    ungroupedErrors.push(...splitErrors)
+                  }
+
+                  const result = []
+
+                  // Render grouped errors by student
+                  if (groupedErrors.size > 0) {
+                    result.push(
+                      ...Array.from(groupedErrors.entries()).map(([studentName, errors]) => (
+                        <div
+                          key={studentName}
+                          className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                              <Users className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-semibold text-red-800 dark:text-red-200 mb-2 flex items-center gap-2">
+                                Student: {studentName}
+                                <Badge variant="outline" className="text-xs">
+                                  {errors.length} error{errors.length > 1 ? "s" : ""}
+                                </Badge>
+                              </h5>
+                              <ul className="space-y-2">
+                                {errors.map((error, index) => (
+                                  <li key={index} className="flex items-start gap-2">
+                                    <CircleX className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                                    <span className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+                                      {error}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )),
+                    )
+                  }
+
+                  // Render ungrouped errors
+                  if (ungroupedErrors.length > 0) {
+                    result.push(
+                      ...ungroupedErrors
+                        .filter((error) => error.trim())
+                        .map((error, index) => (
+                          <div
+                            key={`ungrouped-${index}`}
+                            className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                                <CircleX className="h-3 w-3 text-red-600 dark:text-red-400" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+                                  {error.trim()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )),
+                    )
+                  }
+
+                  // If no structured errors found, show the raw message
+                  if (result.length === 0) {
+                    result.push(
+                      <div
+                        key="raw-error"
+                        className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                            <CircleX className="h-3 w-3 text-red-600 dark:text-red-400" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">{errorText}</p>
+                          </div>
+                        </div>
+                      </div>,
+                    )
+                  }
+
+                  return result
+                })()}
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Tips for fixing Excel import errors:
+                </h5>
+                <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+                  <li>Ensure all student names match exactly with enrolled students</li>
+                  <li>Check that all score values are numbers between 0 and 10</li>
+                  <li>Verify that all required columns are filled</li>
+                  <li>Make sure there are no extra spaces or special characters</li>
+                  <li>Download a fresh template if you're unsure about the format</li>
+                </ul>
+              </div>
             </div>
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex justify-end">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex justify-between">
+              <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
+                <FileDown className="h-4 w-4" />
+                Download Fresh Template
+              </Button>
               <Button onClick={() => setValidationErrorModalOpen(false)}>Close</Button>
             </div>
           </div>
         </div>
       )}
       {uploadConfirmationDialog}
-
       {/* Certificate Modal */}
       <CertificateModal
         isOpen={certificateModalOpen}
