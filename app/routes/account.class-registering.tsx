@@ -47,6 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     statuses: [0],
     isPublic: true,
     idToken: idToken,
+    forClassChanging : true
   }
 
   // const classPromise = fetchClasses({ ...query }).then((response) => {
