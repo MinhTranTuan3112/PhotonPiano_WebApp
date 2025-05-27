@@ -1,16 +1,18 @@
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, useAsyncValue, useLoaderData, useSearchParams } from '@remix-run/react';
-import { BookOpenCheck } from 'lucide-react';
+import { BookOpenCheck, UserRoundPlus } from 'lucide-react';
 import { Suspense } from 'react'
 import { NavigateOptions, URLSearchParamsInit } from 'react-router-dom';
-import MyTestCard from '~/components/entrance-tests/my-test-card';
+import { useEnrolLDialog } from '~/components/entrance-tests/enroll-dialog';
 import SearchForm from '~/components/entrance-tests/search-form';
 import { TestCard } from '~/components/learner/learner-details/entrance-tests-section';
 import Paginator from '~/components/paginator';
+import { Button } from '~/components/ui/button';
 import { Card, CardContent } from '~/components/ui/card';
 import { Skeleton } from '~/components/ui/skeleton';
+import { useAuth } from '~/lib/contexts/auth-context';
 import { fetchEntranceTests } from '~/lib/services/entrance-tests';
-import { Role } from '~/lib/types/account/account';
+import { Role, StudentStatus } from '~/lib/types/account/account';
 import { EntranceTest } from '~/lib/types/entrance-test/entrance-test';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
@@ -99,7 +101,7 @@ export default function MyExams({ }: Props) {
       <div className='text-sm text-muted-foreground'>
         Make sure to keep track of the schedule for important entrance tests so you don't miss them!
       </div>
-      <SearchForm searchParams={searchParams} role={Role.Student}/>
+      <SearchForm searchParams={searchParams} role={Role.Student} />
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
         <Await resolve={promise}>
           {({ entranceTestsPromise, metadata }) => (
@@ -127,7 +129,6 @@ function StudentEntranceTests({
 
   const entranceTests = entranceTestsValue as EntranceTest[];
 
-
   return <div className="py-4">
     {entranceTests.length > 0 ? <>
       {entranceTests.map(entranceTest => <TestCard entranceTest={entranceTest} key={entranceTest.id} type='current'
@@ -147,9 +148,35 @@ function StudentEntranceTests({
         <CardContent className="flex flex-col items-center justify-center p-10 text-neutral-500">
           <BookOpenCheck className="h-12 w-12 mb-2 opacity-20" />
           <p>No entrance tests yet.</p>
+          <TestRegistrationSection />
         </CardContent>
       </Card>}
   </div>
+}
+
+function TestRegistrationSection({ }: {
+
+}) {
+
+  const { currentAccount } = useAuth();
+
+  const isDisabled = currentAccount?.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement
+    && currentAccount?.studentStatus !== StudentStatus.DropOut;
+
+  const { handleOpen, dialog: enrollDialog } = useEnrolLDialog({
+    disabled: isDisabled
+  });
+
+  return <>
+    <div className="flex justify-center">
+      <Button type='button' variant={'theme'} className='uppercase font-bold' disabled={isDisabled}
+        onClick={handleOpen} Icon={UserRoundPlus} iconPlacement='left'>
+        Register for entrance test
+      </Button>
+    </div>
+    {enrollDialog}
+  </>
+
 }
 
 function LoadingSkeleton() {
