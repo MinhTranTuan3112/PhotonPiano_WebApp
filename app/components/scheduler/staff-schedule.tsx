@@ -24,7 +24,6 @@ import { motion } from "framer-motion"
 import { Button } from "~/components/ui/button"
 import { Card } from "~/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
-import { Badge } from "~/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
 import { Checkbox } from "~/components/ui/checkbox"
@@ -54,6 +53,7 @@ import {
 import { fetchSystemConfigSlotCancel } from "~/lib/services/system-config"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { toastWarning } from "~/lib/utils/toast-utils"
+import { Badge } from "./fix-badge"
 
 // Shift times mapping
 const shiftTimesMap: Record<Shift, string> = {

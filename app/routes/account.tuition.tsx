@@ -22,11 +22,11 @@ import {
     AlertTriangle,
     BookOpen,
     Award,
+    RefreshCw,
 } from "lucide-react"
 import { Label } from "~/components/ui/label"
 import { Checkbox } from "~/components/ui/checkbox"
 import { Badge } from "~/components/ui/badge"
-import DateRangePicker from "~/components/ui/date-range-picker"
 import { Separator } from "~/components/ui/separator"
 import { PaymentStatusBadge } from "~/components/transactions/transaction-table/columns"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
@@ -34,6 +34,7 @@ import { Role } from "~/lib/types/account/account"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import { toastWarning } from "~/lib/utils/toast-utils"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+import { TuitionDateRangePicker } from "~/components/date/date-range"
 
 // Define proper types for date range
 type DateRange = {
@@ -58,6 +59,46 @@ function calculateTotalDebt(tuition: Tuition[]): number {
         .reduce((sum, fee) => sum + fee.amount + fee.fee, 0)
 }
 
+function filterTuitions(
+    tuitions: Tuition[],
+    filters: {
+        studentClassIds: string[]
+        dateRange: DateRange
+        paymentStatuses: number[]
+    },
+): Tuition[] {
+    return tuitions.filter((tuition) => {
+        // Filter by student class IDs
+        if (filters.studentClassIds.length > 0) {
+            if (!filters.studentClassIds.includes(tuition.studentClass.id)) {
+                return false
+            }
+        }
+
+        // Filter by date range
+        if (filters.dateRange.from || filters.dateRange.to) {
+            const tuitionDate = new Date(tuition.deadline || Date.now())
+
+            if (filters.dateRange.from && tuitionDate < filters.dateRange.from) {
+                return false
+            }
+
+            if (filters.dateRange.to && tuitionDate > filters.dateRange.to) {
+                return false
+            }
+        }
+
+        // Filter by payment status
+        if (filters.paymentStatuses.length > 0) {
+            if (!filters.paymentStatuses.includes(tuition.paymentStatus)) {
+                return false
+            }
+        }
+
+        return true
+    })
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     try {
         const { idToken, role } = await requireAuth(request)
@@ -66,20 +107,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             return redirect("/")
         }
 
-        const url = new URL(request.url)
-        const studentClassIds = url.searchParams.getAll("student-class-ids")
-        const startTime = url.searchParams.get("start-date")
-        const endTime = url.searchParams.get("end-date")
-        const paymentStatuses = url.searchParams.getAll("payment-statuses").map(Number)
-
+        // Fetch ALL tuitions without any filters
         const response = await fetchTuition({
             idToken,
-            studentClassIds,
-            startTime,
-            endTime,
-            paymentStatuses,
+            studentClassIds: [], // No filters
+            startTime: null,
+            endTime: null,
+            paymentStatuses: [], // No filters
         })
         let tuition: Tuition[] = response.data
+
+        console.log("Fetched all tuition data:", tuition.length, "items")
+        console.log(
+            "Payment statuses in data:",
+            tuition.map((t) => ({ id: t.id, status: t.paymentStatus, statusText: PaymentStatusText[t.paymentStatus] })),
+        )
 
         tuition = tuition.sort((a, b) => a.paymentStatus - b.paymentStatus)
 
@@ -164,17 +206,16 @@ function PaymentStatusIcon({ status }: { status: PaymentStatus }) {
 }
 
 export default function TuitionPage() {
-    const { tuition, role } = useLoaderData<typeof loader>()
+    const { tuition: allTuition, role } = useLoaderData<typeof loader>()
     const [searchParams, setSearchParams] = useSearchParams()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
     const [selectedFee, setSelectedFee] = useState<Tuition | null>(null)
 
     const fetcher = useFetcher<typeof action>()
-    const totalDebt = calculateTotalDebt(tuition)
-    const hasPendingPayments = tuition.some((t) => t.paymentStatus === PaymentStatus.Pending)
 
-    const [filters, setFilters] = useState({
+    // Applied filters (these are the ones actually filtering the data)
+    const [appliedFilters, setAppliedFilters] = useState({
         studentClassIds: searchParams.getAll("student-class-ids"),
         dateRange: {
             from: searchParams.get("start-date") ? new Date(searchParams.get("start-date")!) : undefined,
@@ -183,442 +224,68 @@ export default function TuitionPage() {
         paymentStatuses: searchParams.getAll("payment-statuses").map(Number),
     })
 
+    // Draft filters (these are the ones being edited in the modal)
+    const [draftFilters, setDraftFilters] = useState(appliedFilters)
+
+    // Apply client-side filtering using appliedFilters
+    const filteredTuition = filterTuitions(allTuition, appliedFilters)
+
+    const totalDebt = calculateTotalDebt(filteredTuition)
+    const hasPendingPayments = filteredTuition.some((t) => t.paymentStatus === PaymentStatus.Pending)
+
+    console.log("All tuitions:", allTuition.length)
+    console.log("Filtered tuitions:", filteredTuition.length)
+    console.log("Applied filters:", appliedFilters)
+
+    // Check if any filters are applied
+    const hasActiveFilters =
+        appliedFilters.paymentStatuses.length > 0 ||
+        appliedFilters.dateRange.from ||
+        appliedFilters.dateRange.to ||
+        appliedFilters.studentClassIds.length > 0
+
+    // Update draft filters when opening the modal
     useEffect(() => {
-        setFilters({
-            studentClassIds: searchParams.getAll("student-class-ids"),
-            dateRange: {
-                from: searchParams.get("start-date") ? new Date(searchParams.get("start-date")!) : undefined,
-                to: searchParams.get("end-date") ? new Date(searchParams.get("end-date")!) : undefined,
-            } as DateRange,
-            paymentStatuses: searchParams.getAll("payment-statuses").map(Number),
-        })
-    }, [searchParams])
-
-    const handlePayNowClick = (fee: Tuition) => {
-        setSelectedFee(fee)
-        setIsModalOpen(true)
-    }
-
-    const handlePrintInvoice = () => {
-        if (!selectedFee) return
-
-        const printInvoiceWithIframe = () => {
-            const printIframe = document.createElement("iframe")
-            printIframe.style.position = "absolute"
-            printIframe.style.width = "0px"
-            printIframe.style.height = "0px"
-            printIframe.style.border = "0"
-
-            document.body.appendChild(printIframe)
-            const iframeDocument = printIframe.contentDocument || printIframe.contentWindow?.document
-
-            if (!iframeDocument) {
-                console.error("Could not access iframe document")
-                return
-            }
-
-            iframeDocument.open()
-            iframeDocument.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Tuition Invoice - PhotonPiano</title>
-                <style>
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    body {
-                        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: #1e293b;
-                        line-height: 1.6;
-                        padding: 40px 20px;
-                        min-height: 100vh;
-                    }
-                    .invoice-wrapper {
-                        max-width: 800px;
-                        margin: 0 auto;
-                        background: white;
-                        border-radius: 20px;
-                        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-                        overflow: hidden;
-                        position: relative;
-                    }
-                    .invoice-wrapper::before {
-                        content: '';
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        height: 6px;
-                        background: linear-gradient(90deg, #3b82f6, #1d4ed8, #2563eb);
-                    }
-                    .invoice-header {
-                        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-                        padding: 40px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        border-bottom: 2px solid #e2e8f0;
-                    }
-                    .brand {
-                        display: flex;
-                        flex-direction: column;
-                    }
-                    .brand-logo {
-                        font-size: 32px;
-                        font-weight: 800;
-                        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                        letter-spacing: -1px;
-                    }
-                    .brand-tagline {
-                        font-size: 14px;
-                        color: #64748b;
-                        margin-top: 4px;
-                        font-weight: 500;
-                    }
-                    .invoice-title {
-                        text-align: right;
-                    }
-                    .invoice-title h1 {
-                        font-size: 28px;
-                        font-weight: 700;
-                        color: #1e293b;
-                        text-transform: uppercase;
-                        letter-spacing: 2px;
-                        margin-bottom: 8px;
-                    }
-                    .invoice-number {
-                        color: #64748b;
-                        font-size: 16px;
-                        font-weight: 600;
-                        background: #f1f5f9;
-                        padding: 8px 16px;
-                        border-radius: 8px;
-                        display: inline-block;
-                    }
-                    .invoice-body {
-                        padding: 40px;
-                    }
-                    .invoice-section {
-                        margin-bottom: 40px;
-                    }
-                    .section-title {
-                        font-size: 20px;
-                        font-weight: 700;
-                        color: #1e293b;
-                        text-transform: uppercase;
-                        margin-bottom: 24px;
-                        letter-spacing: 1px;
-                        position: relative;
-                        padding-bottom: 12px;
-                    }
-                    .section-title::after {
-                        content: '';
-                        position: absolute;
-                        bottom: 0;
-                        left: 0;
-                        width: 60px;
-                        height: 3px;
-                        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-                        border-radius: 2px;
-                    }
-                    .invoice-details {
-                        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-                        border-radius: 16px;
-                        padding: 32px;
-                        border: 1px solid #e2e8f0;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-                    }
-                    .detail-row {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 16px 0;
-                        border-bottom: 1px dashed #cbd5e1;
-                        align-items: center;
-                    }
-                    .detail-row:last-child {
-                        border-bottom: none;
-                    }
-                    .detail-label {
-                        font-weight: 600;
-                        color: #475569;
-                        font-size: 15px;
-                    }
-                    .detail-value {
-                        text-align: right;
-                        font-weight: 700;
-                        color: #1e293b;
-                        font-size: 15px;
-                    }
-                    .payment-box {
-                        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-                        border-radius: 20px;
-                        padding: 40px;
-                        text-align: center;
-                        margin: 40px 0;
-                        color: white;
-                        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .payment-box::before {
-                        content: '';
-                        position: absolute;
-                        top: -50%;
-                        left: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                        animation: shimmer 3s ease-in-out infinite;
-                    }
-                    @keyframes shimmer {
-                        0%, 100% { transform: rotate(0deg); }
-                        50% { transform: rotate(180deg); }
-                    }
-                    .payment-amount-label {
-                        font-size: 16px;
-                        opacity: 0.9;
-                        margin-bottom: 12px;
-                        text-transform: uppercase;
-                        letter-spacing: 2px;
-                        font-weight: 600;
-                    }
-                    .payment-amount {
-                        font-size: 42px;
-                        font-weight: 800;
-                        margin-bottom: 20px;
-                        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    }
-                    .tax-fee {
-                        font-size: 16px;
-                        opacity: 0.9;
-                        margin-bottom: 24px;
-                        font-weight: 500;
-                    }
-                    .payment-status-badge {
-                        display: inline-block;
-                        padding: 12px 24px;
-                        border-radius: 50px;
-                        font-size: 14px;
-                        font-weight: 700;
-                        text-transform: uppercase;
-                        background: rgba(255, 255, 255, 0.2);
-                        backdrop-filter: blur(10px);
-                        border: 1px solid rgba(255, 255, 255, 0.3);
-                        letter-spacing: 1px;
-                    }
-                    .warning-box {
-                        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-                        border-left: 6px solid #ef4444;
-                        border-radius: 12px;
-                        padding: 24px;
-                        margin: 30px 0;
-                        font-size: 15px;
-                        color: #dc2626;
-                        font-weight: 600;
-                        box-shadow: 0 4px 6px rgba(239, 68, 68, 0.1);
-                    }
-                    .invoice-footer {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 40px;
-                        border-top: 2px solid #e2e8f0;
-                        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-                    }
-                    .footer-left p {
-                        color: #64748b;
-                        font-size: 14px;
-                        margin-bottom: 6px;
-                        font-weight: 500;
-                    }
-                    .footer-right {
-                        text-align: right;
-                    }
-                    .signature-area {
-                        margin-top: 16px;
-                        width: 220px;
-                        text-align: center;
-                        margin-left: auto;
-                    }
-                    .signature-line {
-                        width: 100%;
-                        height: 2px;
-                        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-                        margin: 50px 0 16px 0;
-                        border-radius: 1px;
-                    }
-                    .signature-name {
-                        font-size: 16px;
-                        font-weight: 700;
-                        color: #1e293b;
-                    }
-                    .signature-title {
-                        font-size: 13px;
-                        color: #64748b;
-                        font-weight: 500;
-                    }
-                    .contact-info {
-                        margin-top: 30px;
-                        text-align: center;
-                        font-size: 14px;
-                        color: #64748b;
-                        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-                        padding: 24px;
-                        border-radius: 12px;
-                        border: 1px solid #e2e8f0;
-                    }
-                    .contact-info p {
-                        margin-bottom: 4px;
-                    }
-                    .contact-info p:first-child {
-                        font-weight: 700;
-                        color: #1e293b;
-                        font-size: 16px;
-                    }
-                    .invoice-date {
-                        font-size: 15px;
-                        color: #64748b;
-                        margin-bottom: 8px;
-                        font-weight: 600;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="invoice-wrapper">
-                    <div class="invoice-header">
-                        <div class="brand">
-                            <div class="brand-logo">PhotonPiano</div>
-                            <div class="brand-tagline">Excellence in Music Education</div>
-                        </div>
-                        <div class="invoice-title">
-                            <h1>Tuition Invoice</h1>
-                            <div class="invoice-number">Invoice #${selectedFee.id || "INV-00001"}</div>
-                        </div>
-                    </div>
-
-                    <div class="invoice-body">
-                        <div class="invoice-section">
-                            <div class="section-title">Student Information</div>
-                            <div class="invoice-details">
-                                <div class="detail-row">
-                                    <div class="detail-label">Student Name</div>
-                                    <div class="detail-value">${selectedFee.studentClass.studentFullName}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Class</div>
-                                    <div class="detail-value">${selectedFee.studentClass.className}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Payment Deadline</div>
-                                    <div class="detail-value">${formatDate(selectedFee.deadline)}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="payment-box">
-                            <div class="payment-amount-label">AMOUNT DUE</div>
-                            <div class="payment-amount">${selectedFee.amount.toLocaleString("en-US", { style: "currency", currency: "VND" })}</div>
-                            <div class="tax-fee">Tax Fee: ${selectedFee.fee.toLocaleString("en-US", { style: "currency", currency: "VND" })}</div>
-                            <div class="payment-status-badge">
-                                ${PaymentStatusText[selectedFee.paymentStatus]}
-                            </div>
-                        </div>
-
-                        ${selectedFee.paymentStatus === PaymentStatus.Pending
-                    ? `<div class="warning-box">
-                              Please make your payment by ${formatDate(selectedFee.deadline)} to avoid any interruption to your studies.
-                          </div>`
-                    : ""
-                }
-                    </div>
-
-                    <div class="invoice-footer">
-                        <div class="footer-left">
-                            <div class="invoice-date">Issue Date: ${new Date().toLocaleDateString("en-US")}</div>
-                            <p>Thank you for choosing PhotonPiano</p>
-                            <p>For any inquiries, please contact us</p>
-                        </div>
-
-                        <div class="footer-right">
-                            <div class="signature-area">
-                                <div class="signature-line"></div>
-                                <div class="signature-name">Administrator</div>
-                                <div class="signature-title">Issued By</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="contact-info">
-                        <p>PhotonPiano Music Academy</p>
-                        <p>123 Music Avenue, New York, NY 10001</p>
-                        <p>contact@photonpiano.com | +1 (800) 123-4567</p>
-                    </div>
-                </div>
-
-                <script>
-                    window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
-                    };
-                </script>
-            </body>
-            </html>
-        `)
-            iframeDocument.close()
-
-            setTimeout(() => {
-                try {
-                    const contentWindow = printIframe.contentWindow
-                    if (contentWindow) {
-                        contentWindow.focus()
-                        contentWindow.print()
-                    }
-
-                    setTimeout(() => {
-                        try {
-                            document.body.removeChild(printIframe)
-                        } catch (e) {
-                            console.error("Failed to remove iframe:", e)
-                        }
-                    }, 1000)
-                } catch (e) {
-                    console.error("Print error:", e)
-                    try {
-                        document.body.removeChild(printIframe)
-                    } catch (e) {
-                        console.error("Failed to remove iframe:", e)
-                    }
-                }
-            }, 500)
+        if (isFilterModalOpen) {
+            setDraftFilters(appliedFilters)
         }
+    }, [isFilterModalOpen, appliedFilters])
 
-        printInvoiceWithIframe()
-    }
-
+    // Apply the draft filters when form is submitted
     const handleFilterSubmit = (event: React.FormEvent) => {
         event.preventDefault()
-        const newSearchParams = new URLSearchParams()
 
-        filters.studentClassIds.forEach((id) => newSearchParams.append("student-class-ids", id))
-        if (filters.dateRange.from)
-            newSearchParams.append("start-date", filters.dateRange.from.toLocaleDateString("en-CA").split("T")[0])
-        if (filters.dateRange.to)
-            newSearchParams.append("end-date", filters.dateRange.to.toLocaleDateString("en-CA").split("T")[0])
-        filters.paymentStatuses.forEach((status) => newSearchParams.append("payment-statuses", status.toString()))
+        // Apply the draft filters
+        setAppliedFilters(draftFilters)
+
+        // Update URL params for bookmarking/sharing
+        const newSearchParams = new URLSearchParams()
+        draftFilters.studentClassIds.forEach((id) => newSearchParams.append("student-class-ids", id))
+        if (draftFilters.dateRange.from)
+            newSearchParams.append("start-date", draftFilters.dateRange.from.toLocaleDateString("en-CA").split("T")[0])
+        if (draftFilters.dateRange.to)
+            newSearchParams.append("end-date", draftFilters.dateRange.to.toLocaleDateString("en-CA").split("T")[0])
+        draftFilters.paymentStatuses.forEach((status) => newSearchParams.append("payment-statuses", status.toString()))
 
         setSearchParams(newSearchParams)
         setIsFilterModalOpen(false)
     }
 
+    const handleClearFilters = () => {
+        const emptyFilters = {
+            studentClassIds: [],
+            dateRange: { from: undefined, to: undefined },
+            paymentStatuses: [],
+        }
+
+        setAppliedFilters(emptyFilters)
+        setDraftFilters(emptyFilters)
+        setSearchParams(new URLSearchParams())
+        setIsFilterModalOpen(false)
+    }
+
     const handlePaymentStatusChange = (status: number, checked: boolean) => {
-        setFilters((prevFilters) => {
+        setDraftFilters((prevFilters) => {
             const newStatuses = checked
                 ? [...prevFilters.paymentStatuses, status]
                 : prevFilters.paymentStatuses.filter((s) => s !== status)
@@ -626,11 +293,25 @@ export default function TuitionPage() {
         })
     }
 
-    const handleDateRangeChange = (dateRange: DateRange | undefined) => {
-        setFilters({
-            ...filters,
-            dateRange: dateRange || { from: undefined, to: undefined },
-        })
+    const handleDateRangeChange = (dateRangeOrEvent: DateRange | undefined | React.FormEvent<HTMLDivElement>) => {
+        if (!dateRangeOrEvent) {
+            setDraftFilters((prev) => ({
+                ...prev,
+                dateRange: { from: undefined, to: undefined },
+            }))
+            return
+        }
+
+        // If it's a FormEvent, ignore it
+        if ("preventDefault" in dateRangeOrEvent) {
+            return
+        }
+
+        // Handle the DateRange
+        setDraftFilters((prev) => ({
+            ...prev,
+            dateRange: dateRangeOrEvent,
+        }))
     }
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
@@ -670,6 +351,15 @@ export default function TuitionPage() {
         }
     }, [fetcher.data])
 
+    const handlePayNowClick = (tuitionItem: Tuition) => {
+        setSelectedFee(tuitionItem)
+        setIsModalOpen(true)
+    }
+
+    const handlePrintInvoice = () => {
+        window.print()
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100">
             <div className="container mx-auto px-4 py-8">
@@ -681,14 +371,41 @@ export default function TuitionPage() {
                                 My Tuition Fees
                             </h1>
                             <p className="text-lg text-blue-600 font-medium">View and manage your course payments</p>
+
+                            {/* Filter Status Indicator */}
+                            {hasActiveFilters && (
+                                <div className="flex items-center gap-2 text-sm">
+                                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 border border-blue-200">
+                                        <Filter className="w-3 h-3 mr-1" />
+                                        Filters Applied
+                                    </Badge>
+                                    {appliedFilters.paymentStatuses.length > 0 && (
+                                        <span className="text-blue-600">
+                                            Status: {appliedFilters.paymentStatuses.map((s) => PaymentStatusText[s as keyof typeof PaymentStatusText]).join(", ")}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
-                        <Button
-                            onClick={() => setIsFilterModalOpen(true)}
-                            className="bg-white text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 shadow-lg transition-all duration-300 px-6 py-3"
-                        >
-                            <Filter className="w-5 h-5 mr-2" />
-                            Filter Results
-                        </Button>
+                        <div className="flex gap-3">
+                            {hasActiveFilters && (
+                                <Button
+                                    onClick={handleClearFilters}
+                                    variant="outline"
+                                    className="border-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-lg transition-all duration-300 px-6 py-3"
+                                >
+                                    <RefreshCw className="w-5 h-5 mr-2" />
+                                    Clear Filters
+                                </Button>
+                            )}
+                            <Button
+                                onClick={() => setIsFilterModalOpen(true)}
+                                className="bg-white text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 shadow-lg transition-all duration-300 px-6 py-3"
+                            >
+                                <Filter className="w-5 h-5 mr-2" />
+                                Filter Results
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Outstanding Balance Alert */}
@@ -728,10 +445,30 @@ export default function TuitionPage() {
                     )}
                 </div>
 
+                {/* Results Summary */}
+                <div className="mb-6">
+                    <p className="text-blue-600 font-medium">
+                        {hasActiveFilters ? (
+                            <>
+                                Showing {filteredTuition.length} of {allTuition.length} tuition fee{allTuition.length !== 1 ? "s" : ""}
+                                {filteredTuition.length !== allTuition.length && (
+                                    <span className="text-blue-500 ml-2">
+                                        ({allTuition.length - filteredTuition.length} hidden by filters)
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                Showing all {allTuition.length} tuition fee{allTuition.length !== 1 ? "s" : ""}
+                            </>
+                        )}
+                    </p>
+                </div>
+
                 {/* Tuition Cards */}
                 <div className="space-y-6">
-                    {tuition.length > 0 ? (
-                        tuition.map((tuitionItem) => (
+                    {filteredTuition.length > 0 ? (
+                        filteredTuition.map((tuitionItem) => (
                             <Card
                                 key={tuitionItem.id}
                                 className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm"
@@ -756,8 +493,8 @@ export default function TuitionPage() {
                                             <Badge
                                                 variant={tuitionItem.isPassed ? "default" : "secondary"}
                                                 className={`px-4 py-2 text-sm font-bold border-2 ${tuitionItem.isPassed
-                                                        ? "bg-green-600 text-white border-green-700 shadow-lg"
-                                                        : "bg-blue-600 text-white border-blue-700 shadow-lg"
+                                                    ? "bg-green-600 text-white border-green-700 shadow-lg"
+                                                    : "bg-blue-600 text-white border-blue-700 shadow-lg"
                                                     }`}
                                             >
                                                 {tuitionItem.isPassed ? "Course Completed" : "Currently Enrolled"}
@@ -850,8 +587,24 @@ export default function TuitionPage() {
                                         <GraduationCap className="w-12 h-12 text-blue-600" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-blue-900 mb-3">No tuition fees found</h3>
-                                        <p className="text-blue-600 text-lg">You currently have no tuition fees to pay.</p>
+                                        <h3 className="text-2xl font-bold text-blue-900 mb-3">
+                                            {hasActiveFilters ? "No tuition fees match your filters" : "No tuition fees found"}
+                                        </h3>
+                                        <p className="text-blue-600 text-lg">
+                                            {hasActiveFilters
+                                                ? "Try adjusting your filter criteria to see more results."
+                                                : "You currently have no tuition fees to pay."}
+                                        </p>
+                                        {hasActiveFilters && (
+                                            <Button
+                                                onClick={handleClearFilters}
+                                                variant="outline"
+                                                className="mt-4 border-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                Clear Filters
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
@@ -957,8 +710,8 @@ export default function TuitionPage() {
                     <form onSubmit={handleFilterSubmit} className="space-y-8 mt-6">
                         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
                             <Label className="text-xl font-bold mb-4 block text-blue-900">Date Range</Label>
-                            <DateRangePicker
-                                value={filters.dateRange}
+                            <TuitionDateRangePicker
+                                value={draftFilters.dateRange}
                                 onChange={handleDateRangeChange}
                                 placeholder="Select date range"
                             />
@@ -976,7 +729,7 @@ export default function TuitionPage() {
                                         >
                                             <Checkbox
                                                 id={`status-${value}`}
-                                                checked={filters.paymentStatuses.includes(Number(value))}
+                                                checked={draftFilters.paymentStatuses.includes(Number(value))}
                                                 onCheckedChange={(checked) => handlePaymentStatusChange(Number(value), checked === true)}
                                                 className="border-2 border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                                             />
@@ -988,13 +741,25 @@ export default function TuitionPage() {
                             </div>
                         </div>
 
-                        <Button
-                            type="submit"
-                            size="lg"
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 text-lg py-6"
-                        >
-                            Apply Filters
-                        </Button>
+                        <div className="flex gap-3">
+                            <Button
+                                type="button"
+                                onClick={handleClearFilters}
+                                variant="outline"
+                                size="lg"
+                                className="flex-1 border-2 border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
+                            >
+                                <RefreshCw className="w-5 h-5 mr-2" />
+                                Clear All
+                            </Button>
+                            <Button
+                                type="submit"
+                                size="lg"
+                                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                            >
+                                Apply Filters
+                            </Button>
+                        </div>
                     </form>
                 </DialogContent>
             </Dialog>
