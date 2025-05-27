@@ -620,25 +620,25 @@ export const StaffSchedule = ({
                                                                         </div>
                                                                         <div className="flex flex-wrap gap-1">
                                                                             {slotsForDateAndShift.map((slot, idx) => (
-                                                                                <TooltipProvider key={idx}>
-                                                                                    <Tooltip>
-                                                                                        <TooltipTrigger asChild>
-                                                                                            <Badge
-                                                                                                variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
-                                                                                                className="cursor-pointer"
-                                                                                                onClick={() =>
-                                                                                                    slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
-                                                                                                }
-                                                                                            >
-                                                                                                {slot.room?.name}
-                                                                                            </Badge>
-                                                                                        </TooltipTrigger>
-                                                                                        <TooltipContent>
-                                                                                            <p>{slot.class?.name}</p>
-                                                                                            <p className="text-xs">{SlotStatusText[slot.status]}</p>
-                                                                                        </TooltipContent>
-                                                                                    </Tooltip>
-                                                                                </TooltipProvider>
+                                                                                    <TooltipProvider key={idx}>
+                                                                                        <Tooltip>
+                                                                                            <TooltipTrigger asChild>
+                                                                                                <Badge
+                                                                                                    variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
+                                                                                                    className="cursor-pointer"
+                                                                                                    onClick={() =>
+                                                                                                        slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
+                                                                                                    }
+                                                                                                >
+                                                                                                    {slot.room?.name}
+                                                                                                </Badge>
+                                                                                            </TooltipTrigger>
+                                                                                            <TooltipContent>
+                                                                                                <p>{slot.class?.name}</p>
+                                                                                                <p className="text-xs">{SlotStatusText[slot.status]}</p>
+                                                                                            </TooltipContent>
+                                                                                        </Tooltip>
+                                                                                    </TooltipProvider>
                                                                             ))}
                                                                         </div>
                                                                     </div>
