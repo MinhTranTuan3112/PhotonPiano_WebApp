@@ -15,13 +15,13 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { action } from '~/routes/enroll'
 import { toastWarning } from '~/lib/utils/toast-utils'
 
-type Props = {
+type EnrollDialogProps = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
     disabled?: boolean
 }
 
-export default function EnrollDialog({ isOpen, setIsOpen, disabled = false }: Props) {
+export default function EnrollDialog({ isOpen, setIsOpen, disabled = false }: EnrollDialogProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -34,14 +34,28 @@ export default function EnrollDialog({ isOpen, setIsOpen, disabled = false }: Pr
                             Hãy xác nhận các thông tin sau để tiến hành đăng ký.
                             </DialogDescription> */}
                 </DialogHeader>
-                <EnrollForm disabled={disabled}/>
+                <EnrollForm disabled={disabled} />
             </DialogContent>
         </Dialog>
     )
 }
 
+export function useEnrolLDialog({
+    disabled = false
+}: Pick<EnrollDialogProps, 'disabled'>) {
 
-function EnrollForm({ 
+    const [isOpen, setIsOpen] = useState(false);
+
+    const dialog = (<EnrollDialog isOpen={isOpen} setIsOpen={setIsOpen} disabled={disabled} />);
+
+    return {
+        handleOpen: () => setIsOpen(true),
+        dialog
+    }
+}
+
+
+function EnrollForm({
     disabled = false
 }: {
     disabled?: boolean
@@ -112,7 +126,7 @@ function EnrollForm({
                 per registration request
             </div>
             <div className='flex gap-4 items-start mb-3'>
-                <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} variant={'theme'}/>
+                <Checkbox checked={isAgreed} onCheckedChange={(e) => setIsAgreee(!!e)} variant={'theme'} />
                 <span className='text-sm'>I agree with <a className='underline font-bold' href='/'>terms and conditions</a>  Photon Piano center</span>
             </div>
             <RadioGroup defaultValue='vnpay'>
