@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { fetchSlots, fetchSlotById } from "~/lib/services/scheduler"

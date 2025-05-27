@@ -1075,7 +1075,7 @@ export default function TeacherClassDetailsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg max-w-4xl w-full max-h-[80vh] flex flex-col">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-red-600">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-amber-600">
                 <CircleX className="h-5 w-5" />
                 Import Validation Errors
               </h3>
@@ -1090,12 +1090,12 @@ export default function TeacherClassDetailsPage() {
               </Button>
             </div>
             <div className="p-4 overflow-auto flex-1">
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-md border border-red-200 dark:border-red-800 mb-4">
-                <h4 className="font-medium mb-2 text-red-800 dark:text-red-200 flex items-center gap-2">
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-md border border-amber-200 dark:border-amber-800 mb-4">
+                <h4 className="font-medium mb-2 text-amber-800 dark:text-amber-200 flex items-center gap-2">
                   <CircleX className="h-4 w-4" />
                   The following validation errors were found in your Excel file:
                 </h4>
-                <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
                   Please correct these errors and try uploading again.
                 </p>
               </div>
@@ -1145,14 +1145,14 @@ export default function TeacherClassDetailsPage() {
                       ...Array.from(groupedErrors.entries()).map(([studentName, errors]) => (
                         <div
                           key={studentName}
-                          className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                          className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
-                              <Users className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                              <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                             </div>
                             <div className="flex-1">
-                              <h5 className="font-semibold text-red-800 dark:text-red-200 mb-2 flex items-center gap-2">
+                              <h5 className="font-semibold text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
                                 Student: {studentName}
                                 <Badge variant="outline" className="text-xs">
                                   {errors.length} error{errors.length > 1 ? "s" : ""}
@@ -1161,7 +1161,7 @@ export default function TeacherClassDetailsPage() {
                               <ul className="space-y-2">
                                 {errors.map((error, index) => (
                                   <li key={index} className="flex items-start gap-2">
-                                    <CircleX className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+                                    <CircleX className="h-3 w-3 text-amber-500 mt-0.5 flex-shrink-0" />
                                     <span className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
                                       {error}
                                     </span>
@@ -1183,11 +1183,11 @@ export default function TeacherClassDetailsPage() {
                         .map((error, index) => (
                           <div
                             key={`ungrouped-${index}`}
-                            className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                            className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
-                                <CircleX className="h-3 w-3 text-red-600 dark:text-red-400" />
+                              <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                                <CircleX className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
@@ -1205,11 +1205,11 @@ export default function TeacherClassDetailsPage() {
                     result.push(
                       <div
                         key="raw-error"
-                        className="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg p-4 shadow-sm"
+                        className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="bg-red-100 dark:bg-red-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
-                            <CircleX className="h-3 w-3 text-red-600 dark:text-red-400" />
+                          <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                            <CircleX className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                           </div>
                           <div className="flex-1">
                             <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">{errorText}</p>
@@ -1247,6 +1247,7 @@ export default function TeacherClassDetailsPage() {
           </div>
         </div>
       )}
+
       {uploadConfirmationDialog}
       {/* Certificate Modal */}
       <CertificateModal
