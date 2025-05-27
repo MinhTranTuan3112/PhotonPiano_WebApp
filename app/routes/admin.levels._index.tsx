@@ -179,7 +179,7 @@ function LevelsContent() {
             setLevels={setLevels} />
 
         <div className="my-5 flex justify-center">
-            <Button type="button" onClick={handleOpenConfirmDialog}>
+            <Button type="button" onClick={handleOpenConfirmDialog} variant={'theme'}>
                 Save
             </Button>
         </div>

@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from "@remix-run/react"
-import { ArrowLeft, ArrowRight, CheckCircle2, Piano } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, Eye, Piano, PianoIcon } from "lucide-react"
 import type React from "react"
 import { Suspense, useState } from "react"
 import { Control, Controller } from "react-hook-form"
@@ -34,6 +34,7 @@ import { Progress } from "~/components/ui/progress"
 import RadioGroupCards from "~/components/ui/radio-group-card"
 import { useQuery } from "@tanstack/react-query"
 import { fetchLevels } from "~/lib/services/level"
+import { Badge } from "~/components/ui/badge"
 
 type Props = {}
 
@@ -729,14 +730,19 @@ function SelfEvaluateLevelSection({
 
     return <div className="space-y-4 flex flex-col gap-2">
         <Label className="flex flex-col gap-2 justify-center items-center">
-            <div className="text-xl font-bold">How do you evaluate your piano skills?</div>
-            <div className="text-muted-foreground leading-5 text-center">
-                If you self evaluate your piano skills higher than the first level <span className="font-bold" style={{
-                    color: levels[0].themeColor || 'black',
-                }}>&#40;{levels[0].name}&#41;</span>,
+            <div className="text-xl font-bold flex flex-row gap-1 items-center"><PianoIcon className="size-5" /> How do you evaluate your piano skills?</div>
+            <div className="leading-7">
+                Please self-evaluate your piano skills to help us understand your current level. <br />
+                Some piano levels <strong className="text-red-600 uppercase">requires piano entrance test participation &#40;including theoretical and practical test parts&#41;</strong>
+                {' '}
+                to confirm your piano skills and determine your suitable class arrangement. <br />
+
+                These levels are marked with <Badge className="text-red-600 bg-red-500/20 uppercase" variant={'outline'}>Entrance Test Required</Badge> <br />
+                Other levels which do not require entrance test participation are marked with {' '}
+                <Badge variant={'outline'} className="text-green-600 bg-green-500/20 uppercase">Entrance Test Not Required</Badge>
+
                 <br />
-                you will have to
-                participate in an piano entrance evaluation test to determine your piano level for suitable class arrangement.
+                You can click on the <Eye className="inline" /> &#40;eye icon&#41; next to each level to view more details information about the piano level.
             </div>
         </Label>
         <div className="flex justify-center">
@@ -749,8 +755,10 @@ function SelfEvaluateLevelSection({
                             return {
                                 label: <div style={{
                                     color: level.themeColor || 'black',
-                                }}>
+                                }} className="flex flex-row justify-between">
                                     {level.name}
+                                    {level.requiresEntranceTest ? <Badge className="text-red-600 bg-red-500/20 uppercase" variant={'outline'}>Entrance Test Required</Badge>
+                                        : <Badge variant={'outline'} className="text-green-600 bg-green-500/20 uppercase">Entrance Test Not Required</Badge>}
                                 </div>,
                                 value: level.id,
                                 description: level.description,

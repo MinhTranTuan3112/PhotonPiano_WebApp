@@ -1,9 +1,9 @@
 import { Class, ClassResponse } from "../class/class";
-import { StudentClassDetails, StudentClassWithClass } from "../class/student-class";
+import { StudentClassDetails } from "../class/student-class";
 import { EntranceTest } from "../entrance-test/entrance-test";
-import { EntranceTestStudent, EntranceTestStudentDetail } from "../entrance-test/entrance-test-student";
+import { EntranceTestStudentDetail } from "../entrance-test/entrance-test-student";
 import { FreeSlot } from "../free-slot/free-slot";
-import { LearnerSurveyWithAnswers, LearnerSurveyWithAnswersDetail } from "../survey/survey";
+import { LearnerSurveyWithAnswersDetail } from "../survey/survey";
 
 export type Account = {
     accountFirebaseId: string;
@@ -27,6 +27,7 @@ export type Account = {
     role: Role;
     wantToContinue?: boolean;
     selfEvaluatedLevelId?: string;
+    selfEvaluatedLevel?: Level;
 };
 
 export type AccountDetail = {
@@ -35,7 +36,6 @@ export type AccountDetail = {
     learnerSurveys: LearnerSurveyWithAnswersDetail[],
     entranceTestStudents: EntranceTestStudentDetail[],
     freeSlots: FreeSlot[]
-    selfEvaluatedLevel?: Level;
 } & Account
 
 export type TeacherDetail = {
@@ -76,6 +76,7 @@ export type Level = {
     minimumPracticalScore: number;
     nextLevelId?: string;
     themeColor?: string;
+    requiresEntranceTest: boolean;
 }
 
 export type CreateLevelRequest = Omit<Level, 'id'>

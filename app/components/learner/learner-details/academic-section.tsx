@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, GraduationCap } from 'lucide-react';
+import { BookOpen, CircleHelp, GraduationCap } from 'lucide-react';
 import { LevelBadge, StatusBadge } from '~/components/staffs/table/student-columns';
 import { Badge } from '~/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
@@ -9,6 +9,7 @@ import { AccountDetail, Level } from '~/lib/types/account/account';
 import { PianoLevelTimeline } from './piano-level-timeline';
 import { Separator } from '~/components/ui/separator';
 import NoInformation from '~/components/common/no-information';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip';
 
 type Props = {}
 
@@ -62,10 +63,36 @@ export default function AcademicSection({
                         <BookOpen className="mr-2 text-theme" /> Academic status
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className='flex flex-col gap-3 my-3'>
                     <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold">Status</span>
+                        <span className="text-base font-bold">Status</span>
                         <StatusBadge status={student.studentStatus || 0} />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                        <span className="text-base font-bold flex flex-row gap-1 items-center">
+                            Requires entrance test participation
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                                    </TooltipTrigger>
+                                    <TooltipContent className='font-normal'>
+                                        This learner have not yet confirmed the piano level through a piano entrance evaluation test.
+                                        <br />
+                                        To continue learning at Photon Piano,
+                                        {' '}
+                                        <strong>this learner will need to take part in a piano entrance test</strong> to confirm the level.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </span>
+                        <Badge
+                            className={`
+                                ${student.selfEvaluatedLevel?.requiresEntranceTest ? 'text-red-600' : 'text-green-600'}
+                                 uppercase ${student.selfEvaluatedLevel?.requiresEntranceTest ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                            {student.selfEvaluatedLevel?.requiresEntranceTest ? 'Required' : 'Not Required'}
+                        </Badge>
                     </div>
                 </CardContent>
             </Card>
