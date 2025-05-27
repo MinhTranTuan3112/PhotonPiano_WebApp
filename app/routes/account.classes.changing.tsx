@@ -56,6 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         statuses: [0],
         isPublic: true,
         idToken: idToken,
+        forClassChanging : true
     }
     const classPromise = fetchClasses({ ...query }).then((response) => {
         const classes: Class[] = response.data
@@ -198,7 +199,15 @@ export default function AccountClassChanging() {
 
     }
     // Function to check if registration is still open
-    const isRegistrationOpen = (deadline: SystemConfig, currentTime: string, currentClassStartDate: string) => {
+    const isRegistrationOpen = (deadline: SystemConfig, currentTime: string, currentClassStartDate: string, currentClass? : Class) => {
+        if (currentClass){
+            if (currentClass.status === 1){
+                return true;
+            } else if (currentClass.status === 2){
+                return false;
+            }
+        }
+
         if (!deadline || !deadline.configValue) return false
 
         const currentDate = new Date(currentTime)
@@ -432,42 +441,72 @@ export default function AccountClassChanging() {
                                 {(data) => (
                                     <Await resolve={classPromise}>
                                         {(classesData) => {
-                                            const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "")
+                                            const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "", data.currentClass)
                                             const deadlineDate = getDeadlineDate(data.currentClass?.startTime || "", deadline)
                                             return (
                                                 <>
                                                     {/* Deadline Notice */}
-                                                    {deadline && deadline.configValue && (
-                                                        <div
-                                                            className={`border-l-4 p-4 mb-6 rounded-r-lg ${registrationOpen ? "bg-sky-100 border-sky-500" : "bg-red-100 border-red-500"
-                                                                }`}
-                                                        >
-                                                            <div className="flex">
+                                                    {
+                                                        data.currentClass && data.currentClass.status == 0 ? (
+                                                            deadline && deadline.configValue && (
+                                                                <div
+                                                                    className={`border-l-4 p-4 mb-6 rounded-r-lg ${registrationOpen ? "bg-sky-100 border-sky-500" : "bg-red-100 border-red-500"
+                                                                        }`}
+                                                                >
+                                                                    <div className="flex my-8">
+                                                                        <div className="flex-shrink-0">
+                                                                            <TriangleAlert
+                                                                                className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="ml-3">
+                                                                            <p className={`text-sm ${registrationOpen ? "text-sky-700" : "text-red-700"}`}>
+                                                                                Registration deadline:{" "}
+                                                                                <span className="font-medium">
+                                                                                    {deadlineDate.toLocaleDateString("en-US", {
+                                                                                        year: "numeric",
+                                                                                        month: "long",
+                                                                                        day: "numeric",
+                                                                                        hour: "2-digit",
+                                                                                        minute: "2-digit",
+                                                                                    })}
+                                                                                </span>
+                                                                                {!registrationOpen && (
+                                                                                    <span className="block font-bold mt-1">Registration is now closed</span>
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        ) : data.currentClass && data.currentClass.status == 1 ? (
+                                                            <div className="flex my-8">
                                                                 <div className="flex-shrink-0">
                                                                     <TriangleAlert
-                                                                        className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
+                                                                        className={`h-5 w-5 text-sky-500`}
                                                                     />
                                                                 </div>
                                                                 <div className="ml-3">
-                                                                    <p className={`text-sm ${registrationOpen ? "text-sky-700" : "text-red-700"}`}>
-                                                                        Registration deadline:{" "}
-                                                                        <span className="font-medium">
-                                                                            {deadlineDate.toLocaleDateString("en-US", {
-                                                                                year: "numeric",
-                                                                                month: "long",
-                                                                                day: "numeric",
-                                                                                hour: "2-digit",
-                                                                                minute: "2-digit",
-                                                                            })}
-                                                                        </span>
-                                                                        {!registrationOpen && (
-                                                                            <span className="block font-bold mt-1">Registration is now closed</span>
-                                                                        )}
+                                                                    <p className={`text-sm text-sky-700"`}>
+                                                                        <span className="block font-bold mt-1">You can only change to class that have same amount of not started slots to your current class</span>
                                                                     </p>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        ) : (
+                                                            <div className="flex my-8">
+                                                                <div className="flex-shrink-0">
+                                                                    <TriangleAlert
+                                                                        className={`h-5 w-5 text-yellow-500`}
+                                                                    />
+                                                                </div>
+                                                                <div className="ml-3">
+                                                                    <p className={`text-sm text-yellow-700"`}>
+                                                                        <span className="block font-bold mt-1">You can not change to any class right now!</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    }
 
                                                     {/* Filters */}
                                                     <ClassFilters defaultKeyword={query.keyword} />
@@ -511,7 +550,7 @@ export default function AccountClassChanging() {
             </div>
             {loadingDialog}
             {confirmDialog}
-        </div>
+        </div >
     )
 }
 

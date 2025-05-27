@@ -13,6 +13,7 @@ export async function fetchClasses({
   statuses = [],
   isPublic,
   idToken,
+  forClassChanging,
 }: Partial<
   QueryPagedRequest & {
     levels: string[];
@@ -20,6 +21,7 @@ export async function fetchClasses({
     isPublic?: boolean;
     idToken: string;
     keyword?: string;
+    forClassChanging?: boolean;
   }
 >) {
   let url = `/classes?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}`;
@@ -38,6 +40,10 @@ export async function fetchClasses({
 
   if (isPublic) {
     url += `&is-public=${isPublic}`;
+  }
+
+  if (forClassChanging) {
+    url += `&for-class-changing=${forClassChanging}`;
   }
 
   if (keyword) {
