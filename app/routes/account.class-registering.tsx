@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "@remix-run/node"
-import { Await, Form, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react"
+import { Await, Form, Link, useFetcher, useLoaderData, useLocation, useNavigate } from "@remix-run/react"
 import { TriangleAlert, Calendar, User, Clock, Users, Shuffle, Key, Search, UserRoundPlus } from "lucide-react"
 import { Suspense, useState } from "react"
 import { useRemixForm } from "remix-hook-form"
@@ -436,6 +436,10 @@ export default function AccountClassRegistering() {
                         </div>
                       ) : (
                         <>
+                          <div className="my-2 flex gap-2 italic">
+                            <span>Can not find a suitable class? </span>
+                            <Link className="font-bold hover:underline" to="/account/free-slots">Tell us about your desired study schedule</Link>
+                          </div>
                           {/* Filters */}
                           <ClassFilters defaultKeyword={classesData.query.keyword} query={query} />
 

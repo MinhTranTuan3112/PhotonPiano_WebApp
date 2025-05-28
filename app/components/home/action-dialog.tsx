@@ -32,6 +32,19 @@ const ActionDialog = ({ account }: Props) => {
         return () => clearTimeout(showTimer); // Cleanup on unmount
     }, []);
 
+    const steps = [
+        { step: 1, text: "Complete your personal profile.", link: "/account/profile" },
+        { step: 2, text: "Tell us your available study times.", link: "/account/free-slots" },
+    ]
+
+    if (account.studentStatus === 1){
+        steps.push({ step: 3, text: "Track your entrance exam date.", link: "/account/my-exams" })
+    }
+
+    if (account.studentStatus === 3){
+        steps.push({ step: 3, text: "Register a class", link: "/account/class-registering" })
+    }
+
     return (
         <div className="fixed bottom-4 left-4 z-50">
             {/* Button with Hover Effect */}
@@ -82,11 +95,7 @@ const ActionDialog = ({ account }: Props) => {
 
                             {/* Step Animations */}
                             <div className="my-2 flex flex-col gap-8">
-                                {[
-                                    { step: 1, text: "Complete your personal profile.", link: "/account/profile" },
-                                    { step: 2, text: "Tell us your available study times.", link: "/account/free-slots" },
-                                    { step: 3, text: "Track your entrance exam date.", link: "/account/my-exams" }
-                                ].map((item, index) => (
+                                {steps.map((item, index) => (
                                     <motion.div
                                         key={item.step}
                                         className="flex gap-2 items-center"
@@ -94,21 +103,17 @@ const ActionDialog = ({ account }: Props) => {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.2 * (index + 1), duration: 0.4, ease: "easeOut" }}
                                     >
-                                        {
-                                            (index !== 3 || (index === 3 && account.studentStatus === 1)) && (
-                                                <>
-                                                    <div className="mb-1 flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm bg-black text-white">
-                                                        {item.step}
-                                                    </div>
-                                                    <span>
-                                                        {item.text}{" "}
-                                                        <Button className="font-bold" variant={'link'} onClick={() => navigate(item.link)}>
-                                                            Let's go!
-                                                        </Button>
-                                                    </span>
-                                                </>
-                                            )
-                                        }
+                                        <>
+                                            <div className="mb-1 flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm bg-black text-white">
+                                                {item.step}
+                                            </div>
+                                            <span>
+                                                {item.text}{" "}
+                                                <Button className="font-bold" variant={'link'} onClick={() => navigate(item.link)}>
+                                                    Let's go!
+                                                </Button>
+                                            </span>
+                                        </>
                                     </motion.div>
                                 ))}
                             </div>

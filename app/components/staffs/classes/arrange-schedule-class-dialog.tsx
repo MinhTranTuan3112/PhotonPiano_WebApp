@@ -34,13 +34,13 @@ type Props = {
 
 
 const daysOftheWeek = [
-    { label: "Thứ 2", value: "0" },
-    { label: "Thứ 3", value: "1" },
-    { label: "Thứ 4", value: "2" },
-    { label: "Thứ 5", value: "3" },
-    { label: "Thứ 6", value: "4" },
-    { label: "Thứ 7", value: "5" },
-    { label: "Chủ Nhật", value: "6" },
+    { label: "Monday", value: "0" },
+    { label: "Tuesday", value: "1" },
+    { label: "Wednesday", value: "2" },
+    { label: "Thursday", value: "3" },
+    { label: "Friday", value: "4" },
+    { label: "Saturday", value: "5" },
+    { label: "Sunday", value: "6" },
 ]
 
 
@@ -155,7 +155,7 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                                             <SelectContent>
                                                 {
                                                     SHIFT_TIME.map((shift, index) => (
-                                                        <SelectItem value={index.toString()} key={index}>Ca {index + 1} ({shift})</SelectItem>
+                                                        <SelectItem value={index.toString()} key={index}>Shift {index + 1} ({shift})</SelectItem>
                                                     ))
                                                 }
                                             </SelectContent>
