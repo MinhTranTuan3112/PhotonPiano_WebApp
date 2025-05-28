@@ -1,7 +1,7 @@
 import { Await, Form, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { SquareUserRound, Mail, Phone, Upload, Lock, GraduationCap, User, BookOpen, Pencil, Calendar, MapPin } from 'lucide-react'
+import { SquareUserRound, Mail, Phone, Upload, Lock, GraduationCap, User, BookOpen, Pencil, Calendar, MapPin, CircleHelp } from 'lucide-react'
 import { z } from 'zod'
 import { accountInfoSchema } from '~/lib/utils/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -35,6 +35,8 @@ import { fetchLevels } from '~/lib/services/level'
 import { PianoLevelTimeline } from '~/components/learner/learner-details/piano-level-timeline'
 import NoInformation from '~/components/common/no-information'
 import { Separator } from '~/components/ui/separator'
+import { Badge } from '~/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '~/components/ui/tooltip'
 
 type ProfileFormData = z.infer<typeof accountInfoSchema>;
 
@@ -610,7 +612,7 @@ function AcademicInfoSection() {
                             <span className="text-base font-bold">Current</span>
                             <LevelBadge level={account.level} />
                         </div>
-                        <Separator/>
+                        <Separator />
                         <div className="flex items-center justify-between">
                             <span className="text-base font-bold">Self-evaluated</span>
                             {account.selfEvaluatedLevelId ? <LevelBadge level={account.selfEvaluatedLevel} /> : <NoInformation />}
@@ -624,15 +626,41 @@ function AcademicInfoSection() {
                             <BookOpen className="mr-2 text-theme" /> Academic status
                         </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className='flex flex-col gap-3 my-3'>
                         <div className="flex items-center justify-between">
-                            <span className="text-lg font-medium">Status</span>
+                            <span className="text-base font-bold">Status</span>
                             <StatusBadge status={account.studentStatus || 0} />
+                        </div>
+                        <Separator />
+                        <div className="flex items-center justify-between">
+                            <span className="text-base font-bold flex flex-row gap-1 items-center">
+                                Requires entrance test participation
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <CircleHelp className='cursor-pointer size-4 text-gray-400' />
+                                        </TooltipTrigger>
+                                        <TooltipContent className='font-normal'>
+                                            If your self-evaluated piano level requires entrance test participation,
+                                            <br />
+                                            it means that you have not yet confirmed your level through a piano entrance evaluation test.
+                                            <br />
+                                            To continue learning at Photon Piano, <strong>you will need to take part in an entrance test</strong> to confirm your level.
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </span>
+                            <Badge
+                                className={`
+                                ${account.selfEvaluatedLevel?.requiresEntranceTest ? 'text-red-600' : 'text-green-600'}
+                                 uppercase ${account.selfEvaluatedLevel?.requiresEntranceTest ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                                {account.selfEvaluatedLevel?.requiresEntranceTest ? 'Required' : 'Not Required'}
+                            </Badge>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            
+
             <Card className='border-l-4 border-l-theme'>
                 <CardHeader>
                     <CardTitle className="text-lg">Continue learning</CardTitle>

@@ -63,6 +63,7 @@ type LoaderData = {
         numberActiveStudentInLevel?: number
         estimateDurationInWeeks?: number
         totalPrice?: number
+        requiresEntranceTest?: boolean
     }
     authData: {
         idToken?: string
@@ -389,22 +390,91 @@ export default function LevelDetails() {
                     }}
                 ></div>
                 <div className="relative container mx-auto h-full flex items-center z-10 px-4">
-                    <div className="max-w-3xl text-white">
-                        <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
-                            <Music size={16} className="text-green-300" />
-                            <span className="text-sm font-medium">Piano Level</span>
+                    <div className="flex items-center justify-between w-full">
+                        {/* Left side content */}
+                        <div className="max-w-3xl text-white flex-1">
+                            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                                <Music size={16} className="text-green-300" />
+                                <span className="text-sm font-medium">Piano Level</span>
+                            </div>
+
+                            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{levelData.name}</h1>
+
+                            <p className="text-lg text-gray-100 mb-6 max-w-2xl">{levelData.description}</p>
+
+                            <BadgeWithPopup
+                                skills={levelData.skillsEarned}
+                                visibleCount={4}
+                                className="mb-16 max-h-24"
+                                themeColor={levelData.themeColor || "#21c44d"}
+                            />
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">{levelData.name}</h1>
+                        {/* Right side piano illustration */}
+                        <div className="hidden lg:flex flex-1 justify-end items-center relative">
+                            <div className="relative">
+                                {/* Floating musical notes */}
+                                <div
+                                    className="absolute -top-8 -left-4 animate-bounce"
+                                    style={{ animationDelay: "0s", animationDuration: "3s" }}
+                                >
+                                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                                        <Music className="w-4 h-4 text-white" />
+                                    </div>
+                                </div>
+                                <div
+                                    className="absolute -top-12 left-12 animate-bounce"
+                                    style={{ animationDelay: "1s", animationDuration: "3s" }}
+                                >
+                                    <div className="w-4 h-4 bg-white/15 rounded-full flex items-center justify-center">
+                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div
+                                    className="absolute -top-6 left-24 animate-bounce"
+                                    style={{ animationDelay: "2s", animationDuration: "3s" }}
+                                >
+                                    <div className="w-5 h-5 bg-white/25 rounded-full flex items-center justify-center">
+                                        <Music className="w-3 h-3 text-white" />
+                                    </div>
+                                </div>
 
-                        <p className="text-lg text-gray-100 mb-6 max-w-2xl">{levelData.description}</p>
+                                {/* Piano keyboard */}
+                                <div className="relative bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-2xl">
+                                    <div className="flex items-end">
+                                        {/* White keys */}
+                                        {Array.from({ length: 14 }, (_, i) => (
+                                            <div
+                                                key={`white-${i}`}
+                                                className="w-8 h-32 bg-white border border-gray-200 rounded-b-md shadow-md hover:bg-gray-50 transition-colors cursor-pointer"
+                                                style={{
+                                                    marginRight: i === 6 ? "4px" : "1px",
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
 
-                        <BadgeWithPopup
-                            skills={levelData.skillsEarned}
-                            visibleCount={4}
-                            className="mb-16 max-h-24"
-                            themeColor={levelData.themeColor || "#21c44d"}
-                        />
+                                    {/* Black keys */}
+                                    <div className="absolute top-6 left-6 flex">
+                                        {[0, 1, 3, 4, 5, 7, 8, 10, 11, 12].map((position, i) => (
+                                            <div
+                                                key={`black-${i}`}
+                                                className="w-5 h-20 bg-gray-900 rounded-b-md shadow-lg hover:bg-gray-800 transition-colors cursor-pointer"
+                                                style={{
+                                                    position: "absolute",
+                                                    left: `${position * 32 + 20}px`,
+                                                    zIndex: 10,
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Decorative elements */}
+                                <div className="absolute -bottom-4 -right-2 w-16 h-16 bg-white/5 rounded-full blur-xl"></div>
+                                <div className="absolute -top-2 -right-4 w-12 h-12 bg-white/10 rounded-full blur-lg"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,7 +488,8 @@ export default function LevelDetails() {
                         accentColor={levelData.themeColor || "#21c44d"}
                     />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12 mb-12">
+                    {/* Existing three cards remain the same */}
                     <StatsCard
                         icon={<Calendar className="h-10 w-10 p-2 rounded-full bg-green-100 text-green-600" />}
                         title="Program Schedule"
@@ -452,6 +523,32 @@ export default function LevelDetails() {
                             },
                         ]}
                         accentColor={levelData.themeColor || "#21c44d"}
+                    />
+
+                    {/* New Entrance Test Card */}
+                    <StatsCard
+                        icon={
+                            levelData.requiresEntranceTest ? (
+                                <AlertCircle className="h-10 w-10 p-2 rounded-full bg-amber-100 text-amber-600" />
+                            ) : (
+                                <CheckCircle2 className="h-10 w-10 p-2 rounded-full bg-green-100 text-green-600" />
+                            )
+                        }
+                        title="Entrance Requirements"
+                        stats={[
+                            {
+                                label: 'Entrance Requirements',
+                                value: levelData.requiresEntranceTest ? <Badge variant={'outline'} className="text-red-600 bg-red-500/20">Required</Badge>
+                                    : <Badge variant={'outline'} className="text-green-600 bg-green-500/20">Not Required</Badge>,
+                                highlight: levelData.requiresEntranceTest,
+                            },
+                        ]}
+                        footer={
+                            levelData.requiresEntranceTest
+                                ? "You'll need to pass an entrance test before enrollment."
+                                : "No entrance test required for this level."
+                        }
+                        accentColor={levelData.requiresEntranceTest ? "#f59e0b" : levelData.themeColor || "#21c44d"}
                     />
                 </div>
 
@@ -739,6 +836,22 @@ export default function LevelDetails() {
                     <Card className="border-0 shadow-lg overflow-hidden">
                         <div className="h-1" style={{ backgroundColor: levelData.themeColor || "#21c44d" }}></div>
                         <CardContent className="p-8">
+                            {/* Entrance Test Alert (if required) */}
+                            {levelData.requiresEntranceTest && (
+                                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <h4 className="font-semibold text-amber-800 mb-1">Entrance Test Required</h4>
+                                            <p className="text-amber-700 text-sm">
+                                                This level requires passing an entrance test before enrollment. The test evaluates your current
+                                                piano skills and music theory knowledge to ensure you're ready for this level's curriculum.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <RequirementCard
                                     title="Minimum GPA"
@@ -764,6 +877,34 @@ export default function LevelDetails() {
                                     accentColor={levelData.themeColor || "#21c44d"}
                                 />
                             </div>
+
+                            {/* Additional entrance test details */}
+                            {levelData.requiresEntranceTest && (
+                                <div className="mt-6 pt-6 border-t border-gray-200">
+                                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-amber-600" />
+                                        Entrance Test Details
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4 text-gray-500" />
+                                            <span>Test Duration: 30-45 minutes</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <BookOpen className="h-4 w-4 text-gray-500" />
+                                            <span>Includes theory and practical components</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-4 w-4 text-gray-500" />
+                                            <span>One-on-one assessment with instructor</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle2 className="h-4 w-4 text-gray-500" />
+                                            <span>Results available within 24 hours</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -784,6 +925,11 @@ export default function LevelDetails() {
                         <p className="text-lg mb-8 max-w-2xl mx-auto">
                             Join our piano teaching center and develop your musical skills with expert guidance and a structured
                             curriculum designed for your success.
+                            {levelData.requiresEntranceTest && (
+                                <span className="block mt-2 text-yellow-200">
+                                    Note: This level requires passing an entrance test before enrollment.
+                                </span>
+                            )}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Button
@@ -792,7 +938,7 @@ export default function LevelDetails() {
                                 style={{ color: levelData.themeColor || "#21c44d" }}
                                 onClick={handleRegisterClick}
                             >
-                                {isLoggedIn ? "Go to Profile" : "Register"}
+                                {isLoggedIn ? "Go to Profile" : levelData.requiresEntranceTest ? "Take Entrance Test" : "Register"}
                             </Button>
                         </div>
                     </div>
@@ -803,9 +949,9 @@ export default function LevelDetails() {
 }
 
 // Component for stats cards
-interface StatItem {
-    label: string
-    value: string | number
+type StatItem = {
+    label: React.ReactNode;
+    value: React.ReactNode;
     highlight?: boolean
 }
 

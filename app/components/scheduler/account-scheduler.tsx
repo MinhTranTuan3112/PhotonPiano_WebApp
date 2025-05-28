@@ -62,8 +62,8 @@ const formatDateForAPI = (date: Date): string => {
     return `${year}-${month}-${day}`
 }
 
-const getVietnameseWeekday = (date: Date): string => {
-    const weekdays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+const getWeekDay = (date: Date): string => {
+    const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     return weekdays[date.getDay()]
 }
 
@@ -264,7 +264,7 @@ export const LearnerScheduler = ({
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-slate-900 flex items-center">
-                        <Music className="w-8 h-8 mr-2 text-blue-600" />
+                        <Music className="w-8 h-8 mr-2 text-theme" />
                         My Learning Schedule
                     </h1>
                 </div>
@@ -318,7 +318,7 @@ export const LearnerScheduler = ({
                             </Button>
 
                             <div className="text-sm font-medium text-slate-700 flex items-center">
-                                <Calendar className="mr-2 w-4 h-4 text-blue-600" />
+                                <Calendar className="mr-2 w-4 h-4 text-theme" />
                                 {formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}
                             </div>
 
@@ -350,8 +350,8 @@ export const LearnerScheduler = ({
                             <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-blue-600 hover:bg-blue-600">
-                                            <TableHead className="h-14 text-center text-primary-foreground font-semibold w-32">
+                                        <TableRow className="bg-theme hover:bg-theme/80">
+                                            <TableHead className="h-14 text-center text-primary-foreground font-semibold w-32 uppercase">
                                                 Shift
                                             </TableHead>
                                             {weekDates.map((date, i) => (
@@ -362,7 +362,7 @@ export const LearnerScheduler = ({
                                                         i < 6 ? "border-r border-primary-foreground/20" : "",
                                                     )}
                                                 >
-                                                    <div className="font-medium">{getVietnameseWeekday(date)}</div>
+                                                    <div className="font-medium">{getWeekDay(date)}</div>
                                                     <div className="text-xs opacity-90 mt-1">{formatDateForDisplay(date)}</div>
                                                 </TableHead>
                                             ))}
@@ -407,7 +407,7 @@ export const LearnerScheduler = ({
                             <div className="p-4">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-blue-600 hover:bg-blue-600">
+                                        <TableRow className="bg-theme hover:bg-theme/80">
                                             <TableHead className="text-primary-foreground">Date</TableHead>
                                             <TableHead className="text-primary-foreground">Time</TableHead>
                                             <TableHead className="text-primary-foreground">Room</TableHead>
@@ -486,7 +486,7 @@ export const LearnerScheduler = ({
                     <DialogContent className="bg-white shadow-xl rounded-2xl max-w-4xl p-6">
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                <CalendarClock className="w-6 h-6 text-blue-600" />
+                                <CalendarClock className="w-6 h-6 text-theme" />
                                 Lesson Details
                             </DialogTitle>
                         </DialogHeader>
@@ -495,49 +495,49 @@ export const LearnerScheduler = ({
                             <div className="space-y-6 mt-4">
                                 {/* Basic Information */}
                                 <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-blue-700">
+                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-theme">
                                         <BookOpen className="w-5 h-5" /> Lesson Information
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={18} className="text-blue-600" />
+                                            <Calendar size={18} className="text-theme" />
                                             <span>
                                                 <strong>Room:</strong> {selectedSlot.room?.name}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <BookOpen size={18} className="text-blue-600" />
+                                            <BookOpen size={18} className="text-theme" />
                                             <span>
                                                 <strong>Class:</strong> {selectedSlot.class?.name}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <User size={18} className="text-blue-600" />
+                                            <User size={18} className="text-theme" />
                                             <span>
                                                 <strong>Teacher:</strong> {selectedSlot.teacher?.fullName}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Users size={18} className="text-blue-600" />
+                                            <Users size={18} className="text-theme" />
                                             <span>
                                                 <strong>Students:</strong> {selectedSlot.numberOfStudents}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <CalendarClock size={18} className="text-blue-600" />
+                                            <CalendarClock size={18} className="text-theme" />
                                             <span>
                                                 <strong>Lesson:</strong> {selectedSlot.slotNo || "-"} of {selectedSlot.slotTotal || "-"}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Clock size={18} className="text-blue-600" />
+                                            <Clock size={18} className="text-theme" />
                                             <span>
                                                 <strong>Time:</strong> {shiftTimesMap[selectedSlot.shift]}
                                             </span>
                                         </div>
                                         {selectedSlot.slotNote && (
                                             <div className="flex items-center gap-2 sm:col-span-2">
-                                                <StickyNote size={18} className="text-blue-600" />
+                                                <StickyNote size={18} className="text-theme" />
                                                 <span>
                                                     <strong>Note:</strong> {selectedSlot.slotNote}
                                                 </span>
