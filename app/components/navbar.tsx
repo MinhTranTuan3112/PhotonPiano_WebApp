@@ -245,20 +245,59 @@ function LevelsDropdown() {
     //     </NavigationMenuItem>)
 
     return <NavigationMenuItem>
-        <NavigationMenuTrigger className={`uppercase font-bold `}>Academic piano levels</NavigationMenuTrigger>
+        <NavigationMenuTrigger className={`uppercase font-bold `}>Level Courses</NavigationMenuTrigger>
         <NavigationMenuContent>
             {isLoading ? (
                 <Loader2 className="w-full h-full animate-spin" />
             ) : isError ? (
-                <div className="text-red-500">Có lỗi xảy ra</div>
+                <div className="text-red-500">Error Occured</div>
             ) : (
-                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-                    {levels.map((level, index) => (
-                        <ListItem key={level.id} title={level.name} href={`levels/${level.id}`}>
-                            {level.description}
-                        </ListItem>
+                <div className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    {levels.map((level) => (
+                        <Link
+                            key={level.id}
+                            to={`levels/${level.id}`}
+                            className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            style={
+                                {
+                                    "--theme-color": level.themeColor,
+                                    focusRingColor: level.themeColor,
+                                } as React.CSSProperties
+                            }
+                        >
+                            {/* Theme color accent bar */}
+                            <div
+                                className="absolute top-0 left-0 w-full h-1 transition-all duration-200 group-hover:h-2"
+                                style={{ backgroundColor: level.themeColor }}
+                            />
+
+                            {/* Theme color dot indicator */}
+                            <div className="flex items-start gap-3">
+                                <div
+                                    className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
+                                    style={{ backgroundColor: level.themeColor }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <h3
+                                        className="font-semibold text-sm mb-1 transition-colors duration-200 group-hover:text-gray-900"
+                                        style={{ color: level.themeColor }}
+                                    >
+                                        {level.name}
+                                    </h3>
+                                    <p className="text-xs text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-200">
+                                        {level.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Subtle background pattern on hover */}
+                            <div
+                                className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-200 pointer-events-none"
+                                style={{ backgroundColor: level.themeColor }}
+                            />
+                        </Link>
                     ))}
-                </ul>
+                </div>
             )}
         </NavigationMenuContent>
     </NavigationMenuItem>

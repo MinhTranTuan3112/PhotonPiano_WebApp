@@ -56,7 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         statuses: [0],
         isPublic: true,
         idToken: idToken,
-        forClassChanging : true
+        forClassChanging: true
     }
     const classPromise = fetchClasses({ ...query }).then((response) => {
         const classes: Class[] = response.data
@@ -199,11 +199,11 @@ export default function AccountClassChanging() {
 
     }
     // Function to check if registration is still open
-    const isRegistrationOpen = (deadline: SystemConfig, currentTime: string, currentClassStartDate: string, currentClass? : Class) => {
-        if (currentClass){
-            if (currentClass.status === 1){
+    const isRegistrationOpen = (deadline: SystemConfig, currentTime: string, currentClassStartDate: string, currentClass?: Class) => {
+        if (currentClass) {
+            if (currentClass.status === 1) {
                 return true;
-            } else if (currentClass.status === 2){
+            } else if (currentClass.status === 2) {
                 return false;
             }
         }
@@ -453,7 +453,7 @@ export default function AccountClassChanging() {
                                                                     className={`border-l-4 p-4 mb-6 rounded-r-lg ${registrationOpen ? "bg-sky-100 border-sky-500" : "bg-red-100 border-red-500"
                                                                         }`}
                                                                 >
-                                                                    <div className="flex my-8">
+                                                                    <div className="flex">
                                                                         <div className="flex-shrink-0">
                                                                             <TriangleAlert
                                                                                 className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
@@ -480,29 +480,38 @@ export default function AccountClassChanging() {
                                                                 </div>
                                                             )
                                                         ) : data.currentClass && data.currentClass.status == 1 ? (
-                                                            <div className="flex my-8">
-                                                                <div className="flex-shrink-0">
-                                                                    <TriangleAlert
-                                                                        className={`h-5 w-5 text-sky-500`}
-                                                                    />
-                                                                </div>
-                                                                <div className="ml-3">
-                                                                    <p className={`text-sm text-sky-700"`}>
-                                                                        <span className="block font-bold mt-1">You can only change to class that have same amount of not started slots to your current class</span>
-                                                                    </p>
+                                                            <div
+                                                                className={`border-l-4 p-4 mb-6 rounded-r-lg bg-sky-100 border-sky-500`}
+                                                            >
+                                                                <div className="flex">
+                                                                    <div className="flex-shrink-0">
+                                                                        <TriangleAlert
+                                                                            className={`h-5 w-5 text-sky-500`}
+                                                                        />
+                                                                    </div>
+                                                                    <div className="ml-3">
+                                                                        <p className={`text-sm text-sky-700"`}>
+                                                                            <span className="block font-bold mt-1">You can only change to class that have same amount of not started slots to your current class</span>
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
+
                                                         ) : (
-                                                            <div className="flex my-8">
-                                                                <div className="flex-shrink-0">
-                                                                    <TriangleAlert
-                                                                        className={`h-5 w-5 text-yellow-500`}
-                                                                    />
-                                                                </div>
-                                                                <div className="ml-3">
-                                                                    <p className={`text-sm text-yellow-700"`}>
-                                                                        <span className="block font-bold mt-1">You can not change to any class right now!</span>
-                                                                    </p>
+                                                            <div
+                                                                className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
+                                                            >
+                                                                <div className="flex">
+                                                                    <div className="flex-shrink-0">
+                                                                        <TriangleAlert
+                                                                            className={`h-5 w-5 text-yellow-500`}
+                                                                        />
+                                                                    </div>
+                                                                    <div className="ml-3">
+                                                                        <p className={`text-sm text-yellow-700"`}>
+                                                                            <span className="block font-bold mt-1">You can not change to any class right now!</span>
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         )
