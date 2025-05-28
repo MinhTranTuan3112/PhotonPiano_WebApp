@@ -135,7 +135,7 @@ export default function BadgeWithPopup({
                             >
                                 <div className="flex flex-wrap gap-2">
                                     {hiddenSkills.map((skill, index) => (
-                                        <Badge key={index} className="text-sm py-1 px-2 bg-white/50 text-gray-800 border border-gray-200">
+                                        <Badge key={index} variant={'outline'} className="text-sm py-1 px-2 bg-white/50 text-gray-800 border border-gray-200">
                                             {skill}
                                         </Badge>
                                     ))}

@@ -1,9 +1,9 @@
-import { Link } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchArticles } from '~/lib/services/article';
 import { Article } from '~/lib/types/news/article';
 import { Skeleton } from '../ui/skeleton';
 import { EmptyNewsContent } from '~/routes/_main.news._index';
+import { Link } from '@remix-run/react';
 
 export function NewsSection() {
 
@@ -36,7 +36,7 @@ export function NewsSection() {
                             />
                             <div className="p-6">
                                 {/* <div className="text-sm text-indigo-600 mb-2">{event.category}</div> */}
-                                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{article.title}</h3>
+                                <Link className="font-semibold text-lg mb-2 line-clamp-2 hover:underline" to={`/news/${article.slug}`}>{article.title}</Link>
 
                                 <Link
                                     to={`/news/${article.slug}`}

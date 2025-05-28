@@ -537,8 +537,9 @@ export default function LevelDetails() {
                         title="Entrance Requirements"
                         stats={[
                             {
-                                label: "Entrance Test",
-                                value: levelData.requiresEntranceTest ? "Required" : "Not Required",
+                                label: 'Entrance Requirements',
+                                value: levelData.requiresEntranceTest ? <Badge variant={'outline'} className="text-red-600 bg-red-500/20">Required</Badge>
+                                    : <Badge variant={'outline'} className="text-green-600 bg-green-500/20">Not Required</Badge>,
                                 highlight: levelData.requiresEntranceTest,
                             },
                         ]}
@@ -948,9 +949,9 @@ export default function LevelDetails() {
 }
 
 // Component for stats cards
-interface StatItem {
-    label: string
-    value: string | number
+type StatItem = {
+    label: React.ReactNode;
+    value: React.ReactNode;
     highlight?: boolean
 }
 
