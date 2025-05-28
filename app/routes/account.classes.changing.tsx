@@ -43,7 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         return currentAccount
     })
 
-    const deadlinePromise = fetchSystemConfigByName({ name: DEADLINE_CHANGING_CLASS, idToken }).then((res) => {
+    const deadline = await fetchSystemConfigByName({ name: DEADLINE_CHANGING_CLASS, idToken }).then((res) => {
         return res.data as SystemConfig
     })
 
@@ -84,7 +84,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         classPromise,
         query,
         idToken,
-        deadlinePromise,
+        deadline,
         currentServerDateTime,
     }
 }
@@ -134,7 +134,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function AccountClassChanging() {
-    const { promise, deadlinePromise, currentServerDateTime, classPromise, query } = useLoaderData<typeof loader>()
+    const { promise, deadline, currentServerDateTime, classPromise, query } = useLoaderData<typeof loader>()
     const [changeClassData, setChangeClassData] = useState<{
         newClassId?: string,
         oldClassId?: string,
@@ -434,125 +434,123 @@ export default function AccountClassChanging() {
                     </div>
                 </div>
                 {/* Classes List */}
-                <Suspense fallback={<LoadingSkeleton />}>
-                    <Await resolve={deadlinePromise}>
-                        {(deadline) => (
-                            <Await resolve={promise}>
-                                {(data) => (
-                                    <Await resolve={classPromise}>
-                                        {(classesData) => {
-                                            const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "", data.currentClass)
-                                            const deadlineDate = getDeadlineDate(data.currentClass?.startTime || "", deadline)
-                                            return (
-                                                <>
-                                                    {/* Deadline Notice */}
-                                                    {
-                                                        data.currentClass && data.currentClass.status == 0 ? (
-                                                            deadline && deadline.configValue && (
-                                                                <div
-                                                                    className={`border-l-4 p-4 mb-6 rounded-r-lg ${registrationOpen ? "bg-sky-100 border-sky-500" : "bg-red-100 border-red-500"
-                                                                        }`}
-                                                                >
-                                                                    <div className="flex">
-                                                                        <div className="flex-shrink-0">
-                                                                            <TriangleAlert
-                                                                                className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
-                                                                            />
-                                                                        </div>
-                                                                        <div className="ml-3">
-                                                                            <p className={`text-sm ${registrationOpen ? "text-sky-700" : "text-red-700"}`}>
-                                                                                Registration deadline:{" "}
-                                                                                <span className="font-medium">
-                                                                                    {deadlineDate.toLocaleDateString("en-US", {
-                                                                                        year: "numeric",
-                                                                                        month: "long",
-                                                                                        day: "numeric",
-                                                                                        hour: "2-digit",
-                                                                                        minute: "2-digit",
-                                                                                    })}
-                                                                                </span>
-                                                                                {!registrationOpen && (
-                                                                                    <span className="block font-bold mt-1">Registration is now closed</span>
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        ) : data.currentClass && data.currentClass.status == 1 ? (
+                <Suspense fallback={<div>Loading account details...</div>}>
+                    <Await resolve={promise}>
+                        {(data) => (
+                            <Suspense fallback={<LoadingSkeleton />}>
+                                <Await resolve={classPromise}>
+                                    {(classesData) => {
+                                        const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "", data.currentClass)
+                                        const deadlineDate = getDeadlineDate(data.currentClass?.startTime || "", deadline)
+                                        return (
+                                            <>
+                                                {/* Deadline Notice */}
+                                                {
+                                                    data.currentClass && data.currentClass.status == 0 ? (
+                                                        deadline && deadline.configValue && (
                                                             <div
-                                                                className={`border-l-4 p-4 mb-6 rounded-r-lg bg-sky-100 border-sky-500`}
+                                                                className={`border-l-4 p-4 mb-6 rounded-r-lg ${registrationOpen ? "bg-sky-100 border-sky-500" : "bg-red-100 border-red-500"
+                                                                    }`}
                                                             >
                                                                 <div className="flex">
                                                                     <div className="flex-shrink-0">
                                                                         <TriangleAlert
-                                                                            className={`h-5 w-5 text-sky-500`}
+                                                                            className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
                                                                         />
                                                                     </div>
                                                                     <div className="ml-3">
-                                                                        <p className={`text-sm text-sky-700"`}>
-                                                                            <span className="block font-bold mt-1">You can only change to class that have same amount of not started slots to your current class</span>
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                        ) : (
-                                                            <div
-                                                                className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
-                                                            >
-                                                                <div className="flex">
-                                                                    <div className="flex-shrink-0">
-                                                                        <TriangleAlert
-                                                                            className={`h-5 w-5 text-yellow-500`}
-                                                                        />
-                                                                    </div>
-                                                                    <div className="ml-3">
-                                                                        <p className={`text-sm text-yellow-700"`}>
-                                                                            <span className="block font-bold mt-1">You can not change to any class right now!</span>
+                                                                        <p className={`text-sm ${registrationOpen ? "text-sky-700" : "text-red-700"}`}>
+                                                                            Registration deadline:{" "}
+                                                                            <span className="font-medium">
+                                                                                {deadlineDate.toLocaleDateString("en-US", {
+                                                                                    year: "numeric",
+                                                                                    month: "long",
+                                                                                    day: "numeric",
+                                                                                    hour: "2-digit",
+                                                                                    minute: "2-digit",
+                                                                                })}
+                                                                            </span>
+                                                                            {!registrationOpen && (
+                                                                                <span className="block font-bold mt-1">Registration is now closed</span>
+                                                                            )}
                                                                         </p>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         )
-                                                    }
-
-                                                    {/* Filters */}
-                                                    <ClassFilters defaultKeyword={query.keyword} />
-
-                                                    {/* Class List */}
-                                                    {classesData.classes.length > 0 ? (
-                                                        <div className="space-y-4 mt-8">
-                                                            {classesData.classes.map((classItem) => (
-                                                                <Form onSubmit={prepareSubmit} key={classItem.id}>
-                                                                    <input type="hidden" name="studentId" value={data.accountFirebaseId} />
-                                                                    <input type="hidden" name="oldClassId" value={data.currentClass?.id || ""} />
-                                                                    <input type="hidden" name="newClassId" value={classItem.id} />
-                                                                    <ClassCard
-                                                                        classItem={classItem}
-                                                                        currentAccount={data}
-                                                                        isOpen={registrationOpen}
+                                                    ) : data.currentClass && data.currentClass.status == 1 ? (
+                                                        <div
+                                                            className={`border-l-4 p-4 mb-6 rounded-r-lg bg-sky-100 border-sky-500`}
+                                                        >
+                                                            <div className="flex">
+                                                                <div className="flex-shrink-0">
+                                                                    <TriangleAlert
+                                                                        className={`h-5 w-5 text-sky-500`}
                                                                     />
-                                                                </Form>
-                                                            ))}
-
-                                                            {/* Pagination */}
-                                                            <div className="mt-6">
-                                                                <PaginationBar
-                                                                    currentPage={classesData.metadata.page}
-                                                                    totalPages={classesData.metadata.totalPages}
-                                                                />
+                                                                </div>
+                                                                <div className="ml-3">
+                                                                    <p className={`text-sm text-sky-700"`}>
+                                                                        <span className="block font-bold mt-1">You can only change to class that have same amount of not started slots to your current class</span>
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
+
                                                     ) : (
-                                                        <EmptyState />
-                                                    )}
-                                                </>
-                                            )
-                                        }}
-                                    </Await >
-                                )}
-                            </Await>
+                                                        <div
+                                                            className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
+                                                        >
+                                                            <div className="flex">
+                                                                <div className="flex-shrink-0">
+                                                                    <TriangleAlert
+                                                                        className={`h-5 w-5 text-yellow-500`}
+                                                                    />
+                                                                </div>
+                                                                <div className="ml-3">
+                                                                    <p className={`text-sm text-yellow-700"`}>
+                                                                        <span className="block font-bold mt-1">You can not change to any class right now!</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
+
+                                                {/* Filters */}
+                                                <ClassFilters defaultKeyword={query.keyword} />
+
+                                                {/* Class List */}
+                                                {classesData.classes.length > 0 ? (
+                                                    <div className="space-y-4 mt-8">
+                                                        {classesData.classes.map((classItem) => (
+                                                            <Form onSubmit={prepareSubmit} key={classItem.id}>
+                                                                <input type="hidden" name="studentId" value={data.accountFirebaseId} />
+                                                                <input type="hidden" name="oldClassId" value={data.currentClass?.id || ""} />
+                                                                <input type="hidden" name="newClassId" value={classItem.id} />
+                                                                <ClassCard
+                                                                    classItem={classItem}
+                                                                    currentAccount={data}
+                                                                    isOpen={registrationOpen}
+                                                                />
+                                                            </Form>
+                                                        ))}
+
+                                                        {/* Pagination */}
+                                                        <div className="mt-6">
+                                                            <PaginationBar
+                                                                currentPage={classesData.metadata.page}
+                                                                totalPages={classesData.metadata.totalPages}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <EmptyState />
+                                                )}
+                                            </>
+                                        )
+                                    }}
+                                </Await >
+                            </Suspense>
                         )}
                     </Await>
                 </Suspense>

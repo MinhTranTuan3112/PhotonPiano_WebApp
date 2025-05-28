@@ -47,7 +47,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     statuses: [0],
     isPublic: true,
     idToken: idToken,
-    forClassChanging : true
+    forClassChanging: true
   }
 
   // const classPromise = fetchClasses({ ...query }).then((response) => {
@@ -406,74 +406,76 @@ export default function AccountClassRegistering() {
         </div>
 
         {/* Classes List */}
-        <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
+        <Suspense fallback={<div>Loading account detail...</div>} key={JSON.stringify(query) + "account"}>
           <Await resolve={promise}>
             {(data) => (
-              <Await resolve={classPromise}>
-                {(classesData) => {
-                  // const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime)
-                  const currentClass = data.currentClass
-                  return (
-                    <>
-                      {/* Deadline Notice */}
-                      {((currentClass && currentClass.status !== 2) || data.studentStatus !== 3) ? (
-                        <div
-                          className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
-                        >
-                          <div className="flex">
-                            <div className="flex-shrink-0">
-                              <TriangleAlert
-                                className={`h-5 w-5 text-yellow-500`}
-                              />
-                            </div>
-                            <div className="ml-3">
-                              <p className={`text-sm text-yellow-700`}>
-                                You might not be able to register class now! Please complete on-going class or wait for entrance test result to be able to register new class!
-                                <br />Please contact support if you believe this is an error <a className="underline font-bold" href="/contact">Contact Support</a>
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="my-2 flex gap-2 italic">
-                            <span>Can not find a suitable class? </span>
-                            <Link className="font-bold hover:underline" to="/account/free-slots">Tell us about your desired study schedule</Link>
-                          </div>
-                          {/* Filters */}
-                          <ClassFilters defaultKeyword={classesData.query.keyword} query={query} />
-
-                          {/* Class List */}
-                          {classesData.classes.length > 0 ? (
-                            <div className="space-y-4 mt-8">
-                              {classesData.classes.map((classItem) => (
-                                <Form onSubmit={prepareSubmit} key={classItem.id}>
-                                  <input type="hidden" name="studentId" value={data.accountFirebaseId} />
-                                  <input type="hidden" name="classId" value={classItem.id} />
-                                  <ClassCard
-                                    classItem={classItem}
-                                    currentAccount={data}
-                                  />
-                                </Form>
-                              ))}
-
-                              {/* Pagination */}
-                              <div className="mt-6">
-                                <PaginationBar
-                                  currentPage={classesData.metadata.page}
-                                  totalPages={classesData.metadata.totalPages}
+              <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)+ "level"}>
+                <Await resolve={classPromise}>
+                  {(classesData) => {
+                    // const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime)
+                    const currentClass = data.currentClass
+                    return (
+                      <>
+                        {/* Deadline Notice */}
+                        {((currentClass && currentClass.status !== 2) || data.studentStatus !== 3) ? (
+                          <div
+                            className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
+                          >
+                            <div className="flex">
+                              <div className="flex-shrink-0">
+                                <TriangleAlert
+                                  className={`h-5 w-5 text-yellow-500`}
                                 />
                               </div>
+                              <div className="ml-3">
+                                <p className={`text-sm text-yellow-700`}>
+                                  You might not be able to register class now! Please complete on-going class or wait for entrance test result to be able to register new class!
+                                  <br />Please contact support if you believe this is an error <a className="underline font-bold" href="/contact">Contact Support</a>
+                                </p>
+                              </div>
                             </div>
-                          ) : (
-                            <EmptyState />
-                          )}
-                        </>
-                      )}
-                    </>
-                  )
-                }}
-              </Await>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="my-2 flex gap-2 italic">
+                              <span>Can not find a suitable class? </span>
+                              <Link className="font-bold hover:underline" to="/account/free-slots">Tell us about your desired study schedule</Link>
+                            </div>
+                            {/* Filters */}
+                            <ClassFilters defaultKeyword={classesData.query.keyword} query={query} />
+
+                            {/* Class List */}
+                            {classesData.classes.length > 0 ? (
+                              <div className="space-y-4 mt-8">
+                                {classesData.classes.map((classItem) => (
+                                  <Form onSubmit={prepareSubmit} key={classItem.id}>
+                                    <input type="hidden" name="studentId" value={data.accountFirebaseId} />
+                                    <input type="hidden" name="classId" value={classItem.id} />
+                                    <ClassCard
+                                      classItem={classItem}
+                                      currentAccount={data}
+                                    />
+                                  </Form>
+                                ))}
+
+                                {/* Pagination */}
+                                <div className="mt-6">
+                                  <PaginationBar
+                                    currentPage={classesData.metadata.page}
+                                    totalPages={classesData.metadata.totalPages}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <EmptyState />
+                            )}
+                          </>
+                        )}
+                      </>
+                    )
+                  }}
+                </Await>
+              </Suspense>
             )}
           </Await>
         </Suspense>
