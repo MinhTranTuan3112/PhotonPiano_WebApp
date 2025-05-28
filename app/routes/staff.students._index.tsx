@@ -7,6 +7,7 @@ import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
+import LearnerStatusAnnotation from '~/components/common/learner-status-annotation';
 import { LevelBadge, StatusBadge, studentColumns } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
@@ -230,6 +231,7 @@ export default function StaffStudentsPage({ }: Props) {
           )}
         </Await>
       </Suspense>
+      <LearnerStatusAnnotation />
     </div>
   )
 }
@@ -267,7 +269,7 @@ export function ErrorBoundary() {
           to={pathname ? `${pathname}${search}` : '/'}
           replace={true}
           reloadDocument={false}>
-          <RotateCcw /> Thử lại
+          <RotateCcw /> Retry
         </Link>
       </div>
     </article>
