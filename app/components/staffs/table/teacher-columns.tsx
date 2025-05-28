@@ -14,9 +14,10 @@ import { useState } from "react";
 import ArrangeDialog from "~/components/entrance-tests/arrange-dialog";
 import Image from "~/components/ui/image";
 import useLoadingDialog from "~/hooks/use-loading-dialog";
-import { useFetcher, useSearchParams } from "@remix-run/react";
+import { Link, useFetcher, useSearchParams } from "@remix-run/react";
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog";
 import { ActionResult } from "~/lib/types/action-result";
+import NoInformation from "~/components/common/no-information";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -54,7 +55,9 @@ export const teacherColumns: ColumnDef<Account>[] = [
         accessorKey: 'Name',
         header: 'Teacher Name',
         cell: ({ row }) => {
-            return <div>{row.original.fullName || row.original.userName}</div>
+            return <div>
+                <Link to={`/staff/teachers/${row.original.accountFirebaseId}`} className="hover:underline font-bold">{row.original.fullName || row.original.userName}</Link>
+            </div>
         }
     },
     {
@@ -68,7 +71,7 @@ export const teacherColumns: ColumnDef<Account>[] = [
         accessorKey: 'Phone',
         header: () => <div className="flex flex-row gap-1 items-center"><Phone /> Phone</div>,
         cell: ({ row }) => {
-            return <div>{row.original.phone}</div>
+            return <div className="text-left">{row.original.phone || <NoInformation />}</div>
         }
     },
     {
@@ -141,10 +144,10 @@ function ActionsDropdown({ table, accountId, status }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/teachers/${accountId}`}>
                     <User /> View Info
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"  onClick={handleOpenToggleDialog}>
+                <DropdownMenuItem className="cursor-pointer" onClick={handleOpenToggleDialog}>
                     {
                         status === 0 ? (
-                            <div className="text-red-600  flex gap-2"> 
+                            <div className="text-red-600  flex gap-2">
                                 <BanIcon /> Disable
                             </div>
                         ) : (

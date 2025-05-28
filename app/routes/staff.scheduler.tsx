@@ -13,6 +13,7 @@ import { Skeleton } from "~/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table"
 import { Music, Calendar } from "lucide-react"
 import { Role } from "~/lib/types/account/account"
+import SlotStatusAnnotation from "~/components/common/slot-status-annotation"
 
 type Props = {}
 
@@ -179,18 +180,23 @@ export default function StaffScheduler({ }: Props) {
         <Suspense fallback={<SchedulerSkeleton />}>
             <Await resolve={data.slots}>
                 {(slots) => (
-                    <StaffSchedule
-                        currentAccount={data.currentAccount}
-                        idToken={data.idToken}
-                        initialEndDate={data.endDate}
-                        initialStartDate={data.startDate}
-                        initialSlots={slots}
-                        initialYear={data.year}
-                        initialWeekNumber={data.weekNumber}
-                        classId={data.classId || undefined}
-                        className={data.className || undefined}
-                        role={data.role}
-                    />
+                    <>
+                        <StaffSchedule
+                            currentAccount={data.currentAccount}
+                            idToken={data.idToken}
+                            initialEndDate={data.endDate}
+                            initialStartDate={data.startDate}
+                            initialSlots={slots}
+                            initialYear={data.year}
+                            initialWeekNumber={data.weekNumber}
+                            classId={data.classId || undefined}
+                            className={data.className || undefined}
+                            role={data.role}
+                        />
+                        <div className="px-7">
+                            <SlotStatusAnnotation />
+                        </div>
+                    </>
                 )}
             </Await>
         </Suspense>

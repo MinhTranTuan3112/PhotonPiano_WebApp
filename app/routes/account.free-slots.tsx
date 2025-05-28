@@ -171,6 +171,19 @@ export default function AccountFreeSlots() {
 
             </div>
 
+            <div className="flex justify-end my-4">
+                <div className="flex items-center gap-4 text-sm text-neutral-600">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-3 w-3 rounded-full bg-theme"></span>
+                        <span>Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block h-3 w-3 rounded-full bg-neutral-200"></span>
+                        <span>Unavailable</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="mt-6 text-center">
                 <Button onClick={handleOpenModal} className="w-64 py-2 text-white font-bold rounded-lg uppercase"
                     variant={'theme'}>Save</Button>

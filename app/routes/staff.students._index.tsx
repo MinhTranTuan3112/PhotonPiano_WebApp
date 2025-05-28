@@ -7,7 +7,7 @@ import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { LevelBadge, studentColumns } from '~/components/staffs/table/student-columns';
+import { LevelBadge, StatusBadge, studentColumns } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -107,7 +107,7 @@ const levelOptions = LEVEL.map((level, index) => {
 
 const studentStatusOptions = STUDENT_STATUS.map((status, index) => {
   return {
-    label: status,
+    label: <StatusBadge status={index} key={status} />,
     value: index.toString(),
     icon: undefined
   }
@@ -218,7 +218,7 @@ export default function StaffStudentsPage({ }: Props) {
         </Link>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
-        <Await resolve={promise} >
+        <Await resolve={promise}>
           {({ accountsPromise, metadata }) => (
             <Await resolve={accountsPromise}>
               <GenericDataTable

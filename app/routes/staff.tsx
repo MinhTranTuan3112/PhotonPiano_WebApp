@@ -24,9 +24,9 @@ import { requireAuth } from "~/lib/utils/auth";
 
 export async function loader({ request }: LoaderFunctionArgs) {
 
-  const { accountId } = await requireAuth(request);
-  
-  return {accountId}
+    const { accountId } = await requireAuth(request);
+
+    return { accountId }
 }
 function getBreadcrumbPageName({ pathname }: {
     pathname: string,
@@ -92,6 +92,24 @@ function getBreadcrumbPageName({ pathname }: {
                 }
             ]
             break;
+        case pathname.startsWith('/staff/teachers'):
+            const teacherParam = pathname.replace('/staff/teachers', "");
+            otherNavItems = [
+                {
+                    name: "Teachers",
+                    url: '/staff/teachers',
+                    isCurrentPage: teacherParam.length === 0
+                }
+            ]
+
+            if (teacherParam.length > 1) {
+                otherNavItems.push({
+                    name: "Teacher details",
+                    url: pathname,
+                    isCurrentPage: true
+                })
+            }
+            break;
         case pathname.startsWith('/staff/students'):
             const learnerParam = pathname.replace('/staff/students', "");
             otherNavItems = [
@@ -120,7 +138,7 @@ function getBreadcrumbPageName({ pathname }: {
                     isCurrentPage: classParam.length === 0
                 }
             ]
-    
+
 
             if (classParam.length > 1) {
                 otherNavItems.push({
@@ -131,7 +149,7 @@ function getBreadcrumbPageName({ pathname }: {
             }
             break;
 
-            
+
         case pathname === '/staff/applications':
             otherNavItems = [
                 {
@@ -235,7 +253,7 @@ function getBreadcrumbPageName({ pathname }: {
 export default function StaffLayout() {
 
     const { pathname } = useLocation();
-    const {accountId} = useLoaderData<typeof loader>()
+    const { accountId } = useLoaderData<typeof loader>()
 
     return (
         <SidebarProvider>

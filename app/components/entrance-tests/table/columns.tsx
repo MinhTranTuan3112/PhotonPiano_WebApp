@@ -17,10 +17,10 @@ import { toastWarning } from "~/lib/utils/toast-utils";
 
 const getStatusStyle = (status: number) => {
     switch (status) {
-        case 0: return "text-green-500 font-semibold";
-        case 1: return "text-blue-500 font-semibold";
-        case 2: return "text-gray-400 font-semibold";
-        case 3: return "text-gray-400 font-semibold";
+        case 0: return "text-green-500 bg-green-500/20 font-semibold";
+        case 1: return "text-blue-500 bg-blue-500/20 font-semibold";
+        case 2: return "text-gray-500 bg-gray-500/20 font-semibold";
+        case 3: return "text-gray-500 bg-green-500/20 font-semibold";
         default: return "text-black font-semibold";
     }
 };
@@ -30,6 +30,7 @@ export function TestStatusBadge({ status }: {
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{ENTRANCE_TEST_STATUSES[status]}</Badge>
 }
+
 export const columns: ColumnDef<EntranceTest>[] = [
     {
         id: "select",
