@@ -1,14 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react';
+import { Await, Form, isRouteErrorResponse, Link, useLoaderData, useLocation, useRouteError, useSearchParams } from '@remix-run/react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, CalendarSync, RotateCcw, Loader2, Users } from 'lucide-react';
+import { Search, RotateCcw, Users } from 'lucide-react';
 import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { studentColumns } from '~/components/staffs/table/student-columns';
+import { LevelBadge } from '~/components/staffs/table/student-columns';
 import { teacherColumns } from '~/components/staffs/table/teacher-columns';
+import { Badge } from '~/components/ui/badge';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -19,7 +20,6 @@ import { fetchLevels } from '~/lib/services/level';
 import { Account, Level, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
-import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
@@ -101,11 +101,11 @@ const resolver = zodResolver(searchSchema);
 
 const statusOptions = [
   {
-    label: "Active",
+    label: <Badge variant={'outline'} className='uppercase text-green-500 font-semibold'>Active</Badge>,
     value: "0"
   },
   {
-    label: "Inactive",
+    label: <Badge variant={'outline'} className='uppercase text-red-500 font-semibold'>Inactive</Badge>,
     value: "1"
   },
 ]
@@ -137,7 +137,7 @@ function SearchForm() {
 
   const levelOptions = levels.map((level, index) => {
     return {
-      label: level.name,
+      label: <LevelBadge level={level} key={level.id} />,
       value: level.id.toString(),
       icon: undefined
     }
@@ -189,7 +189,6 @@ function SearchForm() {
 }
 
 export default function StaffTeachersPage({ }: Props) {
-  const navigate = useNavigate()
   const { promise, query } = useLoaderData<typeof loader>();
 
   return (
@@ -228,7 +227,6 @@ function LoadingSkeleton() {
 }
 
 export function ErrorBoundary() {
-  const navigate = useNavigate()
   const error = useRouteError();
 
   const { pathname, search } = useLocation();

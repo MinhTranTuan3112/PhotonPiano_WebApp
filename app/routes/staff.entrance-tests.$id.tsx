@@ -40,6 +40,7 @@ import { toastWarning } from '~/lib/utils/toast-utils'
 import { ActionResult } from '~/lib/types/action-result'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import NoInformation from '~/components/common/no-information'
+import TestStatusAnnotation from '~/components/common/test-status-annotation'
 
 type Props = {}
 
@@ -252,7 +253,7 @@ export function EntranceTestDetailsContent({
     return <>
         <div className="flex flex-row justify-between items-center w-full">
             <div className="">
-                <h1 className="text-xl font-bold text-theme flex flex-row gap-1 items-center"><Piano className='size-5'/> Piano test details information</h1>
+                <h1 className="text-xl font-bold text-theme flex flex-row gap-1 items-center"><Piano className='size-5' /> Piano test details information</h1>
                 <p className='text-sm mb-4 text-theme/60'>
                     Manage information about the time, exam room and score table, list of learners.
                 </p>
@@ -286,6 +287,7 @@ export function EntranceTestDetailsContent({
             </TabsContent>
         </Tabs>
         {role === Role.Staff && <DeleteEntranceTestSection entranceTest={entranceTest} />}
+        <TestStatusAnnotation />
     </>
 }
 

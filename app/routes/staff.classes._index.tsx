@@ -7,7 +7,7 @@ import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import AddClassDialog from '~/components/staffs/classes/add-class-dialog';
-import { classColums } from '~/components/staffs/table/class-columns';
+import { classColums, ClassStatusBadge } from '~/components/staffs/table/class-columns';
 import { LevelBadge } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
@@ -125,7 +125,7 @@ function SearchForm({ levelPromise }: { levelPromise: Promise<Level[]> }) {
           name='statuses'
           control={control}
           render={({ field: { onChange, onBlur, value, ref } }) => (
-            <MultiSelect options={CLASS_STATUS.map((status, index) => ({ label: status, value: index.toString() }))}
+            <MultiSelect options={CLASS_STATUS.map((status, index) => ({ label: <ClassStatusBadge status={index} key={status}/>, value: index.toString() }))}
               value={value}
               defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('statuses') })}
               placeholder='Status'

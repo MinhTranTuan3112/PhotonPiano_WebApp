@@ -37,7 +37,8 @@ function LevelBadge({ level }: {
             color: level.themeColor
         }}>{level.name.split('(')[0]}</Badge>
 }
-function StatusBadge({ status }: {
+
+export function ClassStatusBadge({ status }: {
     status: number
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{CLASS_STATUS[status]}</Badge>
@@ -121,7 +122,7 @@ export const classColums: ColumnDef<ClassResponse>[] = [
         accessorKey: 'Status',
         header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
         cell: ({ row }) => {
-            return <StatusBadge status={row.original.status} />
+            return <ClassStatusBadge status={row.original.status} />
         }
     },
     {
