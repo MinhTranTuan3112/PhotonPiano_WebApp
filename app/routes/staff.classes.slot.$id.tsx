@@ -33,15 +33,22 @@ import { toastWarning } from '~/lib/utils/toast-utils';
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
     const { idToken, role } = await requireAuth(request);
-    if (role !== 4) return redirect('/');
-    if (!params.id) return redirect('/staff/classes');
+    if (role !== 4) {
+        return redirect('/');
+    }
+
+    if (!params.id) {
+        return redirect('/staff/classes');
+    }
+
+    const id = params.id as string;
 
     const slotPromise = fetchSlotById(params.id, idToken).then((response) => {
         const slot: SlotDetail = response.data;
         return { slot };
     });
 
-    return { slotPromise, idToken };
+    return { slotPromise, idToken, id };
 }
 
 export const addSlotSchema = z.object({
@@ -114,7 +121,7 @@ function AttendanceDisplay({ attendance }: { attendance: number }) {
 }
 
 export default function StaffClassSlotDetail() {
-    const { slotPromise, idToken } = useLoaderData<typeof loader>();
+    const { slotPromise, idToken, id } = useLoaderData<typeof loader>();
 
     return (
         <div className="min-h-screen bg-neutral-50 py-8">
@@ -127,7 +134,7 @@ export default function StaffClassSlotDetail() {
                             </div>
                         }
                     >
-                        <Await resolve={slotPromise}>
+                        <Await resolve={slotPromise} key={id}>
                             {(data) => <SlotDetailComponent slot={data.slot} idToken={idToken} />}
                         </Await>
                     </Suspense>

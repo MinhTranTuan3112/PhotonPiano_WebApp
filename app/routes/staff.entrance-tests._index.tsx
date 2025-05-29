@@ -2,6 +2,7 @@ import { LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { Await, isRouteErrorResponse, Link, useLoaderData, useLocation, useNavigate, useRouteError, useSearchParams } from '@remix-run/react'
 import { CirclePlus, Music2, RotateCcw } from 'lucide-react'
 import { Suspense } from 'react'
+import TestStatusAnnotation from '~/components/common/test-status-annotation'
 import SearchForm from '~/components/entrance-tests/search-form'
 import { columns } from '~/components/entrance-tests/table/columns'
 import { Button, buttonVariants } from '~/components/ui/button'
@@ -104,7 +105,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     <p className="text-sm text-sky-600">List of tests in the center.</p>
                 </div>
             </div>
-            <SearchForm searchParams={searchParams} role={Role.Staff}/>
+            <SearchForm searchParams={searchParams} role={Role.Staff} />
             <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
                 <Await resolve={promise}>
                     {({ entranceTestsPromise, metadata }) => (
@@ -121,6 +122,7 @@ export default function StaffEntranceTestsPage({ }: Props) {
                     )}
                 </Await>
             </Suspense>
+            <TestStatusAnnotation />
         </article>
     )
 }

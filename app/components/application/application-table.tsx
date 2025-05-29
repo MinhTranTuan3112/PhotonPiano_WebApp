@@ -23,13 +23,21 @@ import { toastWarning } from '~/lib/utils/toast-utils';
 
 const getStatusStyle = (status: ApplicationStatus) => {
     switch (status) {
-        case ApplicationStatus.Pending: return "text-gray-500 font-semibold";
-        case ApplicationStatus.Approved: return "text-green-500 font-semibold";
-        case ApplicationStatus.Rejected: return "text-red-500 font-semibold";
-        case ApplicationStatus.Cancelled: return "text-red-400 font-semibold";
+        case ApplicationStatus.Pending: return "text-gray-600 bg-gray-500/20 font-semibold";
+        case ApplicationStatus.Approved: return "text-green-600 bg-green-500/20 font-semibold";
+        case ApplicationStatus.Rejected: return "text-red-600 bg-red-500/20 font-semibold";
+        case ApplicationStatus.Cancelled: return "text-red-500 bg-red-400/20 font-semibold";
         default: return "text-black font-semibold";
     }
 };
+
+export function ApplicationStatusBadge({ status }: {
+    status: ApplicationStatus
+}) {
+    return <Badge variant={'outline'} className={`uppercase ${getStatusStyle(status)}`}>
+        {APPLICATION_STATUS[status]}
+    </Badge>
+}
 
 export const columns: ColumnDef<Application>[] = [
     {
@@ -85,12 +93,7 @@ export const columns: ColumnDef<Application>[] = [
         accessorKey: 'Status',
         header: 'Status',
         cell: ({ row }) => {
-            return <div>
-                <Badge variant={'outline'} className={getStatusStyle(row.original.status)}>
-                    {APPLICATION_STATUS[row.original.status]}
-                </Badge>
-                
-            </div>
+            return <ApplicationStatusBadge status={row.original.status} />
         }
     },
     {

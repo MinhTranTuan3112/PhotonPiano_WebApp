@@ -160,8 +160,7 @@ function TestRegistrationSection({ }: {
 
   const { currentAccount } = useAuth();
 
-  const isDisabled = currentAccount?.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement
-    && currentAccount?.studentStatus !== StudentStatus.DropOut;
+  const isDisabled = currentAccount?.studentStatus !== StudentStatus.Unregistered;
 
   const { handleOpen, dialog: enrollDialog } = useEnrolLDialog({
     disabled: isDisabled

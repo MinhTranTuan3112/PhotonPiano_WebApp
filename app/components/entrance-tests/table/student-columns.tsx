@@ -1,6 +1,6 @@
-import { CellContext, ColumnDef } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "~/components/ui/checkbox";
-import { MapPin, CalendarClock, Clock, MoreHorizontal, Trash2, Pencil, Eye, Mail, Phone, User } from 'lucide-react'
+import { MoreHorizontal, Trash2, User } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { EntranceTestStudentWithResults } from "~/lib/types/entrance-test/entrance-test-student";
@@ -73,7 +73,7 @@ export const studentColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
                             <Pencil /> Chỉnh sửa điểm số
                         </DropdownMenuItem> */}
                         <DropdownMenuItem className="text-red-600 cursor-pointer">
-                            <Trash2 /> Xóa khỏi ca thi
+                            <Trash2 /> Remove from test
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

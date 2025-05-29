@@ -7,7 +7,8 @@ import { Suspense } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
-import { LevelBadge, studentColumns } from '~/components/staffs/table/student-columns';
+import LearnerStatusAnnotation from '~/components/common/learner-status-annotation';
+import { LevelBadge, StatusBadge, studentColumns } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -107,7 +108,7 @@ const levelOptions = LEVEL.map((level, index) => {
 
 const studentStatusOptions = STUDENT_STATUS.map((status, index) => {
   return {
-    label: status,
+    label: <StatusBadge status={index} key={status} />,
     value: index.toString(),
     icon: undefined
   }
@@ -218,7 +219,7 @@ export default function StaffStudentsPage({ }: Props) {
         </Link>
       </div>
       <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)}>
-        <Await resolve={promise} >
+        <Await resolve={promise}>
           {({ accountsPromise, metadata }) => (
             <Await resolve={accountsPromise}>
               <GenericDataTable
@@ -230,6 +231,7 @@ export default function StaffStudentsPage({ }: Props) {
           )}
         </Await>
       </Suspense>
+      <LearnerStatusAnnotation />
     </div>
   )
 }
@@ -267,7 +269,7 @@ export function ErrorBoundary() {
           to={pathname ? `${pathname}${search}` : '/'}
           replace={true}
           reloadDocument={false}>
-          <RotateCcw /> Thử lại
+          <RotateCcw /> Retry
         </Link>
       </div>
     </article>
