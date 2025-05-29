@@ -1,40 +1,38 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import { addDays, format, parseISO, subDays } from "date-fns";
-import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Calendar } from "~/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "~/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { fetchSlots } from "~/lib/services/scheduler";
-import { Shift, SlotDetail, SlotStatus } from "~/lib/types/Scheduler/slot";
-import { Role } from "~/lib/types/account/account";
-import { requireAuth } from "~/lib/utils/auth";
-import { fetchDeadlineSchedulerSystemConfig, fetchSystemConfigServerTime } from "~/lib/services/system-config";
-import { SystemConfig } from "~/lib/types/systemconfig/systemConfig";
+"use client"
+
+import type { LoaderFunctionArgs } from "@remix-run/node"
+import { redirect } from "@remix-run/node"
+import { useLoaderData, useNavigate } from "@remix-run/react"
+import { addDays, format, parseISO, subDays } from "date-fns"
+import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { useState } from "react"
+import { Button } from "~/components/ui/button"
+import { Calendar } from "~/components/ui/calendar"
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
+import { Input } from "~/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select"
+import { fetchSlots } from "~/lib/services/scheduler"
+import { Shift, type SlotDetail, SlotStatus } from "~/lib/types/Scheduler/slot"
+import { Role } from "~/lib/types/account/account"
+import { requireAuth } from "~/lib/utils/auth"
+import { fetchDeadlineSchedulerSystemConfig, fetchSystemConfigServerTime } from "~/lib/services/system-config"
+import type { SystemConfig } from "~/lib/types/systemconfig/systemConfig"
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     try {
-        const { idToken, role, accountId } = await requireAuth(request);
+        const { idToken, role, accountId } = await requireAuth(request)
 
         if (role !== Role.Instructor) {
-            return redirect('/');
+            return redirect("/")
         }
 
-        const url = new URL(request.url);
-        const searchParams = url.searchParams;
+        const url = new URL(request.url)
+        const searchParams = url.searchParams
 
         // Default to current date if no date is specified
-        const currentDate = new Date();
-        const dateParam = searchParams.get("date") || format(currentDate, "yyyy-MM-dd");
+        const currentDate = new Date()
+        const dateParam = searchParams.get("date") || format(currentDate, "yyyy-MM-dd")
 
         // Parse the date parameter
         let selectedDate: Date
@@ -51,7 +49,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         }
 
         // Format dates for API
-        const formattedDate = format(selectedDate, "yyyy-MM-dd");
+        const formattedDate = format(selectedDate, "yyyy-MM-dd")
 
         // Fetch all required data with error handling
         const [slotsResponse, deadlineResponse, currentServerTimeResponse] = await Promise.all([
@@ -82,13 +80,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             currentServerDateTime,
         } as const)
     } catch (error) {
-        console.error("Error loading attendance data:", error);
-        return Response.json(
-            { error: "Failed to load attendance data" },
-            { status: 500 }
-        );
+        console.error("Error loading attendance data:", error)
+        return Response.json({ error: "Failed to load attendance data" }, { status: 500 })
     }
-};
+}
 
 const shiftTimeMap = {
     [Shift.Shift1_7h_8h30]: { start: "07:00", end: "08:30" },
@@ -99,15 +94,20 @@ const shiftTimeMap = {
     [Shift.Shift6_16h00_17h30]: { start: "16:00", end: "17:30" },
     [Shift.Shift7_18h_19h30]: { start: "18:00", end: "19:30" },
     [Shift.Shift8_19h45_21h15]: { start: "19:45", end: "21:15" },
-};
+}
 
 // Function to parse time string (e.g., "07:00") into hours and minutes
 const parseTime = (time: string): { hours: number; minutes: number } => {
-    const [hours, minutes] = time.split(":").map(Number);
-    return { hours, minutes };
-};
+    const [hours, minutes] = time.split(":").map(Number)
+    return { hours, minutes }
+}
 
-const isNotToday = (slotDate: string, shift: Shift, deadlineValue: string | null, serverDateTime: string): boolean => {
+const isAttendanceDisabled = (
+    slotDate: string,
+    shift: Shift,
+    deadlineValue: string | null,
+    serverDateTime: string,
+): boolean => {
     try {
         // Add validation for required parameters
         if (!slotDate || !serverDateTime) {
@@ -148,24 +148,20 @@ const isNotToday = (slotDate: string, shift: Shift, deadlineValue: string | null
             return true
         }
 
-        // If slot is in the future, attendance is not allowed
-        if (slotStartTime > now) {
+        // Allow attendance from 15 minutes before the slot starts
+        const attendanceStartTime = new Date(slotStartTime)
+        attendanceStartTime.setMinutes(attendanceStartTime.getMinutes() - 15)
+
+        // If current time is before attendance start time, disable
+        if (now < attendanceStartTime) {
             return true
         }
 
-        // Check if slot is today (using UTC to avoid timezone issues)
-        const nowUTC = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        const slotUTC = new Date(slot.getFullYear(), slot.getMonth(), slot.getDate())
-
-        if (nowUTC.getTime() !== slotUTC.getTime()) {
-            return true
-        }
-
-        // If it's today, check the deadline
-        let additionalHours = 0
+        // Calculate deadline (hours after slot start time)
+        let additionalHours = 2 // Default to 2 hours if no deadline is set
         if (deadlineValue) {
             try {
-                additionalHours = Number.parseFloat(deadlineValue) || 0
+                additionalHours = Number.parseFloat(deadlineValue) || 2
             } catch (error) {
                 console.warn("Error parsing deadline value:", error)
             }
@@ -175,65 +171,73 @@ const isNotToday = (slotDate: string, shift: Shift, deadlineValue: string | null
         const slotWithDeadline = new Date(slotStartTime)
         slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours)
 
-        // If past the attendance deadline
-        return now > slotWithDeadline
+        // If past the attendance deadline, disable
+        if (now > slotWithDeadline) {
+            return true
+        }
+
+        // If we reach here, attendance should be enabled
+        return false
     } catch (error) {
-        console.error("Error in isNotToday function:", error)
+        console.error("Error in isAttendanceDisabled function:", error)
         return true // Default to disabled on error
     }
 }
 
-
 export default function TeacherAttendance_index() {
-    const loaderData = useLoaderData<typeof loader>();
+    const loaderData = useLoaderData<typeof loader>()
     const { slots, selectedDate, deadlineData, currentServerDateTime } = loaderData
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState<string>("all");
-    const [calendarOpen, setCalendarOpen] = useState(false);
-    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState("")
+    const [filterStatus, setFilterStatus] = useState<string>("all")
+    const [calendarOpen, setCalendarOpen] = useState(false)
+    const navigate = useNavigate()
 
     // Parse the selected date for display
-    const parsedSelectedDate = parseISO(selectedDate);
-    const formattedDisplayDate = format(parsedSelectedDate, "dd/MM/yyyy");
+    const parsedSelectedDate = parseISO(selectedDate)
+    const formattedDisplayDate = format(parsedSelectedDate, "dd/MM/yyyy")
 
-    
     const handleDateChange = (date: Date | undefined) => {
         if (date) {
-            const formattedDate = format(date, "yyyy-MM-dd");
-            setCalendarOpen(false);
-            navigate(`?date=${formattedDate}`);
+            const formattedDate = format(date, "yyyy-MM-dd")
+            setCalendarOpen(false)
+            navigate(`?date=${formattedDate}`)
         }
-    };
+    }
 
     const handlePreviousDay = () => {
-        const previousDay = subDays(parsedSelectedDate, 1);
-        navigate(`?date=${format(previousDay, "yyyy-MM-dd")}`);
-    };
+        const previousDay = subDays(parsedSelectedDate, 1)
+        navigate(`?date=${format(previousDay, "yyyy-MM-dd")}`)
+    }
 
     const handleNextDay = () => {
-        const nextDay = addDays(parsedSelectedDate, 1);
-        navigate(`?date=${format(nextDay, "yyyy-MM-dd")}`);
-    };
+        const nextDay = addDays(parsedSelectedDate, 1)
+        navigate(`?date=${format(nextDay, "yyyy-MM-dd")}`)
+    }
 
     // Filter slots based on search term and status
     const filteredSlots = slots.filter((slot: SlotDetail) => {
         const matchesSearch =
             slot.class.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            slot.room.name.toLowerCase().includes(searchTerm.toLowerCase());
+            slot.room.name.toLowerCase().includes(searchTerm.toLowerCase())
 
-        const isCompleted = slot.status === SlotStatus.Finished;
-        const isUpcoming = slot.status === SlotStatus.NotStarted;
-        const isOngoing = slot.status === SlotStatus.Ongoing;
+        const isCompleted = slot.status === SlotStatus.Finished
+        const isUpcoming = slot.status === SlotStatus.NotStarted
+        const isOngoing = slot.status === SlotStatus.Ongoing
 
         // Apply status filter
         switch (filterStatus) {
-            case "all": return matchesSearch;
-            case "completed": return matchesSearch && isCompleted;
-            case "upcoming": return matchesSearch && isUpcoming;
-            case "ongoing": return matchesSearch && isOngoing;
-            default: return matchesSearch;
+            case "all":
+                return matchesSearch
+            case "completed":
+                return matchesSearch && isCompleted
+            case "upcoming":
+                return matchesSearch && isUpcoming
+            case "ongoing":
+                return matchesSearch && isOngoing
+            default:
+                return matchesSearch
         }
-    });
+    })
 
     // Convert shift enum to readable time
     const getShiftTime = (shift: Shift): string => {
@@ -245,11 +249,11 @@ export default function TeacherAttendance_index() {
             [Shift.Shift5_14h15_15h45]: "14:15 - 15:45",
             [Shift.Shift6_16h00_17h30]: "16:00 - 17:30",
             [Shift.Shift7_18h_19h30]: "18:00 - 19:30",
-            [Shift.Shift8_19h45_21h15]: "19:45 - 21:15"
-        };
+            [Shift.Shift8_19h45_21h15]: "19:45 - 21:15",
+        }
 
-        return shiftMap[shift] || "Unknown";
-    };
+        return shiftMap[shift] || "Unknown"
+    }
 
     return (
         <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -258,12 +262,7 @@ export default function TeacherAttendance_index() {
 
                 {/* Date navigation */}
                 <div className="flex items-center gap-2 w-full md:w-auto">
-                    <Button
-                        onClick={handlePreviousDay}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-200"
-                    >
+                    <Button onClick={handlePreviousDay} variant="outline" size="sm" className="border-blue-200">
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
 
@@ -279,21 +278,11 @@ export default function TeacherAttendance_index() {
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={parsedSelectedDate}
-                                onSelect={handleDateChange}
-                                initialFocus
-                            />
+                            <Calendar mode="single" selected={parsedSelectedDate} onSelect={handleDateChange} initialFocus />
                         </PopoverContent>
                     </Popover>
 
-                    <Button
-                        onClick={handleNextDay}
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-200"
-                    >
+                    <Button onClick={handleNextDay} variant="outline" size="sm" className="border-blue-200">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
@@ -312,10 +301,7 @@ export default function TeacherAttendance_index() {
                     />
                 </div>
 
-                <Select
-                    value={filterStatus}
-                    onValueChange={(value) => setFilterStatus(value)}
-                >
+                <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value)}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Trạng thái" />
                     </SelectTrigger>
@@ -335,33 +321,35 @@ export default function TeacherAttendance_index() {
                         <Card
                             key={slot.id}
                             className={`overflow-hidden border transition hover:shadow-md ${slot.status === SlotStatus.Finished
-                                ? "border-gray-200"
-                                : slot.status === SlotStatus.Ongoing
-                                    ? "border-green-300"
-                                    : "border-blue-300"
+                                    ? "border-gray-200"
+                                    : slot.status === SlotStatus.Ongoing
+                                        ? "border-green-300"
+                                        : "border-blue-300"
                                 }`}
                         >
-                            <CardHeader className={`py-3 px-4 ${slot.status === SlotStatus.Finished
-                                ? "bg-gray-50"
-                                : slot.status === SlotStatus.Ongoing
-                                    ? "bg-green-50"
-                                    : "bg-blue-50"
-                                }`}>
+                            <CardHeader
+                                className={`py-3 px-4 ${slot.status === SlotStatus.Finished
+                                        ? "bg-gray-50"
+                                        : slot.status === SlotStatus.Ongoing
+                                            ? "bg-green-50"
+                                            : "bg-blue-50"
+                                    }`}
+                            >
                                 <div className="flex justify-between items-start">
-                                    <CardTitle className="text-base font-medium">
-                                        {slot.class.name}
-                                    </CardTitle>
-                                    <div className={`px-2 py-1 rounded text-xs font-medium ${slot.status === SlotStatus.Finished
-                                        ? "bg-gray-200 text-gray-700"
-                                        : (slot.status === SlotStatus.Ongoing
-                                            ? "bg-green-200 text-green-700"
-                                            : "bg-blue-200 text-blue-700")
-                                        }`}>
+                                    <CardTitle className="text-base font-medium">{slot.class.name}</CardTitle>
+                                    <div
+                                        className={`px-2 py-1 rounded text-xs font-medium ${slot.status === SlotStatus.Finished
+                                                ? "bg-gray-200 text-gray-700"
+                                                : slot.status === SlotStatus.Ongoing
+                                                    ? "bg-green-200 text-green-700"
+                                                    : "bg-blue-200 text-blue-700"
+                                            }`}
+                                    >
                                         {slot.status === SlotStatus.Finished
                                             ? "Completed"
-                                            : (slot.status === SlotStatus.Ongoing
+                                            : slot.status === SlotStatus.Ongoing
                                                 ? "On Going"
-                                                : "Up Coming")}
+                                                : "Up Coming"}
                                     </div>
                                 </div>
                             </CardHeader>
@@ -381,12 +369,19 @@ export default function TeacherAttendance_index() {
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-500">Slot No/Total:</span>
-                                        <span className="font-medium">{slot.slotNo}/{slot.slotTotal}</span>
+                                        <span className="font-medium">
+                                            {slot.slotNo}/{slot.slotTotal}
+                                        </span>
                                     </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={isNotToday(slot.date, slot.shift, deadlineData.configValue, currentServerDateTime)}
-                                        onClick={() => window.location.href = `/teacher/attendance/${slot.id}`}
+                                        disabled={isAttendanceDisabled(
+                                            slot.date,
+                                            slot.shift,
+                                            deadlineData.configValue,
+                                            currentServerDateTime,
+                                        )}
+                                        onClick={() => (window.location.href = `/teacher/attendance/${slot.id}`)}
                                     >
                                         Attendance
                                     </Button>
@@ -405,5 +400,5 @@ export default function TeacherAttendance_index() {
                 )}
             </div>
         </div>
-    );
+    )
 }
