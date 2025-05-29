@@ -1,13 +1,15 @@
-import { LoaderFunctionArgs, redirect } from '@remix-run/node';
-import React from 'react'
-import { fetchTeachDetail } from '~/lib/services/account';
-import { TeacherDetail } from '~/lib/types/account/account';
-import { requireAuth } from '~/lib/utils/auth';
+import { Gender, TeacherDetail } from '~/lib/types/account/account';
 import { CalendarDays, Clock, MapPin, Phone, Mail, User, BookOpen, Users, CircleArrowLeft } from "lucide-react"
 import { EntranceTestStatus } from '~/lib/types/entrance-test/entrance-test';
 import { Button } from '~/components/ui/button';
-import { useNavigate } from '@remix-run/react';
-import { CLASS_STATUS } from '~/lib/utils/constants';
+import { Link, useNavigate } from '@remix-run/react';
+import { CLASS_STATUS, SHIFT_TIME } from '~/lib/utils/constants';
+import NoInformation from '~/components/common/no-information';
+import { formatRFC3339ToDisplayableDate } from '~/lib/utils/datetime';
+import { Badge } from '~/components/ui/badge';
+import { TestStatusBadge } from '~/components/entrance-tests/table/columns';
+import { ClassStatusBadge } from '~/components/staffs/table/class-columns';
+import { LevelBadge } from '~/components/staffs/table/student-columns';
 
 type Props = {
   teacher: TeacherDetail
@@ -23,8 +25,9 @@ export default function TeacherDetails({ teacher }: Props) {
         <Button
           variant={'theme'}
           onClick={() => navigate(-1)}
+          type='button'
         >
-          <CircleArrowLeft className='mr-4' /> Trở về
+          <CircleArrowLeft className='mr-4' /> Back
         </Button>
       </div>
 
@@ -56,13 +59,13 @@ export default function TeacherDetails({ teacher }: Props) {
                 <div className="flex flex-col md:flex-row md:items-center justify-between">
                   <div>
                     <h1 className="text-2xl font-bold text-gray-800">{teacher.fullName}</h1>
-                    <p className="text-sky-600 font-medium">{teacher.level?.name || "Instructor"}</p>
+                    <p className="text-sky-600 font-medium">{teacher.level?.name || "Teacher"}</p>
                     {teacher.shortDescription && <p className="text-gray-600 mt-2">{teacher.shortDescription}</p>}
                   </div>
                   <div className="mt-4 md:mt-0">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-sky-100 text-sky-800">
-                      {teacher.status === 0 ? "Active" : "Inactive"}
-                    </span>
+                    <Badge variant={'outline'} className={`uppercase ${teacher.status === 0 ? 'text-green-500' : "text-red-500"}`}>
+                      {teacher.status === 0 ? 'Active' : "Inactive"}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -84,21 +87,21 @@ export default function TeacherDetails({ teacher }: Props) {
                   <Mail className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
-                    <p className="text-gray-700">{teacher.email}</p>
+                    <p className="text-gray-700 italic">{teacher.email}</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <Phone className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Phone</p>
-                    <p className="text-gray-700">{teacher.phone || "Not provided"}</p>
+                    <div className="text-gray-700">{teacher.phone || <NoInformation />}</div>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <MapPin className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Address</p>
-                    <p className="text-gray-700">{teacher.address || "Not provided"}</p>
+                    <div className="text-gray-700">{teacher.address || <NoInformation />}</div>
                   </div>
                 </div>
                 {teacher.dateOfBirth && (
@@ -106,7 +109,7 @@ export default function TeacherDetails({ teacher }: Props) {
                     <CalendarDays className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
                     <div>
                       <p className="text-sm text-gray-500">Date of Birth</p>
-                      <p className="text-gray-700">{new Date(teacher.dateOfBirth).toLocaleDateString()}</p>
+                      <div className="text-gray-700">{teacher.dateOfBirth ? formatRFC3339ToDisplayableDate(teacher.dateOfBirth, false, false) : <NoInformation />}</div>
                     </div>
                   </div>
                 )}
@@ -114,7 +117,9 @@ export default function TeacherDetails({ teacher }: Props) {
                   <User className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Gender</p>
-                    <p className="text-gray-700">{(teacher.gender === 0 ? "Male" : (teacher.gender === 1 && "Female")) || "Not specified"}</p>
+                    <Badge variant={'outline'} className={`${teacher.gender === Gender.Male ? 'text-blue-500' : 'text-pink-500'}`}>
+                      {teacher.gender === Gender.Male ? 'Male' : 'Female'}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -165,12 +170,14 @@ export default function TeacherDetails({ teacher }: Props) {
                       {teacher.instructorEntranceTests.map((test) => (
                         <tr key={test.id} className="hover:bg-sky-50">
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{test.name}</div>
-                            <div className="text-xs text-gray-500">{test.registerStudents} students</div>
+                            <Link className="text-sm font-bold text-gray-900 hover:underline" to={`/staff/entrance-tests/${test.id}`}>
+                              {test.name}
+                            </Link>
+                            {/* <div className="text-xs text-gray-500">{test.registerStudents} learners</div> */}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{new Date(test.date).toLocaleDateString()}</div>
-                            <div className="text-xs text-gray-500">Shift: {test.shift}</div>
+                            <div className="text-sm text-gray-900">{formatRFC3339ToDisplayableDate(test.date, false, false)}</div>
+                            <div className="text-xs text-gray-500">{SHIFT_TIME[test.shift]}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{test.roomName || "Not assigned"}</div>
@@ -179,11 +186,7 @@ export default function TeacherDetails({ teacher }: Props) {
                             )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(test.testStatus)}`}
-                            >
-                              {test.testStatus !== undefined ? EntranceTestStatus[test.testStatus] : "Unknown"}
-                            </span>
+                            <TestStatusBadge status={test.testStatus} />
                           </td>
                         </tr>
                       ))}
@@ -207,26 +210,21 @@ export default function TeacherDetails({ teacher }: Props) {
                   {teacher.instructorClasses.map((cls) => (
                     <div
                       key={cls.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
+                      className="border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-theme hover:shadow-sm"
+                      onClick={() => navigate(`/staff/classes/${cls.id}`)}>
                       <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium text-gray-900">{cls.name}</h3>
-                          <p className="text-sky-600 text-sm">{cls.level?.name}</p>
+                        <div className='flex flex-col gap-1'>
+                          <Link className="font-bold text-gray-900 hover:underline" to={`/staff/classes/${cls.id}`}>{cls.name}</Link>
+                          <LevelBadge level={cls.level} />
                         </div>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(cls.status)}"
-                            }`}
-                        >
-                          { CLASS_STATUS[cls.status]}
-                        </span>
+                        <ClassStatusBadge status={cls.status} />
                       </div>
 
                       <div className="mt-3 space-y-2">
                         <div className="flex items-center text-sm">
                           <Users className="mr-2 text-sky-500" size={16} />
                           <span className="text-gray-600">
-                            {cls.studentNumber} / {cls.capacity} students
+                            {cls.studentNumber} / {cls.capacity} learners
                           </span>
                         </div>
 
@@ -241,7 +239,8 @@ export default function TeacherDetails({ teacher }: Props) {
                           <div className="flex items-center text-sm">
                             <CalendarDays className="mr-2 text-sky-500" size={16} />
                             <span className="text-gray-600">
-                              Starts: {new Date(cls.startTime).toLocaleDateString()}
+                              {formatRFC3339ToDisplayableDate(cls.startTime, false, false)}
+                              {cls.endTime ? ` - ${formatRFC3339ToDisplayableDate(cls.endTime, false, false)}` : ""}
                             </span>
                           </div>
                         )}

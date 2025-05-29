@@ -8,6 +8,7 @@ import { Search } from 'lucide-react';
 import { MultiSelect } from '../ui/multi-select';
 import { APPLICATION_STATUS, APPLICATION_TYPE } from '~/lib/utils/constants';
 import { Controller } from 'react-hook-form';
+import { ApplicationStatusBadge } from './application-table';
 
 type Props = {}
 
@@ -75,7 +76,7 @@ export default function SearchForm({ }: Props) {
                             <MultiSelect
                                 options={APPLICATION_STATUS.map((status, index) => {
                                     return {
-                                        label: status,
+                                        label: <ApplicationStatusBadge status={index} key={status}/>,
                                         value: index.toString(),
                                     }
                                 })}
@@ -95,7 +96,7 @@ export default function SearchForm({ }: Props) {
 
             <div className="max-w-[30%]">
                 <Button type='submit' isLoading={isSubmitting}
-                    disabled={isSubmitting} Icon={Search} iconPlacement='left'>
+                    disabled={isSubmitting} Icon={Search} iconPlacement='left' variant={'theme'}>
                     Search
                 </Button>
             </div>

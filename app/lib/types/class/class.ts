@@ -18,8 +18,16 @@ export type Class = {
   status: number,
   isPublic: boolean,
   minimumStudents: number,
-  startTime?: string,
+  startTime?: string;
+  endTime?: string;
   isScorePublished: boolean;
+}
+
+export enum ClassStatus
+{
+    NotStarted,
+    Ongoing,
+    Finished
 }
 
 export type ClassResponse = {
