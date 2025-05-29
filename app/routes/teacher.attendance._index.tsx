@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { useLoaderData, useNavigate} from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { addDays, format, parseISO, subDays } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
@@ -18,8 +18,8 @@ import { fetchSlots } from "~/lib/services/scheduler";
 import { Shift, SlotDetail, SlotStatus } from "~/lib/types/Scheduler/slot";
 import { Role } from "~/lib/types/account/account";
 import { requireAuth } from "~/lib/utils/auth";
-import {fetchDeadlineSchedulerSystemConfig, fetchSystemConfigServerTime} from "~/lib/services/system-config";
-import {SystemConfig} from "~/lib/types/systemconfig/systemConfig";
+import { fetchDeadlineSchedulerSystemConfig, fetchSystemConfigServerTime } from "~/lib/services/system-config";
+import { SystemConfig } from "~/lib/types/systemconfig/systemConfig";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
     try {
@@ -37,41 +37,50 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const dateParam = searchParams.get("date") || format(currentDate, "yyyy-MM-dd");
 
         // Parse the date parameter
-        const selectedDate = dateParam ? parseISO(dateParam) : currentDate;
+        let selectedDate: Date
+        try {
+            selectedDate = dateParam ? parseISO(dateParam) : currentDate
+            // Validate the parsed date
+            if (isNaN(selectedDate.getTime())) {
+                console.warn("Invalid date parameter, using current date:", dateParam)
+                selectedDate = currentDate
+            }
+        } catch (error) {
+            console.warn("Error parsing date parameter, using current date:", dateParam)
+            selectedDate = currentDate
+        }
 
         // Format dates for API
         const formattedDate = format(selectedDate, "yyyy-MM-dd");
 
-        // Fetch slots for the selected date
-        const response = await fetchSlots({
-            startTime: formattedDate,
-            endTime: formattedDate,
-            instructorFirebaseIds: [accountId],
-            idToken
-        });
-        
-        
+        // Fetch all required data with error handling
+        const [slotsResponse, deadlineResponse, currentServerTimeResponse] = await Promise.all([
+            fetchSlots({
+                startTime: formattedDate,
+                endTime: formattedDate,
+                instructorFirebaseIds: [accountId],
+                idToken,
+            }),
+            fetchDeadlineSchedulerSystemConfig({ idToken }),
+            fetchSystemConfigServerTime({ idToken }),
+        ])
 
-        const deadlineResponse = await fetchDeadlineSchedulerSystemConfig({idToken});
-        
-        const deadlineData : SystemConfig = deadlineResponse.data;
+        const deadlineData: SystemConfig = deadlineResponse.data
+        const slots: SlotDetail[] = slotsResponse.data || []
+        const currentServerDateTime = currentServerTimeResponse.data
 
-        const slots: SlotDetail[] = response.data;
-        
-        const currentServerTime = await fetchSystemConfigServerTime({idToken});
-        
-        const currentServerDateTime = currentServerTime.data;
+        // Validate server time
+        if (!currentServerDateTime) {
+            throw new Error("Failed to get server time")
+        }
 
-    
-        console.log("ID", slots.map((slot: SlotDetail) => slot.id));
-        
         return Response.json({
             slots,
             selectedDate: formattedDate,
             idToken,
             deadlineData,
-            currentServerDateTime
-        });
+            currentServerDateTime,
+        } as const)
     } catch (error) {
         console.error("Error loading attendance data:", error);
         return Response.json(
@@ -99,69 +108,85 @@ const parseTime = (time: string): { hours: number; minutes: number } => {
 };
 
 const isNotToday = (slotDate: string, shift: Shift, deadlineValue: string | null, serverDateTime: string): boolean => {
-    const now = new Date(serverDateTime);
-
-    // Parse the slot date
-    const slot = new Date(slotDate);
-    if (isNaN(slot.getTime())) {
-        console.warn("Invalid slot date:", slotDate);
-        return true; // Prevent invalid dates from proceeding
-    }
-
-    // Get the shift's start time
-    const shiftTime = shiftTimeMap[shift];
-    if (!shiftTime) {
-        console.warn("Unknown shift:", shift);
-        return true; // Prevent unknown shifts from proceeding
-    }
-
-    // Combine slot date with shift start time
-    const { hours, minutes } = parseTime(shiftTime.start);
-    const slotStartTime = new Date(slot);
-    slotStartTime.setHours(hours, minutes, 0, 0);
-
-    console.log("Current time:", now);
-    console.log("Slot start time:", slotStartTime);
-
-    // If slot is in the future, attendance is not allowed
-    if (slotStartTime > now) {
-        return true;
-    }
-
-    // If slot is not today, attendance is not allowed
-    if (
-        now.getFullYear() !== slot.getFullYear() ||
-        now.getMonth() !== slot.getMonth() ||
-        now.getDate() !== slot.getDate()
-    ) {
-        return true;
-    }
-
-    // If it's today, check the deadline
-    let additionalHours = 0;
-    if (deadlineValue) {
-        try {
-            additionalHours = parseFloat(deadlineValue) || 0;
-        } catch (error) {
-            console.warn("Error parsing deadline value:", error);
+    try {
+        // Add validation for required parameters
+        if (!slotDate || !serverDateTime) {
+            console.warn("Missing required date parameters:", { slotDate, serverDateTime })
+            return true // Default to disabled if data is missing
         }
+
+        const now = new Date(serverDateTime)
+
+        // Validate server time
+        if (isNaN(now.getTime())) {
+            console.warn("Invalid server date time:", serverDateTime)
+            return true
+        }
+
+        // Parse the slot date with better validation
+        const slot = new Date(slotDate)
+        if (isNaN(slot.getTime())) {
+            console.warn("Invalid slot date:", slotDate)
+            return true
+        }
+
+        // Get the shift's start time
+        const shiftTime = shiftTimeMap[shift]
+        if (!shiftTime) {
+            console.warn("Unknown shift:", shift)
+            return true
+        }
+
+        // Combine slot date with shift start time
+        const { hours, minutes } = parseTime(shiftTime.start)
+        const slotStartTime = new Date(slot)
+        slotStartTime.setHours(hours, minutes, 0, 0)
+
+        // Validate the combined slot start time
+        if (isNaN(slotStartTime.getTime())) {
+            console.warn("Invalid slot start time calculation")
+            return true
+        }
+
+        // If slot is in the future, attendance is not allowed
+        if (slotStartTime > now) {
+            return true
+        }
+
+        // Check if slot is today (using UTC to avoid timezone issues)
+        const nowUTC = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const slotUTC = new Date(slot.getFullYear(), slot.getMonth(), slot.getDate())
+
+        if (nowUTC.getTime() !== slotUTC.getTime()) {
+            return true
+        }
+
+        // If it's today, check the deadline
+        let additionalHours = 0
+        if (deadlineValue) {
+            try {
+                additionalHours = Number.parseFloat(deadlineValue) || 0
+            } catch (error) {
+                console.warn("Error parsing deadline value:", error)
+            }
+        }
+
+        // Apply deadline (e.g., 2 hours after slot start time)
+        const slotWithDeadline = new Date(slotStartTime)
+        slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours)
+
+        // If past the attendance deadline
+        return now > slotWithDeadline
+    } catch (error) {
+        console.error("Error in isNotToday function:", error)
+        return true // Default to disabled on error
     }
+}
 
-    // Apply deadline (e.g., 2 hours after slot start time)
-    const slotWithDeadline = new Date(slotStartTime);
-    slotWithDeadline.setHours(slotWithDeadline.getHours() + additionalHours);
-
-    console.log("-------------------------------------------------------");
-    console.log("Slot with deadline:", slotWithDeadline);
-    console.log("Current time:", now);
-    console.log("Result:", now > slotWithDeadline);
-
-    // If past the attendance deadline
-    return now > slotWithDeadline;
-};
 
 export default function TeacherAttendance_index() {
-    const { slots, selectedDate, deadlineData, currentServerDateTime} = useLoaderData<typeof loader>();
+    const loaderData = useLoaderData<typeof loader>();
+    const { slots, selectedDate, deadlineData, currentServerDateTime } = loaderData
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [calendarOpen, setCalendarOpen] = useState(false);
@@ -171,6 +196,7 @@ export default function TeacherAttendance_index() {
     const parsedSelectedDate = parseISO(selectedDate);
     const formattedDisplayDate = format(parsedSelectedDate, "dd/MM/yyyy");
 
+    
     const handleDateChange = (date: Date | undefined) => {
         if (date) {
             const formattedDate = format(date, "yyyy-MM-dd");
@@ -190,7 +216,7 @@ export default function TeacherAttendance_index() {
     };
 
     // Filter slots based on search term and status
-    const filteredSlots = slots.filter((slot : SlotDetail) => {
+    const filteredSlots = slots.filter((slot: SlotDetail) => {
         const matchesSearch =
             slot.class.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             slot.room.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -305,35 +331,32 @@ export default function TeacherAttendance_index() {
             {/* Slots List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 {filteredSlots.length > 0 ? (
-                    filteredSlots.map((slot : SlotDetail) => (
+                    filteredSlots.map((slot: SlotDetail) => (
                         <Card
                             key={slot.id}
-                            className={`overflow-hidden border transition hover:shadow-md ${
-                                slot.status === SlotStatus.Finished
-                                    ? "border-gray-200"
-                                    : slot.status === SlotStatus.Ongoing
-                                        ? "border-green-300"
-                                        : "border-blue-300"
-                            }`}
+                            className={`overflow-hidden border transition hover:shadow-md ${slot.status === SlotStatus.Finished
+                                ? "border-gray-200"
+                                : slot.status === SlotStatus.Ongoing
+                                    ? "border-green-300"
+                                    : "border-blue-300"
+                                }`}
                         >
-                            <CardHeader className={`py-3 px-4 ${
-                                slot.status === SlotStatus.Finished
-                                    ? "bg-gray-50"
-                                    : slot.status === SlotStatus.Ongoing
-                                        ? "bg-green-50"
-                                        : "bg-blue-50"
-                            }`}>
+                            <CardHeader className={`py-3 px-4 ${slot.status === SlotStatus.Finished
+                                ? "bg-gray-50"
+                                : slot.status === SlotStatus.Ongoing
+                                    ? "bg-green-50"
+                                    : "bg-blue-50"
+                                }`}>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-base font-medium">
                                         {slot.class.name}
                                     </CardTitle>
-                                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                                        slot.status === SlotStatus.Finished
-                                            ? "bg-gray-200 text-gray-700"
-                                            : (slot.status === SlotStatus.Ongoing
-                                                ? "bg-green-200 text-green-700"
-                                                : "bg-blue-200 text-blue-700")
-                                    }`}>
+                                    <div className={`px-2 py-1 rounded text-xs font-medium ${slot.status === SlotStatus.Finished
+                                        ? "bg-gray-200 text-gray-700"
+                                        : (slot.status === SlotStatus.Ongoing
+                                            ? "bg-green-200 text-green-700"
+                                            : "bg-blue-200 text-blue-700")
+                                        }`}>
                                         {slot.status === SlotStatus.Finished
                                             ? "Completed"
                                             : (slot.status === SlotStatus.Ongoing
