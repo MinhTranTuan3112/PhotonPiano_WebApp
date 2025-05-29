@@ -175,7 +175,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function StaffScheduler({ }: Props) {
     const data = useLoaderData<typeof loader>()
-    console.log("StaffScheduler data:", data)
+    // console.log("StaffScheduler data:", data)
     return (
         <Suspense fallback={<SchedulerSkeleton />}>
             <Await resolve={data.slots}>

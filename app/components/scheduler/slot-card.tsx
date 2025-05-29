@@ -3,6 +3,7 @@ import { Music } from "lucide-react"
 import { Badge } from "~/components/ui/badge"
 import { cn } from "~/lib/utils"
 import { SlotStatus, SlotStatusText } from "~/lib/types/Scheduler/slot"
+import { getSlotCover } from "~/routes/staff.classes.$id"
 
 interface SlotCardProps {
     slot: {
@@ -44,16 +45,8 @@ export function SlotCard({ slot, onClick }: SlotCardProps) {
             <div className="text-sm">{slot.class?.name}</div>
             <div className="mt-2 flex flex-wrap gap-2">
                 <Badge
-                    className="text-xs"
-                    variant={
-                        slot.status === SlotStatus.Cancelled
-                            ? "outline"
-                            : slot.status === SlotStatus.Finished
-                                ? "default"
-                                : slot.status === SlotStatus.Ongoing
-                                    ? "secondary"
-                                    : "outline"
-                    }
+                    className={getSlotCover(slot.status)}
+                    variant={'outline'}
                 >
                     {SlotStatusText[slot.status]}
                 </Badge>

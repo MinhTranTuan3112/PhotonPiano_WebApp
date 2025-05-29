@@ -107,7 +107,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise, classId: params.id
   }
 }
-const getSlotCover = (status: number) => {
+export const getSlotCover = (status: number) => {
   switch (status) {
     case 0: return "bg-gray-500 text-white font-semibold";
     case 1: return "bg-yellow-500 text-white font-semibold";
