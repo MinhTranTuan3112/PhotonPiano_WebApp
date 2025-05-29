@@ -2,10 +2,10 @@
 
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { redirect } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import { useLoaderData, useNavigate, useRevalidator } from "@remix-run/react"
 import { addDays, format, parseISO, subDays } from "date-fns"
-import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react"
-import { useState } from "react"
+import { CalendarIcon, ChevronLeft, ChevronRight, Search, RefreshCw } from "lucide-react"
+import { useState, useEffect } from "react"
 import { Button } from "~/components/ui/button"
 import { Calendar } from "~/components/ui/calendar"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
@@ -72,12 +72,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
             throw new Error("Failed to get server time")
         }
 
+        // Add server-side timestamp for debugging
+        const serverFetchTime = new Date().toISOString()
+
         return Response.json({
             slots,
             selectedDate: formattedDate,
             idToken,
             deadlineData,
             currentServerDateTime,
+            serverFetchTime, // Add this for debugging
         } as const)
     } catch (error) {
         console.error("Error loading attendance data:", error)
@@ -107,34 +111,51 @@ const isAttendanceDisabled = (
     shift: Shift,
     deadlineValue: string | null,
     serverDateTime: string,
-): boolean => {
+    currentClientTime?: Date,
+): { disabled: boolean; reason: string } => {
     try {
         // Add validation for required parameters
         if (!slotDate || !serverDateTime) {
             console.warn("Missing required date parameters:", { slotDate, serverDateTime })
-            return true // Default to disabled if data is missing
+            return { disabled: true, reason: "Missing date parameters" }
         }
 
-        const now = new Date(serverDateTime)
+        // Use client time as fallback if server time seems stale
+        const serverTime = new Date(serverDateTime)
+        const clientTime = currentClientTime || new Date()
 
-        // Validate server time
+        // If server time is more than 5 minutes behind client time, use client time
+        const timeDiff = clientTime.getTime() - serverTime.getTime()
+        const useClientTime = timeDiff > 5 * 60 * 1000 // 5 minutes
+
+        const now = useClientTime ? clientTime : serverTime
+
+        if (useClientTime) {
+            console.warn("Using client time due to stale server time", {
+                serverTime: serverTime.toISOString(),
+                clientTime: clientTime.toISOString(),
+                timeDiff: timeDiff / 1000 / 60 + " minutes",
+            })
+        }
+
+        // Validate time
         if (isNaN(now.getTime())) {
-            console.warn("Invalid server date time:", serverDateTime)
-            return true
+            console.warn("Invalid date time:", serverDateTime)
+            return { disabled: true, reason: "Invalid server time" }
         }
 
         // Parse the slot date with better validation
         const slot = new Date(slotDate)
         if (isNaN(slot.getTime())) {
             console.warn("Invalid slot date:", slotDate)
-            return true
+            return { disabled: true, reason: "Invalid slot date" }
         }
 
         // Get the shift's start time
         const shiftTime = shiftTimeMap[shift]
         if (!shiftTime) {
             console.warn("Unknown shift:", shift)
-            return true
+            return { disabled: true, reason: "Unknown shift" }
         }
 
         // Combine slot date with shift start time
@@ -145,7 +166,7 @@ const isAttendanceDisabled = (
         // Validate the combined slot start time
         if (isNaN(slotStartTime.getTime())) {
             console.warn("Invalid slot start time calculation")
-            return true
+            return { disabled: true, reason: "Invalid slot start time" }
         }
 
         // Allow attendance from 15 minutes before the slot starts
@@ -154,7 +175,11 @@ const isAttendanceDisabled = (
 
         // If current time is before attendance start time, disable
         if (now < attendanceStartTime) {
-            return true
+            const minutesUntilStart = Math.ceil((attendanceStartTime.getTime() - now.getTime()) / (1000 * 60))
+            return {
+                disabled: true,
+                reason: `Available in ${minutesUntilStart} minutes (${format(attendanceStartTime, "HH:mm")})`,
+            }
         }
 
         // Calculate deadline (hours after slot start time)
@@ -173,24 +198,48 @@ const isAttendanceDisabled = (
 
         // If past the attendance deadline, disable
         if (now > slotWithDeadline) {
-            return true
+            return {
+                disabled: true,
+                reason: `Deadline passed (${format(slotWithDeadline, "HH:mm")})`,
+            }
         }
 
+        // Debug logging for enabled buttons
+        console.log("Attendance enabled for slot:", {
+            slotId: slotDate + "-" + shift,
+            currentTime: now.toISOString(),
+            slotStartTime: slotStartTime.toISOString(),
+            attendanceStartTime: attendanceStartTime.toISOString(),
+            deadline: slotWithDeadline.toISOString(),
+            usingClientTime: useClientTime,
+        })
+
         // If we reach here, attendance should be enabled
-        return false
+        return { disabled: false, reason: "Available now" }
     } catch (error) {
         console.error("Error in isAttendanceDisabled function:", error)
-        return true // Default to disabled on error
+        return { disabled: true, reason: "Error checking availability" }
     }
 }
 
 export default function TeacherAttendance_index() {
     const loaderData = useLoaderData<typeof loader>()
-    const { slots, selectedDate, deadlineData, currentServerDateTime } = loaderData
+    const { slots, selectedDate, deadlineData, currentServerDateTime, serverFetchTime } = loaderData
     const [searchTerm, setSearchTerm] = useState("")
     const [filterStatus, setFilterStatus] = useState<string>("all")
     const [calendarOpen, setCalendarOpen] = useState(false)
+    const [currentClientTime, setCurrentClientTime] = useState(new Date())
     const navigate = useNavigate()
+    const revalidator = useRevalidator()
+
+    // Update client time every minute
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentClientTime(new Date())
+        }, 60000) // Update every minute
+
+        return () => clearInterval(interval)
+    }, [])
 
     // Parse the selected date for display
     const parsedSelectedDate = parseISO(selectedDate)
@@ -212,6 +261,10 @@ export default function TeacherAttendance_index() {
     const handleNextDay = () => {
         const nextDay = addDays(parsedSelectedDate, 1)
         navigate(`?date=${format(nextDay, "yyyy-MM-dd")}`)
+    }
+
+    const handleRefresh = () => {
+        revalidator.revalidate()
     }
 
     // Filter slots based on search term and status
@@ -260,7 +313,7 @@ export default function TeacherAttendance_index() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                 <h1 className="text-2xl md:text-3xl font-bold text-blue-700">Attendance Management</h1>
 
-                {/* Date navigation */}
+                {/* Date navigation with refresh button */}
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <Button onClick={handlePreviousDay} variant="outline" size="sm" className="border-blue-200">
                         <ChevronLeft className="h-4 w-4" />
@@ -285,7 +338,23 @@ export default function TeacherAttendance_index() {
                     <Button onClick={handleNextDay} variant="outline" size="sm" className="border-blue-200">
                         <ChevronRight className="h-4 w-4" />
                     </Button>
+
+                    <Button
+                        onClick={handleRefresh}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-200"
+                        disabled={revalidator.state === "loading"}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${revalidator.state === "loading" ? "animate-spin" : ""}`} />
+                    </Button>
                 </div>
+            </div>
+
+            {/* Debug info - remove in production */}
+            <div className="mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                Server Time: {currentServerDateTime} | Client Time: {currentClientTime.toISOString()} | Fetch Time:{" "}
+                {serverFetchTime}
             </div>
 
             {/* Filters */}
@@ -317,78 +386,89 @@ export default function TeacherAttendance_index() {
             {/* Slots List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 {filteredSlots.length > 0 ? (
-                    filteredSlots.map((slot: SlotDetail) => (
-                        <Card
-                            key={slot.id}
-                            className={`overflow-hidden border transition hover:shadow-md ${slot.status === SlotStatus.Finished
-                                    ? "border-gray-200"
-                                    : slot.status === SlotStatus.Ongoing
-                                        ? "border-green-300"
-                                        : "border-blue-300"
-                                }`}
-                        >
-                            <CardHeader
-                                className={`py-3 px-4 ${slot.status === SlotStatus.Finished
-                                        ? "bg-gray-50"
+                    filteredSlots.map((slot: SlotDetail) => {
+                        const attendanceStatus = isAttendanceDisabled(
+                            slot.date,
+                            slot.shift,
+                            deadlineData.configValue,
+                            currentServerDateTime,
+                            currentClientTime,
+                        )
+
+                        return (
+                            <Card
+                                key={slot.id}
+                                className={`overflow-hidden border transition hover:shadow-md ${slot.status === SlotStatus.Finished
+                                        ? "border-gray-200"
                                         : slot.status === SlotStatus.Ongoing
-                                            ? "bg-green-50"
-                                            : "bg-blue-50"
+                                            ? "border-green-300"
+                                            : "border-blue-300"
                                     }`}
                             >
-                                <div className="flex justify-between items-start">
-                                    <CardTitle className="text-base font-medium">{slot.class.name}</CardTitle>
-                                    <div
-                                        className={`px-2 py-1 rounded text-xs font-medium ${slot.status === SlotStatus.Finished
-                                                ? "bg-gray-200 text-gray-700"
-                                                : slot.status === SlotStatus.Ongoing
-                                                    ? "bg-green-200 text-green-700"
-                                                    : "bg-blue-200 text-blue-700"
-                                            }`}
-                                    >
-                                        {slot.status === SlotStatus.Finished
-                                            ? "Completed"
+                                <CardHeader
+                                    className={`py-3 px-4 ${slot.status === SlotStatus.Finished
+                                            ? "bg-gray-50"
                                             : slot.status === SlotStatus.Ongoing
-                                                ? "On Going"
-                                                : "Up Coming"}
+                                                ? "bg-green-50"
+                                                : "bg-blue-50"
+                                        }`}
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <CardTitle className="text-base font-medium">{slot.class.name}</CardTitle>
+                                        <div
+                                            className={`px-2 py-1 rounded text-xs font-medium ${slot.status === SlotStatus.Finished
+                                                    ? "bg-gray-200 text-gray-700"
+                                                    : slot.status === SlotStatus.Ongoing
+                                                        ? "bg-green-200 text-green-700"
+                                                        : "bg-blue-200 text-blue-700"
+                                                }`}
+                                        >
+                                            {slot.status === SlotStatus.Finished
+                                                ? "Completed"
+                                                : slot.status === SlotStatus.Ongoing
+                                                    ? "On Going"
+                                                    : "Up Coming"}
+                                        </div>
                                     </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Room:</span>
-                                        <span className="font-medium">{slot.room.name}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Time:</span>
-                                        <span className="font-medium">{getShiftTime(slot.shift)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Number of Learner:</span>
-                                        <span className="font-medium">{slot.numberOfStudents} learner</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Slot No/Total:</span>
-                                        <span className="font-medium">
-                                            {slot.slotNo}/{slot.slotTotal}
-                                        </span>
-                                    </div>
-                                    <Button
-                                        className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={isAttendanceDisabled(
-                                            slot.date,
-                                            slot.shift,
-                                            deadlineData.configValue,
-                                            currentServerDateTime,
+                                </CardHeader>
+                                <CardContent className="p-4">
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Room:</span>
+                                            <span className="font-medium">{slot.room.name}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Time:</span>
+                                            <span className="font-medium">{getShiftTime(slot.shift)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Number of Learner:</span>
+                                            <span className="font-medium">{slot.numberOfStudents} learner</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Slot No/Total:</span>
+                                            <span className="font-medium">
+                                                {slot.slotNo}/{slot.slotTotal}
+                                            </span>
+                                        </div>
+
+                                        {/* Show attendance status reason */}
+                                        {attendanceStatus.disabled && (
+                                            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">{attendanceStatus.reason}</div>
                                         )}
-                                        onClick={() => (window.location.href = `/teacher/attendance/${slot.id}`)}
-                                    >
-                                        Attendance
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
+
+                                        <Button
+                                            className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
+                                            disabled={attendanceStatus.disabled}
+                                            onClick={() => (window.location.href = `/teacher/attendance/${slot.id}`)}
+                                        >
+                                            Attendance
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })
                 ) : (
                     <div className="col-span-full flex flex-col items-center justify-center py-10 text-center">
                         <div className="text-4xl mb-3">🔍</div>
