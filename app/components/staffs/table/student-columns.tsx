@@ -3,13 +3,14 @@ import { Checkbox } from "~/components/ui/checkbox";
 import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
     Calendar,
-    CheckCircle
+    CheckCircle,
+    DollarSign
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { Account, Level, StudentStatus } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import { LEVEL, STUDENT_STATUS } from "~/lib/utils/constants";
+import { LEVEL, STUDENT_STATUS, TUITION_STATUS } from "~/lib/utils/constants";
 import { useState } from "react";
 import ArrangeDialog, { ArrangeDialogProps } from "~/components/entrance-tests/arrange-dialog";
 import { toast } from "sonner";
@@ -30,6 +31,15 @@ const getStatusStyle = (status: number) => {
         case 4: return "text-green-400 font-semibold";
         case 5: return "text-red-400 font-semibold";
         case 6: return "text-gray-500 font-semibold";
+        default: return "text-black font-semibold";
+    }
+};
+
+const getTuitionStatusStyle = (status: number) => {
+    switch (status) {
+        case 0: return "text-green-500 font-semibold";
+        case 1: return "text-red-500 font-semibold";
+        case 2: return "text-gray-500 font-semibold";
         default: return "text-black font-semibold";
     }
 };
@@ -61,6 +71,12 @@ export function StatusBadge({ status }: {
     status: number
 }) {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{STUDENT_STATUS[status]}</Badge>
+}
+
+export function TuitionStatusBadge({ status }: {
+    status: number
+}) {
+    return <Badge variant={'outline'} className={`${getTuitionStatusStyle(status)} uppercase`}>{TUITION_STATUS[status]}</Badge>
 }
 
 export const studentColumns: ColumnDef<Account>[] = [
@@ -125,6 +141,13 @@ export const studentColumns: ColumnDef<Account>[] = [
         header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
         cell: ({ row }) => {
             return <LevelBadge level={row.original.level} />
+        }
+    },
+    {
+        accessorKey: 'Tuition Status',
+        header: () => <div className="flex flex-row gap-1 items-center"><DollarSign /> Tuition Status</div>,
+        cell: ({ row }) => {
+            return <TuitionStatusBadge status={row.original.tuitionStatus} />
         }
     },
     {
