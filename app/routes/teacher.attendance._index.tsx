@@ -351,12 +351,6 @@ export default function TeacherAttendance_index() {
                 </div>
             </div>
 
-            {/* Debug info - remove in production */}
-            <div className="mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-                Server Time: {currentServerDateTime} | Client Time: {currentClientTime.toISOString()} | Fetch Time:{" "}
-                {serverFetchTime}
-            </div>
-
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <div className="relative flex-1">
