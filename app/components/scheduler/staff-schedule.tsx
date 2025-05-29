@@ -54,6 +54,8 @@ import { fetchSystemConfigSlotCancel } from "~/lib/services/system-config"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { toastWarning } from "~/lib/utils/toast-utils"
 import { Badge } from "./fix-badge"
+import { SLOT_STATUS } from "~/lib/utils/constants"
+import { getSlotCover } from "~/routes/staff.classes.$id"
 
 // Shift times mapping
 const shiftTimesMap: Record<Shift, string> = {
@@ -84,7 +86,7 @@ const formatDateForAPI = (date: Date): string => {
 }
 
 const getVietnameseWeekday = (date: Date): string => {
-    const weekdays = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+    const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
     return weekdays[date.getDay()]
 }
 
@@ -620,25 +622,25 @@ export const StaffSchedule = ({
                                                                         </div>
                                                                         <div className="flex flex-wrap gap-1">
                                                                             {slotsForDateAndShift.map((slot, idx) => (
-                                                                                    <TooltipProvider key={idx}>
-                                                                                        <Tooltip>
-                                                                                            <TooltipTrigger asChild>
-                                                                                                <Badge
-                                                                                                    variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
-                                                                                                    className="cursor-pointer"
-                                                                                                    onClick={() =>
-                                                                                                        slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
-                                                                                                    }
-                                                                                                >
-                                                                                                    {slot.room?.name}
-                                                                                                </Badge>
-                                                                                            </TooltipTrigger>
-                                                                                            <TooltipContent>
-                                                                                                <p>{slot.class?.name}</p>
-                                                                                                <p className="text-xs">{SlotStatusText[slot.status]}</p>
-                                                                                            </TooltipContent>
-                                                                                        </Tooltip>
-                                                                                    </TooltipProvider>
+                                                                                <TooltipProvider key={idx}>
+                                                                                    <Tooltip>
+                                                                                        <TooltipTrigger asChild>
+                                                                                            <Badge
+                                                                                                variant={slot.status === SlotStatus.Cancelled ? "outline" : "default"}
+                                                                                                className="cursor-pointer"
+                                                                                                onClick={() =>
+                                                                                                    slot.status !== SlotStatus.Cancelled && handleSlotClick(slot.id)
+                                                                                                }
+                                                                                            >
+                                                                                                {slot.room?.name}
+                                                                                            </Badge>
+                                                                                        </TooltipTrigger>
+                                                                                        <TooltipContent>
+                                                                                            <p>{slot.class?.name}</p>
+                                                                                            <p className="text-xs">{SlotStatusText[slot.status]}</p>
+                                                                                        </TooltipContent>
+                                                                                    </Tooltip>
+                                                                                </TooltipProvider>
                                                                             ))}
                                                                         </div>
                                                                     </div>
@@ -748,9 +750,12 @@ export const StaffSchedule = ({
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogContent className="bg-white shadow-xl rounded-2xl max-w-3xl p-6">
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-bold text-indigo-900 flex items-center gap-2">
-                                <CalendarClock className="w-6 h-6 text-indigo-700" />
-                                Slot Detail
+                            <DialogTitle className="flex items-center gap-2">
+                                <div className="text-2xl font-bold text-theme flex items-center gap-2">
+                                    <CalendarClock className="w-6 h-6 text-theme" />
+                                    Slot Detail
+                                </div>
+                                <Badge variant={'outline'} className={getSlotCover(selectedSlot?.status || 0)}>{SLOT_STATUS[selectedSlot?.status || 0]}</Badge>
                             </DialogTitle>
                         </DialogHeader>
 
@@ -758,7 +763,7 @@ export const StaffSchedule = ({
                             <div className="space-y-6 mt-4 text-slate-800 text-sm md:text-base">
                                 {/* Class Information */}
                                 <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-700">
+                                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-theme">
                                         <BookOpen className="w-5 h-5" /> Class Information
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
@@ -808,7 +813,7 @@ export const StaffSchedule = ({
                                 {/* Staff Actions */}
                                 <div className="mt-6 border-t border-slate-200 pt-5">
                                     <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
-                                        <h3 className="text-lg font-semibold mb-3 text-indigo-700 flex items-center gap-2">
+                                        <h3 className="text-lg font-semibold mb-3 text-theme flex items-center gap-2">
                                             <Settings className="w-5 h-5" />
                                             Staff Actions
                                         </h3>
@@ -968,8 +973,8 @@ export const StaffSchedule = ({
                                             <div
                                                 key={value}
                                                 className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.shifts.includes(value)
-                                                        ? "bg-indigo-200 border-indigo-300 shadow-md"
-                                                        : "bg-white border-indigo-100 hover:bg-indigo-50"
+                                                    ? "bg-indigo-200 border-indigo-300 shadow-md"
+                                                    : "bg-white border-indigo-100 hover:bg-indigo-50"
                                                     }`}
                                                 onClick={() =>
                                                     handleFilterChange(
@@ -1003,8 +1008,8 @@ export const StaffSchedule = ({
                                             <div
                                                 key={value}
                                                 className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.slotStatuses.includes(value)
-                                                        ? "bg-purple-200 border-purple-300 shadow-md"
-                                                        : "bg-white border-purple-100 hover:bg-purple-50"
+                                                    ? "bg-purple-200 border-purple-300 shadow-md"
+                                                    : "bg-white border-purple-100 hover:bg-purple-50"
                                                     }`}
                                                 onClick={() =>
                                                     handleFilterChange(
@@ -1060,8 +1065,8 @@ export const StaffSchedule = ({
                                                     <div
                                                         key={id}
                                                         className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.instructorFirebaseIds.includes(id || "")
-                                                                ? "bg-pink-200 border-pink-300 shadow-md"
-                                                                : "bg-white border-pink-100 hover:bg-pink-50"
+                                                            ? "bg-pink-200 border-pink-300 shadow-md"
+                                                            : "bg-white border-pink-100 hover:bg-pink-50"
                                                             }`}
                                                         onClick={() => {
                                                             const teacherName = instructorMap.get(id) || `Teacher ${id?.substring(0, 8)}...`
@@ -1106,8 +1111,8 @@ export const StaffSchedule = ({
                                                 <div
                                                     key={id}
                                                     className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${filters.classIds.includes(id)
-                                                            ? "bg-amber-200 border-amber-300 shadow-md"
-                                                            : "bg-white border-amber-100 hover:bg-amber-50"
+                                                        ? "bg-amber-200 border-amber-300 shadow-md"
+                                                        : "bg-white border-amber-100 hover:bg-amber-50"
                                                         }`}
                                                     onClick={() =>
                                                         handleFilterChange(

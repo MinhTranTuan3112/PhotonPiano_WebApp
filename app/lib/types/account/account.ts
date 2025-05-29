@@ -28,6 +28,7 @@ export type Account = {
     wantToContinue?: boolean;
     selfEvaluatedLevelId?: string;
     selfEvaluatedLevel?: Level;
+    currentClassId? : string;
 };
 
 export type AccountDetail = {

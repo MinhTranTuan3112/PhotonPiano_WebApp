@@ -24,6 +24,7 @@ import { Role } from "~/lib/types/account/account"
 import type { ClassDetails } from "~/lib/types/class/class"
 import type { StudentClass } from "~/lib/types/class/student-class"
 import { requireAuth } from "~/lib/utils/auth"
+import { SHIFT_TIME } from "~/lib/utils/constants"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
 
 // Function to format date
@@ -232,9 +233,9 @@ export default function StudentClassDetailPage() {
                                 <BellIcon className="h-6 w-6 text-purple-600" />
                             </div>
                             <div className="flex-grow">
-                                <h3 className="font-medium text-lg text-slate-800">Next Class</h3>
+                                <h3 className="font-medium text-lg text-slate-800">Next Slot</h3>
                                 <p className="text-slate-600">
-                                    {formatDate(nextClass.date)} - {getShiftName(nextClass.shift)} - {" "}
+                                    {formatDate(nextClass.date)} - {SHIFT_TIME[nextClass.shift]} - {" "}
                                     {nextClass.room?.name || ""}
                                 </p>
                             </div>
@@ -447,7 +448,7 @@ export default function StudentClassDetailPage() {
                             <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5">
                                 <CardTitle className="text-xl flex items-center gap-2">
                                     <CalendarIcon className="h-5 w-5" />
-                                    Upcoming Classes
+                                    Upcoming Slots
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-5">
@@ -469,7 +470,7 @@ export default function StudentClassDetailPage() {
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-medium text-slate-800">{formatDate(slot.date)}</p>
                                                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                                                {getShiftName(slot.shift)}
+                                                                {SHIFT_TIME[slot.shift]}
                                                             </Badge>
                                                         </div>
                                                     </div>
