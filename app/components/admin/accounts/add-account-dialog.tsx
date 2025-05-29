@@ -1,22 +1,13 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog'
 import { Form, useFetcher, useNavigation, useSearchParams } from '@remix-run/react'
-import { DatePickerInput } from '~/components/ui/date-picker-input';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
-import { SHIFT_TIME } from '~/lib/utils/constants';
-import GenericCombobox from '~/components/ui/generic-combobox';
-import { Room } from '~/lib/types/room/room';
-import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
-import { fetchRooms } from '~/lib/services/rooms';
 import { Button } from '~/components/ui/button';
 import { ActionResult } from '~/lib/types/action-result';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
-import { ActionFunctionArgs } from '@remix-run/node';
-import { c } from 'node_modules/vite/dist/node/types.d-aGj9QkWt';
 import { useRemixForm } from 'remix-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Controller } from 'react-hook-form';
+
 import { Input } from '~/components/ui/input';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 

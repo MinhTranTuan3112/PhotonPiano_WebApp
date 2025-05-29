@@ -3,9 +3,9 @@ import { redirect } from "@remix-run/node";
 import { useLoaderData, useNavigate} from "@remix-run/react";
 import { addDays, format, parseISO, subDays } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
+import { useRef, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import {
@@ -63,7 +63,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const currentServerDateTime = currentServerTime.data;
 
     
-        console.log("ID", slots.map((slot: SlotDetail) => slot.id));
+        // console.log("ID", slots.map((slot: SlotDetail) => slot.id));
         
         return Response.json({
             slots,
@@ -165,6 +165,9 @@ export default function TeacherAttendance_index() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("all");
     const [calendarOpen, setCalendarOpen] = useState(false);
+    const [tickingServerTime, setTickingServerTime] = useState(new Date(currentServerDateTime));
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+
     const navigate = useNavigate();
 
     // Parse the selected date for display
@@ -178,6 +181,17 @@ export default function TeacherAttendance_index() {
             navigate(`?date=${formattedDate}`);
         }
     };
+
+    useEffect(() => {
+        setTickingServerTime(new Date(currentServerDateTime));
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+            setTickingServerTime(prev => new Date(prev.getTime() + 1000));
+        }, 1000);
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, [currentServerDateTime]);
 
     const handlePreviousDay = () => {
         const previousDay = subDays(parsedSelectedDate, 1);
@@ -362,7 +376,7 @@ export default function TeacherAttendance_index() {
                                     </div>
                                     <Button
                                         className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                        disabled={isNotToday(slot.date, slot.shift, deadlineData.configValue, currentServerDateTime)}
+                                        disabled={isNotToday(slot.date, slot.shift, deadlineData.configValue, tickingServerTime.toISOString())}
                                         onClick={() => window.location.href = `/teacher/attendance/${slot.id}`}
                                     >
                                         Attendance
