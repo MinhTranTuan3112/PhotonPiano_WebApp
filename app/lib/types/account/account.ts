@@ -29,6 +29,7 @@ export type Account = {
     selfEvaluatedLevelId?: string;
     selfEvaluatedLevel?: Level;
     currentClassId? : string;
+    tuitionStatus : number;
 };
 
 export type AccountDetail = {

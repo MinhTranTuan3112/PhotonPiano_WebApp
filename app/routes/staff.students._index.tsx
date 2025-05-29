@@ -8,7 +8,7 @@ import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
 import { z } from 'zod';
 import LearnerStatusAnnotation from '~/components/common/learner-status-annotation';
-import { LevelBadge, StatusBadge, studentColumns } from '~/components/staffs/table/student-columns';
+import { LevelBadge, StatusBadge, studentColumns, TuitionStatusBadge } from '~/components/staffs/table/student-columns';
 import { Button, buttonVariants } from '~/components/ui/button';
 import GenericDataTable from '~/components/ui/generic-data-table';
 import { Input } from '~/components/ui/input';
@@ -19,7 +19,7 @@ import { fetchLevels } from '~/lib/services/level';
 import { Account, Level, Role } from '~/lib/types/account/account';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { requireAuth } from '~/lib/utils/auth';
-import { LEVEL, STUDENT_STATUS } from '~/lib/utils/constants';
+import { LEVEL, STUDENT_STATUS, TUITION_STATUS } from '~/lib/utils/constants';
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 
@@ -44,6 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       orderByDesc: searchParams.get('desc') === 'true' ? true : false,
       roles: [Role.Student],
       levels: getParsedParamsArray({ paramsValue: searchParams.get('levels') }).map(String),
+      tuitionStatuses: getParsedParamsArray({ paramsValue: searchParams.get('tuitionStatuses') }).map(Number),
       studentStatuses: getParsedParamsArray({ paramsValue: searchParams.get('statuses') }).map(Number),
       q: trimQuotes(searchParams.get('q') || ''),
       idToken
@@ -92,6 +93,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export const searchSchema = z.object({
   levels: z.array(z.string()).optional(),
   statuses: z.array(z.string()).optional(),
+  tuitionStatuses: z.array(z.string()).optional(),
   q: z.string().optional()
 });
 
@@ -109,6 +111,13 @@ const levelOptions = LEVEL.map((level, index) => {
 const studentStatusOptions = STUDENT_STATUS.map((status, index) => {
   return {
     label: <StatusBadge status={index} key={status} />,
+    value: index.toString(),
+    icon: undefined
+  }
+})
+const tuitionStatusOptions = TUITION_STATUS.map((status, index) => {
+  return {
+    label: <TuitionStatusBadge status={index} key={status} />,
     value: index.toString(),
     icon: undefined
   }
@@ -150,7 +159,7 @@ function SearchForm() {
 
   return <Form method='GET' action='/staff/students'
     onSubmit={handleSubmit}
-    className='grid grid-cols-2 gap-y-5 gap-x-5 w-full'>
+    className='grid grid-cols-3 gap-y-5 gap-x-5 w-full'>
     {isLoadingLevels ? <Skeleton className='w-full' /> : <Controller
       name='levels'
       control={control}
@@ -177,7 +186,18 @@ function SearchForm() {
           onValueChange={onChange} />
       )}
     />
-
+    <Controller
+      name='tuitionStatuses'
+      control={control}
+      render={({ field: { onChange, onBlur, value, ref } }) => (
+        <MultiSelect options={tuitionStatusOptions}
+          value={value}
+          defaultValue={getParsedParamsArray({ paramsValue: searchParams.get('tuitionStatuses') })}
+          placeholder='Tuition Statuses'
+          className='w-full'
+          onValueChange={onChange} />
+      )}
+    />
     <Input {...register('q')} placeholder='Search here...'
       startContent={<Search className='size-5' />}
       className='col-span-full w-full'

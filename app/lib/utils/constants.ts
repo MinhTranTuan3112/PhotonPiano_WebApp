@@ -51,3 +51,5 @@ export const QUESTION_TYPES = ["Single Choice Question", "Multiple Choice Questi
 export const ROOM_STATUS = ["Available", "Unavailable"];
 
 export const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+
+export const TUITION_STATUS = ["Fully Paid","In Debt","No tuition"];

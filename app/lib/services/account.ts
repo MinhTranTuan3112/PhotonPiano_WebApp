@@ -4,7 +4,7 @@ import axiosInstance from "../utils/axios-instance";
 
 export async function fetchAccounts({
     page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
-    levels = [], roles = [], studentStatuses = [], q, accountStatus = [],
+    levels = [], roles = [], studentStatuses = [], q, accountStatus = [], tuitionStatuses = [],
     idToken
 }:
     Partial<QueryPagedRequest & {
@@ -13,6 +13,7 @@ export async function fetchAccounts({
         q?: string;
         studentStatuses: StudentStatus[];
         accountStatus : number[];
+        tuitionStatuses : number[];
     }> & {
         idToken: string
     }
@@ -42,6 +43,12 @@ export async function fetchAccounts({
         })
     }
 
+    if (tuitionStatuses.length > 0) {
+        tuitionStatuses.forEach(status => {
+            url += `&tuition-statuses=${status}`;
+        })
+    }
+
     if (accountStatus.length > 0) {
         accountStatus.forEach(status => {
             url += `&statuses=${status}`;
@@ -53,7 +60,6 @@ export async function fetchAccounts({
             Authorization: `Bearer ${idToken}`
         }
     });
-
     return response;
 }
 
