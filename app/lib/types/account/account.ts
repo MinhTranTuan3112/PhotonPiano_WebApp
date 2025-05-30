@@ -40,6 +40,7 @@ export type AccountDetail = {
     freeSlots: FreeSlot[]
 } & Account
 
+
 export type TeacherDetail = {
     instructorEntranceTests: EntranceTest[],
     instructorClasses: Class[]

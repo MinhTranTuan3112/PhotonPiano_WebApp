@@ -3,15 +3,26 @@ import {
     MoreHorizontal, Mail, Phone, User,
     Trash,
     Shuffle,
-    Music2
+    Music2,
+    DollarSign
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { Level } from "~/lib/types/account/account";
 import { Badge } from "~/components/ui/badge";
-import {STUDENT_STATUS } from "~/lib/utils/constants";
-import { StudentClassWithStudent } from "~/lib/types/class/student-class";
+import { STUDENT_STATUS, TUITION_STATUS } from "~/lib/utils/constants";
+import { StudentClassDetails, StudentClassWithStudent } from "~/lib/types/class/student-class";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+
+
+const getTuitionStatusStyle = (status: number) => {
+    switch (status) {
+        case 0: return "text-green-500 font-semibold";
+        case 1: return "text-red-500 font-semibold";
+        case 2: return "text-gray-500 font-semibold";
+        default: return "text-black font-semibold";
+    }
+};
 
 const getStatusStyle = (status: number) => {
     switch (status) {
@@ -40,7 +51,7 @@ const getLevelStyle = (level?: number) => {
 export function LevelBadge({ level }: {
     level?: Level
 }) {
-    return <Badge variant={'outline'} className={`uppercase`}style={{
+    return <Badge variant={'outline'} className={`uppercase`} style={{
         backgroundColor: `${level?.themeColor ?? '#CCCCCC'}33`, // 20% opacity
         color: level?.themeColor ?? "#CCCCCC"
     }}>
@@ -54,9 +65,23 @@ function StatusBadge({ status }: {
     return <Badge variant={'outline'} className={`${getStatusStyle(status)} uppercase`}>{STUDENT_STATUS[status]}</Badge>
 }
 
+export function TuitionStatusBadge({ studentClassTuitions }: {
+    studentClassTuitions: StudentClassDetails
+}) {
+    let status = 2;
+    if (studentClassTuitions.tutions.some(t => t.paymentStatus === 1)) {
+        status = 0;
+    } else if (studentClassTuitions.tutions.length > 0 && !studentClassTuitions.tutions.some(t => t.paymentStatus === 1)) {
+        status = 1;
+    }
+
+    return <Badge variant={'outline'} className={`${getTuitionStatusStyle(status)} uppercase`}>{TUITION_STATUS[status]}</Badge>
+}
+
+
 export function studentClassColumns({ handleDeleteConfirm }: {
-    handleDeleteConfirm: (id : string) => void
-}): ColumnDef<StudentClassWithStudent>[] {
+    handleDeleteConfirm: (id: string) => void
+}): ColumnDef<StudentClassDetails>[] {
     return [
         // {
         //     id: "select",
@@ -121,6 +146,13 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             }
         },
         {
+            accessorKey: 'Tuition Status',
+            header: () => <div className="flex flex-row gap-1 items-center"><DollarSign /> Tuition Status</div>,
+            cell: ({ row }) => {
+                return <TuitionStatusBadge studentClassTuitions={row.original} />
+            }
+        },
+        {
             accessorKey: 'Level',
             header: () => <div className="flex flex-row gap-1 items-center"><Music2 /> Level</div>,
             cell: ({ row }) => {
@@ -146,9 +178,9 @@ export function studentClassColumns({ handleDeleteConfirm }: {
 
 
 function ActionsDropdown({ table, deleteAction, row }: {
-    table: Table<StudentClassWithStudent>,
-    row: Row<StudentClassWithStudent>,
-    deleteAction : () => void
+    table: Table<StudentClassDetails>,
+    row: Row<StudentClassDetails>,
+    deleteAction: () => void
 }) {
 
     return <>
