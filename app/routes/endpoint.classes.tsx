@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDelayAClass, fetchDeleteClass, fetchPublishAClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
+import { fetchClasses, fetchClearScheduleClass, fetchCreateClass, fetchDelayAClass, fetchDeleteClass, fetchMergeAClass, fetchPublishAClass, fetchSchduleAClass, fetchUpdateClass } from "~/lib/services/class";
 import { requireAuth } from "~/lib/utils/auth";
 import { getErrorDetailsInfo } from "~/lib/utils/error";
 import { formEntryToDateOnly, formEntryToNumber, formEntryToString, formEntryToStrings } from "~/lib/utils/form";
@@ -205,6 +205,24 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchDelayAClass({classId, weeks,idToken});
+
+            return {
+                success: true
+            }
+        } else if (action === "MERGE"){
+            const sourceClassId = formEntryToString(formData.get("sourceClassId"));
+            const destClassId = formEntryToString(formData.get("destClassId"));
+            const {idToken} = await requireAuth(request)
+
+            if (!sourceClassId || !destClassId) {
+                return {
+                    success: false,
+                    error: 'Invalid Data.',
+                    status: 400
+                }
+            }
+
+            await fetchMergeAClass({sourceClassId, destClassId,idToken});
 
             return {
                 success: true

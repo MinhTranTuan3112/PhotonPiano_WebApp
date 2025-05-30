@@ -533,3 +533,47 @@ export async function fetchDelayAClass({
 
   return response;
 }
+
+export async function fetchMergeAClass({
+  sourceClassId,
+  destClassId,
+  idToken,
+}: {
+  sourceClassId: string;
+  destClassId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.put(
+    `/classes/merging`,
+    {
+      sourceClassId,
+      targetClassId : destClassId
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
+
+export async function fetchMergableClasses({
+  classId,
+  idToken,
+}: {
+  classId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.get(
+    `/classes/${classId}/merging`,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}

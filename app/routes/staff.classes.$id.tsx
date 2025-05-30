@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Select } from '@radix-ui/react-select';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { AlertTriangle, CalendarDays, CheckIcon, ClockArrowDown, Edit2Icon, Info, Loader2, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
+import { AlertTriangle, CalendarDays, CheckIcon, ClockArrowDown, Edit2Icon, Info, Loader2, LoaderIcon, MergeIcon, Music2, PlusCircle, Speaker, Trash, TriangleAlert, XIcon } from 'lucide-react';
 import { ReactNode, Suspense, useState } from 'react'
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -13,6 +13,7 @@ import AddStudentClassDialog from '~/components/staffs/classes/add-student-class
 import ArrangeScheduleClassDialog from '~/components/staffs/classes/arrange-schedule-class-dialog';
 import { ClassScoreboard } from '~/components/staffs/classes/class-scoreboard';
 import DelayClassDialog from '~/components/staffs/classes/delay-class-dialog';
+import MergeClassDialog from '~/components/staffs/classes/merge-class-dialog';
 import { studentClassColumns } from '~/components/staffs/table/student-class-columns';
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert';
 import { Button } from '~/components/ui/button';
@@ -26,11 +27,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts, fetchAvailableTeachersForClass } from '~/lib/services/account';
-import { fetchClassDetail, fetchClassScoreboard } from '~/lib/services/class';
+import { fetchClassDetail, fetchClassScoreboard, fetchMergableClasses } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
 import { fetchSystemConfigByName } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
+import { Class } from '~/lib/types/class/class';
 import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
@@ -100,11 +102,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     }
   });
 
+  const mergeClassesPromise = fetchMergableClasses({ classId: params.id, idToken }).then((res) => {
+    return res.data as Class[]
+  });
+
   const tab = (searchParams.get('tab') || 'general')
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
-    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise, classId: params.id
+    promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise,
+    classId: params.id, mergeClassesPromise
   }
 }
 export const getSlotCover = (status: number) => {
@@ -159,7 +166,8 @@ function StatusBadge({ status }: {
 }
 
 
-function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classInfo: ClassDetail, idToken: string, levelPromise: Promise<Level[]> }) {
+function ClassGeneralInformation({ classInfo, idToken, levelPromise, mergeClassesPromise }:
+  { classInfo: ClassDetail, idToken: string, levelPromise: Promise<Level[]>, mergeClassesPromise: Promise<Class[]> }) {
   const updateClassSchema = z.object({
     level: z.string().optional(),
     instructorId: z.string().optional(),
@@ -174,6 +182,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
 
   const navigate = useNavigate()
   const [isEdit, setIsEdit] = useState(false)
+  const [isOpenMerge, setIsOpenMerge] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams();
 
   const updateFetcher = useFetcher<ActionResult>();
@@ -406,11 +415,31 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }: { classIn
         </Form>
         <div className='mt-12'>
           {
-            !classInfo.isPublic && (
+            classInfo.status !== 2 && (
               <div className='flex flex-col justify-center'>
                 <div className='font-bold text-xl text-center'>Dangerous Zone</div>
                 <div className='flex gap-2 justify-center mt-4'>
-                  <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>DELETE CLASS</Button>
+                  {
+                    classInfo.studentClasses.length === 0 && (
+                      <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>DELETE CLASS</Button>
+                    )
+                  }
+                  <Suspense fallback={<Button disabled variant={'theme'}>
+                    <div className='flex items-center gap-2'>
+                    </div><LoaderIcon className='animate-spin' />MERGE CLASS
+                  </Button>}>
+                    <Await resolve={mergeClassesPromise}>
+                      {
+                        (data) => (
+                          <>
+                            <Button onClick={() => setIsOpenMerge(true)} Icon={MergeIcon} iconPlacement='left' variant={'theme'}>MERGE CLASS</Button>
+                            <MergeClassDialog classes={data} isOpen={isOpenMerge} setIsOpen={setIsOpenMerge} 
+                              scheduleDescription={classInfo.scheduleDescription} classId={classInfo.id} />
+                          </>
+                        )
+                      }
+                    </Await>
+                  </Suspense>
                 </div>
               </div>
             )
@@ -710,7 +739,8 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId } = useLoaderData<typeof loader>()
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId, mergeClassesPromise }
+    = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
 
   const publishFetcher = useFetcher<ActionResult>();
@@ -802,7 +832,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise} />
+                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise} mergeClassesPromise={mergeClassesPromise} />
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
