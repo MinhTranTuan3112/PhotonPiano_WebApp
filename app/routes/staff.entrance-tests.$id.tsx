@@ -41,6 +41,8 @@ import { ActionResult } from '~/lib/types/action-result'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import NoInformation from '~/components/common/no-information'
 import TestStatusAnnotation from '~/components/common/test-status-annotation'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Label } from '~/components/ui/label'
 
 type Props = {}
 
@@ -335,6 +337,7 @@ export function EntranceTestForm({
     const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
 
     const [isEdit, setIsEdit] = useState(false);
+    const [hasAutoNaming, setHasAutoNaming] = useState(true);
 
     return <>
         <Form className='mt-4'
@@ -357,14 +360,35 @@ export function EntranceTestForm({
                         )
                     }
                 </div>}
+
                 <div className="grid grid-cols-2 gap-7">
                     <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
-                        <span className="text-gray-700 font-bold">Name: <span className='text-red-600'>*</span></span>
+                        <div className="text-gray-700 font-bold flex justify-between items-center">
+                            <div className="">Name: <span className='text-red-600'>*</span></div>
+                            {isEdit && <div className="flex flex-row gap-1 items-center my-4">
+                                <Checkbox checked={hasAutoNaming} onCheckedChange={(checked) => {
+                                    const isChecked = checked as boolean;
+
+                                    if (isChecked) {
+                                        setFormValue('name', getEntranceTestName({
+                                            date: testDate,
+                                            roomName,
+                                            shift: parseInt(testShift)
+                                        }));
+                                    }
+
+                                    setHasAutoNaming(isChecked);
+                                }}
+                                    variant={'theme'} />
+                                <Label className='font-bold'>Auto test naming &#40;Shift_Date_Room&#41;</Label>
+                            </div>}
+
+                        </div>
                         {
                             isEdit ? (
                                 <div >
                                     <Input  {...register('name')} id="name" className="col-span-3"
-                                        placeholder='Test name...' readOnly={true} />
+                                        placeholder='Test name...' readOnly={hasAutoNaming} />
                                 </div>
                             ) : (
                                 <p className="text-gray-900">{defaultData.name}</p>
@@ -383,11 +407,13 @@ export function EntranceTestForm({
                                         <Select value={value}
                                             onValueChange={(value) => {
                                                 onChange(value);
-                                                setFormValue('name', getEntranceTestName({
-                                                    date: testDate,
-                                                    roomName,
-                                                    shift: parseInt(testShift)
-                                                }));
+                                                if (hasAutoNaming) {
+                                                    setFormValue('name', getEntranceTestName({
+                                                        date: testDate,
+                                                        roomName,
+                                                        shift: parseInt(testShift)
+                                                    }));
+                                                }
                                             }}>
                                             <SelectTrigger className='w-64'>
                                                 <SelectValue placeholder="Select shift" />
@@ -424,11 +450,13 @@ export function EntranceTestForm({
                                             value={value}
                                             onChange={(newDate) => {
                                                 onChange(newDate);
-                                                setFormValue('name', getEntranceTestName({
-                                                    date: newDate as Date,
-                                                    roomName,
-                                                    shift: parseInt(testShift)
-                                                }));
+                                                if (hasAutoNaming) {
+                                                    setFormValue('name', getEntranceTestName({
+                                                        date: newDate as Date,
+                                                        roomName,
+                                                        shift: parseInt(testShift)
+                                                    }));
+                                                }
                                             }}
                                             placeholder='Select test date'
                                             className='w-full'
@@ -472,11 +500,13 @@ export function EntranceTestForm({
                                             })}
                                             onItemChange={(room) => {
                                                 setFormValue('roomName', room?.name || '');
-                                                setFormValue('name', getEntranceTestName({
-                                                    date: testDate,
-                                                    roomName: room.name || '',
-                                                    shift: parseInt(testShift)
-                                                }));
+                                                if (hasAutoNaming) {
+                                                    setFormValue('name', getEntranceTestName({
+                                                        date: testDate,
+                                                        roomName: room.name || '',
+                                                        shift: parseInt(testShift)
+                                                    }));
+                                                }
                                             }}
                                             placeholder='Select room'
                                             emptyText='No rooms found.'
