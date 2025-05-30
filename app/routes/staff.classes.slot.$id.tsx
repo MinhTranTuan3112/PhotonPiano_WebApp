@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderFunctionArgs, redirect } from '@remix-run/node';
 import { Await, Form, Link, useFetcher, useLoaderData, useNavigate, useSearchParams } from '@remix-run/react';
-import { ArrowLeftCircle, BookOpen, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, Users, XIcon } from 'lucide-react';
+import { ArrowLeftCircle, BookOpen, CalendarDays, CheckIcon, Clock, DoorClosed, Edit2Icon, Music, Trash, TriangleAlert, Users, XIcon } from 'lucide-react';
 import { ReactNode, Suspense, useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { useRemixForm } from 'remix-hook-form';
@@ -570,6 +570,16 @@ function SlotDetailComponent({ slot, idToken }: { slot: SlotDetail; idToken: str
                             Please provide a reason for this change
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="my-2 p-4 rounded-lg bg-yellow-200 text-yellow-600 border-l-4 border-yellow-600 ">
+                        <div className="flex gap-2 items-center">
+                            <TriangleAlert />
+                            <div>Schedule consistency warning!</div>
+                        </div>
+                        <div className="text-sm">
+                            The changed slot should be aligned with the class schedule, except predefined agreement!.<br/>
+                            - <span className='font-bold'>{slot.class.scheduleDescription}</span>
+                        </div>
+                    </div>
                     <Textarea
                         {...register("reason")}
                         placeholder="Enter reason for change..."
