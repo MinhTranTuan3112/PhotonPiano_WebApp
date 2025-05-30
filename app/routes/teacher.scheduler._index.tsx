@@ -1,20 +1,19 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { getWeekRange } from "~/lib/utils/datetime"
 import {
-    fetchAttendanceStatus,
     fetchSlots
 } from "~/lib/services/scheduler"
 import { getWeek } from "date-fns"
 import {
     type SlotDetail,
-    type StudentAttendanceModel,
 } from "~/lib/types/Scheduler/slot"
 import { requireAuth } from "~/lib/utils/auth"
-import { fetchCurrentAccountInfo } from "~/lib/services/auth"
-import { Scheduler } from "~/components/scheduler/scheduler"
-import { redirect, useLoaderData } from "@remix-run/react"
+import { Await, redirect, useAsyncValue, useLoaderData } from "@remix-run/react"
 import { Role } from "~/lib/types/account/account"
 import { TeacherSchedule } from "~/components/scheduler/teacher-schedule"
+import { Suspense } from "react"
+import { Skeleton } from "~/components/ui/skeleton"
+import { useAuth } from "~/lib/contexts/auth-context"
 
 type Props = {}
 
@@ -26,9 +25,15 @@ const formatDateForAPI = (date: Date): string => {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const { idToken, role } = await requireAuth(request)
-    const url = new URL(request.url)
-    const searchParams = url.searchParams
+
+    const { idToken, role } = await requireAuth(request);
+
+    if (role !== Role.Instructor) {
+        return redirect('/');
+    }
+
+    const { searchParams } = new URL(request.url);
+    
     const currentYear = new Date().getFullYear()
     const currentDate = new Date()
     const currentWeekNumber = getWeek(currentDate)
@@ -39,55 +44,68 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const startTime = formatDateForAPI(startDate)
     const endTime = formatDateForAPI(endDate)
 
-    const currentAccountResponse = await fetchCurrentAccountInfo({ idToken })
-    const currentAccount = currentAccountResponse.data
+    const promise = fetchSlots({ startTime, endTime, idToken }).then((response) => {
+        const slotsPromise: Promise<SlotDetail[]> = response.data;
 
-    let accountId = ""
+        return { slotsPromise };
+    });
 
-    if (role !== Role.Instructor) {
-        return redirect('/');
-    }
-
-    const response = await fetchSlots({ startTime, endTime, studentFirebaseId: accountId, idToken: idToken })
-
-    const classId = response.data.classId;
-    const className = response.data.className;
-
-    const slots: SlotDetail[] = response.data
-    return { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount }
+    return { promise, year, weekNumber, startDate, endDate, idToken, role }
 }
 
 export default function StaffScheduler({ }: Props) {
-    const { slots, year, weekNumber, startDate, endDate, idToken, role, currentAccount } = useLoaderData<typeof loader>()
-    return (
-        // <Scheduler 
-        //     currentAccount={currentAccount}
-        //     idToken={idToken}
-        //     initialEndDate={endDate}
-        //     initialStartDate={startDate}
-        //     initialSlots={slots}
-        //     initialYear={year}
-        //     initialWeekNumber={weekNumber}
-        //     role={role}/>
 
-        // <Scheduler
-        //     initialSlots={slots}
-        //     initialStartDate={startDate}
-        //     initialEndDate={endDate}
-        //     initialYear={year}
-        //     initialWeekNumber={weekNumber}
-        //     idToken={idToken}
-        //     role={role}
-        //     currentAccount={currentAccount}
-        // />
-        <TeacherSchedule
-            initialSlots={slots}
-            initialStartDate={startDate}
-            initialEndDate={endDate}
-            initialYear={year}
-            initialWeekNumber={weekNumber}
-            idToken={idToken}
-            role={role}
-            currentAccount={currentAccount} />
-    )
+    const { promise, year, weekNumber, startDate, endDate, idToken, role } = useLoaderData<typeof loader>();
+
+    return <Suspense key={JSON.stringify({ year, weekNumber, startDate, endDate })} fallback={<LoadingSkeleton />}>
+        <Await resolve={promise}>
+            {({ slotsPromise }) => (
+                <Await resolve={slotsPromise}>
+                    <TeacherScheduleContent
+                        startDate={startDate}
+                        endDate={endDate}
+                        year={year}
+                        weekNumber={weekNumber}
+                        idToken={idToken}
+                        role={role}
+                    />
+                </Await>
+            )}
+        </Await>
+    </Suspense>
+}
+
+
+function TeacherScheduleContent({
+    startDate, endDate, year, weekNumber, idToken, role
+}: {
+    year: number,
+    weekNumber: number,
+    startDate: Date,
+    endDate: Date,
+    idToken: string,
+    role: Role,
+}) {
+
+    const { currentAccount } = useAuth();
+
+    const slots = useAsyncValue() as SlotDetail[];
+
+    return <TeacherSchedule
+        initialSlots={slots}
+        initialStartDate={startDate}
+        initialEndDate={endDate}
+        initialYear={year}
+        initialWeekNumber={weekNumber}
+        idToken={idToken}
+        role={role}
+        currentAccount={currentAccount!} />
+}
+
+function LoadingSkeleton() {
+    return <div className="px-10">
+        <Skeleton className="w-full h-[200px]" />
+        <br />
+        <Skeleton className="w-full h-[500px]" />
+    </div>
 }
