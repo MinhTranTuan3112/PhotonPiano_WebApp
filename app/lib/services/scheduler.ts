@@ -1,5 +1,5 @@
 import axiosInstance from "~/lib/utils/axios-instance";
-import {Shift, SlotStatus} from "~/lib/types/Scheduler/slot";
+import { Shift, SlotStatus } from "~/lib/types/Scheduler/slot";
 import axios from "axios";
 
 export type FetchSlotsParams = {
@@ -15,15 +15,15 @@ export type FetchSlotsParams = {
 
 
 export async function fetchSlots({
-                                     startTime,
-                                     endTime,
-                                     shifts,
-                                     slotStatuses,
-                                     instructorFirebaseIds,
-                                     studentFirebaseId,
-                                     classIds,
-                                     idToken
-                                 }: FetchSlotsParams) {
+    startTime,
+    endTime,
+    shifts,
+    slotStatuses,
+    instructorFirebaseIds,
+    studentFirebaseId,
+    classIds,
+    idToken
+}: FetchSlotsParams) {
     try {
         const params = new URLSearchParams();
 
@@ -75,7 +75,7 @@ export async function fetchSlotById(id: string, idToken: string) {
 
 
         return response;
-    } catch (error : unknown) {
+    } catch (error: unknown) {
         if (axios.isAxiosError(error) && error.response) {
             throw new Error(`API Error: ${error.response.data?.message || error.message}`);
         } else {
@@ -134,7 +134,7 @@ export async function fetchUpdateAttendanceStatus(
         if (response.status !== 200) {
             throw new Error(`API Error: Status ${response.status} - ${response.statusText}`);
         }
-        
+
         return response;
     } catch (error: unknown) {
         console.error("Error in fetchUpdateAttendanceStatus:", error);
@@ -148,12 +148,12 @@ export async function fetchUpdateAttendanceStatus(
 }
 
 
-export async function fetchCancelSlot( slotId: string, cancelReason: string, idToken: string) {
-   
+export async function fetchCancelSlot(slotId: string, cancelReason: string, idToken: string) {
+
     const url = '/scheduler/cancel-slot';
 
     console.log("Go to here");
-    
+
     const response = await axiosInstance.post(url, {
         slotId: slotId,
         cancelReason: cancelReason,
@@ -162,14 +162,14 @@ export async function fetchCancelSlot( slotId: string, cancelReason: string, idT
             Authorization: `Bearer ${idToken}`,
         }
     })
-    
+
     if (response.status != 204) {
         throw new Error(`Failed to cancel slot: ${response.statusText}`);
     }
     return response; // API trả về 204 No Content
 }
 
-export async function fetchBlankSlots( startDate: string, endDate: string, idToken: string) {
+export async function fetchBlankSlots(startDate: string, endDate: string, idToken: string) {
 
     const url = '/scheduler/blank-slot';
 
@@ -185,7 +185,7 @@ export async function fetchBlankSlots( startDate: string, endDate: string, idTok
     if (response.status != 200) {
         throw new Error(`Failed to cancel slot: ${response.statusText}`);
     }
-    return response; 
+    return response;
 }
 
 export async function fetchPublicNewSlot(
@@ -239,19 +239,19 @@ export async function fetchPublicNewSlot(
 
 
 export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }: {
-    shift : number,
-    date : string,
-    roomId : string,
-    classId : string,
-    idToken : string
+    shift: number,
+    date: string,
+    roomId: string,
+    classId: string,
+    idToken: string
 }) {
     const response = await axiosInstance.post(`/scheduler`, {
-        shift : shift,
-        date : date,
-        roomId : roomId,
-        classId : classId,
-        idToken : idToken
-    },{
+        shift: shift,
+        date: date,
+        roomId: roomId,
+        classId: classId,
+        idToken: idToken
+    }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }
@@ -260,22 +260,22 @@ export async function fetchCreateSlot({ shift, date, roomId, classId, idToken }:
 }
 
 export async function fetchUpdateSlot({ id, shift, date, roomId, reason, teacherId, idToken }: {
-    id : string,
-    shift? : number,
-    date? : string,
-    roomId? : string,
-    reason? : string,
-    teacherId? : string,
-    idToken : string
+    id: string,
+    shift?: number,
+    date?: string,
+    roomId?: string,
+    reason?: string,
+    teacherId?: string,
+    idToken: string
 }) {
     const response = await axiosInstance.put(`/scheduler`, {
-        id : id,
-        shift : shift,
-        date : date,
-        roomId : roomId,
-        reason : reason,
-        teacherId : teacherId
-    },{
+        id: id,
+        shift: shift,
+        date: date,
+        roomId: roomId,
+        reason: reason,
+        teacherId: teacherId
+    }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }
@@ -284,10 +284,10 @@ export async function fetchUpdateSlot({ id, shift, date, roomId, reason, teacher
 }
 
 export async function fetchDeleteSlot({ id, idToken }: {
-    id : string,
-    idToken : string
+    id: string,
+    idToken: string
 }) {
-    const response = await axiosInstance.delete(`/scheduler/${id}`,{
+    const response = await axiosInstance.delete(`/scheduler/${id}`, {
         headers: {
             Authorization: `Bearer ${idToken}`,
         }
@@ -305,7 +305,7 @@ export async function fetchAvailableTeachersForSlot(slotId: string, idToken: str
     return response;
 }
 
-export async function fetchAssignTeacherToSlot(slotId: string, teacherFirebaseId: string, reason: string ,idToken: string) {
+export async function fetchAssignTeacherToSlot(slotId: string, teacherFirebaseId: string, reason: string, idToken: string) {
     const response = await axiosInstance.post('/scheduler/assign-teacher-to-slot',
         { slotId, teacherFirebaseId, reason },
         {
