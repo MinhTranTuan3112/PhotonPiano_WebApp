@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,6 +21,7 @@ type Props = {
     confirmText?: string;
     cancelButtonClassname?: string;
     confirmButtonClassname?: string;
+    content? : ReactNode;
 };
 
 export function useConfirmationDialog({ title = 'Confirm', description, onConfirm, onCancel,
@@ -29,6 +30,7 @@ export function useConfirmationDialog({ title = 'Confirm', description, onConfir
     confirmText = 'Confirm',
     cancelButtonClassname,
     confirmButtonClassname,
+    content
 }: Props) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -51,6 +53,7 @@ export function useConfirmationDialog({ title = 'Confirm', description, onConfir
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>{description}</AlertDialogDescription>
                 </AlertDialogHeader>
+                {content}
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={handleCancel} className={cancelButtonClassname ||
                         buttonVariants({ variant: 'outline' })
