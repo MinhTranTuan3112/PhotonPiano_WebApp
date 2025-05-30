@@ -404,9 +404,9 @@ export function CreateEntranceTestForm({
                 />
                 {errors.instructorId && <p className='text-sm text-red-500'>{errors.instructorId.message}</p>}
             </div>
-            <Button variant={'default'} className='uppercase' type='button'
+            <Button variant={'theme'} type='button'
                 isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog}>
-                {isSubmitting ? 'Creating' : 'Create'}
+                Arrange
             </Button>
         </Form>
         {confirmDialog}

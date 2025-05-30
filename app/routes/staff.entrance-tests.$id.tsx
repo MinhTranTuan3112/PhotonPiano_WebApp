@@ -327,10 +327,9 @@ export function EntranceTestForm({
     const { open: handleOpenEntranceTestUpdateDialog, dialog: entranceTestConfirmDialog } = useConfirmationDialog({
         title: 'Confirm update entrance test',
         description: 'Are you sure you want to update this entrance test?',
-        onConfirm: () => {
-            setFormValue('isAnnouncedScore', undefined);
-            handleSubmit();
-        }
+        confirmButtonVariant: 'warning',
+        confirmText: 'Update',
+        onConfirm: handleSubmit
     });
 
     const { date: testDate, shift: testShift, roomId, instructorId, roomName } = watch();
@@ -351,7 +350,7 @@ export function EntranceTestForm({
                                 </Button>
                             </>
                         ) : (
-                            <Button variant={'theme'} onClick={() => setIsEdit(true)} type="button"
+                            <Button variant={'warning'} onClick={() => setIsEdit(true)} type="button"
                                 Icon={Edit2Icon} iconPlacement='left'
                                 disabled={defaultData.testStatus === EntranceTestStatus.Ended}>Edit
                             </Button>
@@ -586,7 +585,7 @@ export function EntranceTestForm({
             <CardFooter className='mt-4 flex justify-end w-full'>
                 {isEdit && <Button className='font-bold px-12' isLoading={isSubmitting}
                     disabled={isSubmitting}
-                    type='button' variant={'theme'} onClick={handleOpenEntranceTestUpdateDialog}>
+                    type='button' variant={'warning'} onClick={handleOpenEntranceTestUpdateDialog}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>}
             </CardFooter>

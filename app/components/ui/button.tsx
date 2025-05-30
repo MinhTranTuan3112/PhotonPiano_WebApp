@@ -51,6 +51,8 @@ const buttonVariants = cva(
   }
 );
 
+export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
+
 type IconProps = {
   Icon: React.ElementType;
   iconPlacement: "left" | "right";
