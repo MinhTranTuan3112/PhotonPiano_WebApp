@@ -9,7 +9,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "~/components/ui/alert-dialog";
-import { buttonVariants } from "~/components/ui/button";
+import { ButtonVariant, buttonVariants } from "~/components/ui/button";
 
 type Props = {
     defaultOpen?: boolean;
@@ -20,6 +20,7 @@ type Props = {
     cancelText?: string;
     confirmText?: string;
     cancelButtonClassname?: string;
+    confirmButtonVariant?: ButtonVariant;
     confirmButtonClassname?: string;
 };
 
@@ -28,6 +29,7 @@ export function useConfirmationDialog({ title = 'Confirm', description, onConfir
     cancelText = 'Cancel',
     confirmText = 'Confirm',
     cancelButtonClassname,
+    confirmButtonVariant = 'theme',
     confirmButtonClassname,
 }: Props) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -57,7 +59,7 @@ export function useConfirmationDialog({ title = 'Confirm', description, onConfir
                     }>{cancelText}</AlertDialogCancel>
                     <AlertDialogAction onClick={handleConfirm} className={
                         confirmButtonClassname ||
-                        buttonVariants({ variant: 'theme' })
+                        buttonVariants({ variant: confirmButtonVariant || 'theme' })
                     }>{confirmText}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

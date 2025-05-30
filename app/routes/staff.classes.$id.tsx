@@ -653,7 +653,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
               )
             }
           </div>
-          <Button Icon={CalendarDays} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>View as calendar</Button>
+          <Button Icon={CalendarDays} type='button' variant={'theme'} iconPlacement='left' onClick={() => navigate(`/staff/scheduler?classId=${classInfo.id}&className=${classInfo.name}`)}>View as calendar</Button>
         </div>
 
         <div className='text-center text-xl mt-4'>
@@ -665,7 +665,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
             <Input {...register("description")} placeholder="Enter schedule description..."
               className='flex-grow'
               defaultValue={classInfo.scheduleDescription} />
-            <Button>Update</Button>
+            <Button type='submit' variant={'theme'}>Update</Button>
           </div>
         </Form>
 
