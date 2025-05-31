@@ -30,6 +30,7 @@ export function NavUser() {
                 action: "/sign-out",
             })
         },
+        confirmButtonVariant: 'destructive',
         confirmText: "Sign out",
     })
 

@@ -117,7 +117,7 @@ export default function LevelDetailsPage({ }: Props) {
 
     return (
         <section className='px-10'>
-            <h3 className="text-xl font-bold">Level details</h3>
+            <h3 className="text-xl font-bold text-theme">Level details</h3>
             <p className="text-sm text-muted-foreground">Details information of level</p>
 
             <Suspense fallback={<LoadingSkeleton />} key={id}>
