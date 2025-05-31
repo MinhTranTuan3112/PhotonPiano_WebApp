@@ -1,6 +1,6 @@
 import type React from "react"
 import { type LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import { Await, useAsyncValue, useLoaderData, useNavigate } from "@remix-run/react"
 import {
     ArrowRight,
     Calendar,
@@ -26,10 +26,11 @@ import type { Level } from "~/lib/types/account/account"
 import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { getAuth } from "~/lib/utils/auth"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
 import { useAuth } from "~/lib/contexts/auth-context"
+import { Skeleton } from "~/components/ui/skeleton"
 
 function adjustColorBrightness(hex: string, factor: number): string {
     hex = hex.replace("#", "")
@@ -75,6 +76,27 @@ type LoaderData = {
     }
 }
 
+type LevelDetails = Level & {
+    classes: Array<
+        Class & {
+            instructor?: { userName: string }
+            endTime?: string
+            classDays?: string
+            classTime?: string | string[]
+        }
+    >
+    nextLevel?: {
+        id: string
+        themeColor: string
+        description: string
+        name: string
+    }
+    numberActiveStudentInLevel?: number
+    estimateDurationInWeeks?: number
+    totalPrice?: number
+    requiresEntranceTest?: boolean
+}
+
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
 
@@ -82,14 +104,27 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
             throw new Response("Level ID is required", { status: 400 })
         }
 
-        const response = await fetchALevel({
-            id: params.id,
+        const id = params.id as string;
+
+        // const response = await fetchALevel({
+        //     id: params.id,
+        // });
+
+        const promise = fetchALevel({
+            id
+        }).then((response) => {
+            const levelPromise: Promise<LevelDetails> = response.data;
+
+            return {
+                levelPromise
+            }
         });
 
 
         return {
-            levelData: response.data
-        } as LoaderData;
+            promise,
+            id
+        }
 
     } catch (error) {
         console.error("Error fetching level details:", error)
@@ -241,9 +276,27 @@ function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
     )
 }
 
-export default function LevelDetails() {
-    const { levelData } = useLoaderData<typeof loader>()
-    const {currentAccount} = useAuth()
+export default function LevelDetailsPage() {
+
+    const { promise, id } = useLoaderData<typeof loader>();
+
+    return <Suspense key={id} fallback={<LoadingSkeleton />}>
+        <Await resolve={promise}>
+            {({ levelPromise }) => (
+                <Await resolve={levelPromise}>
+                    <LevelDetailsContent />
+                </Await>
+            )}
+        </Await>
+    </Suspense>
+
+}
+
+function LevelDetailsContent() {
+
+    const levelData = useAsyncValue() as LevelDetails;
+
+    const { currentAccount } = useAuth()
     const isLoggedIn = !!currentAccount
     const navigate = useNavigate()
     const [showLoginModal, setShowLoginModal] = useState(false)
@@ -1073,4 +1126,13 @@ function RequirementCard({
             <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
         </div>
     )
+}
+
+
+function LoadingSkeleton() {
+    return <div className="px-10">
+        <Skeleton className="w-full h-[200px]" />
+        <br />
+        <Skeleton className="w-full h-[500px]" />
+    </div>
 }
