@@ -11,8 +11,7 @@ export async function fetchStudentClassScores({
     throw new Error("Authentication token is required");
   }
 
-  const url = `/student-class/${classId}/scores`;
-
+  const url = `/classes/${classId}/student-scores`;
   try {
     const response = await axiosInstance.get(url, {
       headers: {
@@ -45,7 +44,7 @@ export async function batchUpdateStudentScores({
     throw new Error("Authentication token is required");
   }
 
-  const url = "/student-class/batch-update-scores";
+  const url = `/classes/${classId}/student-scores`;
 
   try {
     const response = await axiosInstance.put(
@@ -53,7 +52,7 @@ export async function batchUpdateStudentScores({
       {
         classId: classId,
         scores: scoresData.scores,
-        request: {}, // Add empty request object to satisfy API validation
+        request: {},
       },
       {
         headers: {
@@ -79,7 +78,7 @@ export async function rollBackScorePublishing({
     throw new Error("Authentication token is required");
   }
 
-  const url = `/student-class/${classId}/rollback-score-publish`;
+  const url = `/classes/${classId}/scores/rollback-publish`;
   try {
     const response = await axiosInstance.post(
       url,

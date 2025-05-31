@@ -5,21 +5,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/u
 import type { Level } from "~/lib/types/account/account"
 import type { Class, Class as ClassType } from "~/lib/types/class/class"
 import { CLASS_STATUS } from "~/lib/utils/constants"
-import { Clock, User, Calendar, TriangleAlert } from "lucide-react"
+import { Clock, User, Calendar, TriangleAlert, Loader2 } from "lucide-react"
 import { useFetcher, useNavigate } from "@remix-run/react"
 import { useConfirmationDialog } from "~/hooks/use-confirmation-dialog"
 import useLoadingDialog from "~/hooks/use-loading-dialog"
 import { ActionResult } from "~/lib/types/action-result"
 import { toast } from "sonner"
 import { toastWarning } from "~/lib/utils/toast-utils"
+import { useQuery } from "@tanstack/react-query"
+import { fetchMergableClasses } from "~/lib/services/class"
+import { Button } from "~/components/ui/button"
 
 
 type Props = {
-    classes: ClassType[] // Changed to array for multiple classes
+    // classes: ClassType[] // Changed to array for multiple classes
     isOpen: boolean
     setIsOpen: (isOpen: boolean) => void,
     scheduleDescription?: string,
-    classId: string
+    classId: string;
+    idToken: string;
 }
 
 function ClassStatusBadge({
@@ -155,7 +159,23 @@ function ScheduleWarning({ scheduleDecription, selectedClass }: { scheduleDecrip
     )
 }
 
-export default function MergeClassDialog({ classes, isOpen, setIsOpen, scheduleDescription, classId }: Props) {
+export default function MergeClassDialog({ isOpen, setIsOpen, scheduleDescription, classId, idToken }: Props) {
+
+    const fetcher = useFetcher<ActionResult>();
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['mergeable-classes', classId],
+        queryFn: async () => {
+            const response = await fetchMergableClasses({ classId, idToken });
+
+            return await response.data;
+        },
+        enabled: !!classId && isOpen,
+        refetchOnWindowFocus: false
+    });
+
+    const classes = data ? data as ClassType[] : [];
+
     const [selectedClass, setSelectedClass] = useState<Class | null>(null)
 
     const handleSelect = (selectedClass: Class) => {
@@ -163,7 +183,6 @@ export default function MergeClassDialog({ classes, isOpen, setIsOpen, scheduleD
         handleOpenModal()
     }
 
-    const fetcher = useFetcher<ActionResult>()
 
     const { open: handleOpenModal, dialog: confirmDialog } = useConfirmationDialog({
         title: 'Confirm Merging',
@@ -207,7 +226,7 @@ export default function MergeClassDialog({ classes, isOpen, setIsOpen, scheduleD
 
         }
     }, [fetcher.data]);
-    return (
+    return isLoading ? <Loader2 className='animate-spin' />: (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="min-w-[700px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
