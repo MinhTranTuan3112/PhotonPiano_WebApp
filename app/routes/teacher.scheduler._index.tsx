@@ -33,7 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     const { searchParams } = new URL(request.url);
-    
+
     const currentYear = new Date().getFullYear()
     const currentDate = new Date()
     const currentWeekNumber = getWeek(currentDate)
@@ -91,7 +91,7 @@ function TeacherScheduleContent({
 
     const slots = useAsyncValue() as SlotDetail[];
 
-    return <TeacherSchedule
+    return currentAccount ? <TeacherSchedule
         initialSlots={slots}
         initialStartDate={startDate}
         initialEndDate={endDate}
@@ -99,7 +99,7 @@ function TeacherScheduleContent({
         initialWeekNumber={weekNumber}
         idToken={idToken}
         role={role}
-        currentAccount={currentAccount!} />
+        currentAccount={currentAccount} /> : <Skeleton className="w-full h-full" />;
 }
 
 function LoadingSkeleton() {
