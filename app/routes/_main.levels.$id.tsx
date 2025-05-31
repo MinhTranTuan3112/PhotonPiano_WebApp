@@ -1,6 +1,6 @@
 import type React from "react"
-import { type LoaderFunctionArgs } from "@remix-run/node"
-import { useLoaderData, useNavigate } from "@remix-run/react"
+import type { LoaderFunctionArgs } from "@remix-run/node"
+import { Await, useLoaderData, useNavigate } from "@remix-run/react"
 import {
     ArrowRight,
     Calendar,
@@ -26,10 +26,10 @@ import type { Level } from "~/lib/types/account/account"
 import type { Class } from "~/lib/types/class/class"
 import { fetchALevel } from "~/lib/services/level"
 import { formatCurrency } from "~/lib/utils/format"
-import { useState } from "react"
-import { getAuth } from "~/lib/utils/auth"
+import { Suspense, useState } from "react"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
 import { useAuth } from "~/lib/contexts/auth-context"
+import { LevelDetailsSkeleton } from "~/components/skeleton"
 
 function adjustColorBrightness(hex: string, factor: number): string {
     hex = hex.replace("#", "")
@@ -46,51 +46,43 @@ function adjustColorBrightness(hex: string, factor: number): string {
 }
 
 type LoaderData = {
-    levelData: Level & {
-        classes: Array<
-            Class & {
-                instructor?: { userName: string }
-                endTime?: string
-                classDays?: string
-                classTime?: string | string[]
+    levelDataPromise: Promise<
+        Level & {
+            classes: Array<
+                Class & {
+                    instructor?: { userName: string }
+                    endTime?: string
+                    classDays?: string
+                    classTime?: string | string[]
+                }
+            >
+            nextLevel?: {
+                id: string
+                themeColor: string
+                description: string
+                name: string
             }
-        >
-        nextLevel?: {
-            id: string
-            themeColor: string
-            description: string
-            name: string
+            numberActiveStudentInLevel?: number
+            estimateDurationInWeeks?: number
+            totalPrice?: number
+            requiresEntranceTest?: boolean
         }
-        numberActiveStudentInLevel?: number
-        estimateDurationInWeeks?: number
-        totalPrice?: number
-        requiresEntranceTest?: boolean
-    }
-    authData: {
-        idToken?: string
-        refreshToken?: string
-        idTokenExpiry?: number
-        role?: number
-        accountId?: string
-    }
+    >
 }
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
-
         if (!params.id) {
             throw new Response("Level ID is required", { status: 400 })
         }
 
-        const response = await fetchALevel({
+        const levelDataPromise = fetchALevel({
             id: params.id,
-        });
-
+        }).then((response) => response.data)
 
         return {
-            levelData: response.data
-        } as LoaderData;
-
+            levelDataPromise,
+        } as LoaderData
     } catch (error) {
         console.error("Error fetching level details:", error)
         throw new Response("Failed to load level details", { status: 500 })
@@ -241,12 +233,13 @@ function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
     )
 }
 
-export default function LevelDetails() {
-    const { levelData } = useLoaderData<typeof loader>()
-    const {currentAccount} = useAuth()
-    const isLoggedIn = !!currentAccount
+// Main content component that receives the resolved data
+function LevelDetailsContent({ levelData }: { levelData: any }) {
+    const { currentAccount } = useAuth()
     const navigate = useNavigate()
     const [showLoginModal, setShowLoginModal] = useState(false)
+
+    const isLoggedIn = !!currentAccount
 
     const handleRegisterClick = () => {
         if (isLoggedIn) {
@@ -539,9 +532,16 @@ export default function LevelDetails() {
                         title="Entrance Requirements"
                         stats={[
                             {
-                                label: 'Entrance Requirements',
-                                value: levelData.requiresEntranceTest ? <Badge variant={'outline'} className="text-red-600 bg-red-500/20">Required</Badge>
-                                    : <Badge variant={'outline'} className="text-green-600 bg-green-500/20">Not Required</Badge>,
+                                label: "Entrance Requirements",
+                                value: levelData.requiresEntranceTest ? (
+                                    <Badge variant={"outline"} className="text-red-600 bg-red-500/20">
+                                        Required
+                                    </Badge>
+                                ) : (
+                                    <Badge variant={"outline"} className="text-green-600 bg-green-500/20">
+                                        Not Required
+                                    </Badge>
+                                ),
                                 highlight: levelData.requiresEntranceTest,
                             },
                         ]}
@@ -746,8 +746,8 @@ export default function LevelDetails() {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {levelData.classes
-                                            .filter((cls) => cls.status === 0 && cls.isPublic)
-                                            .map((cls) => {
+                                            .filter((cls: any) => cls.status === 0 && cls.isPublic)
+                                            .map((cls: any) => {
                                                 const enrollmentStatus = getEnrollmentStatus(cls)
 
                                                 return (
@@ -818,7 +818,7 @@ export default function LevelDetails() {
                                 </table>
                             </div>
                         </Card>
-                        {levelData.classes.filter((cls) => cls.status === 0).length === 0 && (
+                        {levelData.classes.filter((cls : Class) => cls.status === 0).length === 0 && (
                             <div className="text-center py-8 text-gray-500">
                                 <p>No classes are currently available for enrollment.</p>
                                 <p className="text-sm mt-2">Please check back later or contact us for more information.</p>
@@ -950,10 +950,20 @@ export default function LevelDetails() {
     )
 }
 
+export default function LevelDetails() {
+    const { levelDataPromise } = useLoaderData<typeof loader>()
+
+    return (
+        <Suspense fallback={<LevelDetailsSkeleton />}>
+            <Await resolve={levelDataPromise}>{(levelData) => <LevelDetailsContent levelData={levelData} />}</Await>
+        </Suspense>
+    )
+}
+
 // Component for stats cards
 type StatItem = {
-    label: React.ReactNode;
-    value: React.ReactNode;
+    label: React.ReactNode
+    value: React.ReactNode
     highlight?: boolean
 }
 
