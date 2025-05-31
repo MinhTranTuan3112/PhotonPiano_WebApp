@@ -35,11 +35,11 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllMinimalCriterias } from '~/lib/services/criteria';
 import { MinimalCriteria } from '~/lib/types/criteria/criteria';
-import { Level, Role } from '~/lib/types/account/account';
+import { Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ScrollArea } from '../ui/scroll-area';
 import { action } from '~/routes/update-entrance-test-results';
 import { action as deleteStudentsFromTestAction } from '~/routes/remove-students-from-test';
-import { LevelBadge } from '../staffs/table/student-columns';
+import { LevelBadge, StatusBadge } from '../staffs/table/student-columns';
 import { toast } from 'sonner';
 import { formatScore } from '~/lib/utils/score';
 import { fetchSystemConfigs } from '~/lib/services/system-config';
@@ -125,7 +125,7 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         accessorKey: 'Comment',
         header: 'Comment',
         cell: ({ row }) => {
-            return <div className='text-justify'>{row.original.instructorComment || '(None)'}</div>
+            return <div className='text-justify'>{row.original.instructorComment || <NoInformation text='No comment' />}</div>
         }
     },
     {
@@ -134,6 +134,15 @@ const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
         cell: ({ row }) => {
             return row.original.level ? <LevelBadge level={row.original.level} /> : <div className="">
                 None
+            </div>
+        }
+    },
+    {
+        accessorKey: 'Learning status',
+        header: 'Learning status',
+        cell: ({ row }) => {
+            return <div className="">
+                <StatusBadge status={row.original.student.studentStatus || StudentStatus.Unregistered} />
             </div>
         }
     },
@@ -566,7 +575,7 @@ function LevelSection({
                 name='levelId'
                 render={({ field: { value, onChange } }) => (
                     <Select value={value} onValueChange={onChange}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[300px]">
                             <SelectValue placeholder="Select level" />
                         </SelectTrigger>
                         <SelectContent>

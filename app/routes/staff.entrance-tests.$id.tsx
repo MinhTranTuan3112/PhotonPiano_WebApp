@@ -703,7 +703,8 @@ function StudentsSection({
                         </div>}
                         <div className="flex justify-end">
                             <Button type='button' variant={'theme'} onClick={handleOpenImportDialog}
-                                Icon={Import} iconPlacement='left' disabled={entranceTest.testStatus !== EntranceTestStatus.Ended}>Import results with Excel file</Button>
+                                Icon={Import} iconPlacement='left'
+                                disabled={entranceTest.testStatus !== EntranceTestStatus.Ended || entranceTest.isAnnouncedScore}>Import results with Excel file</Button>
                         </div>
                     </div>
                     <ResultTable data={entranceTest.entranceTestStudents} />
@@ -752,9 +753,9 @@ function PublishScoreSection({
 
     const { open: handleOpenConfirmDialog, dialog: confirmDialog } = useConfirmationDialog({
         title: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
-        description: `Are you sure you want to ${isAnnouncedScore ? "cancel" : "publish"} test results?`,
+        description: `Are you sure you want to ${isAnnouncedScore ? "cancel publish" : "publish"} test results?`,
         confirmText: `${isAnnouncedScore ? "Cancel" : "Publish"} test results`,
-        confirmButtonClassname: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500',
+        confirmButtonVariant: !isAnnouncedScore ? 'warning' : 'destructive',
         onConfirm: () => {
             const formData = new FormData();
             formData.append('id', id);
@@ -769,7 +770,7 @@ function PublishScoreSection({
     useEffect(() => {
 
         if (fetcher.data?.success === true) {
-            toast.success('Success!');
+            toast.success(`${isAnnouncedScore ? 'Cancel publish' : 'Publish'} result success!`);
             return;
         }
 

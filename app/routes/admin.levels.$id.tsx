@@ -4,6 +4,8 @@ import { Await, useAsyncValue, useFetcher, useLoaderData } from '@remix-run/reac
 import { Suspense, useEffect } from 'react';
 import { getValidatedFormData } from 'remix-hook-form';
 import { toast } from 'sonner';
+import ClassStatusAnnotation from '~/components/common/class-status-annotation';
+import LearnerStatusAnnotation from '~/components/common/learner-status-annotation';
 import LevelForm, { LevelFormData, levelSchema } from '~/components/level/level-form';
 import { classColums } from '~/components/staffs/table/class-columns';
 import { studentColumns } from '~/components/staffs/table/student-columns';
@@ -78,7 +80,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         const { errors, data, receivedValues: defaultValues } =
             await getValidatedFormData<Partial<LevelFormData>>(request, zodResolver(levelSchema.partial()));
-            
+
         if (errors) {
             return { success: false, errors, defaultValues };
         }
@@ -183,9 +185,11 @@ function LevelDetailsContent({ idToken }: { idToken: string }) {
                 </TabsContent>
                 <TabsContent value="students">
                     <DataTable data={level.accounts} columns={studentColumns} />
+                    <LearnerStatusAnnotation />
                 </TabsContent>
                 <TabsContent value='classes'>
                     <DataTable data={level.classes} columns={classColums} />
+                    <ClassStatusAnnotation />
                 </TabsContent>
             </Tabs>
         </CardContent>
