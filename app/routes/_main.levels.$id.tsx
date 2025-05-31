@@ -519,7 +519,7 @@ export default function LevelDetails() {
                             { label: "Current Students", value: levelData.numberActiveStudentInLevel || 0 },
                             {
                                 label: "Available Classes",
-                                value: levelData.classes.filter((c: Class) => c.status === 1).length,
+                                value: levelData.classes.filter((c: Class) => c.status === 0 && c.isPublic).length,
                             },
                         ]}
                         accentColor={levelData.themeColor || "#21c44d"}
@@ -744,7 +744,7 @@ export default function LevelDetails() {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {levelData.classes
-                                            .filter((cls) => cls.status === 0)
+                                            .filter((cls) => cls.status === 0 && cls.isPublic)
                                             .map((cls) => {
                                                 const enrollmentStatus = getEnrollmentStatus(cls)
 
