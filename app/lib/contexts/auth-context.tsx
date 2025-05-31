@@ -40,7 +40,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
             return account;
         },
-        enabled: true,
+        enabled: !!authData?.idToken,
         refetchOnWindowFocus: false
     })
 

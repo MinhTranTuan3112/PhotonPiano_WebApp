@@ -18,7 +18,6 @@ import {
     SidebarProvider,
     SidebarTrigger
 } from "~/components/ui/sidebar";
-import { useAuth } from "~/lib/contexts/auth-context";
 import { BreadcumbNavItem } from "~/lib/types/breadcumb-nav-item";
 import { requireAuth } from "~/lib/utils/auth";
 
