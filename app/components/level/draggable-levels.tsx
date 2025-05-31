@@ -21,6 +21,7 @@ import { Card, CardContent } from "../ui/card"
 import { cn } from "~/lib/utils"
 import { Level } from "~/lib/types/account/account"
 import { useNavigate } from "@remix-run/react"
+import { Badge } from "../ui/badge"
 
 type SortableLevelProps = {
     level: Level;
@@ -55,7 +56,10 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
                         <GripVertical className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
-                        <h3 className="font-medium">Level <strong>{level.name}</strong></h3>
+                        <strong className="flex justify-between my-2">
+                            <span style={{ color: level.themeColor }}>{level.name}</span> {level.requiresEntranceTest ? <Badge className="text-red-600 bg-red-500/20 uppercase" variant={'outline'}>Entrance Test Required</Badge>
+                                : <Badge variant={'outline'} className="text-green-600 bg-green-500/20 uppercase">Entrance Test Not Required</Badge>}
+                        </strong>
                         <p className="text-sm text-muted-foreground">{level.description}</p>
                     </div>
 

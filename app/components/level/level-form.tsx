@@ -19,6 +19,7 @@ import { fetchLevels } from '~/lib/services/level';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
 import { useColorPickerDialog } from '~/hooks/use-color-picker-dialog';
 import { Switch } from '../ui/switch';
+import { LevelBadge } from '../staffs/table/student-columns';
 
 type Props = {
     isEditing?: boolean;
@@ -60,6 +61,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
         resolver: zodResolver(levelSchema),
         defaultValues: {
             ...defaultData,
+            nextLevelId: isEditing ? !!defaultData.nextLevelId ? defaultData.nextLevelId : undefined : undefined,
             id
         },
     });
@@ -174,7 +176,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                         name='requiresEntranceTest'
                         render={({ field: { onChange, onBlur, value, ref } }) => (
                             <Switch checked={value} onCheckedChange={onChange} ref={ref} onBlur={onBlur}
-                                className='data-[state=checked]:bg-theme' />
+                                className='data-[state=checked]:bg-red-600' />
                         )}
                     />
                 </div>
@@ -188,19 +190,19 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                         backgroundColor: watch('themeColor'),
                     }}>
                     </div>
-                    <Button variant={'outline'} onClick={handleOpenColorPickerDialog}
+                    <Button variant={'outline'} type='button' onClick={handleOpenColorPickerDialog}
                         Icon={Pipette} iconPlacement='left'>Pick color</Button>
 
                 </div>
 
                 <div className="flex flex-row gap-2 items-center">
-                    <Label>Next level:</Label>
+                    <Label className='font-bold'>Next level:</Label>
                     <Controller
                         control={control}
                         name='nextLevelId'
                         render={({ field: { onChange, onBlur, value, ref } }) => (
                             <GenericCombobox<Level>
-                                className='mt-2 w-64'
+                                className='mt-2 w-80'
                                 idToken={idToken}
                                 queryKey='rooms'
                                 fetcher={async (query) => {
@@ -225,8 +227,8 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                                     };
                                 }}
                                 mapItem={(item) => ({
-                                    label: item?.name,
-                                    value: item?.id
+                                    label: <LevelBadge level={item} key={item.id} />,
+                                    value: item.id
                                 })}
                                 placeholder='Pick a level'
                                 emptyText='There is no level available'
@@ -239,6 +241,7 @@ export default function LevelForm({ isEditing = true, fetcher, isSubmitting, id,
                     />
 
                 </div>
+                {errors.nextLevelId && <p className='text-red-500 text-sm'>{errors.nextLevelId.message}</p>}
 
                 <div className="flex gap-4">
                     <Button type='button' isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog} variant={'theme'} className='w-full max-w-[50%]'>

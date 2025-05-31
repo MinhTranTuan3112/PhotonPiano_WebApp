@@ -365,7 +365,7 @@ export function EntranceTestForm({
                     <div className="bg-gray-100 p-3 rounded-lg border-l-4 border-l-theme">
                         <div className="text-gray-700 font-bold flex justify-between items-center">
                             <div className="">Name: <span className='text-red-600'>*</span></div>
-                            {isEdit && <div className="flex flex-row gap-1 items-center my-4">
+                            {isEdit && <div className="flex flex-row gap-1 items-center">
                                 <Checkbox checked={hasAutoNaming} onCheckedChange={(checked) => {
                                     const isChecked = checked as boolean;
 
