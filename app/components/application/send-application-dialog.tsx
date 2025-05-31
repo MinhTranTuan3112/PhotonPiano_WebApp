@@ -71,7 +71,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         fetcher,
         submitConfig: {
             encType: 'multipart/form-data',
-        }, 
+        },
         defaultValues: {
             type: undefined // Initialize with undefined to ensure it's properly set when selected
         },
@@ -230,7 +230,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
             }
         } else {
             // Reset form when dialog closes
-            setValue('type', undefined);
+            setValue('type', ApplicationType.Other);
             console.log("Dialog closed, reset type to undefined");
         }
     }, [isOpen, type, refetchRefundReasons, setValue]);
@@ -259,10 +259,10 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange} >
                 <DialogContent className='min-w-[1000px]'>
-                    <ScrollArea className='h-96 px-4'>
-                        <Form method='POST' 
-                            onSubmit={handleSubmit} 
-                            action='/account/applications' 
+                    <ScrollArea className={`${type === ApplicationType.RefundTuition ? 'h-96' : ''} px-4`}>
+                        <Form method='POST'
+                            onSubmit={handleSubmit}
+                            action='/account/applications'
                             navigate={false}
                             encType='multipart/form-data'
                             className='px-1'>
@@ -344,10 +344,10 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                     <>
                                         <Controller
                                             control={control}
-                                            name='reasonSelect'
+                                            name='reason'
                                             render={({ field: { onChange, value } }) => (
-                                                <Select 
-                                                    value={selectedReason} 
+                                                <Select
+                                                    value={selectedReason}
                                                     onValueChange={(value) => {
                                                         console.log("Selected reason:", value);
                                                         handleReasonChange(value);
@@ -380,10 +380,10 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                                             )}
                                         />
                                         {showCustomReason && (
-                                            <Textarea 
+                                            <Textarea
                                                 value={customReason}
                                                 onChange={handleCustomReasonChange}
-                                                placeholder='Enter your reason...' 
+                                                placeholder='Enter your reason...'
                                             />
                                         )}
                                     </>
@@ -403,7 +403,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
                             <DialogFooter>
                                 <Button type="button" Icon={Send} iconPlacement='left' isLoading={isSubmitting}
                                     disabled={isSubmitting}
-                                    onClick={handleOpen}>
+                                    onClick={handleOpen} variant={'theme'}>
                                     {isSubmitting ? 'Sending' : 'Send'}
                                 </Button>
                             </DialogFooter>
