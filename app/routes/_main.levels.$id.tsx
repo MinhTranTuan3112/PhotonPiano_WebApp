@@ -1,5 +1,5 @@
 import type React from "react"
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useNavigate } from "@remix-run/react"
 import {
     ArrowRight,
@@ -75,21 +75,23 @@ type LoaderData = {
 }
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-    if (!params.id) {
-        throw new Response("Level ID is required", { status: 400 })
-    }
-
     try {
+        
+        const authData = await getAuth(request);
+
+        if (!params.id) {
+            throw new Response("Level ID is required", { status: 400 })
+        }
+
         const response = await fetchALevel({
             id: params.id,
-        })
+        });
 
-        const authData = await getAuth(request)
-
-        return json<LoaderData>({
+        return {
             levelData: response.data,
             authData,
-        })
+        } as LoaderData;
+
     } catch (error) {
         console.error("Error fetching level details:", error)
         throw new Response("Failed to load level details", { status: 500 })
@@ -519,7 +521,7 @@ export default function LevelDetails() {
                             { label: "Current Students", value: levelData.numberActiveStudentInLevel || 0 },
                             {
                                 label: "Available Classes",
-                                value: levelData.classes.filter((c: Class) => c.status === 1).length,
+                                value: levelData.classes.filter((c: Class) => c.status === 0 && c.isPublic).length,
                             },
                         ]}
                         accentColor={levelData.themeColor || "#21c44d"}
@@ -744,7 +746,7 @@ export default function LevelDetails() {
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {levelData.classes
-                                            .filter((cls) => cls.status === 0)
+                                            .filter((cls) => cls.status === 0 && cls.isPublic)
                                             .map((cls) => {
                                                 const enrollmentStatus = getEnrollmentStatus(cls)
 
