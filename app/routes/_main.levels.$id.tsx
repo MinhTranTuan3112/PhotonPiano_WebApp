@@ -85,7 +85,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
         const response = await fetchALevel({
             id: params.id,
-        });
+        }); 
 
         return {
             levelData: response.data,
@@ -566,7 +566,7 @@ export default function LevelDetails() {
                         <div className="h-1" style={{ backgroundColor: levelData.themeColor || "#21c44d" }}></div>
                         <CardContent className="p-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {levelData.skillsEarned
+                                {levelData.skillsEarned ? levelData.skillsEarned
                                     .slice(0, Math.ceil(levelData.skillsEarned.length / 2))
                                     .map((skill: string, index: number) => (
                                         <LearningItem
@@ -575,7 +575,7 @@ export default function LevelDetails() {
                                             text={skill}
                                             accentColor={levelData.themeColor || "#21c44d"}
                                         />
-                                    ))}
+                                    )) : <></>}
 
                                 {levelData.skillsEarned
                                     .slice(Math.ceil(levelData.skillsEarned.length / 2))
