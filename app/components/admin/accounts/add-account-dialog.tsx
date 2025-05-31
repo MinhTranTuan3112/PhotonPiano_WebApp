@@ -23,7 +23,7 @@ import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog';
 type Props = {
     isOpen: boolean,
     setIsOpen: Dispatch<SetStateAction<boolean>>,
-    idToken: string,
+    idToken: string, 
     isTeacher: boolean
 }
 
