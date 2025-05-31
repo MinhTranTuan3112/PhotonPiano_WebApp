@@ -7,7 +7,7 @@ import { DatePickerInput } from '~/components/ui/date-picker-input'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { CreateEntranceTestFormData, createEntranceTestSchema } from '~/lib/utils/schemas'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Controller } from 'react-hook-form'
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Shift } from '~/lib/types/entrance-test/entrance-test'
 import { fetchCreateEntranceTest } from '~/lib/services/entrance-tests'
 import { toastWarning } from '~/lib/utils/toast-utils'
+import { Checkbox } from '~/components/ui/checkbox'
 
 type Props = {};
 
@@ -222,6 +223,8 @@ export function CreateEntranceTestForm({
         }
     });
 
+    const [hasAutoNaming, setHasAutoNaming] = useState(true);
+
     useEffect(() => {
 
         if (fetcher.data?.success && fetcher.data.success === true) {
@@ -246,6 +249,23 @@ export function CreateEntranceTestForm({
     return <>
         <Form method='POST' className={`my-5 flex flex-col gap-5 ${hasWidthConstraint ? 'md:max-w-[60%]' : ''} `}
             action='/staff/entrance-tests/create'>
+            <div className="flex flex-row gap-1 items-center">
+                <Checkbox checked={hasAutoNaming} onCheckedChange={(checked) => {
+                    const isChecked = checked as boolean;
+
+                    if (isChecked) {
+                        setFormValue('name', getEntranceTestName({
+                            date: testDate,
+                            roomName,
+                            shift: parseInt(testShift)
+                        }));
+                    }
+
+                    setHasAutoNaming(isChecked);
+                }}
+                    variant={'theme'} />
+                <Label className='font-bold'>Auto test naming &#40;Shift_Date_Room&#41;</Label>
+            </div>
             <div className="">
                 <Label htmlFor='name'>Test name</Label>
                 <Input {...register('name')} name='name' id='name' placeholder='Test name...' readOnly={true} />
@@ -263,7 +283,10 @@ export function CreateEntranceTestForm({
                                 ref={ref}
                                 value={value}
                                 onChange={(date) => {
-                                    onChange(date)
+                                    onChange(date);
+                                    if (!hasAutoNaming) {
+                                        return;
+                                    }
                                     setFormValue('name', getEntranceTestName({
                                         date: date as Date,
                                         roomName,
@@ -286,6 +309,9 @@ export function CreateEntranceTestForm({
                         render={({ field: { onChange, onBlur, value, ref } }) => (
                             <Select onValueChange={(value) => {
                                 onChange(value);
+                                if (!hasAutoNaming) {
+                                    return;
+                                }
                                 setFormValue('name', getEntranceTestName({
                                     date: testDate,
                                     roomName,
@@ -338,6 +364,9 @@ export function CreateEntranceTestForm({
                             })}
                             onItemChange={(room) => {
                                 setFormValue('roomName', room?.name || '');
+                                if (!hasAutoNaming) {
+                                    return;
+                                }
                                 setFormValue('name', getEntranceTestName({
                                     date: testDate,
                                     roomName: room.name || '',
@@ -406,7 +435,7 @@ export function CreateEntranceTestForm({
             </div>
             <Button variant={'theme'} type='button'
                 isLoading={isSubmitting} disabled={isSubmitting} onClick={handleOpenConfirmDialog}>
-                Arrange
+                Create
             </Button>
         </Form>
         {confirmDialog}

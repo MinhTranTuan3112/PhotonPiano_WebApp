@@ -152,7 +152,7 @@ export const studentColumns: ColumnDef<Account>[] = [
     },
     {
         accessorKey: 'Status',
-        header: () => <div className="flex flex-row gap-1 items-center">Status</div>,
+        header: () => <div className="flex flex-row gap-1 items-center">Learning Status</div>,
         cell: ({ row }) => {
             return <StatusBadge status={row.original.studentStatus || 0} />
         }
