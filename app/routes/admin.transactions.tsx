@@ -8,7 +8,7 @@ import type { PaginationMetaData } from "~/lib/types/pagination-meta-data"
 import type { Transaction } from "~/lib/types/transaction/transaction"
 import { requireAuth } from "~/lib/utils/auth"
 import { getErrorDetailsInfo, isRedirectError } from "~/lib/utils/error"
-import { getParsedParamsArray } from "~/lib/utils/url"
+import { getParsedParamsArray, trimQuotes } from "~/lib/utils/url"
 import SearchForm from "~/components/transactions/transaction-table/search-form"
 import { Suspense } from "react"
 import GenericDataTable from "~/components/ui/generic-data-table"
@@ -57,8 +57,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
             statuses: stringStatusesArray.map(Number),
             methods: stringMethodsArray.map(Number),
             code: searchParams.get("transactionCode")?.slice(1, -1),
-            startDate: searchParams.get("startDate") || undefined,
-            endDate: searchParams.get("endDate") || undefined,
+            startDate: trimQuotes(searchParams.get('startDate') || '') || undefined,
+            endDate: trimQuotes(searchParams.get('endDate') || '') || undefined,
             idToken,
         }
         const promise = fetchTransactionsWithStatistics({ ...query }).then((response) => {
@@ -176,7 +176,12 @@ export default function TransactionHistoryPage({ }: Props) {
                                             return (
                                                 <GenericDataTable
                                                     columns={columns}
-                                                    resolvedData={data.transactions.items}
+                                                    resolvedData={data.transactions.items.map(t => {
+                                                        return {
+                                                            ...t,
+                                                            amount: t.amount * (-1)
+                                                        }
+                                                    })}
                                                     emptyText="No transactions found."
                                                     metadata={{
                                                         ...metadata,

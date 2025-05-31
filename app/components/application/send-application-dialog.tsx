@@ -91,7 +91,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
     console.log("Query enabled:", isOpen && !!authData?.idToken && type === ApplicationType.RefundTuition);
 
     const { data: refundReasonsData, refetch: refetchRefundReasons } = useQuery({
-        queryKey: ['refundReasons', authData?.idToken, type],
+        queryKey: ['refundReasons'],
         queryFn: async () => {
             console.log("Fetching refund reasons with idToken:", authData?.idToken);
             if (!authData || !authData.idToken) {
@@ -217,13 +217,10 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
     useEffect(() => {
         if (isOpen) {
             // Reset form values when dialog opens
-            if (!type) {
-                console.log("Dialog opened, type is undefined");
-            }
 
             if (type === ApplicationType.RefundTuition) {
                 console.log("Application type is RefundTuition, refetching refund reasons");
-                refetchRefundReasons();
+                // refetchRefundReasons();
                 setSelectedReason("");
                 setCustomReason("");
                 setShowCustomReason(false);
@@ -233,7 +230,7 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
             setValue('type', ApplicationType.Other);
             console.log("Dialog closed, reset type to undefined");
         }
-    }, [isOpen, type, refetchRefundReasons, setValue]);
+    }, [isOpen, type]);
 
     // Handle form submission result
     useEffect(() => {
@@ -282,12 +279,12 @@ export default function SendApplicationDialog({ isOpen, onOpenChange }: Props) {
 
                                             // Use setTimeout to delay the onChange call
                                             // This prevents the dialog from closing when RefundTuition is selected
-                                            setTimeout(() => {
-                                                onChange(parsedValue);
-                                                console.log("Selected application type:", parsedValue);
-                                                console.log("ApplicationType.RefundTuition:", ApplicationType.RefundTuition);
-                                                console.log("parsedValue === ApplicationType.RefundTuition:", parsedValue === ApplicationType.RefundTuition);
-                                            }, 0);
+                                            onChange(parsedValue);
+                                            // setTimeout(() => {
+                                            //     console.log("Selected application type:", parsedValue);
+                                            //     console.log("ApplicationType.RefundTuition:", ApplicationType.RefundTuition);
+                                            //     console.log("parsedValue === ApplicationType.RefundTuition:", parsedValue === ApplicationType.RefundTuition);
+                                            // }, 0);
                                         }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select application type" />

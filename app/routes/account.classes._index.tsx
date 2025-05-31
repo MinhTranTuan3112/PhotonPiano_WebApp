@@ -544,10 +544,8 @@ export default function StudentClassList() {
                                                     <Clock className="h-3 w-3 mr-1" />
                                                     Schedule
                                                 </div>
-                                                <p className="text-sm font-medium text-slate-900">
-                                                    {classItem.slots && classItem.slots.length > 0
-                                                        ? getShiftName(classItem.slots[0].shift)
-                                                        : "TBD"}
+                                                <p className="text-sm font-medium truncate text-slate-900">
+                                                    {classItem.scheduleDescription}
                                                 </p>
                                             </div>
 

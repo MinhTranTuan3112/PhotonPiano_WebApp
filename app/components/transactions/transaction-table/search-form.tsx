@@ -11,6 +11,7 @@ import VnPayLogo from '../../../lib/assets/images/vnpay.webp'
 import { Input } from '~/components/ui/input';
 import { getParsedParamsArray, trimQuotes } from '~/lib/utils/url';
 import { DatePickerInput } from '~/components/ui/date-picker-input';
+import { PaymentStatusBadge } from './columns';
 
 type Props = {}
 
@@ -36,10 +37,10 @@ const paymentMethodOptions = [
 ]
 
 const paymentStatusOptions = [
-    { label: 'Waiting', value: PaymentStatus.Pending.toString(), icon: undefined },
-    { label: 'Successed', value: PaymentStatus.Successed.toString(), icon: undefined },
-    { label: 'Failed', value: PaymentStatus.Failed.toString(), icon: undefined },
-    { label: 'Canceled', value: PaymentStatus.Canceled.toString(), icon: undefined },
+    { label: <PaymentStatusBadge status={PaymentStatus.Pending}/>, value: PaymentStatus.Pending.toString(), icon: undefined },
+    { label: <PaymentStatusBadge status={PaymentStatus.Successed}/>, value: PaymentStatus.Successed.toString(), icon: undefined },
+    { label: <PaymentStatusBadge status={PaymentStatus.Failed}/>, value: PaymentStatus.Failed.toString(), icon: undefined },
+    { label: <PaymentStatusBadge status={PaymentStatus.Canceled}/>, value: PaymentStatus.Canceled.toString(), icon: undefined },
 ];
 
 export default function SearchForm({ }: Props) {
