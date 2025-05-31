@@ -1,5 +1,5 @@
 import type React from "react"
-import { json, type LoaderFunctionArgs } from "@remix-run/node"
+import { type LoaderFunctionArgs } from "@remix-run/node"
 import { useLoaderData, useNavigate } from "@remix-run/react"
 import {
     ArrowRight,
@@ -75,21 +75,23 @@ type LoaderData = {
 }
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-    if (!params.id) {
-        throw new Response("Level ID is required", { status: 400 })
-    }
-
     try {
+        
+        const authData = await getAuth(request);
+
+        if (!params.id) {
+            throw new Response("Level ID is required", { status: 400 })
+        }
+
         const response = await fetchALevel({
             id: params.id,
-        })
+        });
 
-        const authData = await getAuth(request)
-
-        return json<LoaderData>({
+        return {
             levelData: response.data,
             authData,
-        })
+        } as LoaderData;
+
     } catch (error) {
         console.error("Error fetching level details:", error)
         throw new Response("Failed to load level details", { status: 500 })

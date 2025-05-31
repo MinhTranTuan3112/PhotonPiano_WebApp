@@ -29,7 +29,7 @@ import useLoadingDialog from '~/hooks/use-loading-dialog';
 import { fetchAccounts, fetchAvailableTeachersForClass } from '~/lib/services/account';
 import { fetchClassDetail, fetchClassScoreboard, fetchMergableClasses } from '~/lib/services/class';
 import { fetchLevels } from '~/lib/services/level';
-import { fetchSystemConfigByName } from '~/lib/services/system-config';
+import { fetchSystemConfigByName, fetchSystemConfigServerTime } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
 import { Class, ClassStatus } from '~/lib/types/class/class';
@@ -106,12 +106,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   //   return res.data as Class[]
   // });
 
+  const serverTimeRes = await fetchSystemConfigServerTime({ idToken });
+  const currentServerDateTime = serverTimeRes.data
+
+
   const tab = (searchParams.get('tab') || 'general')
   const isOpenStudentClassDialog = searchParams.get('studentClassDialog') === "true"
 
   return {
     promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise,
-    classId: params.id
+    classId: params.id, currentServerDateTime
   }
 }
 export const getSlotCover = (status: number) => {
@@ -731,9 +735,11 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId }
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId, currentServerDateTime }
     = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isOpenMerging, setIsOpenMerging] = useState(false);
+  const [isOpenDelaying, setIsOpenDelaying] = useState(false);
 
   const publishFetcher = useFetcher<ActionResult>();
 
@@ -762,6 +768,14 @@ export default function StaffClassDetailPage({ }: Props) {
     confirmText: 'Publish',
     confirmButtonClassname: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500',
   });
+
+  const isStudentNumberWarning = (classDetail: ClassDetail, time: string): boolean => {
+    const daysBefore = 3;
+    const classStartDay = new Date(classDetail.startTime ?? "9999-01-01")
+    const now = new Date(time)
+    now.setDate(now.getDate() + daysBefore)
+    return classDetail.studentClasses.length < classDetail.minimumStudents && now >= classStartDay;
+  }
 
   return (
     <div className='px-8'>
@@ -795,7 +809,43 @@ export default function StaffClassDetailPage({ }: Props) {
                     </Alert>
                   )
                 }
+                {
+                  isStudentNumberWarning(data.classDetail, currentServerDateTime) &&
+                  (
+                    <Alert variant="warning" className='mt-4'>
+                      <AlertTriangle className="h-10 w-10 pr-4" />
+                      <div className="flex flex-row justify-between items-center">
+                        <div className="">
+                          <AlertTitle>Minimum Students Requirement Has Not Met!. </AlertTitle>
+                          <AlertDescription>
+                            Insufficient number of students classes might not be started. You should either merge this class to another class or delay the start date by week(s).<br></br>
+                            Please complete the action before the class official start date.
+                          </AlertDescription>
+                        </div>
+                        <div className='flex flex-col lg:flex-row gap-2'>
+                          <Suspense>
+                            <Await resolve={mergeClassesPromise}>
+                              {(mergableClasses) => (
+                                <>
+                                  <Button type='button' onClick={() => setIsOpenMerging(true)} className='uppercase' variant={'warning'}>
+                                    Merge Class
+                                  </Button>
+                                  <MergeClassDialog isOpen={isOpenMerging} setIsOpen={setIsOpenMerging} classId={classId} classes={mergableClasses}
+                                    scheduleDescription={data.classDetail.scheduleDescription} />
+                                </>
+                              )}
+                            </Await>
+                          </Suspense>
+                          <Button type='button' onClick={() => setIsOpenDelaying(true)} className='uppercase' variant={'warning'}>
+                            Delay Class
+                          </Button>
+                          <DelayClassDialog isOpen={isOpenDelaying} setIsOpen={setIsOpenDelaying} classId={classId} />
+                        </div>
 
+                      </div>
+                    </Alert>
+                  )
+                }
                 <Tabs defaultValue={tab}>
                   <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-4 p-0 h-auto bg-background gap-1">
                     <TabsTrigger value="general" onClick={() => setSearchParams({
