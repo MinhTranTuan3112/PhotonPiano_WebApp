@@ -14,6 +14,7 @@ import type { ClassDetail, ClassScoreDetail } from "~/lib/types/class/class-deta
 import type { loader } from "~/root"
 import { cn } from "~/lib/utils"
 import { toastWarning } from "~/lib/utils/toast-utils"
+import { format } from "date-fns"
 
 // Function to determine criteria sort order based on name
 function getCriteriaSortOrder(criteriaName: string): number {
@@ -199,7 +200,7 @@ export function ClassScoreboard({
 
     return sortedCriteria
   }
-
+ 
   return (
     <Card className="shadow-md border-0 border-t-4 border-t-theme">
       <CardHeader className="bg-slate-50 rounded-t-lg border-b">
@@ -423,7 +424,7 @@ export function ClassScoreboard({
               <span className="font-medium">Scores:</span> {classInfo.isScorePublished ? "Published" : "Unpublished"}
             </span>
             <span>
-              <span className="font-medium">Last updated:</span> {new Date().toLocaleDateString()}
+              <span className="font-medium">Last updated:</span> {format(new Date(), "M/d/yyyy")}
             </span>
           </div>
         </div>

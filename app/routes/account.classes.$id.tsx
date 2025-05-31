@@ -96,7 +96,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
         let scoreDetails = null
         try {
             const scoreResponse = await fetchStudentScoreDetails({
-                studentClassId: studentClass.id,
+                classId: params.id,
+                studentId: accountId,
                 idToken,
             })
             scoreDetails = scoreResponse.data

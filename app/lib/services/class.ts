@@ -271,7 +271,7 @@ export async function importStudentClassScoresFromExcel({
   excelFile: File;
   idToken: string;
 }) {
-  const url = `/student-class/${classId}/import-scores`;
+  const url = `/classes/${classId}/student-scores`;
 
   const formData = new FormData();
   formData.append("file", excelFile);
@@ -439,7 +439,7 @@ export async function fetchGradeTemplate({
   if (!idToken) {
     throw new Error("Authentication token is required");
   }
-  let url = `/student-class/${id}/grade-template`;
+  let url = `/classes/${id}/grade-template`;
   const response = await axiosInstance.get(url, {
     headers: {
       Authorization: `Bearer ${idToken}`,
@@ -457,7 +457,7 @@ export async function publishStudentClassScore({
   idToken: string;
 }) {
   const response = await axiosInstance.post(
-    `/student-class/${classId}/publish-score`,
+    `/classes/${classId}/score-publishing-status`,
     {},
     {
       headers: {
@@ -470,14 +470,17 @@ export async function publishStudentClassScore({
 }
 
 export async function fetchStudentScoreDetails({
-  studentClassId,
+  classId,
+  studentId,
   idToken,
 }: {
-  studentClassId: string;
+  classId: string;
+  studentId: string;
   idToken: string;
 }) {
+  // Updated URL and parameters to match your API endpoint
   const response = await axiosInstance.get(
-    `student-class/${studentClassId}/detailed-scores`,
+    `/classes/${classId}/students/${studentId}/detailed-scores`,
     {
       headers: {
         Authorization: `Bearer ${idToken}`,
@@ -547,7 +550,7 @@ export async function fetchMergeAClass({
     `/classes/merging`,
     {
       sourceClassId,
-      targetClassId : destClassId
+      targetClassId: destClassId,
     },
     {
       headers: {
@@ -566,14 +569,11 @@ export async function fetchMergableClasses({
   classId: string;
   idToken: string;
 }) {
-  const response = await axiosInstance.get(
-    `/classes/${classId}/merging`,
-    {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    }
-  );
+  const response = await axiosInstance.get(`/classes/${classId}/merging`, {
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
+  });
 
   return response;
 }
