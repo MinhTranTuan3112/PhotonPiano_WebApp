@@ -823,19 +823,12 @@ export default function StaffClassDetailPage({ }: Props) {
                           </AlertDescription>
                         </div>
                         <div className='flex flex-col lg:flex-row gap-2'>
-                          <Suspense>
-                            <Await resolve={mergeClassesPromise}>
-                              {(mergableClasses) => (
-                                <>
-                                  <Button type='button' onClick={() => setIsOpenMerging(true)} className='uppercase' variant={'warning'}>
-                                    Merge Class
-                                  </Button>
-                                  <MergeClassDialog isOpen={isOpenMerging} setIsOpen={setIsOpenMerging} classId={classId} classes={mergableClasses}
-                                    scheduleDescription={data.classDetail.scheduleDescription} />
-                                </>
-                              )}
-                            </Await>
-                          </Suspense>
+
+                          <Button type='button' onClick={() => setIsOpenMerging(true)} className='uppercase' variant={'warning'}>
+                            Merge Class
+                          </Button>
+                          <MergeClassDialog isOpen={isOpenMerging} setIsOpen={setIsOpenMerging} classId={classId}
+                            scheduleDescription={data.classDetail.scheduleDescription} idToken={idToken} />
                           <Button type='button' onClick={() => setIsOpenDelaying(true)} className='uppercase' variant={'warning'}>
                             Delay Class
                           </Button>
@@ -874,7 +867,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise}  />
+                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise} />
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}

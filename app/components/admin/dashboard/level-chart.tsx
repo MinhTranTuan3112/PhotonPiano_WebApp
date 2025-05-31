@@ -29,7 +29,7 @@ export default function LevelChart({
     const [currentTab, setCurrentTab] = useState<string>("classes");
 
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['levels-stats'],
+        queryKey: ['levels-stats', currentTab],
         queryFn: async () => {
             const response = await fetchLevelsStats({
                 idToken,
@@ -52,9 +52,11 @@ export default function LevelChart({
         <>
             <div className="flex justify-end">
                 <Tabs value={currentTab} className="">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="classes" onClick={() => setCurrentTab('classes')}>Classes</TabsTrigger>
-                        <TabsTrigger value="learners" onClick={() => setCurrentTab('learners')}>Learners</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 p-1 h-auto bg-background gap-1 border">
+                        <TabsTrigger value="classes" onClick={() => setCurrentTab('classes')}
+                            className="data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">Classes</TabsTrigger>
+                        <TabsTrigger value="learners" onClick={() => setCurrentTab('learners')}
+                            className="data-[state=active]:bg-theme data-[state=active]:text-theme-foreground">Learners</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
@@ -69,7 +71,7 @@ export default function LevelChart({
                         fill="#0369a1"
                         dataKey="value"
                         label={({ name, percent }) =>
-                            percent > 0.005 ? `${name} ${(percent * 100).toFixed(0)}%` : ""
+                            percent > 0.005 ? `${(percent * 100).toFixed(0)}%` : ""
                         }
                     >
                         {stats.map((entry, index) => (
