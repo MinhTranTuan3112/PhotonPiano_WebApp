@@ -1084,3 +1084,12 @@ function RequirementCard({
         </div>
     )
 }
+
+
+function LoadingSkeleton() {
+    return <div className="px-10">
+        <Skeleton className="w-full h-[200px]" />
+        <br />
+        <Skeleton className="w-full h-[500px]" />
+    </div>
+}

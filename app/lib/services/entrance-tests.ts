@@ -272,7 +272,7 @@ export async function fetchUpdateEntranceTestScoreAnnouncementStatus({
     entranceTestId: string,
     isAnnounced: boolean
 }) {
-    
+
     const response = await axiosInstance.put(`/entrance-tests/${entranceTestId}/score-announcement-status`, { isAnnounced }, {
         headers: {
             Authorization: `Bearer ${idToken}`,
@@ -280,4 +280,23 @@ export async function fetchUpdateEntranceTestScoreAnnouncementStatus({
     });
 
     return response;
+}
+
+export async function fetchAvailableTeachersForEntranceTest({ page = 1, pageSize = 10, sortColumn = 'Id', orderByDesc = true,
+    idToken, keyword, id
+}: {
+    idToken: string
+    id: string
+} & Partial<QueryPagedRequest & {
+    keyword: string
+}>) {
+
+    const response = await axiosInstance.get(`/entrance-tests/${id}/available-teachers?page=${page}&size=${pageSize}&column=${sortColumn}&desc=${orderByDesc}${keyword ? `&q=${keyword}` : ''}`, {
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        }
+    });
+
+    return response;
+
 }

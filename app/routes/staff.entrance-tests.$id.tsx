@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Skeleton } from '~/components/ui/skeleton'
 import { useConfirmationDialog } from '~/hooks/use-confirmation-dialog'
 import { fetchAccounts } from '~/lib/services/account'
-import { fetchAnEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
+import { fetchAnEntranceTest, fetchAvailableTeachersForEntranceTest, fetchUpdateEntranceTest } from '~/lib/services/entrance-tests'
 import { fetchRooms } from '~/lib/services/rooms'
 import { Account, Role } from '~/lib/types/account/account'
 import { EntranceTestStatus, UpdateEntranceTestFormData, updateEntranceTestSchema } from '~/lib/types/entrance-test/entrance-test'
@@ -534,11 +534,11 @@ export function EntranceTestForm({
                                         <GenericCombobox<Account>
                                             queryKey='accounts'
                                             fetcher={async (query) => {
-                                                const response = await fetchAccounts({
+                                                const response = await fetchAvailableTeachersForEntranceTest({
                                                     page: query.page,
                                                     pageSize: query.pageSize,
                                                     idToken,
-                                                    roles: [Role.Instructor]
+                                                    id: defaultData.id,
                                                 });
                                                 const headers = response.headers;
                                                 const metadata: PaginationMetaData = {

@@ -4,6 +4,7 @@ import {
     CartesianGrid,
     ResponsiveContainer,
     Tooltip,
+    TooltipProps,
     XAxis,
     YAxis,
 } from "recharts"
@@ -13,6 +14,22 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchMonthlyRevenueStats } from "~/lib/services/statistics"
 import { Stat } from "~/lib/types/statistics/stat"
 import { Skeleton } from "~/components/ui/skeleton"
+import { formatPrice } from "~/lib/utils/price"
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-background border border-border rounded-lg shadow-lg p-3">
+                <p className="text-sm font-medium text-foreground">{`Month: ${label}`}</p>
+                <p className="text-sm text-muted-foreground">
+                    <span className="inline-block w-3 h-3 bg-sky-800 rounded-full mr-2"></span>
+                    {`${formatPrice(payload[0].value as number)} đ`}
+                </p>
+            </div>
+        )
+    }
+    return null
+}
 
 export default function RevenueChart({
     idToken
@@ -83,9 +100,9 @@ export default function RevenueChart({
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `${value} VND`}
+                        tickFormatter={(value) => formatPrice(value as number) + " đ"}
                     />
-                    <Tooltip />
+                    <Tooltip content={<CustomTooltip />} />
                     <Area
                         type="monotone"
                         dataKey="value"
