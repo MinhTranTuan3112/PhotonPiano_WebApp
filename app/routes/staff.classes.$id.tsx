@@ -32,7 +32,7 @@ import { fetchLevels } from '~/lib/services/level';
 import { fetchSystemConfigByName, fetchSystemConfigServerTime } from '~/lib/services/system-config';
 import { Account, Level, Role, StudentStatus } from '~/lib/types/account/account';
 import { ActionResult } from '~/lib/types/action-result';
-import { Class } from '~/lib/types/class/class';
+import { Class, ClassStatus } from '~/lib/types/class/class';
 import { ClassDetail, ClassScoreDetail } from '~/lib/types/class/class-detail';
 import { SystemConfig } from '~/lib/types/config/system-config';
 import { PaginationMetaData } from '~/lib/types/pagination-meta-data';
@@ -45,7 +45,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   const { idToken, role } = await requireAuth(request);
 
-  if (role !== 4) {
+  if (role !== Role.Staff) {
     return redirect('/');
   }
   if (!params.id) {
@@ -102,9 +102,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     }
   });
 
-  const mergeClassesPromise = fetchMergableClasses({ classId: params.id, idToken }).then((res) => {
-    return res.data as Class[]
-  });
+  // const mergeClassesPromise = fetchMergableClasses({ classId: params.id, idToken }).then((res) => {
+  //   return res.data as Class[]
+  // });
 
   const serverTimeRes = await fetchSystemConfigServerTime({ idToken });
   const currentServerDateTime = serverTimeRes.data
@@ -115,7 +115,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   return {
     promise, idToken, tab, isOpenStudentClassDialog, scorePromise, levelPromise, configPromise,
-    classId: params.id, mergeClassesPromise, currentServerDateTime
+    classId: params.id, currentServerDateTime
   }
 }
 export const getSlotCover = (status: number) => {
@@ -170,8 +170,8 @@ function StatusBadge({ status }: {
 }
 
 
-function ClassGeneralInformation({ classInfo, idToken, levelPromise, mergeClassesPromise }:
-  { classInfo: ClassDetail, idToken: string, levelPromise: Promise<Level[]>, mergeClassesPromise: Promise<Class[]> }) {
+function ClassGeneralInformation({ classInfo, idToken, levelPromise }:
+  { classInfo: ClassDetail, idToken: string, levelPromise: Promise<Level[]> }) {
   const updateClassSchema = z.object({
     level: z.string().optional(),
     instructorId: z.string().optional(),
@@ -425,25 +425,16 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise, mergeClasse
                 <div className='flex gap-2 justify-center mt-4'>
                   {
                     classInfo.studentClasses.length === 0 && (
-                      <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'}>DELETE CLASS</Button>
+                      <Button onClick={handleOpenDeleteModal} Icon={Trash} iconPlacement='left' variant={'destructive'} type='button'>DELETE CLASS</Button>
                     )
                   }
-                  <Suspense fallback={<Button disabled variant={'theme'}>
-                    <div className='flex items-center gap-2'>
-                    </div><LoaderIcon className='animate-spin' />MERGE CLASS
-                  </Button>}>
-                    <Await resolve={mergeClassesPromise}>
-                      {
-                        (data) => (
-                          <>
-                            <Button onClick={() => setIsOpenMerge(true)} Icon={MergeIcon} iconPlacement='left' variant={'theme'}>MERGE CLASS</Button>
-                            <MergeClassDialog classes={data} isOpen={isOpenMerge} setIsOpen={setIsOpenMerge}
-                              scheduleDescription={classInfo.scheduleDescription} classId={classInfo.id} />
-                          </>
-                        )
-                      }
-                    </Await>
-                  </Suspense>
+                  {classInfo.status !== ClassStatus.Finished && (
+                    <>
+                      <Button onClick={() => setIsOpenMerge(true)} Icon={MergeIcon} iconPlacement='left' variant={'theme'} type='button'>MERGE CLASS</Button>
+                      <MergeClassDialog idToken={idToken} isOpen={isOpenMerge} setIsOpen={setIsOpenMerge}
+                        scheduleDescription={classInfo.scheduleDescription} classId={classInfo.id} />
+                    </>
+                  )}
                 </div>
               </div>
             )
@@ -458,6 +449,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise, mergeClasse
     </Card>
   )
 }
+
 
 function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog, minimum, idToken, configPromise }: {
   classInfo: ClassDetail,
@@ -743,8 +735,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
 
 export default function StaffClassDetailPage({ }: Props) {
 
-  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId,
-    mergeClassesPromise, currentServerDateTime }
+  const { promise, idToken, isOpenStudentClassDialog, tab, scorePromise, levelPromise, configPromise, classId, currentServerDateTime }
     = useLoaderData<typeof loader>()
   const [searchParams, setSearchParams] = useSearchParams();
   const [isOpenMerging, setIsOpenMerging] = useState(false);
@@ -883,7 +874,7 @@ export default function StaffClassDetailPage({ }: Props) {
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="general">
-                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise} mergeClassesPromise={mergeClassesPromise} />
+                    <ClassGeneralInformation classInfo={data.classDetail} idToken={idToken} levelPromise={levelPromise}  />
                   </TabsContent>
                   <TabsContent value="students">
                     <ClassStudentsList classInfo={data.classDetail} studentPromise={data.studentPromise}
