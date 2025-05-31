@@ -1,5 +1,5 @@
 import { ColumnDef, Row, Table as TanstackTable } from '@tanstack/react-table';
-import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
+import { EntranceTestStudentDetails } from '~/lib/types/entrance-test/entrance-test-student';
 import { Checkbox } from '../ui/checkbox';
 import { Button } from '../ui/button';
 import { ArrowUpDown, CircleHelp, Loader2, MoreHorizontal, Pencil, PencilLine, Piano, Trash2, User, X } from 'lucide-react';
@@ -54,12 +54,13 @@ import { toastWarning } from '~/lib/utils/toast-utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import NoInformation from '../common/no-information';
 import { loader as rootLoader } from '~/root';
+import { EntranceTestStatus } from '~/lib/types/entrance-test/entrance-test';
 
 type Props = {
-    data: EntranceTestStudentWithResults[];
+    data: EntranceTestStudentDetails[];
 }
 
-const resultTableColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
+const resultTableColumns: ColumnDef<EntranceTestStudentDetails>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -162,8 +163,8 @@ export default function ResultTable({ data }: Props) {
 };
 
 function ActionDropdown({ row, table }: {
-    row: Row<EntranceTestStudentWithResults>,
-    table: TanstackTable<EntranceTestStudentWithResults>
+    row: Row<EntranceTestStudentDetails>,
+    table: TanstackTable<EntranceTestStudentDetails>
 }) {
 
     const authData = useRouteLoaderData<typeof rootLoader>("root");
@@ -236,11 +237,14 @@ function ActionDropdown({ row, table }: {
                         <User /> View info
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
+                <DropdownMenuItem className="cursor-pointer" onClick={() => setIsOpen(!isOpen)}
+                    disabled={isSubmitting || row.original.entranceTest.testStatus !== EntranceTestStatus.Ended
+                        || row.original.entranceTest.isAnnouncedScore
+                    }>
                     <Pencil /> Edit results
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleDeleteConfirmDialog}
-                    disabled={isSubmitting}>
+                    disabled={isSubmitting || row.original.entranceTest.testStatus !== EntranceTestStatus.NotStarted}>
                     <Trash2 /> Remove from test
                 </DropdownMenuItem>
             </DropdownMenuContent>
@@ -252,7 +256,7 @@ function ActionDropdown({ row, table }: {
 
 
 function ResultDetailsDialog({ entranceTestStudent, isOpen, setIsOpen }: {
-    entranceTestStudent: EntranceTestStudentWithResults;
+    entranceTestStudent: EntranceTestStudentDetails;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
 }) {

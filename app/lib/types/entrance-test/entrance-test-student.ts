@@ -18,9 +18,10 @@ export type EntranceTestStudent = {
     updatedAt?: string;
 }
 
-export type EntranceTestStudentWithResults = {
+export type EntranceTestStudentDetails = {
     entranceTestResults: EntranceTestResultWithCriteria[];
     level?: Level;
+    entranceTest: EntranceTest;
 } & EntranceTestStudent;
 
 export type EntranceTestStudentDetail = {

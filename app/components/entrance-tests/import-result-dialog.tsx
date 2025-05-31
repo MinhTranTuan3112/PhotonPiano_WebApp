@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "../ui/button"
 import { AlertCircle, AlertCircleIcon, ArrowRight, Check, Download, FileSpreadsheet, InfoIcon, Upload, X } from "lucide-react"
 import { useEffect, useState } from "react"
-import type { EntranceTestStudentWithResults } from "~/lib/types/entrance-test/entrance-test-student"
+import type { EntranceTestStudentDetails } from "~/lib/types/entrance-test/entrance-test-student"
 import ExcelJS from "exceljs"
 import FileSaver from "file-saver"
 import { FileUpload } from "../ui/file-upload"
@@ -25,7 +25,7 @@ export type ImportResultDialogProps = {
     isOpen: boolean
     setIsOpen: (isOpen: boolean) => void
     criterias: MinimalCriteria[]
-    entranceTestStudents: EntranceTestStudentWithResults[]
+    entranceTestStudents: EntranceTestStudentDetails[]
     role: Role
 }
 

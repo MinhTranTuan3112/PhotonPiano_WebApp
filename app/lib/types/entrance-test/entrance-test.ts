@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Account } from "../account/account";
 import { Room } from "../room/room";
-import { EntranceTestStudentWithResults } from "./entrance-test-student";
+import { EntranceTestStudentDetails } from "./entrance-test-student";
 import { addDays } from "date-fns";
 
 export type EntranceTest = {
@@ -59,7 +59,7 @@ export const updateEntranceTestSchema = z.object({
 export type UpdateEntranceTestFormData = z.infer<typeof updateEntranceTestSchema>;
 
 export type EntranceTestDetails = {
-    entranceTestStudents: EntranceTestStudentWithResults[];
+    entranceTestStudents: EntranceTestStudentDetails[];
     instructor: Account;
     room: Room;
 } & EntranceTest;

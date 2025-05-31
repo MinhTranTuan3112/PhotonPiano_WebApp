@@ -173,7 +173,7 @@ export default function StudentListDialog({ isOpen, setIsOpen, idToken, onStuden
                             enablePagination={false}
                             columns={columns}
                             data={fetchedData}
-                            emptyContent={'Không có học viên nào.'}
+                            emptyContent={'No learners found.'}
                             enableColumnDisplayOptions={false}
                         />}
                         {isFetchingNextPage && (
