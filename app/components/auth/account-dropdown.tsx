@@ -37,6 +37,7 @@ export default function AccountDropdown({ accountFirebaseId, role }: { accountFi
                 action: '/sign-out',
             });
         },
+        confirmButtonVariant: 'destructive',
         confirmText: 'Sign out',
     });
 
