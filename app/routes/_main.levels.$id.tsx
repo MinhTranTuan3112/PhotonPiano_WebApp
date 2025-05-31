@@ -29,6 +29,7 @@ import { formatCurrency } from "~/lib/utils/format"
 import { useState } from "react"
 import { getAuth } from "~/lib/utils/auth"
 import BadgeWithPopup from "~/components/ui/badge-with-popup"
+import { useAuth } from "~/lib/contexts/auth-context"
 
 function adjustColorBrightness(hex: string, factor: number): string {
     hex = hex.replace("#", "")
@@ -76,8 +77,6 @@ type LoaderData = {
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     try {
-        
-        const authData = await getAuth(request);
 
         if (!params.id) {
             throw new Response("Level ID is required", { status: 400 })
@@ -87,9 +86,9 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
             id: params.id,
         });
 
+
         return {
-            levelData: response.data,
-            authData,
+            levelData: response.data
         } as LoaderData;
 
     } catch (error) {
@@ -243,14 +242,15 @@ function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
 }
 
 export default function LevelDetails() {
-    const { levelData, authData } = useLoaderData<typeof loader>()
-    const isLoggedIn = !!authData.idToken
+    const { levelData } = useLoaderData<typeof loader>()
+    const {currentAccount} = useAuth()
+    const isLoggedIn = !!currentAccount
     const navigate = useNavigate()
     const [showLoginModal, setShowLoginModal] = useState(false)
 
     const handleRegisterClick = () => {
         if (isLoggedIn) {
-            if (authData.role === 1) {
+            if (currentAccount?.role === 1) {
                 navigate("/account/class-registering")
             } else {
                 setShowLoginModal(true)
@@ -262,7 +262,7 @@ export default function LevelDetails() {
 
     const handleEnrollClick = () => {
         if (isLoggedIn) {
-            if (authData.role === 1) {
+            if (currentAccount.role === 1) {
                 navigate("/account/class-registering")
             } else {
                 setShowLoginModal(true)
@@ -374,7 +374,7 @@ export default function LevelDetails() {
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
                 accentColor={levelData.themeColor || "#21c44d"}
-                userRole={authData.role}
+                userRole={currentAccount?.role}
             />
 
             {/* Hero Section with Piano Background */}
@@ -783,7 +783,7 @@ export default function LevelDetails() {
                                                                 const enrollmentStatus = getEnrollmentStatus(cls)
 
                                                                 // For learners (role 1), show "Enroll Now" button if enrollable, otherwise show badge
-                                                                if (authData.role === 1) {
+                                                                if (currentAccount?.role === 1) {
                                                                     if (enrollmentStatus.enrollable) {
                                                                         return (
                                                                             <Button
