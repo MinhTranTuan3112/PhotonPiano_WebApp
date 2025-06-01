@@ -137,7 +137,7 @@ function EntranceTestStudentContent({
           >
             {ENTRANCE_TEST_STATUSES[entranceTestStudent.entranceTest.status]}
           </div> */}
-          <TestStatusBadge status={entranceTestStudent.entranceTest.testStatus}/>
+          <TestStatusBadge status={entranceTestStudent.entranceTest.testStatus} />
         </div>
 
         <div className="p-6 bg-white bg-opacity-80 backdrop-blur-sm relative">
@@ -196,7 +196,7 @@ function EntranceTestStudentContent({
             <div className="flex flex-col md:flex-row gap-6 items-center">
               <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                 <AvatarImage
-                  src={entranceTestStudent.entranceTest.instructor.avatarUrl ? entranceTestStudent.entranceTest.instructor.avatarUrl  : "/images/noavatar.png"}
+                  src={entranceTestStudent.entranceTest.instructor.avatarUrl ? entranceTestStudent.entranceTest.instructor.avatarUrl : "/images/noavatar.png"}
                   alt={entranceTestStudent.entranceTest.instructor.fullName || entranceTestStudent.entranceTest.instructor.email}
                   className="object-cover"
                 />
@@ -227,7 +227,7 @@ function EntranceTestStudentContent({
                   <div>
                     <p className="text-sm font-medium text-gray-500">Phone</p>
                     <div className="text-base font-semibold text-gray-900">
-                      {entranceTestStudent.entranceTest.instructor.phone || <NoInformation/>}
+                      {entranceTestStudent.entranceTest.instructor.phone || <NoInformation />}
                     </div>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ function EntranceTestStudentContent({
                   <div>
                     <p className="text-sm font-medium text-gray-500">Address</p>
                     <div className="text-base font-semibold text-gray-900">
-                      {entranceTestStudent.entranceTest.instructor.address || <NoInformation/>}
+                      {entranceTestStudent.entranceTest.instructor.address || <NoInformation />}
                     </div>
                   </div>
                 </div>
@@ -394,8 +394,10 @@ function EntranceTestStudentContent({
 
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-lg font-semibold text-gray-700">Level:</span>
-                    <span className="text-xl font-bold text-blue-600">
-                      {entranceTestStudent.level?.name || "(Not assigned)"}
+                    <span className="text-xl font-bold" style={{
+                      color: entranceTestStudent.level?.themeColor || "black",
+                    }}>
+                      {entranceTestStudent.level?.name || <NoInformation />}
                     </span>
                   </div>
 
@@ -497,6 +499,6 @@ function LoadingSkeleton() {
 
 function NoInformation() {
   return <Badge variant={'outline'} className='text-muted-foreground italic'>
-      No information
+    No information
   </Badge>
 }

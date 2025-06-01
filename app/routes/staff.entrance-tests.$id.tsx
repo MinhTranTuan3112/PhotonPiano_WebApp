@@ -694,7 +694,8 @@ function StudentsSection({
             <CardContent>
                 <div className="my-8">
                     <div className="flex flex-row justify-between items-center">
-                        {role === Role.Staff && <div className="flex justify-end my-3" onClick={handleOpenStudentListDialog}>
+                        {role === Role.Staff && <div className="flex justify-end my-3"
+                            onClick={entranceTest.testStatus !== EntranceTestStatus.NotStarted ? undefined : handleOpenStudentListDialog}>
                             <Button type='button' variant={'theme'}
                                 Icon={CirclePlus} iconPlacement='left'
                                 disabled={isSubmitting || entranceTest.testStatus !== EntranceTestStatus.NotStarted} isLoading={isSubmitting}>
@@ -707,7 +708,12 @@ function StudentsSection({
                                 disabled={entranceTest.testStatus !== EntranceTestStatus.Ended || entranceTest.isAnnouncedScore}>Import results with Excel file</Button>
                         </div>
                     </div>
-                    <ResultTable data={entranceTest.entranceTestStudents} />
+                    <ResultTable data={entranceTest.entranceTestStudents.map((ets) => {
+                        return {
+                            ...ets,
+                            entranceTest: entranceTest,
+                        }
+                    })} />
                 </div>
             </CardContent>
             {role === Role.Staff && <CardFooter className="flex flex-col md:flex-row justify-center gap-4">

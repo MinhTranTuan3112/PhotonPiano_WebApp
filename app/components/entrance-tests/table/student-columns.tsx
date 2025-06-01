@@ -3,9 +3,9 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { MoreHorizontal, Trash2, User } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
-import { EntranceTestStudentWithResults } from "~/lib/types/entrance-test/entrance-test-student";
+import { EntranceTestStudentDetails } from "~/lib/types/entrance-test/entrance-test-student";
 
-export const studentColumns: ColumnDef<EntranceTestStudentWithResults>[] = [
+export const studentColumns: ColumnDef<EntranceTestStudentDetails>[] = [
     {
         id: "select",
         header: ({ table }) => (

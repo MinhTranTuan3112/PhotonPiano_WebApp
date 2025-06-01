@@ -87,7 +87,7 @@ export default function DashboardPage({ }: Props) {
                 </Await>
             </Suspense>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-8">
+            <div className="flex flex-col gap-4">
                 <TuitionRevenueSection idToken={idToken} />
                 <LevelStatistics idToken={idToken} />
             </div>

@@ -84,8 +84,8 @@ export default function RevenueChart({
                 </Select>
             </div>
 
-            <ResponsiveContainer width="100%" height={350}>
-                <AreaChart data={filteredData}>
+            <ResponsiveContainer width="100%" height={500}>
+                <AreaChart data={filteredData} className="px-2">
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         dataKey="name"
@@ -97,7 +97,7 @@ export default function RevenueChart({
                     <YAxis
                         dataKey="value"
                         stroke="#64748b"
-                        fontSize={12}
+                        fontSize={11}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => formatPrice(value as number) + " đ"}

@@ -149,7 +149,7 @@ function TableHeaderContent() {
     const [isOpen, setIsOpen] = useState(false);
 
     return <>
-        <Button type="button" variant={'default'}
+        <Button type="button" variant={'theme'}
             Icon={Send} iconPlacement="left" onClick={() => setIsOpen(!isOpen)}>
             Send new application
         </Button>

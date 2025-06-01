@@ -60,14 +60,14 @@ export default function LevelChart({
                     </TabsList>
                 </Tabs>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
                     <Pie
                         data={stats}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        outerRadius={80}
+                        outerRadius={150}
                         fill="#0369a1"
                         dataKey="value"
                         label={({ name, percent }) =>

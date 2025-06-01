@@ -19,8 +19,8 @@ export type SendApplicationRequest = {
 } & Pick<Application, 'type' | 'reason'>;
 
 export const sendApplicationSchema = z.object({
-    type: z.coerce.number({ message: 'Vui lòng chọn loại đơn.' }),
-    reason: z.string({ message: 'Vui lòng nhập lý do.' }).nonempty({ message: 'Vui lòng nhập lý do.' }),
+    type: z.coerce.number({ message: 'Please select application.' }),
+    reason: z.string({ message: 'Reason cannot be empty.' }).nonempty({ message: 'Reason cannot be empty.' }),
     file: (z.unknown().transform(value => {
         return value as File
     })).optional(),

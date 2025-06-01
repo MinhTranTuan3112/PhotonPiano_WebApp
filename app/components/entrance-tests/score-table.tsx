@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EntranceTestStudentWithResults } from '~/lib/types/entrance-test/entrance-test-student';
+import { EntranceTestStudentDetails } from '~/lib/types/entrance-test/entrance-test-student';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import { useNavigate } from '@remix-run/react';
 
 type Props = {
-    data: EntranceTestStudentWithResults[],
+    data: EntranceTestStudentDetails[],
     className?: string
 }
 
@@ -18,7 +18,7 @@ export default function ScoreTable({ data, className }: Props) {
         name: result.criteriaName,
     }));
 
-    const [editableStudent, setEditableStudent] = useState<EntranceTestStudentWithResults | null>(null)
+    const [editableStudent, setEditableStudent] = useState<EntranceTestStudentDetails | null>(null)
     const navigate = useNavigate()
 
     console.log({ data });
