@@ -482,6 +482,16 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
     );
   }
 
+  const handleDropOut = () => {
+    fetcher.submit(
+      { studentId: selectedStudentId, classId: classInfo.id, idToken, isExpelled : true },
+      {
+        method: "DELETE",
+        action: "/endpoint/delete-student-class",
+      }
+    );
+  }
+
   const { open: handleOpenDeleteModal, dialog: confirmDeleteDialog } = useConfirmationDialog({
     title: 'Delete Learner',
     description: 'Do you want to remove this learner out of class?',
@@ -490,12 +500,25 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
     }
   })
 
+  const { open: handleOpenDropoutModal, dialog: confirmDropoutDialog } = useConfirmationDialog({
+    title: 'Delete Learner',
+    description: 'Do you want to dropout this learner? The learner will be deleted from the class and can not be enrolled back again!',
+    onConfirm: () => {
+      handleDropOut();
+    }
+  })
+
   const handleDeleteConfirm = (studentId: string) => {
     setSelectedStudentId(studentId);
     handleOpenDeleteModal()
   }
 
-  const columns = studentClassColumns({ handleDeleteConfirm: handleDeleteConfirm })
+  const handleDropOutConfirm = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    handleOpenDropoutModal()
+  }
+
+  const columns = studentClassColumns({ handleDeleteConfirm, handleDropOutConfirm })
 
   const onOpenChange = (isOpen: boolean) => {
     setIsOpenAddStudentDialog(isOpen)
@@ -548,6 +571,7 @@ function ClassStudentsList({ classInfo, studentPromise, isOpenStudentClassDialog
           )
         }
         {confirmDeleteDialog}
+        {confirmDropoutDialog}
         {loadingDialog}
       </CardContent>
     </Card>
