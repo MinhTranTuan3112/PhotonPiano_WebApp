@@ -100,7 +100,7 @@ export default function RevenueChart({
                         fontSize={11}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => formatPrice(value as number) + " đ"}
+                        tickFormatter={(value) => formatPrice(value as number, false, true) + " đ"}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Area
@@ -118,6 +118,9 @@ export default function RevenueChart({
                     </defs>
                 </AreaChart>
             </ResponsiveContainer>
+            <div className="flex justify-end text-muted-foreground">
+               1 M: 1.000.000 đ
+            </div>
         </div>
     )
 }
