@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Application, ApplicationStatus } from "~/lib/types/application/application";
 import { Badge } from "../ui/badge";
@@ -129,6 +129,7 @@ function ActionDropdown({ row }: {
         isOpen: false,
         status: row.original.status,
         note: row.original.staffConfirmNote,
+        additionalData: row.original.additionalData,
         role
     });
 
@@ -202,6 +203,73 @@ const updateApplicationSchema = z.object({
 
 type ApplicationStatusFormData = z.infer<typeof updateApplicationSchema>;
 
+function formatCurrency(amount: number) {
+  return amount.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    minimumFractionDigits: 0,
+  });
+}
+
+function renderFieldValue(field: string, value: any): ReactNode {
+  switch (field.toLowerCase()) {
+    case "getamount":
+    case "amount":
+      return (
+        <span className="text-green-600 font-bold">
+          {formatCurrency(Number(value))}
+        </span>
+      );
+    case "bankaccountnumber":
+      return <span className="font-mono">{value}</span>;
+    case "bankname":
+      return (
+        <span>
+          🏦 <span className="font-semibold">{value}</span>
+        </span>
+      );
+    case "bankaccountname":
+    case "accountname":
+      return (
+        <span>
+          👤 <span>{value}</span>
+        </span>
+      );
+    default:
+      return <span>{String(value)}</span>;
+  }
+}
+
+export function AdditionalDataList({
+  additionalData,
+}: {
+  additionalData: string;
+}): ReactNode {
+  let parsedData: Record<string, any> = {};
+
+  try {
+    parsedData = JSON.parse(additionalData);
+  } catch (error) {
+    console.error("Failed to parse additionalData:", error);
+    return (
+      <div className="text-red-500 p-4 bg-red-100 rounded">
+        Invalid additional data
+      </div>
+    );
+  }
+
+  return (
+    <ul className="bg-white shadow-md rounded-lg p-4 space-y-3 text-gray-800">
+      {Object.entries(parsedData).map(([key, value]) => (
+        <li key={key} className="flex gap-2">
+          <span className="font-semibold capitalize">{key}:</span>
+          {renderFieldValue(key, value)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 type DialogProps = {
     isDetails?: boolean;
     isOpen: boolean;
@@ -209,6 +277,7 @@ type DialogProps = {
     title: string;
     description: string;
     role: Role;
+    additionalData?: string;
 } & ApplicationStatusFormData;
 
 function ActionDialog({
@@ -220,7 +289,8 @@ function ActionDialog({
     id,
     status: defaultStatus,
     note: defaultNote,
-    role
+    role,
+    additionalData
 }: DialogProps) {
 
     const fetcher = useFetcher<typeof action>();
@@ -279,6 +349,11 @@ function ActionDialog({
                 </DialogDescription>
             </DialogHeader>
             <Form method='POST' onSubmit={handleSubmit} action='/staff/applications' navigate={false}>
+                {
+                    additionalData && (
+                        <AdditionalDataList additionalData={additionalData} />                    
+                    )
+                }
                 <Controller
                     name='note'
                     control={control}
