@@ -12,6 +12,7 @@ export type Application = {
     updatedByEmail?: string;
     approvedByEmail?: string;
     approvedById?: string;
+    additionalData? : string;
 } & Omit<BaseType, 'deletedById' | 'deletedAt'>;
 
 export type SendApplicationRequest = {
