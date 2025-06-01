@@ -409,7 +409,7 @@ export default function AccountClassRegistering() {
         <Suspense fallback={<div>Loading account detail...</div>} key={JSON.stringify(query) + "account"}>
           <Await resolve={promise}>
             {(data) => (
-              <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query)+ "level"}>
+              <Suspense fallback={<LoadingSkeleton />} key={JSON.stringify(query) + "level"}>
                 <Await resolve={classPromise}>
                   {(classesData) => {
                     // const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime)
@@ -417,7 +417,7 @@ export default function AccountClassRegistering() {
                     return (
                       <>
                         {/* Deadline Notice */}
-                        {((currentClass && currentClass.status !== 2) || data.studentStatus !== 3) ? (
+                        {((currentClass && currentClass.status !== 2) || (data.studentStatus !== 3 && data.studentStatus !== 5)) ? (
                           <div
                             className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
                           >
@@ -430,6 +430,24 @@ export default function AccountClassRegistering() {
                               <div className="ml-3">
                                 <p className={`text-sm text-yellow-700`}>
                                   You might not be able to register class now! Please complete on-going class or wait for entrance test result to be able to register new class!
+                                  <br />Please contact support if you believe this is an error <a className="underline font-bold" href="/contact">Contact Support</a>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : data.studentStatus === 5 ? (
+                          <div
+                            className={`border-l-4 p-4 mb-6 rounded-r-lg bg-red-100 border-red-500`}
+                          >
+                            <div className="flex">
+                              <div className="flex-shrink-0">
+                                <TriangleAlert
+                                  className={`h-5 w-5 text-red-500`}
+                                />
+                              </div>
+                              <div className="ml-3">
+                                <p className={`text-sm text-red-700`}>
+                                  You can not register any class now since you're dropped out according to Photon Piano center policy!
                                   <br />Please contact support if you believe this is an error <a className="underline font-bold" href="/contact">Contact Support</a>
                                 </p>
                               </div>

@@ -4,7 +4,8 @@ import {
     MoreHorizontal, Mail, Phone, User, BanIcon, Music2,
     Calendar,
     CheckCircle,
-    DollarSign
+    DollarSign,
+    Undo
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -198,6 +199,13 @@ function ActionsDropdown({ table, row }: {
             handleToggle();
         }
     })
+    const { open: handleOpenRevertDialog, dialog: confirmRevertDialog } = useConfirmationDialog({
+        title: 'Confirm Revert Dropout Status',
+        description: "Do you want to revert this learner's dropout? This learner can register classes again!",
+        onConfirm: () => {
+            handleRevertDropout();
+        }
+    })
     const handleToggle = () => {
         fetcher.submit({
             action: "TOGGLE",
@@ -207,7 +215,15 @@ function ActionsDropdown({ table, row }: {
             method: "POST"
         })
     }
-
+    const handleRevertDropout = () => {
+        fetcher.submit({
+            action: "REVERT_DROPOUT",
+            studentId: row.original.accountFirebaseId,
+        }, {
+            action: "/endpoint/accounts",
+            method: "POST"
+        })
+    }
     return <>
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -222,27 +238,31 @@ function ActionsDropdown({ table, row }: {
                 <DropdownMenuItem className="cursor-pointer" onClick={() => window.location.href = `/staff/students/${row.original.accountFirebaseId}`}>
                     <User /> View information
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer"
-                    onClick={() => {
-                        const selectedRows = table.getSelectedRowModel().rows;
+                {
+                    row.original.studentStatus === 1 && (
+                        <DropdownMenuItem className="cursor-pointer"
+                            onClick={() => {
+                                const selectedRows = table.getSelectedRowModel().rows;
 
-                        const students = selectedRows.length > 0 ? selectedRows.map((row) => row.original) : [row.original];
+                                const students = selectedRows.length > 0 ? selectedRows.map((row) => row.original) : [row.original];
 
-                        const invalidStudents = students.filter((student) => student.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement);
+                                const invalidStudents = students.filter((student) => student.studentStatus !== StudentStatus.WaitingForEntranceTestArrangement);
 
-                        if (invalidStudents.length > 0) {
-                            toastWarning(`Learners ${invalidStudents.map((s) => {
-                                return s.fullName || s.email
-                            }).join(',')} are not valid to be arranged`, {
-                                duration: 5000
-                            })
-                            return;
-                        }
+                                if (invalidStudents.length > 0) {
+                                    toastWarning(`Learners ${invalidStudents.map((s) => {
+                                        return s.fullName || s.email
+                                    }).join(',')} are not valid to be arranged`, {
+                                        duration: 5000
+                                    })
+                                    return;
+                                }
 
-                        setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, students });
-                    }}>
-                    <Calendar /> Arrange entrance tests
-                </DropdownMenuItem>
+                                setArrangeDialogProps({ ...arrangeDialogProps, isOpen: true, students });
+                            }}>
+                            <Calendar /> Arrange entrance tests
+                        </DropdownMenuItem>
+                    )
+                }
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleOpenToggleDialog}>
                     {
                         row.original.status === 0 ? (
@@ -256,12 +276,20 @@ function ActionsDropdown({ table, row }: {
                         )
                     }
                 </DropdownMenuItem>
+                {
+                    row.original.studentStatus === 5 && (
+                        <DropdownMenuItem className="text-blue-600 cursor-pointer" onClick={handleOpenRevertDialog}>
+                            <Undo /> Revert Drop Out
+                        </DropdownMenuItem>
+                    )
+                }
             </DropdownMenuContent>
         </DropdownMenu>
         <ArrangeDialog {...arrangeDialogProps} setIsOpen={(openState) => {
             setArrangeDialogProps({ ...arrangeDialogProps, isOpen: openState })
         }} />
         {loadingToggleDialog}
+        {confirmRevertDialog}
         {confirmToggleDialog}
     </>
 }

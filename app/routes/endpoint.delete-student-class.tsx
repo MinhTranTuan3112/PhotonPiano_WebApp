@@ -19,6 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
         const formData = await request.formData();
         const studentId = formEntryToString(formData.get("studentId"));
         const classId = formEntryToString(formData.get("classId"));
+        const isExpelled = formEntryToString(formData.get("isExpelled")) === "true";
 
         if (!idToken) {
             return {
@@ -37,8 +38,9 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         const response = await fetchDeleteStudentClass({
-            classId: classId,
-            studentId: studentId,
+            classId,
+            studentId,
+            isExpelled,
             idToken: idToken
         });
 

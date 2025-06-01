@@ -4,7 +4,8 @@ import {
     Trash,
     Shuffle,
     Music2,
-    DollarSign
+    DollarSign,
+    X
 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
@@ -79,8 +80,9 @@ export function TuitionStatusBadge({ studentClassTuitions }: {
 }
 
 
-export function studentClassColumns({ handleDeleteConfirm }: {
+export function studentClassColumns({ handleDeleteConfirm, handleDropOutConfirm }: {
     handleDeleteConfirm: (id: string) => void
+    handleDropOutConfirm: (id: string) => void
 }): ColumnDef<StudentClassDetails>[] {
     return [
         // {
@@ -170,17 +172,21 @@ export function studentClassColumns({ handleDeleteConfirm }: {
             accessorKey: "Action",
             header: "Action",
             cell: ({ row, table }) => {
-                return <ActionsDropdown table={table} deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} row={row} />
+                return <ActionsDropdown table={table} 
+                    deleteAction={() => handleDeleteConfirm(row.original.studentFirebaseId)} 
+                    dropOutAction={() => handleDropOutConfirm(row.original.studentFirebaseId)} 
+                    row={row} />
             }
         }
     ]
 }
 
 
-function ActionsDropdown({ table, deleteAction, row }: {
+function ActionsDropdown({ table, deleteAction, dropOutAction, row }: {
     table: Table<StudentClassDetails>,
     row: Row<StudentClassDetails>,
     deleteAction: () => void
+    dropOutAction: () => void
 }) {
 
     return <>
@@ -202,6 +208,9 @@ function ActionsDropdown({ table, deleteAction, row }: {
                 </DropdownMenuItem> */}
                 <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={deleteAction}>
                     <Trash /> Delete From Class
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-700 cursor-pointer" onClick={dropOutAction}>
+                    <X /> Drop Out
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
