@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from "@remix-run/node"
-import { fetchCreateStaff, fetchCreateTeacher, fetchRoleAdmin } from "~/lib/services/account";
+import { fetchCreateStaff, fetchCreateTeacher, fetchRevertDropOutStatus, fetchRoleAdmin } from "~/lib/services/account";
 import { fetchToggleAccountStatus } from "~/lib/services/auth";
 import { publishStudentClassScore } from "~/lib/services/class"
 import { requireAuth } from "~/lib/utils/auth";
@@ -85,6 +85,24 @@ export async function action({ request }: ActionFunctionArgs) {
             }
 
             await fetchToggleAccountStatus({ idToken, firebaseUid : id })
+            // Return success response
+            return {
+                success: true
+            }
+        }else if (action === "REVERT_DROPOUT") {
+            const { idToken } = await requireAuth(request)
+
+            const id = formEntryToString(formData.get("studentId"))
+
+            if (!id) {
+                return {
+                    success: false,
+                    error: 'Invalid data.',
+                    status: 400
+                }
+            }
+
+            await fetchRevertDropOutStatus({ idToken, studentId : id })
             // Return success response
             return {
                 success: true

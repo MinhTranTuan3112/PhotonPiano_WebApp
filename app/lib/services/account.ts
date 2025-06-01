@@ -236,3 +236,24 @@ export async function fetchAvailableTeachersForClass({
 
     return response;
 }
+
+
+export async function fetchRevertDropOutStatus({
+  studentId,
+  idToken,
+}: {
+  studentId: string;
+  idToken: string;
+}) {
+  const response = await axiosInstance.put(
+    `/accounts/${studentId}/drop-out-removal`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
+  );
+
+  return response;
+}
