@@ -5,15 +5,22 @@ import { requireAuth } from "~/lib/utils/auth"
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
     const { idToken } = await requireAuth(request)
-    const certificateId = params.id
+    const classId = params.classId
+    const studentId = params.studentId
 
-    if (!certificateId) {
-        throw new Response("Certificate ID is required", { status: 400 })
+    if (!classId) {
+        throw new Response("Class ID is required", { status: 400 })
     }
+
+    if (!studentId) {
+        throw new Response("Student ID is required", { status: 400 })
+    }
+
 
     try {
         const response = await fetchCertificate({
-            studentClassId: certificateId,
+            classId: classId,
+            studentId: studentId,
             idToken: idToken,
         })
 

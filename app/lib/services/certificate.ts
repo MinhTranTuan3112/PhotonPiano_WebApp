@@ -9,7 +9,7 @@ export async function fetchStudentCertificates({
   if (!idToken) {
     throw new Error("Authentication token is required");
   }
-  let url = `/certificates/my-certificates`;
+  let url = `/classes/my-certificates`;
   const response = await axiosInstance.get(url, {
     headers: {
       Authorization: `Bearer ${idToken}`,
@@ -19,10 +19,12 @@ export async function fetchStudentCertificates({
 }
 
 export async function fetchCertificate({
-  studentClassId,
+  classId,
+  studentId,
   idToken,
 }: {
-  studentClassId: string;
+  classId: string;
+  studentId: string;
   idToken: string;
 }) {
   if (!idToken) {
@@ -31,7 +33,7 @@ export async function fetchCertificate({
 
   try {
     const response = await axiosInstance.get(
-      `/certificates/student/${studentClassId}`,
+      `/classes/${classId}/students/${studentId}/certificate`,
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -41,7 +43,10 @@ export async function fetchCertificate({
 
     return response;
   } catch (error) {
-    console.error(`Error fetching certificate ${studentClassId}:`, error);
+    console.error(
+      `Error fetching certificate for student ${studentId} in class ${classId}:`,
+      error
+    );
     throw new Error(getErrorDetailsInfo(error).message);
   }
 }
