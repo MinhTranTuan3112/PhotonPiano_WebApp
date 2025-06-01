@@ -442,6 +442,7 @@ export default function AccountClassChanging() {
                                     {(classesData) => {
                                         const registrationOpen = isRegistrationOpen(deadline, currentServerDateTime, data.currentClass?.startTime || "", data.currentClass)
                                         const deadlineDate = getDeadlineDate(data.currentClass?.startTime || "", deadline)
+                                        console.log(data.currentClass)
                                         return (
                                             <>
                                                 {/* Deadline Notice */}

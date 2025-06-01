@@ -26,7 +26,6 @@ import { ScrollArea } from "~/components/ui/scroll-area"
 import { cn } from "~/lib/utils"
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    // Get the idToken from your auth system
     const { idToken, role } = await requireAuth(request)
     if (role !== Role.Student) {
         return redirect("/")
@@ -56,7 +55,6 @@ export default function CertificateListPage() {
     const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
-    // Filter certificates based on search term
     const filteredCertificates = certificates.filter(
         (cert: Certificate) =>
             cert.className.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,18 +70,22 @@ export default function CertificateListPage() {
     }
 
     const handleCertificateClick = async (certificate: Certificate) => {
+        // Create a unique identifier for the certificate
+        const certificateKey = `${certificate.classId}-${certificate.studentId}`
+
         // Toggle expanded state
-        if (expandedCertificateId === certificate.studentClassId) {
+        if (expandedCertificateId === certificateKey) {
             setExpandedCertificateId(null)
             return
         }
 
-        setExpandedCertificateId(certificate.studentClassId)
+        setExpandedCertificateId(certificateKey)
         setIsLoading(true)
 
         try {
             const response = await fetchCertificate({
-                studentClassId: certificate.studentClassId,
+                classId: certificate.classId,
+                studentId: certificate.studentId,
                 idToken,
             })
             setSelectedCertificate(response.data)
@@ -144,216 +146,231 @@ export default function CertificateListPage() {
             {/* Certificates List */}
             {filteredCertificates.length > 0 && (
                 <div className="space-y-6">
-                    {filteredCertificates.map((certificate: Certificate) => (
-                        <div
-                            key={certificate.studentClassId}
-                            className={cn(
-                                "border rounded-lg overflow-hidden transition-all duration-300",
-                                expandedCertificateId === certificate.studentClassId
-                                    ? "border-primary/50 shadow-lg"
-                                    : "hover:border-primary/30 hover:shadow-md",
-                            )}
-                        >
-                            {/* Certificate Header - Always visible */}
+                    {filteredCertificates.map((certificate: Certificate) => {
+                        const certificateKey = `${certificate.classId}-${certificate.studentId}`
+                        return (
                             <div
+                                key={certificateKey}
                                 className={cn(
-                                    "p-6 cursor-pointer",
-                                    expandedCertificateId === certificate.studentClassId
-                                        ? "bg-gradient-to-r from-primary/5 to-transparent"
-                                        : "",
+                                    "border rounded-lg overflow-hidden transition-all duration-300",
+                                    expandedCertificateId === certificateKey
+                                        ? "border-primary/50 shadow-lg"
+                                        : "hover:border-primary/30 hover:shadow-md",
                                 )}
-                                onClick={() => handleCertificateClick(certificate)}
                             >
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
-                                            <Award className="h-6 w-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-semibold">{certificate.className}</h3>
-                                            <p className="text-muted-foreground">{certificate.levelName}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <Calendar className="h-4 w-4" />
-                                            <span>{formatDate(certificate.completionDate)}</span>
-                                        </div>
-
-                                        <Badge variant="outline" className={cn("px-3 py-1 font-medium", getGpaColor(certificate.gpa))}>
-                                            GPA: {certificate.gpa.toFixed(1)}
-                                        </Badge>
-
-                                        {expandedCertificateId === certificate.studentClassId ? (
-                                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                                        ) : (
-                                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Expanded Certificate Details */}
-                            {expandedCertificateId === certificate.studentClassId && (
-                                <div className="border-t">
-                                    {isLoading ? (
-                                        <div className="p-6 text-center">
-                                            <div className="animate-pulse flex flex-col items-center">
-                                                <div className="h-8 w-8 bg-primary/20 rounded-full mb-4"></div>
-                                                <div className="h-4 w-48 bg-primary/20 rounded mb-2"></div>
-                                                <div className="h-4 w-32 bg-primary/20 rounded"></div>
+                                {/* Certificate Header - Always visible */}
+                                <div
+                                    className={cn(
+                                        "p-6 cursor-pointer",
+                                        expandedCertificateId === certificateKey ? "bg-gradient-to-r from-primary/5 to-transparent" : "",
+                                    )}
+                                    onClick={() => handleCertificateClick(certificate)}
+                                >
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex items-start gap-4">
+                                            <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
+                                                <Award className="h-6 w-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-semibold">{certificate.className}</h3>
+                                                <p className="text-muted-foreground">{certificate.levelName}</p>
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="p-6">
-                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                                {/* Left Column - Certificate Preview */}
-                                                <div className="lg:col-span-2 border rounded-lg overflow-hidden">
-                                                    <div className="relative p-6 bg-white">
-                                                        {/* Gold Border Design */}
-                                                        <div className="absolute inset-0 border-[12px] border-[#e6c460] rounded-lg">
-                                                            <div className="absolute inset-0 border-[1px] border-[#e6c460]"></div>
-                                                        </div>
 
-                                                        {/* Corner Accent */}
-                                                        <div className="absolute top-0 right-0 w-[100px] h-[100px]">
-                                                            <div className="absolute top-0 right-0 w-full h-full bg-[#1e3a5f] rounded-bl-[150px]"></div>
-                                                            <div className="absolute top-0 right-0 w-[95px] h-[95px] border-l-[2px] border-b-[2px] border-[#e6c460] rounded-bl-[150px]"></div>
-                                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Calendar className="h-4 w-4" />
+                                                <span>{formatDate(certificate.completionDate)}</span>
+                                            </div>
 
-                                                        {/* Certificate Content */}
-                                                        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-4">
-                                                            <div className="text-center mb-4">
-                                                                <h2 className="text-lg font-serif text-[#333]">Photon Piano Academy</h2>
-                                                                <h1 className="text-2xl font-bold font-serif text-[#1e3a5f]">
-                                                                    CERTIFICATE OF COMPLETION
-                                                                </h1>
-                                                                <p className="text-sm text-[#555]">This certifies that</p>
-                                                            </div>
+                                            <Badge variant="outline" className={cn("px-3 py-1 font-medium", getGpaColor(certificate.gpa))}>
+                                                GPA: {certificate.gpa.toFixed(1)}
+                                            </Badge>
 
-                                                            <div className="w-full max-w-md mb-4">
-                                                                <h2 className="text-3xl font-bold font-serif text-center italic text-[#1e3a5f] border-b border-[#e6c460] pb-2 mb-3">
-                                                                    {selectedCertificate?.studentName || certificate.studentName}
-                                                                </h2>
+                                            {expandedCertificateId === certificateKey ? (
+                                                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                                            ) : (
+                                                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
 
-                                                                <p className="text-center text-sm leading-relaxed mb-3">
-                                                                    Has successfully completed the {certificate.className} course at Photon Piano Academy,
-                                                                    demonstrating proficiency in piano performance at the{" "}
-                                                                    <strong>{certificate.levelName}</strong> level.
-                                                                </p>
-                                                            </div>
-
-                                                            {/* Footer with signature */}
-                                                            <div className="flex justify-between w-full max-w-md mt-auto text-xs">
-                                                                <div className="text-center">
-                                                                    <div className="h-8 mb-1">
-                                                                        {/* Seal icon */}
-                                                                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#e6c460] border-2 border-[#1e3a5f]">
-                                                                            <span className="text-[#1e3a5f] text-[8px] font-bold">SEAL</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <p className="text-[10px] text-gray-600">{formatDate(certificate.completionDate)}</p>
-                                                                </div>
-
-                                                                <div className="text-center">
-                                                                    <div className="h-8 mb-1 border-b border-gray-300">
-                                                                        {/* Signature would go here */}
-                                                                    </div>
-                                                                    <p className="font-medium">{selectedCertificate?.instructorName || "Instructor"}</p>
-                                                                    <p className="text-[10px] text-gray-600">Instructor</p>
-                                                                </div>
-
-                                                                <div className="text-center">
-                                                                    <div className="flex items-center justify-center h-8 mb-1">
-                                                                        <div className="text-xl font-bold text-[#1e3a5f]">{certificate.gpa.toFixed(1)}</div>
-                                                                    </div>
-                                                                    <p className="text-[10px] text-gray-600">GPA</p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                {/* Expanded Certificate Details */}
+                                {expandedCertificateId === certificateKey && (
+                                    <div className="border-t">
+                                        {isLoading ? (
+                                            <div className="p-6 text-center">
+                                                <div className="animate-pulse flex flex-col items-center">
+                                                    <div className="h-8 w-8 bg-primary/20 rounded-full mb-4"></div>
+                                                    <div className="h-4 w-48 bg-primary/20 rounded mb-2"></div>
+                                                    <div className="h-4 w-32 bg-primary/20 rounded"></div>
                                                 </div>
+                                            </div>
+                                        ) : (
+                                            <div className="p-6">
+                                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                                    {/* Left Column - Certificate Preview */}
+                                                    <div className="lg:col-span-2 border rounded-lg overflow-hidden">
+                                                        <div className="relative p-6 bg-white">
+                                                            {/* Gold Border Design */}
+                                                            <div className="absolute inset-0 border-[12px] border-[#e6c460] rounded-lg">
+                                                                <div className="absolute inset-0 border-[1px] border-[#e6c460]"></div>
+                                                            </div>
 
-                                                {/* Right Column - Certificate Details */}
-                                                <div className="space-y-6">
-                                                    <div className="space-y-4">
-                                                        <h3 className="text-lg font-semibold border-b pb-2">Certificate Details</h3>
+                                                            {/* Corner Accent */}
+                                                            <div className="absolute top-0 right-0 w-[100px] h-[100px]">
+                                                                <div className="absolute top-0 right-0 w-full h-full bg-[#1e3a5f] rounded-bl-[150px]"></div>
+                                                                <div className="absolute top-0 right-0 w-[95px] h-[95px] border-l-[2px] border-b-[2px] border-[#e6c460] rounded-bl-[150px]"></div>
+                                                            </div>
 
-                                                        <div className="space-y-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <User className="h-5 w-5 text-primary" />
-                                                                <div>
-                                                                    <p className="text-sm text-muted-foreground">Student</p>
-                                                                    <p className="font-medium">
+                                                            {/* Certificate Content */}
+                                                            <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 pb-4">
+                                                                <div className="text-center mb-4">
+                                                                    <h2 className="text-lg font-serif text-[#333]">Photon Piano Academy</h2>
+                                                                    <h1 className="text-2xl font-bold font-serif text-[#1e3a5f]">
+                                                                        CERTIFICATE OF COMPLETION
+                                                                    </h1>
+                                                                    <p className="text-sm text-[#555]">This certifies that</p>
+                                                                </div>
+
+                                                                <div className="w-full max-w-md mb-4">
+                                                                    <h2 className="text-3xl font-bold font-serif text-center italic text-[#1e3a5f] border-b border-[#e6c460] pb-2 mb-3">
                                                                         {selectedCertificate?.studentName || certificate.studentName}
+                                                                    </h2>
+
+                                                                    <p className="text-center text-sm leading-relaxed mb-3">
+                                                                        Has successfully completed the {certificate.className} course at Photon Piano
+                                                                        Academy, demonstrating proficiency in piano performance at the{" "}
+                                                                        <strong>{certificate.levelName}</strong> level.
                                                                     </p>
                                                                 </div>
-                                                            </div>
 
-                                                            <div className="flex items-center gap-2">
-                                                                <BookOpen className="h-5 w-5 text-primary" />
-                                                                <div>
-                                                                    <p className="text-sm text-muted-foreground">Course</p>
-                                                                    <p className="font-medium">{certificate.className}</p>
-                                                                </div>
-                                                            </div>
+                                                                {/* Footer with signature */}
+                                                                <div className="flex justify-between w-full max-w-md mt-auto text-xs">
+                                                                    <div className="text-center">
+                                                                        <div className="h-8 mb-1">
+                                                                            {/* Seal icon */}
+                                                                            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#e6c460] border-2 border-[#1e3a5f]">
+                                                                                <span className="text-[#1e3a5f] text-[8px] font-bold">SEAL</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <p className="text-[10px] text-gray-600">
+                                                                            {formatDate(certificate.completionDate)}
+                                                                        </p>
+                                                                    </div>
 
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar className="h-5 w-5 text-primary" />
-                                                                <div>
-                                                                    <p className="text-sm text-muted-foreground">Completion Date</p>
-                                                                    <p className="font-medium">{formatDate(certificate.completionDate)}</p>
+                                                                    <div className="text-center">
+                                                                        <div className="h-8 mb-1 border-b border-gray-300">
+                                                                            {/* Signature would go here */}
+                                                                        </div>
+                                                                        <p className="font-medium">
+                                                                            {selectedCertificate?.instructorName || certificate.instructorName}
+                                                                        </p>
+                                                                        <p className="text-[10px] text-gray-600">Instructor</p>
+                                                                    </div>
+
+                                                                    <div className="text-center">
+                                                                        <div className="flex items-center justify-center h-8 mb-1">
+                                                                            <div className="text-xl font-bold text-[#1e3a5f]">
+                                                                                {certificate.gpa.toFixed(1)}
+                                                                            </div>
+                                                                        </div>
+                                                                        <p className="text-[10px] text-gray-600">GPA</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    {selectedCertificate?.skillsEarned && selectedCertificate.skillsEarned.length > 0 && (
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold border-b pb-2 mb-3">Skills Earned</h3>
-                                                            <ScrollArea className="h-[120px]">
-                                                                <div className="space-y-2">
-                                                                    {selectedCertificate.skillsEarned.map((skill, index) => (
-                                                                        <div key={index} className="flex items-start gap-2">
-                                                                            <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                                                                            <span className="text-sm">{skill}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </ScrollArea>
-                                                        </div>
-                                                    )}
+                                                    {/* Right Column - Certificate Details */}
+                                                    <div className="space-y-6">
+                                                        <div className="space-y-4">
+                                                            <h3 className="text-lg font-semibold border-b pb-2">Certificate Details</h3>
 
-                                                    <div className="flex flex-col gap-3">
-                                                        <Button
-                                                            className="w-full"
-                                                            onClick={() => window.open(certificate.certificateUrl, "_blank")}
-                                                            disabled={!certificate.certificateUrl}
-                                                        >
-                                                            <FileText className="mr-2 h-4 w-4" />
-                                                            View Certificate
-                                                        </Button>
-                                                        <Button
-                                                            className="w-full"
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                window.open(`/endpoint/certificates/${certificate.studentClassId}/pdf`, "_blank")
-                                                            }
-                                                            disabled={!certificate.certificateUrl}
-                                                        >
-                                                            <Download className="mr-2 h-4 w-4" />
-                                                            Download PDF
-                                                        </Button>
+                                                            <div className="space-y-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <User className="h-5 w-5 text-primary" />
+                                                                    <div>
+                                                                        <p className="text-sm text-muted-foreground">Student</p>
+                                                                        <p className="font-medium">
+                                                                            {selectedCertificate?.studentName || certificate.studentName}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <BookOpen className="h-5 w-5 text-primary" />
+                                                                    <div>
+                                                                        <p className="text-sm text-muted-foreground">Course</p>
+                                                                        <p className="font-medium">{certificate.className}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <Calendar className="h-5 w-5 text-primary" />
+                                                                    <div>
+                                                                        <p className="text-sm text-muted-foreground">Completion Date</p>
+                                                                        <p className="font-medium">{formatDate(certificate.completionDate)}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {selectedCertificate?.skillsEarned && selectedCertificate.skillsEarned.length > 0 && (
+                                                            <div>
+                                                                <h3 className="text-lg font-semibold border-b pb-2 mb-3">Skills Earned</h3>
+                                                                <ScrollArea className="h-[120px]">
+                                                                    <div className="space-y-2">
+                                                                        {selectedCertificate.skillsEarned.map((skill, index) => (
+                                                                            <div key={index} className="flex items-start gap-2">
+                                                                                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
+                                                                                <span className="text-sm">{skill}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </ScrollArea>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex flex-col gap-3">
+                                                            <Button
+                                                                className="w-full"
+                                                                onClick={() =>
+                                                                    window.open(
+                                                                        `/endpoint/classes/${certificate.classId}/students/${certificate.studentId}/certificate/html`,
+                                                                        "_blank",
+                                                                    )
+                                                                }
+                                                                disabled={!certificate.certificateUrl}
+                                                            >
+                                                                <FileText className="mr-2 h-4 w-4" />
+                                                                View Certificate
+                                                            </Button>
+                                                            <Button
+                                                                className="w-full"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    window.open(
+                                                                        `/endpoint/classes/${certificate.classId}/students/${certificate.studentId}/certificate/pdf`,
+                                                                        "_blank",
+                                                                    )
+                                                                }
+                                                                disabled={!certificate.certificateUrl}
+                                                            >
+                                                                <Download className="mr-2 h-4 w-4" />
+                                                                Download PDF
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })}
                 </div>
             )}
         </div>
