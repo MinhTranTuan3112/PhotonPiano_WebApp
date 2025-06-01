@@ -1,5 +1,6 @@
 export type Certificate = {
-  studentClassId: string;
+  classId: string;
+  studentId: string;
   className: string;
   levelName: string;
   completionDate: string;
