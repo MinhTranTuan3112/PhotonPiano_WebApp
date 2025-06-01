@@ -798,7 +798,7 @@ export default function StaffClassDetailPage({ }: Props) {
     const classStartDay = new Date(classDetail.startTime ?? "9999-01-01")
     const now = new Date(time)
     now.setDate(now.getDate() + daysBefore)
-    return classDetail.studentClasses.length < classDetail.minimumStudents && now >= classStartDay;
+    return classDetail.studentClasses.length < classDetail.minimumStudents && now >= classStartDay && classDetail.status === 0;
   }
 
   return (
