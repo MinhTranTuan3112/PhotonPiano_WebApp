@@ -23,7 +23,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
                 <p className="text-sm font-medium text-foreground">{`Month: ${label}`}</p>
                 <p className="text-sm text-muted-foreground">
                     <span className="inline-block w-3 h-3 bg-sky-800 rounded-full mr-2"></span>
-                    {`${formatPrice(payload[0].value as number)} đ`}
+                    {`${formatPrice(payload[0].value as number)} đ`} 
                 </p>
             </div>
         )
