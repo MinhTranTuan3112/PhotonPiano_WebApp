@@ -19,7 +19,6 @@ import {
     CheckCircle2,
     XCircle,
     Loader2,
-    AlertTriangle,
     BookOpen,
     Award,
     RefreshCw,
@@ -381,7 +380,10 @@ export default function TuitionPage() {
                                     </Badge>
                                     {appliedFilters.paymentStatuses.length > 0 && (
                                         <span className="text-blue-600">
-                                            Status: {appliedFilters.paymentStatuses.map((s) => PaymentStatusText[s as keyof typeof PaymentStatusText]).join(", ")}
+                                            Status:{" "}
+                                            {appliedFilters.paymentStatuses
+                                                .map((s) => PaymentStatusText[s as keyof typeof PaymentStatusText])
+                                                .join(", ")}
                                         </span>
                                     )}
                                 </div>
@@ -410,20 +412,20 @@ export default function TuitionPage() {
 
                     {/* Outstanding Balance Alert */}
                     {totalDebt > 0 && (
-                        <Card className="bg-white border-2 border-red-200 shadow-xl mb-6 overflow-hidden">
+                        <Card className="bg-white border-2 border-amber-200 shadow-xl mb-6 overflow-hidden">
                             <CardContent className="p-0">
-                                <div className="bg-gradient-to-r from-red-500 to-red-600 p-1">
+                                <div className="bg-gradient-to-r from-amber-400 to-amber-500 p-1">
                                     <div className="bg-white rounded-sm p-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="bg-red-100 p-3 rounded-full border-2 border-red-200">
-                                                <AlertTriangle className="w-8 h-8 text-red-600" />
+                                            <div className="bg-amber-100 p-3 rounded-full border-2 border-amber-200">
+                                                <AlertCircle className="w-8 h-8 text-amber-600" />
                                             </div>
                                             <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-red-800 mb-1">Outstanding Balance</h3>
-                                                <p className="text-red-600 mb-3 font-medium">
-                                                    You have unpaid tuition fees that require immediate attention
+                                                <h3 className="text-xl font-bold text-amber-800 mb-1">Payment Reminder</h3>
+                                                <p className="text-amber-600 mb-3 font-medium">
+                                                    You have pending tuition fees for your enrolled courses
                                                 </p>
-                                                <p className="text-3xl font-bold text-red-700">
+                                                <p className="text-3xl font-bold text-amber-700">
                                                     {totalDebt.toLocaleString("vi-VN", {
                                                         style: "currency",
                                                         currency: "VND",
@@ -432,8 +434,8 @@ export default function TuitionPage() {
                                             </div>
                                             {hasPendingPayments && (
                                                 <div className="text-right">
-                                                    <Badge className="bg-red-600 text-white border-0 px-4 py-2 text-sm font-bold shadow-lg">
-                                                        ACTION REQUIRED
+                                                    <Badge className="bg-amber-600 text-white border-0 px-4 py-2 text-sm font-bold shadow-lg">
+                                                        PAYMENT DUE
                                                     </Badge>
                                                 </div>
                                             )}
@@ -471,9 +473,17 @@ export default function TuitionPage() {
                         filteredTuition.map((tuitionItem) => (
                             <Card
                                 key={tuitionItem.id}
-                                className="overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm"
+                                className={`overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border-0 backdrop-blur-sm ${tuitionItem.paymentStatus === PaymentStatus.Successed
+                                        ? "bg-green-50/90 border-l-4 border-l-green-500"
+                                        : "bg-white/90 border-l-4 border-l-amber-500"
+                                    }`}
                             >
-                                <CardHeader className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white">
+                                <CardHeader
+                                    className={`text-white ${tuitionItem.paymentStatus === PaymentStatus.Successed
+                                            ? "bg-gradient-to-r from-green-500 via-green-600 to-emerald-600"
+                                            : "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600"
+                                        }`}
+                                >
                                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
@@ -493,8 +503,8 @@ export default function TuitionPage() {
                                             <Badge
                                                 variant={tuitionItem.isPassed ? "default" : "secondary"}
                                                 className={`px-4 py-2 text-sm font-bold border-2 ${tuitionItem.isPassed
-                                                    ? "bg-green-600 text-white border-green-700 shadow-lg"
-                                                    : "bg-blue-600 text-white border-blue-700 shadow-lg"
+                                                        ? "bg-green-600 text-white border-green-700 shadow-lg"
+                                                        : "bg-blue-600 text-white border-blue-700 shadow-lg"
                                                     }`}
                                             >
                                                 {tuitionItem.isPassed ? "Course Completed" : "Currently Enrolled"}
