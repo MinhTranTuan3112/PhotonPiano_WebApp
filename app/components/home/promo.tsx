@@ -10,14 +10,14 @@ export function PianoPromo() {
             <div className="absolute bottom-10 right-10 w-32 h-32 border-4 border-teal-200 rounded-full animate-pulse" />
 
             <div className="container mx-auto px-6 py-24">
-                <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
+                <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                         className="flex flex-col items-center text-center lg:items-start lg:text-left"
                     >
-                        <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-teal-500 bg-clip-text text-transparent">
+                        <h2 className="text-4xl font-bold bg-linear-to-r from-indigo-600 to-teal-500 bg-clip-text text-transparent">
                             Try Our Interactive Piano!
                         </h2>
                         <p className="mt-4 text-lg text-gray-600">
@@ -25,7 +25,7 @@ export function PianoPromo() {
                         </p>
                         <Link
                             to="/piano-simulator"
-                            className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 px-6 py-3 text-lg font-semibold text-white transition-transform hover:scale-105"
+                            className="mt-8 inline-flex items-center gap-2 rounded-full bg-linear-to-r from-indigo-600 to-teal-500 px-6 py-3 text-lg font-semibold text-white transition-transform hover:scale-105"
                         >
                             <Piano className="h-5 w-5" />
                             Play Now
@@ -38,13 +38,13 @@ export function PianoPromo() {
                         className="relative hidden lg:block"
                     >
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="relative h-48 w-72 overflow-hidden rounded-2xl bg-white/80 shadow-lg backdrop-blur-sm">
+                            <div className="relative h-48 w-72 overflow-hidden rounded-2xl bg-white/80 shadow-lg backdrop-blur-xs">
                                 <div className="flex h-full flex-col items-center justify-center gap-2">
                                     <div className="relative">
                                         <Piano className="h-16 w-16 text-indigo-600 animate-pulse" />
                                         <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
                                     </div>
-                                    <span className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-teal-500 bg-clip-text text-transparent">
+                                    <span className="text-lg font-semibold bg-linear-to-r from-indigo-600 to-teal-500 bg-clip-text text-transparent">
                                         Virtual Piano
                                     </span>
                                 </div>

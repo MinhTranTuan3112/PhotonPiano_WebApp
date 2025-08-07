@@ -66,7 +66,7 @@ export default function ScoreTable({ data, className }: Props) {
                                         {
                                             editableStudent === entranceTestStudent ? (
                                                 <div className='flex justify-center'>
-                                                    <input className='flex text-center h-10 w-16 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm' defaultValue={result?.score} type='number'></input>
+                                                    <input className='flex text-center h-10 w-16 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-sm' defaultValue={result?.score} type='number'></input>
                                                 </div>
                                             ) : (
                                                 <div className='text-center'>

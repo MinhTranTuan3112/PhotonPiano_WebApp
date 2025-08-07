@@ -61,7 +61,7 @@ export function FeatureSection() {
                                 <h4 className="mb-3 text-xl font-bold text-gray-900">{card.title}</h4>
                                 <p className="text-sm leading-relaxed text-gray-600">{card.description}</p>
                             </div>
-                            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-gray-800 to-gray-600 transform origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-linear-to-r from-gray-800 to-gray-600 transform origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
                         </motion.div>
                     ))}
                 </div>

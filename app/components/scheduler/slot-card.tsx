@@ -20,7 +20,7 @@ export function SlotCard({ slot, onClick }: SlotCardProps) {
     return (
         <motion.div
             className={cn(
-                "rounded-lg shadow p-2 text-sm transition-all duration-200",
+                "rounded-lg shadow-sm p-2 text-sm transition-all duration-200",
                 slot.status === SlotStatus.Cancelled
                     ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                     : slot.status === SlotStatus.Ongoing

@@ -463,7 +463,7 @@ export const Scheduler = ({
 
     return (
         <div
-            className="scheduler-page p-6 bg-gradient-to-b from-indigo-50 to-white min-h-screen relative"
+            className="scheduler-page p-6 bg-linear-to-b from-indigo-50 to-white min-h-screen relative"
             style={{
                 backgroundSize: "cover",
                 backgroundPosition: "bottom",
@@ -492,10 +492,10 @@ export const Scheduler = ({
                     <div className="control flex flex-col mb-4 sm:mb-0">
                         <span className="mb-1 font-semibold text-indigo-800">Week:</span>
                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
-                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-xs focus:ring-blue-500">
                                 <SelectValue placeholder="Select week" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
+                            <SelectContent className="bg-white/90 backdrop-blur-xs border-indigo-200 rounded-lg shadow-lg">
                                 {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
                                     <SelectItem key={week} value={week.toString()} className="text-indigo-800 hover:bg-indigo-50">
                                         Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
@@ -509,10 +509,10 @@ export const Scheduler = ({
                     <div className="control flex flex-col">
                         <span className="mb-1 font-semibold text-indigo-800">Year:</span>
                         <Select value={year.toString()} onValueChange={handleYearChange}>
-                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-sm focus:ring-blue-500">
+                            <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-lg shadow-xs focus:ring-blue-500">
                                 <SelectValue placeholder="Select year" />
                             </SelectTrigger>
-                            <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
+                            <SelectContent className="bg-white/90 backdrop-blur-xs border-indigo-200 rounded-lg shadow-lg">
                                 {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
                                     <SelectItem key={year} value={year.toString()} className="text-indigo-800 hover:bg-indigo-50">
                                         {year}
@@ -602,7 +602,7 @@ export const Scheduler = ({
                                                                     <motion.div
                                                                         key={idx}
                                                                         className={cn(
-                                                                            "rounded-lg shadow p-2 text-sm transition-all duration-200",
+                                                                            "rounded-lg shadow-sm p-2 text-sm transition-all duration-200",
                                                                             slot.status === SlotStatus.Cancelled
                                                                                 ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                                                                                 : slot.status === SlotStatus.Ongoing
@@ -697,7 +697,7 @@ export const Scheduler = ({
                             <div className="space-y-6 mt-4 text-indigo-900 text-sm md:text-base">
 
                                 {/* --- Class Information --- */}
-                                <div className="bg-gradient-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-sm">
+                                <div className="bg-linear-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-xs">
                                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-700">
                                         <BookOpen className="w-5 h-5" /> Class Information
                                     </h3>
@@ -744,7 +744,7 @@ export const Scheduler = ({
                                         .map((student, index) => (
                                             <div
                                                 key={index}
-                                                className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-5 shadow-sm"
+                                                className="bg-linear-to-br from-indigo-50 to-white border border-indigo-200 rounded-xl p-5 shadow-xs"
                                             >
                                                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-indigo-700">
                                                     <ThumbsUp className="w-5 h-5" /> Your Feedback
@@ -831,7 +831,7 @@ export const Scheduler = ({
                                 {/* --- Staff Controls --- */}
                                 {role === 4 && (
                                     <div className="mt-6 border-t border-slate-200 pt-5">
-                                        <div className="bg-gradient-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-sm">
+                                        <div className="bg-linear-to-br from-indigo-100 to-white border border-indigo-200 rounded-xl p-5 shadow-xs">
                                             <h3 className="text-lg font-semibold mb-3 text-indigo-700 flex items-center gap-2">
                                                 <Settings className="w-5 h-5" />
                                                 Staff Actions
@@ -844,7 +844,7 @@ export const Scheduler = ({
                                                         !isCurrentDatePastSlotDate(selectedSlot.date) ||
                                                         selectedSlot.status === SlotStatus.Cancelled
                                                     }
-                                                    className="flex items-center gap-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 font-semibold px-5 py-2.5 rounded-xl shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="flex items-center gap-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 font-semibold px-5 py-2.5 rounded-xl shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <Info className="w-4 h-4" />
                                                     Slot Detail
@@ -867,7 +867,7 @@ export const Scheduler = ({
                                                         }
                                                     }}
                                                     disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
-                                                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="flex items-center gap-2 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <RefreshCw className="w-4 h-4" />
                                                     Change Teacher
@@ -884,7 +884,7 @@ export const Scheduler = ({
                                                         selectedSlot.status === SlotStatus.Cancelled ||
                                                         selectedSlot.status === SlotStatus.Ongoing
                                                     }
-                                                    className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="flex items-center gap-2 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <Ban className="w-4 h-4" />
                                                     Cancel Slot
@@ -902,7 +902,7 @@ export const Scheduler = ({
 
 
                 <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
-                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg max-w-3xl">
+                    <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg max-w-3xl">
                         <DialogHeader>
                             <DialogTitle className="text-xl font-bold text-indigo-900 flex items-center">
                                 <Filter className="w-5 h-5 mr-2 text-indigo-700" />
@@ -1237,7 +1237,7 @@ export const Scheduler = ({
                             </Button>
                             <Button
                                 onClick={applyFilters}
-                                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                 disabled={isFilterLoading}
                             >
                                 {isFilterLoading ? (
@@ -1267,7 +1267,7 @@ export const Scheduler = ({
                         }
                     }}
                 >
-                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+                    <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg">
                         <DialogHeader>
                             <DialogTitle className="text-indigo-900">Cancel and replace lessons</DialogTitle>
                         </DialogHeader>
@@ -1372,7 +1372,7 @@ export const Scheduler = ({
                                 <Button
                                     onClick={handleReplaceThenCancel}
                                     disabled={isLoading || !cancelReason.trim() || !selectedBlankSlot || blankSlots.length === 0}
-                                    className="bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                    className="bg-linear-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                 >
                                     {isLoading ? "Processing..." : "Confirm"}
                                 </Button>
@@ -1382,7 +1382,7 @@ export const Scheduler = ({
                 </Dialog>
 
                 <Dialog open={isChangeTeacherDialogOpen} onOpenChange={setIsChangeTeacherDialogOpen}>
-                    <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+                    <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg">
                         <DialogHeader>
                             <DialogTitle className="text-indigo-900">Change teacher</DialogTitle>
                         </DialogHeader>
@@ -1487,7 +1487,7 @@ export const Scheduler = ({
                                         }
                                     }}
                                     disabled={!newTeacherId || !changeTeacherReason.trim() || isTeacherLoading}
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                    className="bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                 >
                                     {isTeacherLoading ? (
                                         <span className="flex items-center">

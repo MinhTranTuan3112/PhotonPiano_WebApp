@@ -480,7 +480,7 @@
 
 //     return (
 //         <div
-//             className="scheduler-page p-6 bg-gradient-to-b from-indigo-50 to-white min-h-screen relative"
+//             className="scheduler-page p-6 bg-linear-to-b from-indigo-50 to-white min-h-screen relative"
 //             style={{
 //                 backgroundImage: "url(/piano-keys-pattern.png)",
 //                 backgroundSize: "cover",
@@ -510,7 +510,7 @@
 //                     </h1>
 
 //                     <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-//                         <div className="current-user bg-white/90 p-3 rounded-lg shadow-md backdrop-blur-sm w-full md:w-auto text-center">
+//                         <div className="current-user bg-white/90 p-3 rounded-lg shadow-md backdrop-blur-xs w-full md:w-auto text-center">
 //                             <p className="text-sm font-semibold text-indigo-800">{currentAccount.email}</p>
 //                             <p className="text-xs text-indigo-600">{currentAccount.fullName}</p>
 //                         </div>
@@ -521,10 +521,10 @@
 //                     <div className="control flex flex-col mb-4 sm:mb-0">
 //                         <span className="mb-1 font-semibold text-indigo-800">Tuần:</span>
 //                         <Select value={weekNumber.toString()} onValueChange={(value) => handleWeekChange(Number(value))}>
-//                             <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
+//                             <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-xs focus:ring-blue-500">
 //                                 <SelectValue placeholder="Select week" />
 //                             </SelectTrigger>
-//                             <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
+//                             <SelectContent className="bg-white/90 backdrop-blur-xs border-indigo-200 rounded-lg shadow-lg">
 //                                 {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
 //                                     <SelectItem key={week} value={week.toString()} className="text-indigo-800 hover:bg-indigo-50">
 //                                         Week {week}: {formatDateForDisplay(getWeekRange(year, week).startDate)} -{" "}
@@ -538,10 +538,10 @@
 //                     <div className="control flex flex-col">
 //                         <span className="mb-1 font-semibold text-indigo-800">Năm:</span>
 //                         <Select value={year.toString()} onValueChange={handleYearChange}>
-//                             <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-sm focus:ring-blue-500">
+//                             <SelectTrigger className="w-[180px] bg-white border-blue-300 text-blue-800 rounded-full shadow-xs focus:ring-blue-500">
 //                                 <SelectValue placeholder="Select year" />
 //                             </SelectTrigger>
-//                             <SelectContent className="bg-white/90 backdrop-blur-sm border-indigo-200 rounded-lg shadow-lg">
+//                             <SelectContent className="bg-white/90 backdrop-blur-xs border-indigo-200 rounded-lg shadow-lg">
 //                                 {Array.from({ length: 5 }, (_, i) => 2022 + i).map((year) => (
 //                                     <SelectItem key={year} value={year.toString()} className="text-indigo-800 hover:bg-indigo-50">
 //                                         {year}
@@ -630,7 +630,7 @@
 //                                                                 <motion.div
 //                                                                     key={idx}
 //                                                                     className={cn(
-//                                                                         "rounded-lg shadow p-3 transition-all duration-200",
+//                                                                         "rounded-lg shadow-sm p-3 transition-all duration-200",
 //                                                                         slot.status === SlotStatus.Cancelled
 //                                                                             ? "bg-gray-100 text-gray-600 cursor-not-allowed"
 //                                                                             : slot.status === SlotStatus.Ongoing
@@ -691,7 +691,7 @@
 //                 </Card>
 
 //                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-//                     <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+//                     <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg">
 //                         <DialogHeader>
 //                             <DialogTitle className="text-indigo-900">Chi tiết tiết học</DialogTitle>
 //                         </DialogHeader>
@@ -766,7 +766,7 @@
 //                                                 disabled={
 //                                                     !isCurrentDatePastSlotDate(selectedSlot.date) || selectedSlot.status === SlotStatus.Cancelled
 //                                                 }
-//                                                 className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+//                                                 className="bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
 //                                             >
 //                                                 Hủy buổi học
 //                                             </Button>
@@ -779,7 +779,7 @@
 //                 </Dialog>
 
 //                 <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
-//                     <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+//                     <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg">
 //                         <DialogHeader>
 //                             <DialogTitle className="text-indigo-900">Tùy chọn bộ lọc</DialogTitle>
 //                         </DialogHeader>
@@ -889,7 +889,7 @@
 //                                 </Button>
 //                                 <Button
 //                                     onClick={applyFilters}
-//                                     className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+//                                     className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
 //                                     disabled={isFilterLoading} // Disable while loading
 //                                 >
 //                                     {isFilterLoading ? "Đang áp dụng..." : "Xác nhận"}
@@ -911,7 +911,7 @@
 //                         }
 //                     }}
 //                 >
-//                     <DialogContent className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg">
+//                     <DialogContent className="bg-white/90 backdrop-blur-xs rounded-lg shadow-lg">
 //                         <DialogHeader>
 //                             <DialogTitle className="text-indigo-900">Hủy và thay thế buổi học</DialogTitle>
 //                         </DialogHeader>
@@ -997,7 +997,7 @@
 //                                 <Button
 //                                     onClick={handleReplaceThenCancel}
 //                                     disabled={isLoading || !cancelReason.trim() || !selectedBlankSlot || blankSlots.length === 0}
-//                                     className="bg-gradient-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
+//                                     className="bg-linear-to-r from-red-500 to-purple-600 hover:from-red-600 hover:to-purple-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
 //                                 >
 //                                     {isLoading ? "Đang xử lý..." : "Xác nhận"}
 //                                 </Button>

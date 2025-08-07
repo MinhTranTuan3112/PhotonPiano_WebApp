@@ -134,7 +134,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                             <Button Icon={Search} iconPlacement='left'>Search</Button>
                         </div>
                     </Form>
-                    <div className='max-h-[24rem] overflow-y-auto mt-2'>
+                    <div className='max-h-96 overflow-y-auto mt-2'>
                         <Suspense fallback={<LoadingDialog />}>
                             <Await resolve={studentPromise}>
                                 {(data) => (

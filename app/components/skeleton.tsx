@@ -4,7 +4,7 @@ import { Skeleton } from "./ui/skeleton"
 export function HeroSkeleton() {
     return (
         <div className="relative h-[400px] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-gray-300 to-gray-400 animate-pulse"></div>
             <div className="relative container mx-auto h-full flex items-center z-10 px-4">
                 <div className="flex items-center justify-between w-full">
                     <div className="max-w-3xl flex-1">
@@ -69,7 +69,7 @@ export function SkillsSkeleton() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <div key={i} className="flex gap-3 p-3">
-                                <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+                                <Skeleton className="h-10 w-10 rounded-full shrink-0" />
                                 <Skeleton className="h-6 w-full mt-1.5" />
                             </div>
                         ))}
@@ -184,7 +184,7 @@ export function RequirementsSkeleton() {
 export function CTASkeleton() {
     return (
         <div className="relative overflow-hidden rounded-2xl mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-400 animate-pulse"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-gray-300 to-gray-400 animate-pulse"></div>
             <div className="relative z-10 p-12 text-center">
                 <Skeleton className="h-8 w-96 mx-auto mb-4 bg-white/20" />
                 <Skeleton className="h-6 w-full max-w-2xl mx-auto mb-8 bg-white/20" />

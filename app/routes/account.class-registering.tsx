@@ -356,7 +356,7 @@ export default function AccountClassRegistering() {
 
     return (
       <Form method='GET' action={pathname} onSubmit={handleSubmit}>
-        <div className="bg-sky-50 p-4 rounded-lg mb-6 shadow-sm">
+        <div className="bg-sky-50 p-4 rounded-lg mb-6 shadow-xs">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-sky-700 mb-1">Search</label>
@@ -364,7 +364,7 @@ export default function AccountClassRegistering() {
                 {...register('keyword')}
                 defaultValue={defaultKeyword}
                 placeholder="Search by class name, schedule..."
-                className="w-full p-2 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full p-2 border border-sky-200 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div className="flex items-end">
@@ -422,7 +422,7 @@ export default function AccountClassRegistering() {
                             className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
                           >
                             <div className="flex">
-                              <div className="flex-shrink-0">
+                              <div className="shrink-0">
                                 <TriangleAlert
                                   className={`h-5 w-5 text-yellow-500`}
                                 />
@@ -440,7 +440,7 @@ export default function AccountClassRegistering() {
                             className={`border-l-4 p-4 mb-6 rounded-r-lg bg-red-100 border-red-500`}
                           >
                             <div className="flex">
-                              <div className="flex-shrink-0">
+                              <div className="shrink-0">
                                 <TriangleAlert
                                   className={`h-5 w-5 text-red-500`}
                                 />

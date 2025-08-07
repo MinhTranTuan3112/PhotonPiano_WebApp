@@ -1,9 +1,7 @@
 import { FetcherWithComponents } from '@remix-run/react'
-import { CheckCircle, Loader2, X, XCircle } from 'lucide-react'
-import { Result } from 'postcss'
+import { CheckCircle, Loader2, XCircle } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { boolean } from 'zod'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '~/components/ui/dialog'
 import { ActionResult } from '~/lib/types/action-result'
 
 type Props = {

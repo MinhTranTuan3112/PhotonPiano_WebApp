@@ -69,10 +69,10 @@ export default function NavBar({ }: Props) {
                         <Piano className="h-8 w-8 text-indigo-600 animate-pulse" />
                         <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
                     </div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                    <h1 className="text-2xl font-bold bg-linear-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
                 </Link>
 
-                <NavigationMenu className="hidden md:block">
+                <NavigationMenu viewport={false}>
                     <NavigationMenuList>
                         <NavigationMenuItem className={`${pathname === '/intro' ? buttonVariants({ variant: 'theme' }) : ''}`}>
                             <NavigationMenuTrigger className="uppercase font-bold">About Us</NavigationMenuTrigger>
@@ -85,7 +85,7 @@ export default function NavBar({ }: Props) {
                                         <NavigationMenuLink asChild>
                                             <Link
                                                 to="/"
-                                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                                                className="flex h-full w-full select-none flex-col justify-end rounded-md bg-linear-to-b from-muted/50 to-muted p-6 no-underline outline-hidden focus:shadow-md"
                                             >
                                                 <div className="mb-2 mt-4 text-lg font-medium">
                                                     Photon Piano
@@ -170,7 +170,7 @@ export default function NavBar({ }: Props) {
             <div className="hidden md:block">
                 {(!authData || !authData.role) ? (
                     <button onClick={() => navigate('/sign-in')} type="button"
-                        className="whitespace-nowrap relative px-10 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                        className="whitespace-nowrap relative px-10 py-4 rounded-full bg-linear-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
                         Sign In
                         <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4"></div>
                     </button>
@@ -195,7 +195,7 @@ const ListItem = React.forwardRef<
                     to={props.href || '/'}
                     ref={ref}
                     className={cn(
-                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                        "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                         className
                     )}
                     {...props}
@@ -257,7 +257,7 @@ function LevelsDropdown() {
                         <Link
                             key={level.id}
                             to={`levels/${level.id}`}
-                            className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                            className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.02] focus:outline-hidden focus:ring-2 focus:ring-offset-2"
                             style={
                                 {
                                     "--theme-color": level.themeColor,
@@ -274,7 +274,7 @@ function LevelsDropdown() {
                             {/* Theme color dot indicator */}
                             <div className="flex items-start gap-3">
                                 <div
-                                    className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
+                                    className="w-3 h-3 rounded-full mt-1 shrink-0"
                                     style={{ backgroundColor: level.themeColor }}
                                 />
                                 <div className="flex-1 min-w-0">

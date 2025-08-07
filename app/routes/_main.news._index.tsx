@@ -242,7 +242,7 @@ export default function NewsPage() {
                         </CardHeader>
                         <CardContent>
                             <form className="flex space-x-2">
-                                <Input type="email" placeholder="Your email" className="flex-grow transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
+                                <Input type="email" placeholder="Your email" className="grow transition-all duration-300 focus:ring-2 focus:ring-blue-400" />
                                 <Button type="button" className="transition-colors duration-300 hover:bg-blue-700"
                                     onClick={() => {
                                         toast.success('Subscribed successfully!', {
@@ -273,7 +273,7 @@ function ArticlesContent({
     return articles.length > 0 ? <>
         <div className={`relative rounded-lg overflow-hidden mb-12 group ${styles.animateFadeIn}`}>
             <img src={`${topArticle.thumbnail || placeholderImg}`} alt="Hero image" className="w-full h-[400px] object-cover transition-transform duration-300 transform group-hover:scale-105" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black to-transparent" />
             <div className="absolute bottom-0 left-0 p-6 text-white transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                 <h2 className="text-3xl font-bold mb-2">{topArticle.title}</h2>
                 <p className="mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 line-clamp-1"

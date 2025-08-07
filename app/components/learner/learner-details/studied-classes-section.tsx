@@ -61,7 +61,7 @@ const getStatusColor = (status: number) => {
 
 const getCardStyle = (type: 'current' | 'past') => {
     return type === 'current'
-        ? "border-l-4 border-l-theme bg-gradient-to-r from-theme/20 to-white"
+        ? "border-l-4 border-l-theme bg-linear-to-r from-theme/20 to-white"
         : "bg-white hover:shadow-md transition-shadow";
 };
 

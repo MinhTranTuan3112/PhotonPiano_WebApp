@@ -232,7 +232,7 @@ export function ClassScoreboard({
       <CardContent className="p-5">
         {!classInfo.isPublic ? (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 items-center">
-            <AlertTriangle className="h-10 w-10 text-amber-500 flex-shrink-0" />
+            <AlertTriangle className="h-10 w-10 text-amber-500 shrink-0" />
             <div>
               <p className="text-amber-700 font-medium">Class is not yet published</p>
               <p className="text-amber-600 text-sm mt-1">

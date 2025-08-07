@@ -43,7 +43,7 @@ const SortableLevel = ({ level }: SortableLevelProps) => {
     return (
         <div ref={setNodeRef} style={style} className={cn("relative mb-4 cursor-pointer", isDragging && "z-10")}
             onClick={() => navigate(`/admin/levels/${level.id}`)}>
-            <Card className={cn("border", isDragging ? "ring-2 ring-primary shadow-lg" : `border-l-4 hover:-translate-y-1 hover:shadow-sm`)}
+            <Card className={cn("border", isDragging ? "ring-2 ring-primary shadow-lg" : `border-l-4 hover:-translate-y-1 hover:shadow-xs`)}
                 style={{
                     borderLeftColor: level.themeColor
                 }}>

@@ -172,13 +172,13 @@ export default function StudentClassDetailPage() {
     }
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <main className="min-h-screen bg-linear-to-b from-slate-50 to-white">
             <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
                 {/* Header with back button and class name */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div className="flex items-center gap-4">
                         <Link to="/account/classes">
-                            <Button variant="outline" size="icon" className="h-10 w-10 border-slate-200 shadow-sm">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-slate-200 shadow-xs">
                                 <ArrowLeftIcon className="h-5 w-5" />
                             </Button>
                         </Link>
@@ -192,7 +192,7 @@ export default function StudentClassDetailPage() {
                     </div>
                     <div className="flex gap-3">
                         <Link to={`/account/scheduler?classId=${classDetails.id}`}>
-                            <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+                            <Button variant="outline" className="gap-2 border-slate-200 shadow-xs">
                                 <CalendarIcon className="h-4 w-4" />
                                 Schedule
                             </Button>
@@ -200,7 +200,7 @@ export default function StudentClassDetailPage() {
                         {
                             classDetails.status !== 2 && (
                                 <Link to={`/account/classes/changing`}>
-                                    <Button variant="outline" className="gap-2 border-slate-200 shadow-sm">
+                                    <Button variant="outline" className="gap-2 border-slate-200 shadow-xs">
                                         <ShuffleIcon className="h-4 w-4" />
                                         Change Class
                                     </Button>
@@ -209,7 +209,7 @@ export default function StudentClassDetailPage() {
                         }
                         {
                             classDetails.status === 0 && (
-                                <Button variant="destructive" className="gap-2 border-slate-200 shadow-sm" onClick={handleOpenModal}>
+                                <Button variant="destructive" className="gap-2 border-slate-200 shadow-xs" onClick={handleOpenModal}>
                                     <DoorOpen className="h-4 w-4" />
                                     Leave Class
                                 </Button>
@@ -228,12 +228,12 @@ export default function StudentClassDetailPage() {
 
                 {/* Next class notification */}
                 {nextClass && (
-                    <Card className="mb-6 border-l-4 border-l-purple-500 shadow-sm border-slate-200">
+                    <Card className="mb-6 border-l-4 border-l-purple-500 shadow-xs border-slate-200">
                         <CardContent className="p-5 flex items-center gap-4">
                             <div className="bg-purple-100 rounded-full p-3">
                                 <BellIcon className="h-6 w-6 text-purple-600" />
                             </div>
-                            <div className="flex-grow">
+                            <div className="grow">
                                 <h3 className="font-medium text-lg text-slate-800">Next Slot</h3>
                                 <p className="text-slate-600">
                                     {formatDate(nextClass.date)} - {SHIFT_TIME[nextClass.shift]} - {" "}
@@ -241,7 +241,7 @@ export default function StudentClassDetailPage() {
                                 </p>
                             </div>
                             <Link to={`/account/scheduler?classId=${classDetails.id}`}>
-                                <Button variant="outline" size="sm" className="border-slate-200 shadow-sm">
+                                <Button variant="outline" size="sm" className="border-slate-200 shadow-xs">
                                     View Schedule
                                 </Button>
                             </Link>
@@ -264,8 +264,8 @@ export default function StudentClassDetailPage() {
                     <TabsContent value="overview">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             {/* Instructor Card */}
-                            <Card className="md:col-span-2 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5">
+                            <Card className="md:col-span-2 border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                                <CardHeader className="flex flex-row items-center justify-between bg-linear-to-r from-purple-500 to-purple-600 text-white p-5">
                                     <CardTitle className="text-xl flex items-center gap-2">
                                         <UserIcon className="h-5 w-5" />
                                         Instructor Information
@@ -342,8 +342,8 @@ export default function StudentClassDetailPage() {
                             </Card>
 
                             {/* Class Info Card */}
-                            <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                                <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5">
+                            <Card className="border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                                <CardHeader className="bg-linear-to-r from-blue-500 to-blue-600 text-white p-5">
                                     <CardTitle className="text-xl flex items-center gap-2">
                                         <MusicIcon className="h-5 w-5" />
                                         Class Information
@@ -402,8 +402,8 @@ export default function StudentClassDetailPage() {
                         </div>
 
                         {/* Class Description */}
-                        <Card className="mb-8 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-5">
+                        <Card className="mb-8 border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                            <CardHeader className="bg-linear-to-r from-amber-500 to-amber-600 text-white p-5">
                                 <CardTitle className="text-xl flex items-center gap-2">
                                     <BookOpenIcon className="h-5 w-5" />
                                     Class Description
@@ -445,8 +445,8 @@ export default function StudentClassDetailPage() {
                         </Card>
 
                         {/* Upcoming Classes */}
-                        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5">
+                        <Card className="border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                            <CardHeader className="bg-linear-to-r from-green-500 to-green-600 text-white p-5">
                                 <CardTitle className="text-xl flex items-center gap-2">
                                     <CalendarIcon className="h-5 w-5" />
                                     Upcoming Slots
@@ -467,7 +467,7 @@ export default function StudentClassDetailPage() {
                                                     <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
                                                         <CalendarIcon className="h-6 w-6 text-green-600" />
                                                     </div>
-                                                    <div className="flex-grow">
+                                                    <div className="grow">
                                                         <div className="flex items-center gap-2">
                                                             <p className="font-medium text-slate-800">{formatDate(slot.date)}</p>
                                                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -502,8 +502,8 @@ export default function StudentClassDetailPage() {
                     {/* Grades Tab */}
                     <TabsContent value="grades">
                         {/* Detailed Grades Section */}
-                        <Card className="mb-8 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <CardHeader className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-5">
+                        <Card className="mb-8 border-slate-200 shadow-xs hover:shadow-md transition-shadow">
+                            <CardHeader className="bg-linear-to-r from-emerald-500 to-emerald-600 text-white p-5">
                                 <CardTitle className="text-xl flex items-center gap-2">
                                     <TrophyIcon className="h-5 w-5" />
                                     Detailed Scores
@@ -561,7 +561,7 @@ export default function StudentClassDetailPage() {
                                                     href={scoreDetails.certificateUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex h-9 items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-amber-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                                                    className="inline-flex h-9 items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-amber-700 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                                                 >
                                                     View Certificate
                                                 </a>

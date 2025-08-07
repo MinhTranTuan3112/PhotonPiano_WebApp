@@ -271,15 +271,15 @@ export default function StudentClassList() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30">
             <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+                        <div className="p-2 bg-linear-to-br from-blue-500 to-purple-600 rounded-xl">
                             <GraduationCap className="h-6 w-6 text-white" />
                         </div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                        <h1 className="text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                             My Piano Classes
                         </h1>
                     </div>
@@ -287,7 +287,7 @@ export default function StudentClassList() {
                 </div>
 
                 {/* Search and Filter Bar */}
-                <Card className="border-0 shadow-sm mb-6">
+                <Card className="border-0 shadow-xs mb-6">
                     <CardContent className="p-6">
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="relative flex-1">
@@ -489,7 +489,7 @@ export default function StudentClassList() {
                             return (
                                 <Card
                                     key={classItem.id}
-                                    className="group overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm"
+                                    className="group overflow-hidden border-0 shadow-xs hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-xs"
                                 >
                                     <CardHeader className="p-0">
                                         <div
@@ -584,7 +584,7 @@ export default function StudentClassList() {
                         })}
                     </div>
                 ) : (
-                    <Card className="border-0 shadow-sm">
+                    <Card className="border-0 shadow-xs">
                         <CardContent className="text-center py-16">
                             <div className="inline-flex items-center justify-center p-6 bg-slate-100 rounded-full mb-6">
                                 <Search className="h-10 w-10 text-slate-400" />

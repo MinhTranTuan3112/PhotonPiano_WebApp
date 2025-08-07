@@ -24,10 +24,10 @@ export default function MyTestCard({ entranceTest }: Props) {
         <div className={'rounded-lg shadow-md p-4 border-r-4 border-b-4 border-gray-200 transition-all relative '
             + (entranceTest.status === 0 ? 'hover:bg-gray-100' : 'bg-gray-200 hover:bg-gray-300 border-gray-400')
         }>
-            <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-[3%] bg-[url('/images/keyboard.png')]">
+            <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-3 bg-[url('/images/keyboard.png')]">
             </div>
             <div className='flex gap-4 items-center relative z-10'>
-                <div className='flex-grow'>
+                <div className='grow'>
                     <div className='flex justify-between'>
                         <div className='font-bold text-xl'>{entranceTest.name}</div>
                         <div className={getStatusStyle(entranceTest.testStatus)}>{ENTRANCE_TEST_STATUSES[entranceTest.testStatus]}</div>

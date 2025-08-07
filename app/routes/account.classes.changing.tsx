@@ -272,7 +272,7 @@ export default function AccountClassChanging() {
         const isCurrentClass = currentAccount.currentClass?.id === classItem.id
 
         return (
-            <div className="bg-gradient-to-br from-sky-50 to-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-sky-100">
+            <div className="bg-linear-to-br from-sky-50 to-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-sky-100">
                 <div className="flex flex-col md:flex-row justify-between">
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -374,7 +374,7 @@ export default function AccountClassChanging() {
 
         return (
             <Form method='GET' action={pathname} onSubmit={handleSubmit}>
-                <div className="bg-sky-50 p-4 rounded-lg mb-6 shadow-sm">
+                <div className="bg-sky-50 p-4 rounded-lg mb-6 shadow-xs">
                     <div className="flex flex-wrap gap-4">
                         <div className="flex-1 min-w-[200px]">
                             <label className="block text-sm font-medium text-sky-700 mb-1">Search</label>
@@ -382,7 +382,7 @@ export default function AccountClassChanging() {
                                 {...register('keyword')}
                                 defaultValue={defaultKeyword}
                                 placeholder="Search by class name, schedule..."
-                                className="w-full p-2 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                className="w-full p-2 border border-sky-200 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                             />
                         </div>
                         <div className="flex items-end">
@@ -396,7 +396,7 @@ export default function AccountClassChanging() {
                         {/* <div className="w-full sm:w-auto">
                         <label className="block text-sm font-medium text-sky-700 mb-1">Availability</label>
                         <select
-                            className="w-full p-2 border border-sky-200 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            className="w-full p-2 border border-sky-200 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                             onChange={(e) => onFilterChange({ availability: e.target.value })}
                         >
                             <option value="">All Classes</option>
@@ -454,7 +454,7 @@ export default function AccountClassChanging() {
                                                                     }`}
                                                             >
                                                                 <div className="flex">
-                                                                    <div className="flex-shrink-0">
+                                                                    <div className="shrink-0">
                                                                         <TriangleAlert
                                                                             className={`h-5 w-5 ${registrationOpen ? "text-sky-500" : "text-red-500"}`}
                                                                         />
@@ -484,7 +484,7 @@ export default function AccountClassChanging() {
                                                             className={`border-l-4 p-4 mb-6 rounded-r-lg bg-sky-100 border-sky-500`}
                                                         >
                                                             <div className="flex">
-                                                                <div className="flex-shrink-0">
+                                                                <div className="shrink-0">
                                                                     <TriangleAlert
                                                                         className={`h-5 w-5 text-sky-500`}
                                                                     />
@@ -502,7 +502,7 @@ export default function AccountClassChanging() {
                                                             className={`border-l-4 p-4 mb-6 rounded-r-lg bg-yellow-100 border-yellow-500`}
                                                         >
                                                             <div className="flex">
-                                                                <div className="flex-shrink-0">
+                                                                <div className="shrink-0">
                                                                     <TriangleAlert
                                                                         className={`h-5 w-5 text-yellow-500`}
                                                                     />

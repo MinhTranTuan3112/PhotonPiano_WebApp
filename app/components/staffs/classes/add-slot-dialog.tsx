@@ -170,8 +170,8 @@ export default function AddSlotDialog({ isOpen, setIsOpen, idToken, classId }: P
                         </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' type='submit'>Create Slot</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button className='grow' type='submit'>Create Slot</Button>
+                        <Button className='grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>

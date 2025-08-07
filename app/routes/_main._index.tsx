@@ -47,7 +47,7 @@ export default function Index() {
       <article className="flex-1">
         <Carousel isOpenDialog={loaderData?.isOpenDialog} allowEntranceTestRegistering={allowEntranceTestRegistering} />
         {/* MissionSection */}
-        <section className="relative flex justify-center py-24 bg-gradient-to-b from-purple-700 via-blue-600 to-teal-500">
+        <section className="relative flex justify-center py-24 bg-linear-to-b from-purple-700 via-blue-600 to-teal-500">
           <div className="absolute inset-0 bg-black/20" />
           <div className="container relative">
             <div className="mx-auto max-w-2xl text-center">

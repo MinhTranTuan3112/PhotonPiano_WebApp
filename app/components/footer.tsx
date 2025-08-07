@@ -38,9 +38,9 @@ const sections = [
 
 export default function Footer() {
     return (
-        <footer className="relative bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <footer className="relative bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 border-t border-slate-200 dark:border-slate-800">
             {/* Piano Keys Top Border */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-black via-white to-black"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-black via-white to-black"></div>
 
 
             <div className="container px-4 py-16">
@@ -61,7 +61,7 @@ export default function Footer() {
                                 </div>
                             </div>
                             <h2 className="font-bold text-2xl tracking-tight">
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
+                                <span className="bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
                                     Photon Piano
                                 </span>
                             </h2>
@@ -71,7 +71,7 @@ export default function Footer() {
                                 <Piano className="h-8 w-8 text-indigo-600 animate-pulse" />
                                 <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
                             </div>
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                            <h1 className="text-2xl font-bold bg-linear-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
                         </Link>
                         <p className="text-slate-600 dark:text-slate-400 max-w-xs mb-8 italic my-3">
                             "Inspiring musical excellence through innovative piano education."
@@ -110,7 +110,7 @@ export default function Footer() {
                 <div className="relative my-12">
                     <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-slate-200 dark:bg-slate-800"></div>
                     <div className="relative flex justify-center">
-                        <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 px-4">
+                        <div className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 px-4">
                             <div className="flex items-center space-x-1">
                                 {[0, 1, 2, 3, 4].map((i) => (
                                     <div
@@ -149,7 +149,7 @@ export default function Footer() {
             </div>
 
             {/* Piano Keys Bottom Border */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-black via-white to-black"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-black via-white to-black"></div>
         </footer>
     )
 }

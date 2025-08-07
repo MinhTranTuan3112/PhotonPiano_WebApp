@@ -113,8 +113,8 @@ export default function AddAccountDialog({ isOpen, setIsOpen, idToken, isTeacher
                         <input {...register('isTeacher')} type='hidden' value={isTeacher ? "true" : "false"} />
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' type='submit'>Create</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button className='grow' type='submit'>Create</Button>
+                        <Button className='grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>

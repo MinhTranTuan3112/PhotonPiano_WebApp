@@ -27,7 +27,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
             {/* Summary card - always visible */}
             <div
                 className={cn(
-                    "bg-white rounded-lg shadow-sm border border-blue-100 p-4",
+                    "bg-white rounded-lg shadow-xs border border-blue-100 p-4",
                     !expanded && "cursor-pointer hover:bg-blue-50 transition-colors",
                 )}
                 onClick={() => !expanded && setExpanded(true)}
@@ -70,7 +70,7 @@ export const CompactSlotView = ({ slots, onSlotClick, role }: CompactSlotViewPro
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2, delay: idx * 0.05 }}
                                 className={cn(
-                                    "rounded-lg shadow p-3 transition-all duration-200",
+                                    "rounded-lg shadow-sm p-3 transition-all duration-200",
                                     slot.status === SlotStatus.Cancelled
                                         ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                                         : slot.status === SlotStatus.Ongoing

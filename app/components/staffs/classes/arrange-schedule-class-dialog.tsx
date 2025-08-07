@@ -184,8 +184,8 @@ export default function ArrangeScheduleClassDialog({ isOpen, setIsOpen, idToken,
                         </div>
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' type='submit'>Proceed</Button>
-                        <Button className='flex-grow' type='button' variant={'outline'} onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button className='grow' type='submit'>Proceed</Button>
+                        <Button className='grow' type='button' variant={'outline'} onClick={() => setIsOpen(false)}>Cancel</Button>
 
                     </div>
                 </Form>

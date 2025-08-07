@@ -85,7 +85,7 @@ export default function Carousel({ isOpenDialog, allowEntranceTestRegistering }:
                         />
                         <div className="absolute inset-0 bg-black/50" />
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
-                            <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl uppercase leading-7">{slide.title}</h1>
+                            <h1 className="max-w-4xl text-4xl/normal font-bold tracking-tight sm:text-5xl uppercase">{slide.title}</h1>
                             <p className="mt-6 max-w-2xl text-xl leading-8">{slide.description}</p>
                             {
                                 (allowEntranceTestRegistering && index === 0 && (!currentAccount || currentAccount.studentStatus === StudentStatus.Unregistered || currentAccount.studentStatus === StudentStatus.DropOut)) && (
@@ -94,7 +94,7 @@ export default function Carousel({ isOpenDialog, allowEntranceTestRegistering }:
                                             setIsOpenEnrollDialog(!isOpenEnrollDialog)
                                         else
                                             navigate('/entrance-survey')
-                                    }} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-gradient-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    }} className="mt-8 relative overflow-hidden px-6 py-3 rounded-full bg-linear-to-r from-indigo-400 to-teal-200 text-white font-medium text-lg transition-transform hover:scale-105 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                         Register now
                                         <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
                                     </button>

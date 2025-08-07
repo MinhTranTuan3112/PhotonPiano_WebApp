@@ -197,14 +197,15 @@ function ActionsDropdown({ table, row }: {
         description: 'Do you want to change this account status?',
         onConfirm: () => {
             handleToggle();
-        }
+        },
     })
     const { open: handleOpenRevertDialog, dialog: confirmRevertDialog } = useConfirmationDialog({
         title: 'Confirm Revert Dropout Status',
         description: "Do you want to revert this learner's dropout? This learner can register classes again!",
         onConfirm: () => {
             handleRevertDropout();
-        }
+        },
+        confirmButtonVariant: 'warning'
     })
     const handleToggle = () => {
         fetcher.submit({
@@ -278,7 +279,7 @@ function ActionsDropdown({ table, row }: {
                 </DropdownMenuItem>
                 {
                     row.original.studentStatus === 5 && (
-                        <DropdownMenuItem className="text-blue-600 cursor-pointer" onClick={handleOpenRevertDialog}>
+                        <DropdownMenuItem className="text-yellow-600 cursor-pointer" onClick={handleOpenRevertDialog}>
                             <Undo /> Revert Drop Out
                         </DropdownMenuItem>
                     )

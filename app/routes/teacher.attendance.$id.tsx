@@ -476,7 +476,7 @@ const AttendancePage = () => {
                 <div className="max-w-7xl mx-auto">
                     <Button
                         onClick={() => navigate('/teacher/scheduler')}
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-lg"
+                        className="w-full sm:w-auto bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white mb-4 rounded-lg"
                     >
                       Back
                     </Button>
@@ -488,7 +488,7 @@ const AttendancePage = () => {
                     <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <Button
                             onClick={() => setShowAbsentees(!showAbsentees)}
-                            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg"
+                            className="w-full sm:w-auto bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg"
                         >
                             <UserX className="w-5 h-5 mr-2" />
                             {showAbsentees ? "Hide" : "Show"} Absent
@@ -541,7 +541,7 @@ const AttendancePage = () => {
                     <div className="relative flex-1 sm:flex-none my-3">
                         <Button
                             onClick={() => document.getElementById('excelImport')?.click()}
-                            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg"
+                            className="w-full bg-linear-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg"
                         >
                             <Upload className="w-5 h-5 mr-2" />
                             Import from Excel
@@ -585,7 +585,7 @@ const AttendancePage = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse bg-white/90 shadow-lg rounded-lg overflow-hidden">
                             <thead>
-                            <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
+                            <tr className="bg-linear-to-r from-blue-500 to-blue-600 text-white text-xs md:text-sm">
                                 <th className="py-2 px-2 md:py-3 md:px-4 w-16 md:w-20 text-center"></th>
                                 <th className="py-2 px-2 md:py-3 md:px-4 text-left">Email</th>
                                 <th className="py-2 px-2 md:py-3 md:px-4 text-left">Full name</th>
@@ -607,7 +607,7 @@ const AttendancePage = () => {
                                             <img
                                                 src={detail.studentAccount.avatarUrl || '/images/noavatar.png'}
                                                 alt="Student Avatar"
-                                                className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-sm hover:shadow-md transition-shadow duration-200"
+                                                className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-lg border-2 border-blue-300 object-cover mx-auto shadow-xs hover:shadow-md transition-shadow duration-200"
                                             />
                                         </div>
                                     </td>
@@ -623,7 +623,7 @@ const AttendancePage = () => {
                                                 onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 1)}
                                                 variant={detail.attendanceStatus === 1 ? "default" : "secondary"}
                                                 className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 1
-                                                    ? "bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
+                                                    ? "bg-linear-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white"
                                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                                 }`}
                                             >
@@ -633,7 +633,7 @@ const AttendancePage = () => {
                                                 onClick={() => handleAttendanceChange(detail.studentFirebaseId, "attendanceStatus", 2)}
                                                 variant={detail.attendanceStatus === 2 ? "destructive" : "secondary"}
                                                 className={`w-full text-xs md:text-sm ${detail.attendanceStatus === 2
-                                                    ? "bg-gradient-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
+                                                    ? "bg-linear-to-r from-orange-400 to-red-400 hover:from-orange-500 hover:to-red-500 text-white"
                                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                                                 }`}
                                             >
@@ -646,7 +646,7 @@ const AttendancePage = () => {
                                                             onClick={() => handleOpenDetails(detail.studentFirebaseId)}
                                                             variant="secondary"
                                                             className={`w-full text-xs md:text-sm relative ${hasAdditionalData(detail)
-                                                                ? "bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
+                                                                ? "bg-linear-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 border border-gray-200"
                                                                 : ""
                                                             }`}
                                                         >
@@ -681,7 +681,7 @@ const AttendancePage = () => {
                     <div className="mt-6 flex justify-center">
                         <Button
                             onClick={handleSubmit}
-                            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg px-4 py-2 md:px-6 md:py-3"
+                            className="w-full sm:w-auto bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg px-4 py-2 md:px-6 md:py-3"
                         >
                             Confirm
                         </Button>
@@ -692,7 +692,7 @@ const AttendancePage = () => {
                             {sortedAttendanceData.find((s) => s.studentFirebaseId === showViewDetails) && (
                                 <>
                                     {/* Student Header */}
-                                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center gap-4">
+                                    <div className="bg-linear-to-r from-blue-500 to-blue-600 p-4 flex items-center gap-4">
                                         <div className="relative">
                                             <img
                                                 src={
@@ -1093,7 +1093,7 @@ const AttendancePage = () => {
                                                                                 type="text"
                                                                                 id="imageUrlInput"
                                                                                 placeholder="https://example.com/image.jpg"
-                                                                                className="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                                                className="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                                                 onKeyDown={(e) => {
                                                                                     if (e.key === 'Enter') {
                                                                                         const target = e.target as HTMLInputElement;
@@ -1156,7 +1156,7 @@ const AttendancePage = () => {
                                         </Button>
                                         <Button
                                             onClick={() => setShowViewDetails(null)}
-                                            className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+                                            className="w-full sm:w-auto bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
                                         >
                                             <Save className="w-4 h-4 mr-2" />
                                             Save changes
@@ -1167,7 +1167,7 @@ const AttendancePage = () => {
                         </DialogContent>
                     </Dialog>
                     <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                        <DialogContent className="bg-white/90 backdrop-blur-sm w-full max-w-[95vw] sm:max-w-sm p-3">
+                        <DialogContent className="bg-white/90 backdrop-blur-xs w-full max-w-[95vw] sm:max-w-sm p-3">
                             <DialogHeader>
                                 <DialogTitle className="flex items-center text-blue-700 text-sm md:text-base">
                                     <Music className="w-4 h-4 mr-2 text-blue-600" />
@@ -1202,7 +1202,7 @@ const AttendancePage = () => {
                                     <Button
                                         onClick={confirmSubmit}
                                         disabled={isSubmitting}
-                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-xs py-1"
+                                        className="w-full sm:w-auto bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-xs py-1"
                                     >
                                         {isSubmitting ? "Submitting..." : "Confirm"}
                                     </Button>

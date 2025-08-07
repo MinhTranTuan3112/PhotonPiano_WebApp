@@ -162,7 +162,7 @@ export default function CertificateListPage() {
                                 <div
                                     className={cn(
                                         "p-6 cursor-pointer",
-                                        expandedCertificateId === certificateKey ? "bg-gradient-to-r from-primary/5 to-transparent" : "",
+                                        expandedCertificateId === certificateKey ? "bg-linear-to-r from-primary/5 to-transparent" : "",
                                     )}
                                     onClick={() => handleCertificateClick(certificate)}
                                 >
@@ -214,14 +214,14 @@ export default function CertificateListPage() {
                                                     <div className="lg:col-span-2 border rounded-lg overflow-hidden">
                                                         <div className="relative p-6 bg-white">
                                                             {/* Gold Border Design */}
-                                                            <div className="absolute inset-0 border-[12px] border-[#e6c460] rounded-lg">
-                                                                <div className="absolute inset-0 border-[1px] border-[#e6c460]"></div>
+                                                            <div className="absolute inset-0 border-12 border-[#e6c460] rounded-lg">
+                                                                <div className="absolute inset-0 border border-[#e6c460]"></div>
                                                             </div>
 
                                                             {/* Corner Accent */}
                                                             <div className="absolute top-0 right-0 w-[100px] h-[100px]">
                                                                 <div className="absolute top-0 right-0 w-full h-full bg-[#1e3a5f] rounded-bl-[150px]"></div>
-                                                                <div className="absolute top-0 right-0 w-[95px] h-[95px] border-l-[2px] border-b-[2px] border-[#e6c460] rounded-bl-[150px]"></div>
+                                                                <div className="absolute top-0 right-0 w-[95px] h-[95px] border-l-2 border-b-2 border-[#e6c460] rounded-bl-[150px]"></div>
                                                             </div>
 
                                                             {/* Certificate Content */}

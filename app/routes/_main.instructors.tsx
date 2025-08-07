@@ -37,7 +37,7 @@ export default function TeachersShowcasePage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Sky background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-200 via-sky-100 to-blue-50 z-0"></div>
+      <div className="absolute inset-0 bg-linear-to-b from-sky-200 via-sky-100 to-blue-50 z-0"></div>
 
       {/* Decorative clouds using Framer Motion */}
       <motion.div
@@ -132,7 +132,7 @@ export default function TeachersShowcasePage() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-8 shadow-xl">
+                      <div className="bg-white/80 backdrop-blur-xs rounded-xl p-8 shadow-xl">
                         <p className="text-sky-800 text-lg">No teachers are currently available.</p>
                       </div>
                     </motion.div>
@@ -145,7 +145,7 @@ export default function TeachersShowcasePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
                 >
-                  <div className="bg-white/70 backdrop-blur-sm rounded-full px-6 py-2 shadow-lg">
+                  <div className="bg-white/70 backdrop-blur-xs rounded-full px-6 py-2 shadow-lg">
                     <PaginationBar currentPage={currentPage} totalPages={totalPages} />
                   </div>
                 </motion.div>
@@ -170,7 +170,7 @@ function TeacherCard({ teacher, index }: { teacher: TeacherDetail; index: number
       {/* Card with glass effect */}
       <div className="bg-white/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-sky-300/50">
         {/* Top decorative wave */}
-        <div className="h-16 bg-gradient-to-r from-sky-400 to-blue-500 rounded-t-2xl"></div>
+        <div className="h-16 bg-linear-to-r from-sky-400 to-blue-500 rounded-t-2xl"></div>
 
         <div className="px-6 pt-0 pb-6 relative">
           {/* Avatar */}
@@ -265,7 +265,7 @@ function LoadingSkeleton() {
       {[...Array(8)].map((_, index) => (
         <motion.div
           key={index}
-          className="bg-white/30 backdrop-blur-sm rounded-2xl overflow-hidden shadow-lg"
+          className="bg-white/30 backdrop-blur-xs rounded-2xl overflow-hidden shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}

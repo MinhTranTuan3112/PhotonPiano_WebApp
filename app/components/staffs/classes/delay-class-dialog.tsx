@@ -93,8 +93,8 @@ export default function DelayClassDialog({ isOpen, setIsOpen, classId }: Props) 
                     }
 
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' variant={'theme'}>Proceed</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button className='grow' variant={'theme'}>Proceed</Button>
+                        <Button className='grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
                     </div>
                 </Form>
                 {confirmModal}

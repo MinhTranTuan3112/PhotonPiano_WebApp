@@ -7,7 +7,7 @@ export function Header() {
     return (
         <header className="fixed top-0 z-50 w-full">
             {/* Gradient background with blur */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-gray-50/80 to-white/80 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-linear-to-r from-white/80 via-gray-50/80 to-white/80 backdrop-blur-xs" />
 
             {/* Main header content */}
             <div className="relative container mx-auto px-6 py-4">
@@ -18,7 +18,7 @@ export function Header() {
                             <Piano className="h-8 w-8 text-indigo-600 animate-pulse" />
                             <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
                         </div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                        <h1 className="text-2xl font-bold bg-linear-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
                     </div>
 
                     {/* Desktop Navigation - with hover effects */}
@@ -32,7 +32,7 @@ export function Header() {
                                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-600 group-hover:w-full transition-all duration-300" />
                             </button>
                         ))}
-                        <button className="relative overflow-hidden px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
+                        <button className="relative overflow-hidden px-6 py-2 rounded-full bg-linear-to-r from-indigo-600 to-teal-500 text-white font-medium transition-transform hover:scale-105">
                             Join Now
                             <div className="absolute inset-0 bg-white/20 transform rotate-45 translate-x-3/4 transition-transform group-hover:translate-x-1/4" />
                         </button>
@@ -59,7 +59,7 @@ export function Header() {
                                     {item}
                                 </button>
                             ))}
-                            <button className="w-full px-6 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-teal-500 text-white font-medium">
+                            <button className="w-full px-6 py-2 rounded-full bg-linear-to-r from-indigo-600 to-teal-500 text-white font-medium">
                                 Join Now
                             </button>
                         </div>

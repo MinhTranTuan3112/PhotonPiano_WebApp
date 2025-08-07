@@ -82,7 +82,7 @@ export default function ExamDetail({ }: Props) {
   const { promise, id } = useLoaderData<typeof loader>()
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2 mb-8">
           <Piano className="h-8 w-8 text-black" />
@@ -140,7 +140,7 @@ function EntranceTestStudentContent({
           <TestStatusBadge status={entranceTestStudent.entranceTest.testStatus} />
         </div>
 
-        <div className="p-6 bg-white bg-opacity-80 backdrop-blur-sm relative">
+        <div className="p-6 bg-white bg-opacity-80 backdrop-blur-xs relative">
           {/* Decorative background */}
           <div className="absolute inset-0 bg-[url('/images/notes_flows.png')] bg-no-repeat bg-cover opacity-5 z-0"></div>
 
@@ -211,7 +211,7 @@ function EntranceTestStudentContent({
                 </AvatarFallback>
               </Avatar>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grow">
                 <div className="flex items-start space-x-3">
                   <User className="h-5 w-5 text-gray-500 mt-0.5" />
                   <div>
@@ -279,7 +279,7 @@ function EntranceTestStudentContent({
 
         <div className="p-6">
           {entranceTestStudent.entranceTestResults.length > 0 ? (
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-6 relative overflow-hidden">
+            <div className="bg-linear-to-r from-gray-50 to-gray-100 rounded-xl p-6 relative overflow-hidden">
               {/* Piano keys decorative element */}
               <div className="absolute top-0 left-0 right-0 h-3 flex">
                 {[...Array(24)].map((_, i) => (
@@ -308,7 +308,7 @@ function EntranceTestStudentContent({
                 <div className="overflow-hidden rounded-lg border border-gray-200">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-gradient-to-r from-black to-gray-800 text-white">
+                      <tr className="bg-linear-to-r from-black to-gray-800 text-white">
                         <th className="text-left py-3 px-4 font-medium rounded-tl-lg">Criteria</th>
                         <th className="text-center py-3 px-4 font-medium w-24">Score</th>
                         <th className="text-center py-3 px-4 font-medium rounded-tr-lg w-24">Weight</th>
@@ -385,7 +385,7 @@ function EntranceTestStudentContent({
                 <div className="mt-8 flex flex-col items-center space-y-4">
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-lg font-semibold text-gray-700">Final band score:</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
+                    <span className="text-3xl font-bold bg-linear-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
                       {entranceTestStudent.bandScore
                         ? formatScore(entranceTestStudent.bandScore || 0)
                         : "(Not available)"}
@@ -411,7 +411,7 @@ function EntranceTestStudentContent({
                   </div>
 
                   {entranceTestStudent.bandScore && (
-                    <div className="mt-6 text-center p-6 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200">
+                    <div className="mt-6 text-center p-6 bg-linear-to-r from-amber-50 to-amber-100 rounded-lg border border-amber-200">
                       <Award className="h-8 w-8 text-amber-600 mx-auto mb-2" />
                       <p className="text-gray-700 font-medium">Congratulations on completing this test!</p>
                       <p className="text-sm text-gray-600 mt-1">
@@ -466,7 +466,7 @@ function LoadingSkeleton() {
         <div className="p-6">
           <div className="flex flex-col md:flex-row gap-6 items-center">
             <Skeleton className="w-32 h-32 rounded-full" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 grow">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex items-start space-x-3">
                   <Skeleton className="h-5 w-5 rounded-full" />

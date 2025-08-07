@@ -9,7 +9,7 @@ export function RegistrationSection() {
     return (
         <section className="relative py-24 overflow-hidden">
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#563d5f] via-[#3b7b98] to-[#39a2ae]" />
+            <div className="absolute inset-0 bg-linear-to-br from-[#563d5f] via-[#3b7b98] to-[#39a2ae]" />
 
             {/* Decorative elements */}
             <motion.div

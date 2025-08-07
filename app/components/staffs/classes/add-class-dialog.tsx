@@ -116,8 +116,8 @@ export default function AddClassDialog({ isOpen, setIsOpen, idToken, levelPromis
                         />
                     </div>
                     <div className='flex mt-8 gap-4'>
-                        <Button className='flex-grow' variant={'theme'}>Create Class</Button>
-                        <Button className='flex-grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button className='grow' variant={'theme'}>Create Class</Button>
+                        <Button className='grow' variant={'outline'} type='button' onClick={() => setIsOpen(false)}>Cancel</Button>
                     </div>
                 </Form>
                 {confirmAddModal}

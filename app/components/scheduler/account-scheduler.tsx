@@ -72,7 +72,7 @@ const AttendanceLegend = ({ learnerName }: { learnerName: string }) => {
     return (
         <Card className="bg-slate-50 border border-slate-200 p-4 mt-6">
             <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" />
+                <Info className="w-5 h-5 text-slate-600 mt-0.5 shrink-0" />
                 <div>
                     <h3 className="font-semibold text-slate-800 mb-2">More note / Attendance Status:</h3>
                     <ul className="space-y-2 text-sm">
@@ -207,7 +207,7 @@ export const LearnerScheduler = ({
     const SlotCard = ({ slot, onClick }: { slot: SlotDetail; onClick: () => void }) => (
         <div
             className={cn(
-                "rounded-lg shadow p-2 text-sm transition-all duration-200 cursor-pointer",
+                "rounded-lg shadow-sm p-2 text-sm transition-all duration-200 cursor-pointer",
                 slot.status === SlotStatus.Cancelled
                     ? "bg-gray-100 text-gray-600 cursor-not-allowed"
                     : slot.status === SlotStatus.Ongoing
@@ -260,7 +260,7 @@ export const LearnerScheduler = ({
     )
 
     return (
-        <div className="learner-scheduler p-6 bg-gradient-to-b from-slate-50 to-white min-h-screen">
+        <div className="learner-scheduler p-6 bg-linear-to-b from-slate-50 to-white min-h-screen">
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-slate-900 flex items-center">
@@ -494,7 +494,7 @@ export const LearnerScheduler = ({
                         {selectedSlot && (
                             <div className="space-y-6 mt-4">
                                 {/* Basic Information */}
-                                <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                <div className="bg-linear-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-xs">
                                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-theme">
                                         <BookOpen className="w-5 h-5" /> Lesson Information
                                     </h3>
@@ -556,7 +556,7 @@ export const LearnerScheduler = ({
                                         .map((student, index) => (
                                             <div
                                                 key={index}
-                                                className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 shadow-sm"
+                                                className="bg-linear-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 shadow-xs"
                                             >
                                                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-green-800">
                                                     <Award className="w-5 h-5" /> Your Progress & Feedback

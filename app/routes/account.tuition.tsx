@@ -360,13 +360,13 @@ export default function TuitionPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100">
+        <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-blue-100">
             <div className="container mx-auto px-4 py-8">
                 {/* Header Section */}
                 <div className="mb-8">
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
                         <div className="space-y-3">
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 bg-clip-text text-transparent">
+                            <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-blue-700 to-indigo-800 bg-clip-text text-transparent">
                                 My Tuition Fees
                             </h1>
                             <p className="text-lg text-blue-600 font-medium">View and manage your course payments</p>
@@ -414,7 +414,7 @@ export default function TuitionPage() {
                     {totalDebt > 0 && (
                         <Card className="bg-white border-2 border-amber-200 shadow-xl mb-6 overflow-hidden">
                             <CardContent className="p-0">
-                                <div className="bg-gradient-to-r from-amber-400 to-amber-500 p-1">
+                                <div className="bg-linear-to-r from-amber-400 to-amber-500 p-1">
                                     <div className="bg-white rounded-sm p-5">
                                         <div className="flex items-center gap-4">
                                             <div className="bg-amber-100 p-3 rounded-full border-2 border-amber-200">
@@ -473,20 +473,20 @@ export default function TuitionPage() {
                         filteredTuition.map((tuitionItem) => (
                             <Card
                                 key={tuitionItem.id}
-                                className={`overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border-0 backdrop-blur-sm ${tuitionItem.paymentStatus === PaymentStatus.Successed
+                                className={`overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 border-0 backdrop-blur-xs ${tuitionItem.paymentStatus === PaymentStatus.Successed
                                         ? "bg-green-50/90 border-l-4 border-l-green-500"
                                         : "bg-white/90 border-l-4 border-l-amber-500"
                                     }`}
                             >
                                 <CardHeader
                                     className={`text-white ${tuitionItem.paymentStatus === PaymentStatus.Successed
-                                            ? "bg-gradient-to-r from-green-500 via-green-600 to-emerald-600"
-                                            : "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600"
+                                            ? "bg-linear-to-r from-green-500 via-green-600 to-emerald-600"
+                                            : "bg-linear-to-r from-blue-500 via-blue-600 to-indigo-600"
                                         }`}
                                 >
                                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                                            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-xs">
                                                 <BookOpen className="w-8 h-8" />
                                             </div>
                                             <div>
@@ -509,7 +509,7 @@ export default function TuitionPage() {
                                             >
                                                 {tuitionItem.isPassed ? "Course Completed" : "Currently Enrolled"}
                                             </Badge>
-                                            <div className="flex items-center gap-2 bg-white/95 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/20">
+                                            <div className="flex items-center gap-2 bg-white/95 px-4 py-2 rounded-lg backdrop-blur-xs border border-white/20">
                                                 <PaymentStatusIcon status={tuitionItem.paymentStatus} />
                                                 <span className="text-slate-800 font-bold text-sm">
                                                     {PaymentStatusText[tuitionItem.paymentStatus] || "Unknown"}
@@ -521,7 +521,7 @@ export default function TuitionPage() {
 
                                 <CardContent className="p-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl border border-amber-200">
+                                        <div className="bg-linear-to-br from-amber-50 to-amber-100 p-4 rounded-xl border border-amber-200">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <Clock className="w-5 h-5 text-amber-600" />
                                                 <span className="text-amber-600 font-semibold text-sm">Payment Deadline</span>
@@ -531,7 +531,7 @@ export default function TuitionPage() {
                                             </p>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
+                                        <div className="bg-linear-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl border border-indigo-200">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <User className="w-5 h-5 text-indigo-600" />
                                                 <span className="text-indigo-600 font-semibold text-sm">Student</span>
@@ -539,7 +539,7 @@ export default function TuitionPage() {
                                             <p className="text-indigo-900 font-bold text-sm">{tuitionItem.studentClass.studentFullName}</p>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border border-emerald-200">
+                                        <div className="bg-linear-to-br from-emerald-50 to-emerald-100 p-4 rounded-xl border border-emerald-200">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <CreditCard className="w-5 h-5 text-emerald-600" />
                                                 <span className="text-emerald-600 font-semibold text-sm">Tax Fee</span>
@@ -550,7 +550,7 @@ export default function TuitionPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-gradient-to-r from-slate-50 to-blue-50 p-6 rounded-xl border border-blue-100">
+                                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-linear-to-r from-slate-50 to-blue-50 p-6 rounded-xl border border-blue-100">
                                         <div className="space-y-2">
                                             <p className="text-slate-600 font-medium">Base Tuition Amount</p>
                                             <p className="text-2xl font-bold text-blue-700">
@@ -578,7 +578,7 @@ export default function TuitionPage() {
                                                     onClick={() => handlePayNowClick(tuitionItem)}
                                                     disabled={role === 4}
                                                     size="lg"
-                                                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
+                                                    className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-8"
                                                 >
                                                     <CreditCard className="w-5 h-5 mr-2" />
                                                     Pay Now
@@ -590,10 +590,10 @@ export default function TuitionPage() {
                             </Card>
                         ))
                     ) : (
-                        <Card className="text-center py-16 bg-white/90 backdrop-blur-sm shadow-xl">
+                        <Card className="text-center py-16 bg-white/90 backdrop-blur-xs shadow-xl">
                             <CardContent>
                                 <div className="flex flex-col items-center gap-6">
-                                    <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-6 rounded-full">
+                                    <div className="bg-linear-to-br from-blue-100 to-indigo-100 p-6 rounded-full">
                                         <GraduationCap className="w-12 h-12 text-blue-600" />
                                     </div>
                                     <div>
@@ -628,14 +628,14 @@ export default function TuitionPage() {
                 <DialogContent className="bg-white text-slate-900 max-w-lg border-0 shadow-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-3xl font-bold flex items-center gap-3 text-blue-900">
-                            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-lg">
+                            <div className="bg-linear-to-br from-blue-500 to-indigo-600 p-2 rounded-lg">
                                 <CreditCard className="w-6 h-6 text-white" />
                             </div>
                             Payment Confirmation
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6 mt-6">
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                        <div className="bg-linear-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-blue-600 font-semibold">Tuition Amount:</span>
@@ -686,7 +686,7 @@ export default function TuitionPage() {
                                 onClick={handleOpenConfirmDialog}
                                 disabled={isSubmitting}
                                 size="lg"
-                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                className="w-full bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -710,7 +710,7 @@ export default function TuitionPage() {
                 <DialogContent className="bg-white text-slate-900 max-w-2xl border-0 shadow-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-3xl font-bold flex items-center gap-3 text-blue-900">
-                            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-2 rounded-lg">
+                            <div className="bg-linear-to-br from-blue-500 to-indigo-600 p-2 rounded-lg">
                                 <Filter className="w-6 h-6 text-white" />
                             </div>
                             Filter Options
@@ -718,7 +718,7 @@ export default function TuitionPage() {
                         <Separator className="bg-blue-200" />
                     </DialogHeader>
                     <form onSubmit={handleFilterSubmit} className="space-y-8 mt-6">
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                        <div className="bg-linear-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
                             <Label className="text-xl font-bold mb-4 block text-blue-900">Date Range</Label>
                             <TuitionDateRangePicker
                                 value={draftFilters.dateRange}
@@ -727,7 +727,7 @@ export default function TuitionPage() {
                             />
                         </div>
 
-                        <div className="bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-200">
+                        <div className="bg-linear-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-200">
                             <Label className="text-xl font-bold mb-4 block text-blue-900">Payment Status</Label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {Object.entries(PaymentStatus)
@@ -765,7 +765,7 @@ export default function TuitionPage() {
                             <Button
                                 type="submit"
                                 size="lg"
-                                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                                className="flex-1 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                             >
                                 Apply Filters
                             </Button>

@@ -84,7 +84,7 @@ export default function BadgeWithPopup({
                 <Badge
                     key={index}
                     className={cn(
-                        "text-sm py-1.5 px-3 bg-white/30 backdrop-blur-sm text-white border-0 hover:bg-white/40",
+                        "text-sm py-1.5 px-3 bg-white/30 backdrop-blur-xs text-white border-0 hover:bg-white/40",
                         badgeClassName,
                     )}
                 >
@@ -96,7 +96,7 @@ export default function BadgeWithPopup({
                 <div ref={badgeRef} className="inline-block">
                     <Badge
                         className={cn(
-                            "text-sm py-1.5 px-3 bg-white/30 backdrop-blur-sm text-white border-0 hover:bg-white/40 cursor-pointer",
+                            "text-sm py-1.5 px-3 bg-white/30 backdrop-blur-xs text-white border-0 hover:bg-white/40 cursor-pointer",
                             badgeClassName,
                         )}
                         onClick={() => setIsPopupVisible(!isPopupVisible)}
@@ -119,7 +119,7 @@ export default function BadgeWithPopup({
                             <div
                                 id="badge-popup"
                                 className={cn(
-                                    "fixed p-3 bg-white/90 backdrop-blur-md rounded-lg shadow-lg z-[9999]",
+                                    "fixed p-3 bg-white/90 backdrop-blur-md rounded-lg shadow-lg z-9999",
                                     "animate-in fade-in duration-200",
                                     popupClassName,
                                 )}

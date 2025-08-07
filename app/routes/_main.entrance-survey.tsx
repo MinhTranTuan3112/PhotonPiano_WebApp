@@ -178,7 +178,7 @@ export default function EntranceSurveyPage({ }: Props) {
     const { promise } = useLoaderData<typeof loader>()
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-2">
+        <div className="min-h-screen bg-linear-to-b from-white to-gray-50 py-8 px-2">
             <div className="max-w-4xl mx-auto">
                 <header className="text-center mb-8">
                     <div className="flex items-center justify-center mb-4">
@@ -272,7 +272,7 @@ function EntranceSurveyForm() {
                                 name="surveyAnswers"
                                 control={control}
                                 render={({ field: { onChange, onBlur, value = [], ref } }) => (
-                                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                                    <div className="bg-white p-4 rounded-lg shadow-xs">
                                         <CheckboxGroup
                                             values={value.find((v) => v.questionId === question.id)?.answers || []}
                                             onChange={(values) => {
@@ -303,7 +303,7 @@ function EntranceSurveyForm() {
                                 name="surveyAnswers"
                                 control={control}
                                 render={({ field: { onChange, onBlur, value, ref } }) => (
-                                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                                    <div className="bg-white p-4 rounded-lg shadow-xs">
                                         <UncheckableRadioGroup
                                             options={question.options.map((option) => {
                                                 return {
@@ -330,7 +330,7 @@ function EntranceSurveyForm() {
                         )}
 
                         {(question.type === QuestionType.OpenText || question.type === QuestionType.NumericInput) && (
-                            <div className="bg-white p-4 rounded-lg shadow-sm">
+                            <div className="bg-white p-4 rounded-lg shadow-xs">
                                 <Input
                                     placeholder="Enter your answer..."
                                     type={question.type === QuestionType.OpenText ? "text" : "number"}
@@ -353,7 +353,7 @@ function EntranceSurveyForm() {
                         )}
 
                         {question.allowOtherAnswer && (
-                            <div className="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                            <div className="mt-4 bg-white p-4 rounded-lg shadow-xs">
                                 <Label className="text-sm font-medium mb-2 block">Other (please specify)</Label>
                                 <Input
                                     placeholder="Other answer..."
@@ -403,7 +403,7 @@ function EntranceSurveyForm() {
                             </p>
                         </div>
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm space-y-5">
+                        <div className="bg-white p-6 rounded-lg shadow-xs space-y-5">
                             <div className="grid gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="fullName" className="font-bold text-sm">

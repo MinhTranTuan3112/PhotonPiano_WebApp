@@ -4,7 +4,7 @@ import { Application, ApplicationStatus } from "~/lib/types/application/applicat
 import { Badge } from "../ui/badge";
 import { APPLICATION_STATUS, APPLICATION_TYPE } from "~/lib/utils/constants";
 import { formatRFC3339ToDisplayableDate } from "~/lib/utils/datetime";
-import { CircleX, Clock, Download, Eye, FileCheck2, MoreHorizontal, Paperclip } from 'lucide-react'
+import { Clock, Download, Eye, MoreHorizontal, Paperclip } from 'lucide-react'
 import { Form, Link, useFetcher, useRouteLoaderData } from "@remix-run/react";
 import { Button, buttonVariants } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -204,70 +204,70 @@ const updateApplicationSchema = z.object({
 type ApplicationStatusFormData = z.infer<typeof updateApplicationSchema>;
 
 function formatCurrency(amount: number) {
-  return amount.toLocaleString("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  });
+    return amount.toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        minimumFractionDigits: 0,
+    });
 }
 
 function renderFieldValue(field: string, value: any): ReactNode {
-  switch (field.toLowerCase()) {
-    case "getamount":
-    case "amount":
-      return (
-        <span className="text-green-600 font-bold">
-          {formatCurrency(Number(value))}
-        </span>
-      );
-    case "bankaccountnumber":
-      return <span className="font-mono">{value}</span>;
-    case "bankname":
-      return (
-        <span>
-          🏦 <span className="font-semibold">{value}</span>
-        </span>
-      );
-    case "bankaccountname":
-    case "accountname":
-      return (
-        <span>
-          👤 <span>{value}</span>
-        </span>
-      );
-    default:
-      return <span>{String(value)}</span>;
-  }
+    switch (field.toLowerCase()) {
+        case "getamount":
+        case "amount":
+            return (
+                <span className="text-green-600 font-bold">
+                    {formatCurrency(Number(value))}
+                </span>
+            );
+        case "bankaccountnumber":
+            return <span className="font-mono">{value}</span>;
+        case "bankname":
+            return (
+                <span>
+                    🏦 <span className="font-semibold">{value}</span>
+                </span>
+            );
+        case "bankaccountname":
+        case "accountname":
+            return (
+                <span>
+                    👤 <span>{value}</span>
+                </span>
+            );
+        default:
+            return <span>{String(value)}</span>;
+    }
 }
 
 export function AdditionalDataList({
-  additionalData,
+    additionalData,
 }: {
-  additionalData: string;
+    additionalData: string;
 }): ReactNode {
-  let parsedData: Record<string, any> = {};
+    let parsedData: Record<string, any> = {};
 
-  try {
-    parsedData = JSON.parse(additionalData);
-  } catch (error) {
-    console.error("Failed to parse additionalData:", error);
+    try {
+        parsedData = JSON.parse(additionalData);
+    } catch (error) {
+        console.error("Failed to parse additionalData:", error);
+        return (
+            <div className="text-red-500 p-4 bg-red-100 rounded">
+                Invalid additional data
+            </div>
+        );
+    }
+
     return (
-      <div className="text-red-500 p-4 bg-red-100 rounded">
-        Invalid additional data
-      </div>
+        <ul className="bg-white shadow-md rounded-lg p-4 space-y-3 text-gray-800">
+            {Object.entries(parsedData).map(([key, value]) => (
+                <li key={key} className="flex gap-2">
+                    <span className="font-semibold capitalize">{key}:</span>
+                    {renderFieldValue(key, value)}
+                </li>
+            ))}
+        </ul>
     );
-  }
-
-  return (
-    <ul className="bg-white shadow-md rounded-lg p-4 space-y-3 text-gray-800">
-      {Object.entries(parsedData).map(([key, value]) => (
-        <li key={key} className="flex gap-2">
-          <span className="font-semibold capitalize">{key}:</span>
-          {renderFieldValue(key, value)}
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 type DialogProps = {
@@ -351,7 +351,7 @@ function ActionDialog({
             <Form method='POST' onSubmit={handleSubmit} action='/staff/applications' navigate={false}>
                 {
                     additionalData && (
-                        <AdditionalDataList additionalData={additionalData} />                    
+                        <AdditionalDataList additionalData={additionalData} />
                     )
                 }
                 <Controller

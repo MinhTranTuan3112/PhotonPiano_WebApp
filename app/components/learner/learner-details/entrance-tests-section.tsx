@@ -47,7 +47,7 @@ export default function EntranceTestsSection({ student }: Props) {
 
 const getCardStyle = (type: 'current' | 'past') => {
     return type === 'current'
-        ? "border-l-4 border-l-theme bg-gradient-to-b from-white to-theme/20 transition-all hover:-translate-y-1 hover:shadow-theme hover:shadow-sm"
+        ? "border-l-4 border-l-theme bg-linear-to-b from-white to-theme/20 transition-all hover:-translate-y-1 hover:shadow-theme hover:shadow-xs"
         : "bg-white hover:shadow-md transition-shadow";
 };
 
@@ -74,7 +74,7 @@ export function TestCard({
 
 
     return <Card className={`relative overflow-hidden cursor-pointer ${getCardStyle(type)}`} onClick={() => navigate(getDetailsUrl())}>
-        <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-[4%] bg-[url('/images/keyboard.png')]">
+        <div className="absolute inset-0 z-0 bg-cover bg-no-repeat opacity-4 bg-[url('/images/keyboard.png')]">
         </div>
         <CardHeader className="">
             <div className="flex items-center justify-between">

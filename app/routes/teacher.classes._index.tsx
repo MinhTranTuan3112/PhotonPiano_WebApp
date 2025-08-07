@@ -196,10 +196,10 @@ const StudentCapacity = ({ current, max }: { current: number; max: number }) => 
                         key={i}
                         className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 hover:scale-110 ${i < current
                                 ? current >= max
-                                    ? "bg-gradient-to-br from-red-300 to-red-500 text-white shadow-sm shadow-red-200"
+                                    ? "bg-linear-to-br from-red-300 to-red-500 text-white shadow-xs shadow-red-200"
                                     : current >= max * 0.7
-                                        ? "bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-sm shadow-amber-200"
-                                        : "bg-gradient-to-br from-emerald-300 to-emerald-500 text-white shadow-sm shadow-emerald-200"
+                                        ? "bg-linear-to-br from-amber-300 to-amber-500 text-white shadow-xs shadow-amber-200"
+                                        : "bg-linear-to-br from-emerald-300 to-emerald-500 text-white shadow-xs shadow-emerald-200"
                                 : "bg-neutral-100 text-neutral-400 border border-neutral-200"
                             }`}
                     >
@@ -253,7 +253,7 @@ export default function TeacherClassListPage() {
     )
 
     return (
-        <div className="bg-gradient-to-br from-white to-neutral-50 min-h-screen">
+        <div className="bg-linear-to-br from-white to-neutral-50 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 py-12">
                 {/* Page header */}
                 <div
@@ -272,7 +272,7 @@ export default function TeacherClassListPage() {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400 group-hover:text-blue-500 transition-colors duration-200" />
                             <Input
                                 placeholder="Search classes..."
-                                className="pl-10 w-full sm:w-64 bg-white border-neutral-200 rounded-full shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
+                                className="pl-10 w-full sm:w-64 bg-white border-neutral-200 rounded-full shadow-xs focus:border-blue-300 focus:ring-3 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 name="search"
@@ -349,33 +349,33 @@ export default function TeacherClassListPage() {
                             title: "Total Classes",
                             value: classes.length,
                             icon: BookOpen,
-                            color: "bg-gradient-to-br from-blue-100 to-blue-200 group-hover:from-blue-200 group-hover:to-blue-300",
+                            color: "bg-linear-to-br from-blue-100 to-blue-200 group-hover:from-blue-200 group-hover:to-blue-300",
                         },
                         {
                             title: "Total Students",
                             value: totalStudents,
                             icon: Users,
                             color:
-                                "bg-gradient-to-br from-emerald-100 to-emerald-200 group-hover:from-emerald-200 group-hover:to-emerald-300",
+                                "bg-linear-to-br from-emerald-100 to-emerald-200 group-hover:from-emerald-200 group-hover:to-emerald-300",
                         },
                         {
                             title: "Full Classes",
                             value: fullClasses,
                             icon: GraduationCap,
                             color:
-                                "bg-gradient-to-br from-amber-100 to-amber-200 group-hover:from-amber-200 group-hover:to-amber-300",
+                                "bg-linear-to-br from-amber-100 to-amber-200 group-hover:from-amber-200 group-hover:to-amber-300",
                         },
                         {
                             title: "Average Capacity",
                             value: averageCapacity.toFixed(1),
                             icon: Award,
                             color:
-                                "bg-gradient-to-br from-purple-100 to-purple-200 group-hover:from-purple-200 group-hover:to-purple-300",
+                                "bg-linear-to-br from-purple-100 to-purple-200 group-hover:from-purple-200 group-hover:to-purple-300",
                         },
                     ].map((stat, index) => (
                         <Card
                             key={stat.title}
-                            className={`bg-white border-neutral-100 shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                            className={`bg-white border-neutral-100 shadow-xs hover:shadow-md transition-all duration-300 group overflow-hidden ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
                             style={{ transitionDelay: `${index * 100}ms` }}
                         >
                             <CardContent className="p-6">
@@ -397,24 +397,24 @@ export default function TeacherClassListPage() {
                     className={`mb-10 transition-all duration-700 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
                     style={{ transitionDelay: "400ms" }}
                 >
-                    <TabsList className="bg-neutral-50 p-1 rounded-full w-auto inline-flex shadow-sm">
+                    <TabsList className="bg-neutral-50 p-1 rounded-full w-auto inline-flex shadow-xs">
                         <TabsTrigger
                             value="all"
-                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-xs transition-all duration-200"
                             onClick={() => setActiveTab("all")}
                         >
                             All Classes
                         </TabsTrigger>
                         <TabsTrigger
                             value="active"
-                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-xs transition-all duration-200"
                             onClick={() => setActiveTab("active")}
                         >
                             Active
                         </TabsTrigger>
                         <TabsTrigger
                             value="upcoming"
-                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
+                            className="rounded-full data-[state=active]:bg-white data-[state=active]:shadow-xs transition-all duration-200"
                             onClick={() => setActiveTab("upcoming")}
                         >
                             Upcoming
@@ -435,24 +435,24 @@ export default function TeacherClassListPage() {
                                 >
                                     <div className="relative h-48 overflow-hidden">
                                         <div
-                                            className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} group-hover:scale-105 transition-transform duration-500`}
+                                            className={`absolute inset-0 bg-linear-to-br ${colors.gradient} group-hover:scale-105 transition-transform duration-500`}
                                         ></div>
 
                                         <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                            <Badge variant="outline" className="bg-white/90 backdrop-blur-sm border-0 font-medium shadow-sm">
+                                            <Badge variant="outline" className="bg-white/90 backdrop-blur-xs border-0 font-medium shadow-xs">
                                                 {cls.level.name.split("(")[0].trim()}
                                             </Badge>
 
                                             <Badge
                                                 variant={cls.isPublic ? "default" : "secondary"}
                                                 className={`${cls.isPublic ? "bg-white/90 text-neutral-800" : "bg-neutral-800/80 text-white"
-                                                    } backdrop-blur-sm border-0 shadow-sm`}
+                                                    } backdrop-blur-xs border-0 shadow-xs`}
                                             >
                                                 {cls.isPublic ? "Public" : "Private"}
                                             </Badge>
                                         </div>
 
-                                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+                                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/70 to-transparent">
                                             <h3 className="font-medium text-xl text-white flex items-center">
                                                 {cls.name}
                                                 <Music className="ml-2 h-4 w-4 text-white/70 group-hover:animate-bounce" />
@@ -541,7 +541,7 @@ export default function TeacherClassListPage() {
                                     <CardFooter className="px-6 py-4 bg-neutral-50 flex justify-between items-center">
                                         <div className="flex items-center">
                                             <div
-                                                className={`flex items-center justify-center h-8 w-8 rounded-full ${colors.medium} text-white text-xs font-medium border-2 border-white shadow-sm ${colors.shadow}`}
+                                                className={`flex items-center justify-center h-8 w-8 rounded-full ${colors.medium} text-white text-xs font-medium border-2 border-white shadow-xs ${colors.shadow}`}
                                             >
                                                 {cls.studentNumber}
                                             </div>
@@ -564,7 +564,7 @@ export default function TeacherClassListPage() {
                     </div>
                 ) : (
                     <div
-                        className={`bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm transition-all duration-700 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                        className={`bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-xs transition-all duration-700 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                         style={{ transitionDelay: "500ms" }}
                     >
                         <div className="grid grid-cols-12 px-6 py-3 bg-neutral-50 border-b border-neutral-200 text-sm font-medium text-neutral-500">
@@ -587,7 +587,7 @@ export default function TeacherClassListPage() {
                                     <div className="col-span-5">
                                         <div className="flex items-start">
                                             <div
-                                                className={`flex-shrink-0 w-10 h-10 rounded-full ${colors.light} flex items-center justify-center mr-3 hover:scale-110 transition-transform duration-300`}
+                                                className={`shrink-0 w-10 h-10 rounded-full ${colors.light} flex items-center justify-center mr-3 hover:scale-110 transition-transform duration-300`}
                                             >
                                                 <BookOpen className={`h-5 w-5 ${colors.icon}`} />
                                             </div>
@@ -636,7 +636,7 @@ export default function TeacherClassListPage() {
                                             className={`${cls.isScorePublished
                                                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                                     : "bg-amber-50 text-amber-700 border-amber-200"
-                                                } shadow-sm transition-all duration-200 hover:shadow-md`}
+                                                } shadow-xs transition-all duration-200 hover:shadow-md`}
                                         >
                                             {cls.isScorePublished ? "Published" : "Pending"}
                                         </Badge>
@@ -661,7 +661,7 @@ export default function TeacherClassListPage() {
 
                 {filteredClasses.length === 0 && (
                     <div
-                        className={`flex flex-col items-center justify-center py-16 text-center bg-white rounded-xl shadow-sm transition-all duration-700 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                        className={`flex flex-col items-center justify-center py-16 text-center bg-white rounded-xl shadow-xs transition-all duration-700 ${isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                         style={{ transitionDelay: "500ms" }}
                     >
                         <div className="h-20 w-20 rounded-full bg-neutral-100 flex items-center justify-center mb-4 animate-pulse">

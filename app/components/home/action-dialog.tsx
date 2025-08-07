@@ -61,10 +61,10 @@ const ActionDialog = ({ account }: Props) => {
                             animate={{ opacity: 1, scale: 1, x: 0 }}
                             exit={{ opacity: 0, scale: 0.8, x: -10 }}
                             transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="absolute left-full ml-4 px-4 py-3 text-white text-lg font-semibold rounded-xl shadow-lg w-96 bg-gradient-to-r from-blue-500 to-blue-700"
+                            className="absolute left-full ml-4 px-4 py-3 text-white text-lg font-semibold rounded-xl shadow-lg w-96 bg-linear-to-r from-blue-500 to-blue-700"
                         >
                             Please complete your learning profile setup!
-                            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-700 transform rotate-45"></div>
+                            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-5 h-5 bg-linear-to-r from-blue-500 to-blue-700 transform rotate-45"></div>
                         </motion.div>
                     )}
                 </AnimatePresence>

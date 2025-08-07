@@ -211,8 +211,8 @@ export default function AdminSettingsPage({ }: Props) {
 
     return (
         <div className="container mx-auto py-8 px-4 max-w-6xl">
-            <Card className="border-none shadow-sm">
-                <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-t-lg pb-6">
+            <Card className="border-none shadow-xs">
+                <CardHeader className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-t-lg pb-6">
                     <div className="flex items-center gap-2 mb-2">
                         <Settings className="text-theme" />
                         <CardTitle className="text-2xl font-bold">System Configuration</CardTitle>
@@ -249,7 +249,7 @@ export default function AdminSettingsPage({ }: Props) {
                                         </TabsList>
                                     </div>
 
-                                    <div className="bg-white dark:bg-slate-950 rounded-lg p-4 md:p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                                    <div className="bg-white dark:bg-slate-950 rounded-lg p-4 md:p-6 shadow-xs border border-slate-100 dark:border-slate-800">
                                         {isSubmitting && (
                                             <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md flex items-center gap-2 text-sm animate-pulse">
                                                 <div className="h-4 w-4 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"></div>
@@ -418,8 +418,8 @@ export function ErrorBoundary() {
 
     return (
         <div className="container mx-auto py-8 px-4 max-w-6xl">
-            <Card className="border-none shadow-sm">
-                <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-t-lg">
+            <Card className="border-none shadow-xs">
+                <CardHeader className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-t-lg">
                     <div className="flex items-center gap-2 mb-2">
                         <Settings className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         <CardTitle className="text-2xl font-bold">System Configuration</CardTitle>

@@ -232,7 +232,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-1 border-sky-200 bg-gradient-to-b from-sky-50 to-white">
+      <PopoverContent className="w-80 p-1 border-sky-200 bg-linear-to-b from-sky-50 to-white">
         <div className="flex items-baseline justify-between gap-4 px-3 py-2">
           <div className="text-sm font-semibold text-sky-700">Notifications</div>
           {unreadCount > 0 && (
@@ -279,7 +279,7 @@ export default function NotificationBell({ accountFirebaseId }: { accountFirebas
             fetchedNotifications.map((notification) => (
               <div key={notification.id} className="rounded-md px-3 py-2 text-sm transition-colors hover:bg-sky-100">
                 <div className="relative flex items-start pe-3 gap-2">
-                  <div className="thumbnail flex-shrink-0">
+                  <div className="thumbnail shrink-0">
                     <Avatar className="h-8 w-8 border border-sky-200">
                       <img
                         src={notification.thumbnail || "/images/grand_piano_1.png?height=40&width=40"}

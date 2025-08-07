@@ -30,7 +30,7 @@ const SchedulerSkeleton = () => {
     const shiftTimes = Array.from({ length: 8 }, (_, i) => i)
 
     return (
-        <div className="staff-scheduler p-6 bg-gradient-to-b from-slate-50 to-white min-h-screen">
+        <div className="staff-scheduler p-6 bg-linear-to-b from-slate-50 to-white min-h-screen">
             <div className="max-w-7xl mx-auto">
                 {/* Header Skeleton */}
                 <div className="flex justify-between items-center mb-6">

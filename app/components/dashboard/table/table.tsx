@@ -37,7 +37,7 @@ const Table = <T extends Record<string, any>>({
                                 <div className="flex items-center justify-between">
                                     {col.header}
                                     {col.sortable && (
-                                        <button onClick={() => onSort && onSort(col.accessor)} className="ml-1 focus:outline-none">
+                                        <button onClick={() => onSort && onSort(col.accessor)} className="ml-1 focus:outline-hidden">
                                             <ChevronDown
                                                 className={`w-4 h-4 transition-transform ${sortColumn === col.accessor && sortDirection === "desc" ? "transform rotate-180" : ""
                                                     }`}

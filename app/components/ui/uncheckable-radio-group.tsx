@@ -33,7 +33,7 @@ export function UncheckableRadioGroup({ options, value, onChange, showRadioButto
                         className={cn(
                             "flex w-full cursor-pointer items-center rounded-xl border-2 p-3 transition-all",
                             isSelected
-                                ? "border-blue-500 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md"
+                                ? "border-blue-500 bg-linear-to-r from-blue-500 to-blue-600 text-white shadow-md"
                                 : "border-blue-100 bg-white text-gray-800 hover:border-blue-300 hover:bg-blue-50",
                             "focus-within:ring-2 focus-within:ring-blue-400 focus-within:ring-offset-2",
                         )}

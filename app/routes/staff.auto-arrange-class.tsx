@@ -262,9 +262,9 @@ export default function StaffAutoArrangeClass({}: Props) {
     }, [fetcher.state])
   
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-blue-100">
+      <div className="min-h-screen bg-linear-to-b from-sky-50 to-blue-100">
         <div className="container mx-auto px-4 py-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-sky-100">
+          <div className="bg-white/80 backdrop-blur-xs rounded-xl shadow-lg p-6 border border-sky-100">
             <div className="flex items-center gap-3 mb-4">
               <CalendarClock className="h-8 w-8 text-sky-600" />
               <div>
@@ -327,7 +327,7 @@ export default function StaffAutoArrangeClass({}: Props) {
                             (breakdown, index) =>
                               breakdown.level && (
                                 <div
-                                  className="flex flex-col items-center p-4 border rounded-lg shadow-sm bg-gradient-to-b from-white to-sky-50 hover:shadow-md transition-all"
+                                  className="flex flex-col items-center p-4 border rounded-lg shadow-xs bg-linear-to-b from-white to-sky-50 hover:shadow-md transition-all"
                                   key={index}
                                 >
                                   <div className="text-center font-bold text-sky-800">
@@ -369,7 +369,7 @@ export default function StaffAutoArrangeClass({}: Props) {
                                     (breakdown, index) =>
                                       breakdown.level && (
                                         <div
-                                          className="flex flex-col items-center py-4 px-2 border rounded-lg shadow-sm bg-white hover:shadow-md transition-all"
+                                          className="flex flex-col items-center py-4 px-2 border rounded-lg shadow-xs bg-white hover:shadow-md transition-all"
                                           key={index}
                                         >
                                           <div className="font-bold text-center text-sky-800 mb-3">
@@ -413,13 +413,13 @@ export default function StaffAutoArrangeClass({}: Props) {
                       </div>
   
                       {/* Start Week Selection */}
-                      <div className="bg-white p-6 rounded-lg border border-sky-100 shadow-sm">
+                      <div className="bg-white p-6 rounded-lg border border-sky-100 shadow-xs">
                         <div className="flex flex-col md:flex-row md:items-center gap-4">
                           <div className="flex items-center">
                             <Calendar className="h-5 w-5 text-sky-600 mr-2" />
                             <span className="font-bold text-sky-800">Choose start week:</span>
                           </div>
-                          <div className="flex-grow">
+                          <div className="grow">
                             <Controller
                               control={control}
                               name="startWeek"

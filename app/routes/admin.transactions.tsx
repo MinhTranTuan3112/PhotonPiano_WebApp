@@ -224,7 +224,7 @@ function StatsCard({
                         <span className="text-xl font-bold">{value}</span>
                         <span className="text-xs text-muted-foreground">{description}</span>
                     </div>
-                    <div className="rounded-full bg-background p-2 shadow-sm">{icon}</div>
+                    <div className="rounded-full bg-background p-2 shadow-xs">{icon}</div>
                 </div>
             </CardContent>
         </Card>

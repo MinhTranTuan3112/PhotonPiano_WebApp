@@ -133,7 +133,7 @@ export default function SignInPage() {
     }, [actionData]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-theme/5 to-theme/10">
+        <div className="min-h-screen bg-linear-to-br from-theme/5 to-theme/10">
             <div className="container mx-auto min-h-screen md:grid md:grid-cols-2 md:gap-8 items-center py-12 px-4 max-md:flex max-md:flex-col">
                 {/* Left side - Form */}
                 <div className="w-full max-w-md mx-auto space-y-8">
@@ -237,8 +237,8 @@ export default function SignInPage() {
 
                 {/* Right side - Enhanced Content */}
                 <div className="relative h-full min-h-[600px] rounded-2xl overflow-hidden md:block">
-                    <div className="absolute inset-0 bg-gradient-to-br from-theme to-theme/80">
-                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-linear-to-br from-theme to-theme/80">
+                        <div className="absolute inset-0 bg-white/10 backdrop-blur-xs">
                             {/* Piano keys decoration */}
                             <div className="absolute bottom-0 left-0 right-0 flex">
                                 {Array.from({ length: 14 }).map((_, i) => (
@@ -264,7 +264,7 @@ export default function SignInPage() {
                                 
                                 {/* Features */}
                                 <div className="grid gap-4 mt-8">
-                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-xs">
                                         <MusicIcon className="h-8 w-8 text-white/90" />
                                         <div>
                                             <h3 className="font-semibold">Professional Instruction</h3>
@@ -272,7 +272,7 @@ export default function SignInPage() {
                                         </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-xs">
                                         <Headphones className="h-8 w-8 text-white/90" />
                                         <div>
                                             <h3 className="font-semibold">Personalized Learning</h3>
@@ -280,7 +280,7 @@ export default function SignInPage() {
                                         </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                                    <div className="flex items-center gap-3 bg-white/10 p-4 rounded-lg backdrop-blur-xs">
                                         <Users className="h-8 w-8 text-white/90" />
                                         <div>
                                             <h3 className="font-semibold">Supportive Community</h3>
@@ -291,7 +291,7 @@ export default function SignInPage() {
                             </div>
 
                             {/* Testimonial */}
-                            <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm mt-8">
+                            <div className="bg-white/10 p-6 rounded-lg backdrop-blur-xs mt-8">
                                 <p className="italic text-white/90">
                                     "PhotonPiano has transformed my musical journey. The structured learning approach and supportive community made all the difference."
                                 </p>

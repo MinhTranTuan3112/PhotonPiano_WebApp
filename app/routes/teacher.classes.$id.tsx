@@ -465,7 +465,7 @@ export default function TeacherClassDetailsPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-2"></div>
+                <div className="bg-linear-to-r from-blue-500 to-blue-600 h-2"></div>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -491,7 +491,7 @@ export default function TeacherClassDetailsPage() {
               </Card>
 
               <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 h-2"></div>
+                <div className="bg-linear-to-r from-green-500 to-green-600 h-2"></div>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -510,7 +510,7 @@ export default function TeacherClassDetailsPage() {
               </Card>
 
               <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-2"></div>
+                <div className="bg-linear-to-r from-purple-500 to-purple-600 h-2"></div>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -530,7 +530,7 @@ export default function TeacherClassDetailsPage() {
               </Card>
 
               <Card className="overflow-hidden border-none shadow-md hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-r from-amber-500 to-amber-600 h-2"></div>
+                <div className="bg-linear-to-r from-amber-500 to-amber-600 h-2"></div>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -1145,10 +1145,10 @@ export default function TeacherClassDetailsPage() {
                       ...Array.from(groupedErrors.entries()).map(([studentName, errors]) => (
                         <div
                           key={studentName}
-                          className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
+                          className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-xs"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                            <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full shrink-0 mt-0.5">
                               <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                             </div>
                             <div className="flex-1">
@@ -1161,7 +1161,7 @@ export default function TeacherClassDetailsPage() {
                               <ul className="space-y-2">
                                 {errors.map((error, index) => (
                                   <li key={index} className="flex items-start gap-2">
-                                    <CircleX className="h-3 w-3 text-amber-500 mt-0.5 flex-shrink-0" />
+                                    <CircleX className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
                                     <span className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
                                       {error}
                                     </span>
@@ -1183,10 +1183,10 @@ export default function TeacherClassDetailsPage() {
                         .map((error, index) => (
                           <div
                             key={`ungrouped-${index}`}
-                            className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
+                            className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-xs"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                              <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full shrink-0 mt-0.5">
                                 <CircleX className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                               </div>
                               <div className="flex-1">
@@ -1205,10 +1205,10 @@ export default function TeacherClassDetailsPage() {
                     result.push(
                       <div
                         key="raw-error"
-                        className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-sm"
+                        className="bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-4 shadow-xs"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                          <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full shrink-0 mt-0.5">
                             <CircleX className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                           </div>
                           <div className="flex-1">

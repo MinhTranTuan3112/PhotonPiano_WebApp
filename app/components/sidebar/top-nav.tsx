@@ -26,7 +26,7 @@ export default function TopNav({ }: Props) {
                             <Piano className="size-5 text-indigo-600 animate-pulse" />
                             <div className="absolute -top-1 -right-1 h-2 w-2 bg-teal-400 rounded-full animate-bounce" />
                         </div>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
+                        <h1 className="text-xl font-bold bg-linear-to-r from-black to-gray-700 bg-clip-text text-transparent">Photon Piano</h1>
                     </Link>
                 </SidebarMenuButton>
                 {/* <DropdownMenu>
@@ -47,7 +47,7 @@ export default function TopNav({ }: Props) {
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                         align="start"
                         side={isMobile ? "bottom" : "right"}
                         sideOffset={4}

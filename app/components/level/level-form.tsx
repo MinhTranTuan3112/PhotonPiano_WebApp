@@ -291,7 +291,7 @@ function DeleteDialog({ id, isOpenDialog, setIsOpen, idToken }:
 
     return (
         <Dialog open={isOpenDialog} onOpenChange={setIsOpen}>
-            <DialogContent className='w-[36rem]'>
+            <DialogContent className='w-xl'>
                 <DialogTitle>
                     Delete the Level
                 </DialogTitle>

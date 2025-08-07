@@ -157,7 +157,7 @@ export default function QuestionDialog({
                 setIsOpen(open);
             }}>
                 <DialogContent className="min-w-[1000px]">
-                    <ScrollArea className='h-[30rem] px-4'>
+                    <ScrollArea className='h-120 px-4'>
                         <DialogHeader>
                             <DialogTitle>{isEditing ? 'Update question' : 'Create question'}</DialogTitle>
                             <DialogDescription>

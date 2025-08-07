@@ -20,7 +20,7 @@ export default function TeacherDetails({ teacher }: Props) {
   const navigate = useNavigate()
 
   return (
-    <div className="bg-gradient-to-b from-sky-50 to-white min-h-screen p-6">
+    <div className="bg-linear-to-b from-sky-50 to-white min-h-screen p-6">
       <div className='px-6 py-4'>
         <Button
           variant={'theme'}
@@ -34,7 +34,7 @@ export default function TeacherDetails({ teacher }: Props) {
       {/* Header Section */}
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-sky-300 to-sky-500 h-32 w-full"></div>
+          <div className="bg-linear-to-r from-sky-300 to-sky-500 h-32 w-full"></div>
           <div className="px-6 pb-6 relative">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Avatar */}
@@ -84,21 +84,21 @@ export default function TeacherDetails({ teacher }: Props) {
               </h2>
               <div className="space-y-4">
                 <div className="flex items-start">
-                  <Mail className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
+                  <Mail className="mr-3 text-sky-500 mt-0.5 shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Email</p>
                     <p className="text-gray-700 italic">{teacher.email}</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <Phone className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
+                  <Phone className="mr-3 text-sky-500 mt-0.5 shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Phone</p>
                     <div className="text-gray-700">{teacher.phone || <NoInformation />}</div>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <MapPin className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
+                  <MapPin className="mr-3 text-sky-500 mt-0.5 shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Address</p>
                     <div className="text-gray-700">{teacher.address || <NoInformation />}</div>
@@ -106,7 +106,7 @@ export default function TeacherDetails({ teacher }: Props) {
                 </div>
                 {teacher.dateOfBirth && (
                   <div className="flex items-start">
-                    <CalendarDays className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
+                    <CalendarDays className="mr-3 text-sky-500 mt-0.5 shrink-0" size={18} />
                     <div>
                       <p className="text-sm text-gray-500">Date of Birth</p>
                       <div className="text-gray-700">{teacher.dateOfBirth ? formatRFC3339ToDisplayableDate(teacher.dateOfBirth, false, false) : <NoInformation />}</div>
@@ -114,7 +114,7 @@ export default function TeacherDetails({ teacher }: Props) {
                   </div>
                 )}
                 <div className="flex items-start">
-                  <User className="mr-3 text-sky-500 mt-0.5 flex-shrink-0" size={18} />
+                  <User className="mr-3 text-sky-500 mt-0.5 shrink-0" size={18} />
                   <div>
                     <p className="text-sm text-gray-500">Gender</p>
                     <Badge variant={'outline'} className={`${teacher.gender === Gender.Male ? 'text-blue-500' : 'text-pink-500'}`}>
@@ -210,7 +210,7 @@ export default function TeacherDetails({ teacher }: Props) {
                   {teacher.instructorClasses.map((cls) => (
                     <div
                       key={cls.id}
-                      className="border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-theme hover:shadow-sm"
+                      className="border border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-theme hover:shadow-xs"
                       onClick={() => navigate(`/staff/classes/${cls.id}`)}>
                       <div className="flex justify-between items-start">
                         <div className='flex flex-col gap-1'>

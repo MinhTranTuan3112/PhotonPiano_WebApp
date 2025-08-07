@@ -15,7 +15,7 @@ export default function FreeTimesSection({ student }: Props) {
             <h3 className='font-bold'>Free Times</h3>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-neutral-200 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-neutral-200 shadow-xs">
             <table className="min-w-full bg-white text-sm">
                 <thead>
                     <tr className="bg-neutral-900 text-white">
@@ -55,7 +55,7 @@ export default function FreeTimesSection({ student }: Props) {
                                             className="px-4 py-3 border-r border-neutral-200 last:border-r-0 text-center"
                                         >
                                             {hasSlot ? (
-                                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-theme text-white shadow-sm">
+                                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-theme text-white shadow-xs">
                                                     ✓
                                                 </span>
                                             ) : (

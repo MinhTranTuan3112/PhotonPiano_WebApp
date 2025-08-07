@@ -123,7 +123,7 @@ const DailySchedule = ({
                 .map((timeSlot) => (
                   <div key={timeSlot.shift} className="relative">
                     {/* Time indicator */}
-                    <div className="absolute -left-[43px] flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs shadow-sm">
+                    <div className="absolute -left-[43px] flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs shadow-xs">
                       <Clock className="w-3 h-3" />
                     </div>
                     {/* Slot cards */}
@@ -132,7 +132,7 @@ const DailySchedule = ({
                         <motion.div
                           key={slot.id}
                           className={cn(
-                            "p-4 rounded-lg border transition-all shadow-sm hover:shadow-md",
+                            "p-4 rounded-lg border transition-all shadow-xs hover:shadow-md",
                             slot.status === SlotStatus.Cancelled
                               ? "bg-gray-50 border-gray-200"
                               : slot.status === SlotStatus.Finished
@@ -234,7 +234,7 @@ const WeeklyOverview = ({
 
               return (
                 <div key={shift} className="grid grid-cols-8 gap-2 mb-2">
-                  <div className="flex items-center justify-center h-24 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg shadow-sm">
+                  <div className="flex items-center justify-center h-24 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg shadow-xs">
                     {shiftTimesMap[shift]}
                   </div>
 
@@ -256,7 +256,7 @@ const WeeklyOverview = ({
                               <motion.div
                                 key={slot.id}
                                 className={cn(
-                                  "h-full p-2 rounded-md text-xs transition-all shadow-sm",
+                                  "h-full p-2 rounded-md text-xs transition-all shadow-xs",
                                   slot.status === SlotStatus.Cancelled
                                     ? "bg-gray-100 text-gray-600"
                                     : slot.status === SlotStatus.Finished
@@ -321,7 +321,7 @@ const UpcomingClasses = ({
 
   return (
     <Card className="border-blue-100 shadow-md">
-      <CardHeader className="pb-2 bg-gradient-to-r from-blue-50 to-white rounded-t-lg">
+      <CardHeader className="pb-2 bg-linear-to-r from-blue-50 to-white rounded-t-lg">
         <CardTitle className="text-lg font-medium flex items-center text-blue-800">
           <Clock className="w-5 h-5 mr-2 text-blue-600" />
           Upcoming Classes
@@ -335,7 +335,7 @@ const UpcomingClasses = ({
             {sortedSlots.map((slot) => (
               <motion.div
                 key={slot.id}
-                className="p-3 rounded-lg border border-blue-100 hover:border-blue-200 bg-white shadow-sm hover:shadow-md"
+                className="p-3 rounded-lg border border-blue-100 hover:border-blue-200 bg-white shadow-xs hover:shadow-md"
                 whileHover={{ scale: 1.01 }}
                 onClick={() => onSlotClick(slot.id)}
               >
@@ -400,8 +400,8 @@ const StatsCards = ({ slots }: { slots: SlotDetail[] }) => {
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      <Card className="border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-gradient-to-r from-blue-50 to-white rounded-t-lg">
+      <Card className="border-blue-100 shadow-xs hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-linear-to-r from-blue-50 to-white rounded-t-lg">
           <CardTitle className="text-sm font-medium text-blue-700">Classes</CardTitle>
           <BookOpen className="w-4 h-4 text-blue-500" />
         </CardHeader>
@@ -422,8 +422,8 @@ const StatsCards = ({ slots }: { slots: SlotDetail[] }) => {
         </CardContent>
       </Card>
 
-      <Card className="border-amber-100 shadow-sm hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-gradient-to-r from-amber-50 to-white rounded-t-lg">
+      <Card className="border-amber-100 shadow-xs hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-linear-to-r from-amber-50 to-white rounded-t-lg">
           <CardTitle className="text-sm font-medium text-amber-700">Upcoming</CardTitle>
           <Clock className="w-4 h-4 text-amber-500" />
         </CardHeader>
@@ -447,8 +447,8 @@ const StatsCards = ({ slots }: { slots: SlotDetail[] }) => {
         </CardContent>
       </Card>
 
-      <Card className="border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-gradient-to-r from-blue-50 to-white rounded-t-lg">
+      <Card className="border-blue-100 shadow-xs hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 bg-linear-to-r from-blue-50 to-white rounded-t-lg">
           <CardTitle className="text-sm font-medium text-blue-700">Students</CardTitle>
           <Users className="w-4 h-4 text-blue-500" />
         </CardHeader>
@@ -644,7 +644,7 @@ export const TeacherSchedule = ({
     .sort((a, b) => a.shift - b.shift)
 
   return (
-    <div className="container mx-auto px-4 py-6 bg-gradient-to-b from-blue-50 to-white min-h-screen">
+    <div className="container mx-auto px-4 py-6 bg-linear-to-b from-blue-50 to-white min-h-screen">
       {/* Loading Overlay */}
       {isFilterLoading && <LoadingOverlay />}
 
@@ -722,7 +722,7 @@ export const TeacherSchedule = ({
         {/* Left sidebar with navigation and upcoming classes */}
         <div className="lg:col-span-1 space-y-6">
           <Card className="border-blue-100 shadow-md">
-            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-white rounded-t-lg">
+            <CardHeader className="pb-3 bg-linear-to-r from-blue-50 to-white rounded-t-lg">
               <CardTitle className="text-lg font-medium flex items-center text-blue-800">
                 <Calendar className="w-5 h-5 mr-2 text-blue-600" />
                 Week Navigation
@@ -737,7 +737,7 @@ export const TeacherSchedule = ({
                     className={cn(
                       "h-10 p-0 flex flex-col items-center justify-center transition-all",
                       isSameDay(date, selectedDate)
-                        ? "bg-blue-100 text-blue-900 font-medium shadow-sm"
+                        ? "bg-blue-100 text-blue-900 font-medium shadow-xs"
                         : "hover:bg-blue-50",
                     )}
                     onClick={() => handleDateSelect(date)}
@@ -782,7 +782,7 @@ export const TeacherSchedule = ({
                 </TabsTrigger>
               </TabsList>
 
-              <div className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium flex items-center shadow-sm">
+              <div className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium flex items-center shadow-xs">
                 <Calendar className="w-4 h-4 mr-2" />
                 {format(selectedDate, "EEEE, MMMM d, yyyy")}
               </div>
@@ -822,7 +822,7 @@ export const TeacherSchedule = ({
                         <motion.div
                           key={slot.id}
                           className={cn(
-                            "p-4 rounded-lg border transition-all shadow-sm hover:shadow-md",
+                            "p-4 rounded-lg border transition-all shadow-xs hover:shadow-md",
                             slot.status === SlotStatus.Cancelled
                               ? "bg-gray-50 border-gray-200"
                               : slot.status === SlotStatus.Finished
@@ -889,7 +889,7 @@ export const TeacherSchedule = ({
           {selectedSlot && (
             <div className="space-y-6 mt-4 text-blue-900 text-sm md:text-base">
               {/* --- Class Information --- */}
-              <div className="bg-gradient-to-br from-blue-100 to-white border border-blue-200 rounded-xl p-5 shadow-sm">
+              <div className="bg-linear-to-br from-blue-100 to-white border border-blue-200 rounded-xl p-5 shadow-xs">
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-blue-700">
                   <BookOpen className="w-5 h-5" /> Class Information
                 </h3>

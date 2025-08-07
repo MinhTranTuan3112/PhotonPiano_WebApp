@@ -46,7 +46,7 @@ const StepperBar = ({ steps, currentStep, showIndicatorTitle = true }: Props) =>
                                     <div className="absolute inset-0 bg-blue-100 w-full h-full"></div>
                                     <div
                                         className={cn(
-                                            "absolute inset-0 h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300",
+                                            "absolute inset-0 h-full bg-linear-to-r from-blue-500 to-blue-600 transition-all duration-300",
                                         )}
                                         style={{ width: index < currentStep ? "100%" : index === currentStep ? "50%" : "0%" }}
                                     ></div>

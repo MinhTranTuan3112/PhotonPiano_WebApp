@@ -188,7 +188,7 @@ function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
 
     if (timeSlots.length === 1) {
         return (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
                 <Clock className="h-3 w-3 text-blue-600" />
                 <span className="text-sm font-medium text-blue-800">{timeSlots[0]}</span>
             </div>
@@ -198,7 +198,7 @@ function TimeSlotHoverCard({ classTime }: { classTime?: string | string[] }) {
     return (
         <HoverCard>
             <HoverCardTrigger asChild>
-                <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-colors">
+                <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-colors">
                     <Clock className="h-3 w-3 text-blue-600" />
                     <span className="text-sm font-medium text-blue-800">{timeSlots[0]}</span>
                     {timeSlots.length > 1 && (
@@ -379,7 +379,7 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                     }}
                 ></div>
                 <div
-                    className="absolute inset-0 bg-gradient-to-r"
+                    className="absolute inset-0 bg-linear-to-r"
                     style={{
                         backgroundImage: `linear-gradient(to right, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}CC, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}99)`,
                     }}
@@ -388,7 +388,7 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                     <div className="flex items-center justify-between w-full">
                         {/* Left side content */}
                         <div className="max-w-3xl text-white flex-1">
-                            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
+                            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-xs">
                                 <Music size={16} className="text-green-300" />
                                 <span className="text-sm font-medium">Piano Level</span>
                             </div>
@@ -435,7 +435,7 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                                 </div>
 
                                 {/* Piano keyboard */}
-                                <div className="relative bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-2xl">
+                                <div className="relative bg-white/10 backdrop-blur-xs rounded-lg p-6 shadow-2xl">
                                     <div className="flex items-end">
                                         {/* White keys */}
                                         {Array.from({ length: 14 }, (_, i) => (
@@ -611,12 +611,12 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                                 {/* Current Level */}
                                 <div className="flex flex-col md:flex-row items-start gap-6">
                                     <div
-                                        className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg flex-shrink-0 md:mt-4"
+                                        className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg shrink-0 md:mt-4"
                                         style={{ backgroundColor: adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7) }}
                                     >
                                         <Music className="h-6 w-6 text-white" />
                                     </div>
-                                    <Card className="flex-grow w-full md:w-auto border-0 shadow-lg">
+                                    <Card className="grow w-full md:w-auto border-0 shadow-lg">
                                         <div className="h-1" style={{ backgroundColor: levelData.themeColor || "#21c44d" }}></div>
                                         <CardHeader>
                                             <div className="flex items-center">
@@ -672,12 +672,12 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                                 {levelData.nextLevel && (
                                     <div className="flex flex-col md:flex-row items-start gap-6">
                                         <div
-                                            className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg flex-shrink-0 md:mt-4 bg-white dark:bg-gray-800"
+                                            className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg shrink-0 md:mt-4 bg-white dark:bg-gray-800"
                                             style={{ border: `2px dashed ${levelData.nextLevel.themeColor || "#7bc421"}` }}
                                         >
                                             <Music className="h-6 w-6" style={{ color: levelData.nextLevel.themeColor || "#7bc421" }} />
                                         </div>
-                                        <Card className="flex-grow w-full md:w-auto border-0 shadow-lg opacity-90 hover:opacity-100 transition-all">
+                                        <Card className="grow w-full md:w-auto border-0 shadow-lg opacity-90 hover:opacity-100 transition-all">
                                             <div
                                                 className="h-1"
                                                 style={{ backgroundColor: levelData.nextLevel.themeColor || "#7bc421" }}
@@ -842,7 +842,7 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                             {levelData.requiresEntranceTest && (
                                 <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                                     <div className="flex items-start gap-3">
-                                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
                                         <div>
                                             <h4 className="font-semibold text-amber-800 mb-1">Entrance Test Required</h4>
                                             <p className="text-amber-700 text-sm">
@@ -914,7 +914,7 @@ function LevelDetailsContent({ levelData }: { levelData: any }) {
                 {/* Bottom CTA */}
                 <div className="relative overflow-hidden rounded-2xl mb-8">
                     <div
-                        className="absolute inset-0 bg-gradient-to-r"
+                        className="absolute inset-0 bg-linear-to-r"
                         style={{
                             backgroundImage: `linear-gradient(to right, ${adjustColorBrightness(levelData.themeColor || "#21c44d", 0.7)}CC, ${adjustColorBrightness(
                                 levelData.themeColor || "#21c44d",
@@ -1042,7 +1042,7 @@ function LearningItem({
     return (
         <div className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
             <div
-                className="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 bg-opacity-10"
+                className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-opacity-10"
                 style={{ backgroundColor: `${accentColor}20` }}
             >
                 {icon}

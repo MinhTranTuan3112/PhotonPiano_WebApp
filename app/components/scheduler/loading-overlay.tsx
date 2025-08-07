@@ -6,7 +6,7 @@ type LoadingOverlayProps = {
 
 export function LoadingOverlay({ message = "Processing..." }: LoadingOverlayProps) {
     return (
-        <div className = "fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50" >
+        <div className = "fixed inset-0 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center z-50" >
             <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-xl flex flex-col items-center max-w-md mx-4 border border-slate-200 dark:border-slate-700">
                 <div className="relative">
                     <Loader2 className="h-12 w-12 text-slate-700 dark:text-slate-300 animate-spin" />

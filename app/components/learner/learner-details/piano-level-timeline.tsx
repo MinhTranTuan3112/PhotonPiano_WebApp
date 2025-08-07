@@ -13,7 +13,7 @@ export function PianoLevelTimeline({ levels, currentLevelId, className }: Props)
     const currentLevelIndex = currentLevelId ? levels.findIndex((level) => level.id === currentLevelId) : 0;
 
     return (
-        <div className={cn("w-full p-6 rounded-xl bg-background border border-border shadow-sm border-l-4 border-l-theme", className)}>
+        <div className={cn("w-full p-6 rounded-xl bg-background border border-border shadow-xs border-l-4 border-l-theme", className)}>
             <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                 <Piano className="h-5 w-5 text-theme" />
                 <span>Piano Learning Timeline</span>

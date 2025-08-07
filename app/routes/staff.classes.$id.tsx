@@ -255,7 +255,7 @@ function ClassGeneralInformation({ classInfo, idToken, levelPromise }:
 
   function DetailCard({ title, content, index }: { title: string, content: ReactNode, index: number }) {
     return (
-      <div className="bg-gradient-to-r from-blue-50 to-white rounded-lg border-neutral-200 shadow-md hover:shadow-lg transition-all duration-300 p-6"
+      <div className="bg-linear-to-r from-blue-50 to-white rounded-lg border-neutral-200 shadow-md hover:shadow-lg transition-all duration-300 p-6"
         style={{ transitionDelay: `${index * 100}ms` }}>
         <span className="text-xl font-bold">{title}:</span>
         {content}
@@ -712,7 +712,7 @@ function ClassScheduleList({ classInfo, idToken, slotsPerWeek, totalSlots }: { c
         <Form onSubmit={handleOpenEditModal}>
           <div className='my-4 flex gap-2'>
             <Input {...register("description")} placeholder="Enter schedule description..."
-              className='flex-grow'
+              className='grow'
               defaultValue={classInfo.scheduleDescription} />
             <Button type='submit' variant={'theme'}>Update</Button>
           </div>

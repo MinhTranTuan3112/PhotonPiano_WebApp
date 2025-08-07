@@ -461,7 +461,7 @@ export const StaffSchedule = ({
     }
 
     return (
-        <div className="staff-scheduler p-6 bg-gradient-to-b from-slate-50 to-white min-h-screen relative">
+        <div className="staff-scheduler p-6 bg-linear-to-b from-slate-50 to-white min-h-screen relative">
             {/* Loading Overlays */}
             {isFilterLoading && <LoadingOverlay message="Applying filters..." />}
             {isLoading && <LoadingOverlay message="Processing..." />}
@@ -762,7 +762,7 @@ export const StaffSchedule = ({
                         {selectedSlot && (
                             <div className="space-y-6 mt-4 text-slate-800 text-sm md:text-base">
                                 {/* Class Information */}
-                                <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                <div className="bg-linear-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-xs">
                                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-theme">
                                         <BookOpen className="w-5 h-5" /> Class Information
                                     </h3>
@@ -812,7 +812,7 @@ export const StaffSchedule = ({
 
                                 {/* Staff Actions */}
                                 <div className="mt-6 border-t border-slate-200 pt-5">
-                                    <div className="bg-gradient-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                                    <div className="bg-linear-to-br from-slate-100 to-white border border-slate-200 rounded-xl p-5 shadow-xs">
                                         <h3 className="text-lg font-semibold mb-3 text-theme flex items-center gap-2">
                                             <Settings className="w-5 h-5" />
                                             Staff Actions
@@ -850,7 +850,7 @@ export const StaffSchedule = ({
                                                     }
                                                 }}
                                                 disabled={selectedSlot.status === SlotStatus.Cancelled || isTeacherLoading}
-                                                className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-2 bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <RefreshCw className="w-4 h-4" />
                                                 Change Teacher
@@ -868,7 +868,7 @@ export const StaffSchedule = ({
                                                     selectedSlot.status === SlotStatus.Cancelled ||
                                                     selectedSlot.status === SlotStatus.Ongoing
                                                 }
-                                                className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="flex items-center gap-2 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <Ban className="w-4 h-4" />
                                                 Cancel Slot
@@ -896,14 +896,14 @@ export const StaffSchedule = ({
                             filters.slotStatuses.length > 0 ||
                             filters.instructorFirebaseIds.length > 0 ||
                             filters.classIds.length > 0) && (
-                                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-4 border border-indigo-100">
+                                <div className="bg-linear-to-r from-indigo-50 to-purple-50 p-4 rounded-xl mb-4 border border-indigo-100">
                                     <h3 className="font-medium text-indigo-800 mb-2 flex items-center">
                                         <Filter className="w-4 h-4 mr-2" />
                                         Active Filters
                                     </h3>
                                     <div className="flex flex-wrap gap-2">
                                         {filters.shifts.length > 0 && (
-                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-sm">
+                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-xs">
                                                 {filters.shifts.length} Shift(s)
                                                 <button
                                                     className="ml-2 text-theme hover:text-indigo-800"
@@ -916,7 +916,7 @@ export const StaffSchedule = ({
                                             </Badge>
                                         )}
                                         {filters.slotStatuses.length > 0 && (
-                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-sm">
+                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-xs">
                                                 {filters.slotStatuses.length} Status(es)
                                                 <button
                                                     className="ml-2 text-theme hover:text-indigo-800"
@@ -929,7 +929,7 @@ export const StaffSchedule = ({
                                             </Badge>
                                         )}
                                         {filters.instructorFirebaseIds.length > 0 && (
-                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-sm">
+                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-xs">
                                                 {filters.instructorFirebaseIds.length} Teacher(s)
                                                 <button
                                                     className="ml-2 text-theme hover:text-indigo-800"
@@ -942,7 +942,7 @@ export const StaffSchedule = ({
                                             </Badge>
                                         )}
                                         {filters.classIds.length > 0 && (
-                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-sm">
+                                            <Badge variant="outline" className="bg-white text-indigo-700 border-indigo-200 px-3 py-1 shadow-xs">
                                                 {filters.classIds.length} Class(es)
                                                 <button
                                                     className="ml-2 text-theme hover:text-indigo-800"
@@ -963,7 +963,7 @@ export const StaffSchedule = ({
 
                         <ScrollArea className="max-h-[60vh] pr-2">
                             <div className="grid grid-cols-1 gap-6">
-                                <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 p-5 rounded-xl border border-indigo-200 shadow-sm">
+                                <div className="bg-linear-to-r from-indigo-50 to-indigo-100 p-5 rounded-xl border border-indigo-200 shadow-xs">
                                     <h3 className="font-semibold mb-4 text-indigo-800 flex items-center text-lg">
                                         <Clock className="w-5 h-5 mr-2 text-indigo-700" />
                                         Shift Times
@@ -998,7 +998,7 @@ export const StaffSchedule = ({
                                     </div>
                                 </div>
 
-                                <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-200 shadow-sm">
+                                <div className="bg-linear-to-r from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-200 shadow-xs">
                                     <h3 className="font-semibold mb-4 text-purple-800 flex items-center text-lg">
                                         <Info className="w-5 h-5 mr-2 text-purple-700" />
                                         Slot Status
@@ -1034,7 +1034,7 @@ export const StaffSchedule = ({
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="bg-gradient-to-r from-pink-50 to-pink-100 p-5 rounded-xl border border-pink-200 shadow-sm">
+                                    <div className="bg-linear-to-r from-pink-50 to-pink-100 p-5 rounded-xl border border-pink-200 shadow-xs">
                                         <h3 className="font-semibold mb-4 text-pink-800 flex items-center text-lg">
                                             <User className="w-5 h-5 mr-2 text-pink-700" />
                                             Teachers
@@ -1101,7 +1101,7 @@ export const StaffSchedule = ({
                                         </div>
                                     </div>
 
-                                    <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-5 rounded-xl border border-amber-200 shadow-sm">
+                                    <div className="bg-linear-to-r from-amber-50 to-amber-100 p-5 rounded-xl border border-amber-200 shadow-xs">
                                         <h3 className="font-semibold mb-4 text-amber-800 flex items-center text-lg">
                                             <Users className="w-5 h-5 mr-2 text-amber-700" />
                                             Classes
@@ -1344,7 +1344,7 @@ export const StaffSchedule = ({
                                 <Button
                                     variant="secondary"
                                     onClick={handleChangeTeacher}
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+                                    className="bg-linear-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
                                     disabled={!newTeacherId || !changeTeacherReason.trim() || isTeacherLoading}
                                 >
                                     {isTeacherLoading ? (
