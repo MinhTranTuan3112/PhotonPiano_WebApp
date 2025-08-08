@@ -131,7 +131,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                         <div className='mt-2 flex gap-2'>
                             <Button variant={'outline'} onClick={handleRefresh} type='button'><RefreshCcw /></Button>
                             <Input placeholder='Search...' name='name'></Input>
-                            <Button Icon={Search} iconPlacement='left'>Search</Button>
+                            <Button Icon={Search} iconPlacement='left' variant={'theme'}>Search</Button>
                         </div>
                     </Form>
                     <div className='max-h-96 overflow-y-auto mt-2'>
@@ -163,7 +163,7 @@ export default function AddStudentClassDialog({ isOpen, setIsOpen, studentPromis
                         Randomly distribute to reach minimum class size
                     </div>
                     <div className='flex gap-2 mt-2 '>
-                        <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full'>Apply</Button>
+                        <Button onClick={handleOpenAddModel} Icon={PlusCircle} iconPlacement='left' className='w-full' variant={'warning'}>Apply</Button>
                     </div>
                 </div>
 

@@ -49,7 +49,7 @@ export default function Combobox({ items, onChange, className, placeholder = 'Se
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0 max-h-72 overflow-y-auto">
+            <PopoverContent className="p-0 max-h-72 overflow-y-auto w-[var(--radix-popover-trigger-width)]">
                 <Command className={className}>
                     <CommandInput placeholder={placeholder} onValueChange={onChange} />
                     <CommandList className="max-h-60 overflow-y-auto">

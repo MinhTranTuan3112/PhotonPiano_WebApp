@@ -329,6 +329,7 @@ body {
 
   body {
     @apply bg-background text-foreground;
+    pointer-events: auto !important; 
   }
 }
 

@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node"
 import { Suspense } from "react"
-import { Await, defer, useLoaderData } from "@remix-run/react"
+import { Await, useLoaderData } from "@remix-run/react"
 import { getWeekRange } from "~/lib/utils/datetime"
 import { fetchSlots } from "~/lib/services/scheduler"
 import { getWeek } from "date-fns"
@@ -159,7 +159,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         idToken: idToken,
     }).then((response) => response.data)
 
-    return defer({
+    return {
         slots: slotsPromise,
         year,
         weekNumber,
@@ -170,14 +170,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         currentAccount,
         classId,
         className,
-    })
+    }
 }
 
 export default function StaffScheduler({ }: Props) {
     const data = useLoaderData<typeof loader>()
     // console.log("StaffScheduler data:", data)
     return (
-        <Suspense fallback={<SchedulerSkeleton />}>
+        <Suspense fallback={<SchedulerSkeleton />} key={JSON.stringify({
+            year: data.year,
+            weekNumber: data.weekNumber,
+            startDate: data.startDate.toISOString(),
+            endDate: data.endDate.toISOString(),
+            classId: data.classId,
+            className: data.className,
+            role: data.role,
+        })}>
             <Await resolve={data.slots}>
                 {(slots) => (
                     <>

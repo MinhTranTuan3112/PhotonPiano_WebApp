@@ -16,7 +16,7 @@ import { getAuth } from "./lib/utils/auth";
 import { fetchGoogleOAuthCallback } from "./lib/services/auth";
 import { AuthResponse } from "./lib/types/auth-response";
 import { getCurrentTimeInSeconds } from "./lib/utils/datetime";
-import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie";
+import { expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "./lib/utils/cookie.server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AuthProvider from "./lib/contexts/auth-context";
 

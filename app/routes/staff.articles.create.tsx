@@ -5,7 +5,6 @@ import { useFetcher } from '@remix-run/react';
 import { PenBox } from 'lucide-react';
 import { useEffect } from 'react';
 import { getValidatedFormData } from 'remix-hook-form';
-import { toast } from 'sonner';
 import ArticleForm, { ArticleFormData, articleSchema } from '~/components/news/article-form'
 import { Separator } from '~/components/ui/separator'
 import { fetchCreateArticle } from '~/lib/services/article';

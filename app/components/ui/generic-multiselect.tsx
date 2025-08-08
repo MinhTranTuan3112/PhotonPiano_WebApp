@@ -265,7 +265,7 @@ export default function GenericMultiSelect<T>({
                 </Button>
             </PopoverTrigger>
             <PopoverContent
-                className="w-auto p-0 popover-content-width-full"
+                className="p-0 w-[var(--radix-popover-trigger-width)]"
                 align="start"
                 onEscapeKeyDown={() => setIsPopoverOpen(false)}
             >

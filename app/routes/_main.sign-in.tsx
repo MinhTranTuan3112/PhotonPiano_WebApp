@@ -11,7 +11,7 @@ import { Mail, Music, BookOpen, Headphones, MusicIcon, Users } from 'lucide-reac
 import { PasswordInput } from '~/components/ui/password-input'
 import { fetchSignIn } from '~/lib/services/auth'
 import { getCurrentTimeInSeconds } from '~/lib/utils/datetime'
-import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie'
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from '~/lib/utils/cookie.server'
 import { isAxiosError } from 'axios'
 import { getErrorDetailsInfo, isRedirectError } from '~/lib/utils/error'
 import { AuthResponse } from '~/lib/types/auth-response'

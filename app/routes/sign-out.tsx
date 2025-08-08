@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "~/lib/utils/cookie";
+import { accountIdCookie, expirationCookie, idTokenCookie, refreshTokenCookie, roleCookie } from "~/lib/utils/cookie.server";
 
 export async function action({ }: ActionFunctionArgs) {
 

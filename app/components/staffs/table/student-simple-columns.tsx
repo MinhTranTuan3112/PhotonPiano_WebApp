@@ -84,7 +84,10 @@ export function getStudentSimpleColumns({ selectedRowIds, toggleRowSelection }: 
         {
             accessorKey: 'Action',
             header: () => <div className="flex flex-row gap-1 items-center"></div>,
-            cell: ({ row }) => <Button onClick={() =>   window.open(`/staff/students/${row.original.accountFirebaseId}`, '_blank')}>View</Button>
+            cell: ({ row }) =>
+                <Button onClick={() => window.open(`/staff/students/${row.original.accountFirebaseId}`, '_blank')} variant={'theme'}>
+                    View
+                </Button>
         }
     ];
 }
